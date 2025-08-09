@@ -1,0 +1,25 @@
+{
+  "name": "loop",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [
+    "school",
+    "trade",
+    "marketplace"
+  ],
+  "homepage": "https://github.com/ezemastro/loop#readme",
+  "bugs": {
+    "url": "https://github.com/ezemastro/loop/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/ezemastro/loop.git"
+  },
+  "license": "Apache-2.0",
+  "author": "Ezequiel Mastropietro",
+  "type": "module",
+  "main": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
