@@ -1,0 +1,3 @@
+/server/.env
+/server/postgres
+/server/api/node_modules
