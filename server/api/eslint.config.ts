@@ -15,4 +15,14 @@ export default defineConfig([
   tseslint.configs.recommended,
   eslintConfigPrettier,
   eslintPluginPrettier,
+  {
+    rules: {
+      "prettier/prettier": [
+        "error",
+        {
+          endOfLine: "auto",
+        },
+      ],
+    },
+  },
 ]);
