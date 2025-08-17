@@ -1,0 +1,6 @@
+export const {
+  POSTGRES_USER: DB_USER,
+  POSTGRES_DB: DB_NAME,
+  POSTGRES_PASSWORD: DB_PASSWORD,
+  PORT = 3000,
+} = process.env;
