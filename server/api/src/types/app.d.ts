@@ -10,7 +10,6 @@ interface Media {
   mime?: string | null;
   mediaType?: MediaType | null;
   uploadedBy: UUID;
-  createdAt: Date;
 }
 
 interface School {
@@ -37,8 +36,6 @@ interface User {
   profileMediaId?: UUID | null;
   profileMedia?: Media | null;
   credits: { balance: number; locked: number };
-  createdAt: Date;
-  updatedAt?: Date | null;
   /* Optionally expanded */
   school?: School;
   role?: Role;
@@ -52,25 +49,23 @@ interface Category {
   priceRange?: { min?: number | null; max?: number | null };
   icon?: string | null;
   stats: { kgWaste: number; kgCo2: number; lH2o: number };
-  createdAt: Date;
   children?: Category[];
 }
 
 interface Listing {
   id: UUID;
   sellerId: UUID;
+  seller?: User;
   title: string;
   description?: string | null;
   categoryId: UUID;
   priceCredits: number;
   status: ListingStatus;
+  disabled: boolean;
   buyerId?: UUID | null;
+  buyer?: User;
   offeredCredits?: number | null;
-  createdAt: Date;
-  updatedAt?: Date | null;
   media?: Media[]; // ordered
-  seller?: User;
-  buyer?: User | null;
   category?: Category;
 }
 
@@ -104,7 +99,10 @@ interface UserMission {
   missionTemplate: MissionTemplate;
   completed: boolean;
   completedAt?: Date | null;
-  progress: JsonObject;
+  progress: {
+    total: number;
+    current: number;
+  };
 }
 
 type NotificationType = DB_NotificationType;
@@ -178,8 +176,8 @@ interface Message {
   id: UUID;
   senderId: UUID;
   sender?: User;
-  receiverId: UUID;
-  receiver?: User;
+  recipientId: UUID;
+  recipient?: User;
   text: string;
   attachedListingId?: UUID | null;
   attachedListing?: Listing | null;

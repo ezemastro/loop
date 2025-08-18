@@ -142,7 +142,7 @@ interface DB_Notifications {
 interface DB_Messages {
   id: UUID;
   sender_id: UUID;
-  receiver_id: UUID;
+  recipient_id: UUID;
   text: string;
   attached_listing_id: UUID | null;
   created_at: ISODateString;
