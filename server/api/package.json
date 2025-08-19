@@ -12,13 +12,16 @@
     "start": "node dist/app.js"
   },
   "dependencies": {
+    "bcrypt": "6.0.0",
     "express": "5.1.0",
     "pg": "8.16.3",
     "zod": "4.0.17"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
+    "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.3",
+    "@types/jest": "^30.0.0",
     "@types/node": "^24.3.0",
     "@types/pg": "^8.15.5",
     "@typescript-eslint/eslint-plugin": "^8.39.1",
@@ -27,6 +30,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "globals": "^16.3.0",
+    "jest": "^30.0.5",
     "jiti": "^2.5.1",
     "nodemon": "^3.1.10",
     "prettier": "^3.6.2",
