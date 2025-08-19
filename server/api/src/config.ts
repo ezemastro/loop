@@ -4,3 +4,5 @@ export const {
   POSTGRES_PASSWORD: DB_PASSWORD,
   PORT = 3000,
 } = process.env;
+
+export const INITIAL_CREDITS = 0;

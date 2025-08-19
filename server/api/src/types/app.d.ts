@@ -29,8 +29,8 @@ interface User {
   id: UUID;
   firstName: string;
   lastName: string;
-  email?: string | null;
-  phone?: string | null;
+  email: string | null;
+  phone: string | null;
   schoolId: UUID;
   roleId: UUID;
   profileMediaId?: UUID | null;

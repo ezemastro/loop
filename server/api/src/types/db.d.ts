@@ -22,12 +22,13 @@ interface DB_Roles {
 }
 interface DB_Users {
   id: UUID;
+  email: string;
+  password: string;
   first_name: string;
   last_name: string;
-  email: string | null;
   phone: string | null;
   school_id: UUID;
-  role: UUID; // FK -> roles.id
+  role_id: UUID;
   profile_media_id: UUID | null;
   credits_balance: number;
   credits_locked: number;

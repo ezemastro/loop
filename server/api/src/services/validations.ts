@@ -201,3 +201,20 @@ const messageSchema = z.object({
 });
 export const validateMessage = (data: unknown) =>
   messageSchema.parseAsync(data);
+
+const registerSchema = z.object({
+  password: z.string().min(6).max(100),
+  firstName: z.string().min(2).max(100),
+  lastName: z.string().min(2).max(100),
+  schoolId: z.uuid(),
+  roleId: z.uuid(),
+  email: z.email(),
+});
+export const validateRegister = (data: unknown) =>
+  registerSchema.parseAsync(data);
+
+const loginSchema = z.object({
+  email: z.email(),
+  password: z.string().min(6).max(100),
+});
+export const validateLogin = (data: unknown) => loginSchema.parseAsync(data);
