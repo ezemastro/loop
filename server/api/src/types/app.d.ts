@@ -29,7 +29,7 @@ interface User {
   id: UUID;
   firstName: string;
   lastName: string;
-  email: string | null;
+  email: string;
   phone: string | null;
   schoolId: UUID;
   roleId: UUID;

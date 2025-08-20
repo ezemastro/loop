@@ -1,12 +1,12 @@
 import { type Request, type Response } from "express";
 import { validateRegister } from "../services/validations.js";
 import { InvalidInputError } from "../services/errors.js";
-import type { AuthModelInstance } from "../types/models.js";
+import type { AuthModel } from "../types/models.js";
 
 export class AuthController {
   // Inyectar el modelo de autenticación
-  authModel: AuthModelInstance;
-  constructor({ authModel }: { authModel: AuthModelInstance }) {
+  authModel: AuthModel;
+  constructor({ authModel }: { authModel: AuthModel }) {
     this.authModel = authModel;
   }
 

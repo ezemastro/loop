@@ -1,4 +1,4 @@
-import type { NamedQuery } from "../types/models.js";
+import type { NamedQuery } from "../types/dbClient.js";
 
 // Helper para crear queries nombradas
 const q = <T>(key: string, text: string): NamedQuery<T> => ({
@@ -10,7 +10,7 @@ export const queries = {
   userExists: q<{ exists: boolean }>(
     "user.exists",
     `SELECT EXISTS(
-       SELECT 1 FROM users WHERE first_name = $1 AND last_name = $2
+       SELECT 1 FROM users WHERE email = $1 AND first_name = $2 AND last_name = $3
      ) AS exists`,
   ),
 

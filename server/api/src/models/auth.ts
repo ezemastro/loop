@@ -1,4 +1,4 @@
-import { INITIAL_CREDITS } from "../config.js";
+import { ERROR_MESSAGES, INITIAL_CREDITS } from "../config.js";
 import {
   ConflictError,
   InternalServerError,
@@ -6,11 +6,11 @@ import {
 } from "../services/errors.js";
 import { comparePasswords, hashPassword } from "../services/hash.js";
 import type {
-  AuthLoginPayload,
-  AuthModelQueries,
-  DatabaseService,
-  AuthRegisterPayload,
-} from "../types/models.js";
+  DatabaseClient,
+  DatabaseConnection,
+  Queries,
+} from "../types/dbClient.js";
+import type { AuthLoginPayload, AuthRegisterPayload } from "../types/models.js";
 import {
   parseSchoolFromDb,
   parseRoleFromDb,
@@ -18,16 +18,16 @@ import {
 } from "../utils/parseDb.js";
 
 export class AuthModel {
-  database: DatabaseService;
-  queries: AuthModelQueries;
+  dbConnection: DatabaseConnection;
+  queries: Queries;
   constructor({
-    database,
+    dbConnection,
     queries,
   }: {
-    database: DatabaseService;
-    queries: AuthModelQueries;
+    dbConnection: DatabaseConnection;
+    queries: Queries;
   }) {
-    this.database = database;
+    this.dbConnection = dbConnection;
     this.queries = queries;
   }
   registerUser = async ({
@@ -39,38 +39,40 @@ export class AuthModel {
     email,
   }: AuthRegisterPayload) => {
     // Iniciar conexión con la base de datos
-    let client;
+    let client: DatabaseClient;
     try {
-      client = await this.database.connect();
+      client = await this.dbConnection.connect();
     } catch {
-      throw new InternalServerError("Error al conectar a la base de datos");
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
     }
     try {
-      // Guardar referencia a la conexión
-      const db = this.database.bind(client);
       // Realizar la consulta para verificar si el usuario ya existe
-      const isExistingUser = await db.exists(this.queries.userExists, [
+      const query = await client.query(this.queries.userExists, [
+        email,
         firstName,
         lastName,
       ]);
-      if (isExistingUser) {
-        throw new ConflictError("El usuario ya existe");
+      if (query[0]?.exists) {
+        throw new ConflictError(ERROR_MESSAGES.USER_ALREADY_EXISTS);
       }
       // Obtener rol y escuela
-      const [schoolDb, roleDb] = await Promise.all([
-        db.one(this.queries.schoolById, [schoolId]),
-        db.one(this.queries.roleById, [roleId]),
+      const [[schoolDb], [roleDb]] = await Promise.all([
+        client.query(this.queries.schoolById, [schoolId]),
+        client.query(this.queries.roleById, [roleId]),
       ]);
 
-      if (!schoolDb || !roleDb) {
-        throw new InvalidInputError("Rol o escuela no encontrados");
+      if (!schoolDb) {
+        throw new InvalidInputError(ERROR_MESSAGES.SCHOOL_NOT_FOUND);
+      }
+      if (!roleDb) {
+        throw new InvalidInputError(ERROR_MESSAGES.ROLE_NOT_FOUND);
       }
       const school = parseSchoolFromDb(schoolDb);
       const role = parseRoleFromDb(roleDb);
       // Encriptar la contraseña
       const hashedPassword = await hashPassword(password);
       // Insertar el nuevo usuario en la base de datos
-      const { id } = await db.one(this.queries.insertUser, [
+      const [newUser] = await client.query(this.queries.insertUser, [
         email,
         firstName,
         lastName,
@@ -80,10 +82,10 @@ export class AuthModel {
       ]);
       // Devolver el usuario creado
       const user: User = {
-        id,
+        id: newUser!.id,
         firstName,
         lastName,
-        email: null,
+        email,
         phone: null,
         schoolId,
         school,
@@ -98,35 +100,34 @@ export class AuthModel {
       return { user };
     } catch (error) {
       // Deshacer cambios si ocurre un error
-      this.database.rollback(client);
+      await client.rollback();
       if (
         error instanceof InvalidInputError ||
         error instanceof ConflictError
       ) {
         throw error;
       }
-      throw new InternalServerError("Error al registrar el usuario");
+      console.error(error);
+      throw new InternalServerError(ERROR_MESSAGES.UNEXPECTED_ERROR);
     } finally {
-      // Asegurarse de liberar el cliente en caso de error
-      this.database.release(client);
+      // Liberar cliente aunque independientemente de si hubo error
+      client.release();
     }
   };
 
   loginUser = async ({ email, password }: AuthLoginPayload) => {
     // Iniciar conexión con la base de datos
-    let client;
+    let client: DatabaseClient;
     try {
-      client = await this.database.connect();
+      client = await this.dbConnection.connect();
     } catch {
-      throw new InternalServerError("Error al conectar a la base de datos");
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
     }
     try {
-      // Guardar referencia a la conexión
-      const db = this.database.bind(client);
       // Realizar la consulta para verificar si el usuario existe
-      const userDb = await db.one(this.queries.userByEmail, [email]);
+      const [userDb] = await client.query(this.queries.userByEmail, [email]);
       if (!userDb) {
-        throw new InvalidInputError("Credenciales inválidas");
+        throw new InvalidInputError(ERROR_MESSAGES.INVALID_CREDENTIALS);
       }
       // Verificar la contraseña
       const isPasswordCorrect = await comparePasswords(
@@ -134,7 +135,7 @@ export class AuthModel {
         userDb.password,
       );
       if (!isPasswordCorrect) {
-        throw new InvalidInputError("Credenciales inválidas");
+        throw new InvalidInputError(ERROR_MESSAGES.INVALID_CREDENTIALS);
       }
       // Devolver el usuario autenticado
       return { user: parseUserFromDb(userDb) };
@@ -146,10 +147,10 @@ export class AuthModel {
       ) {
         throw error;
       }
-      throw new InternalServerError("Error al iniciar sesión");
+      throw new InternalServerError(ERROR_MESSAGES.UNEXPECTED_ERROR);
     } finally {
       // Asegurarse de liberar el cliente en caso de error
-      this.database.release(client);
+      client.release();
     }
   };
 }
