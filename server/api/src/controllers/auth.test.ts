@@ -10,10 +10,10 @@ import { getMockReq, getMockRes } from "@jest-mock/express";
 const generateTokenSpy = jest.spyOn(jwt, "generateToken");
 const authModelMock: Partial<AuthModel> = {
   registerUser: jest.fn().mockResolvedValue({
-    user: MOCK_USER,
+    profile: MOCK_USER,
   }),
   loginUser: jest.fn().mockResolvedValue({
-    user: MOCK_USER,
+    profile: MOCK_USER,
   }),
 };
 
@@ -37,7 +37,7 @@ describe("AuthController", () => {
       expect(authModelMock.registerUser).toHaveBeenCalled();
       expect(resMock.status).toHaveBeenCalledWith(201);
       expect(resMock.json).toHaveBeenCalledWith(
-        successResponse({ user: MOCK_USER }),
+        successResponse({ profile: MOCK_USER }),
       );
       expect(resMock.cookie).toHaveBeenCalledTimes(1);
       expect(generateTokenSpy).toHaveBeenCalledWith({ userId: MOCK_USER.id });
@@ -63,7 +63,7 @@ describe("AuthController", () => {
       expect(authModelMock.loginUser).toHaveBeenCalled();
       expect(resMock.status).toHaveBeenCalledWith(200);
       expect(resMock.json).toHaveBeenCalledWith(
-        successResponse({ user: MOCK_USER }),
+        successResponse({ profile: MOCK_USER }),
       );
       expect(resMock.cookie).toHaveBeenCalledTimes(1);
       expect(generateTokenSpy).toHaveBeenCalledWith({ userId: MOCK_USER.id });

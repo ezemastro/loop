@@ -1,6 +1,6 @@
 import { AuthModel } from "./auth";
 import { queries } from "../services/queries";
-import { validateUser } from "../services/validations";
+import { validateProfile } from "../services/validations";
 import type {
   DatabaseClient,
   DatabaseConnection,
@@ -53,6 +53,21 @@ const mockQueryDefault = async (query: NamedQuery<unknown>) => {
   if (query === queries.userByEmail) {
     return [MOCK_USER_DB];
   }
+  if (query === queries.userById) {
+    return [MOCK_USER_DB];
+  }
+  if (query === queries.mediaById) {
+    return [
+      MOCK_USER.profileMediaId
+        ? {
+            id: MOCK_USER.profileMediaId,
+            url: "http://example.com/media.jpg",
+            type: "image",
+            mime: "image/jpeg",
+          }
+        : null,
+    ];
+  }
 };
 
 describe("AuthModel", () => {
@@ -70,7 +85,7 @@ describe("AuthModel", () => {
     test("Should register a user successfully", async () => {
       const modelReturn = await authModel.registerUser(MOCK_USER);
       // Devolver el usuario creado
-      await expect(validateUser(modelReturn.user)).resolves.not.toThrow();
+      await expect(validateProfile(modelReturn.profile)).resolves.not.toThrow();
       // Haber verificado el usuario
       expect(mockQuery).toHaveBeenCalledWith(queries.userExists, [
         MOCK_USER.email,
@@ -157,7 +172,7 @@ describe("AuthModel", () => {
         email: MOCK_USER.email,
         password: "validPassword",
       });
-      await expect(validateUser(modelReturn.user)).resolves.not.toThrow();
+      await expect(validateProfile(modelReturn.profile)).resolves.not.toThrow();
     });
     test("Should throw error if password is incorrect", async () => {
       mockQuery.mockImplementation(async (query) => {

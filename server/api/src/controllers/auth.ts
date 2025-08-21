@@ -1,4 +1,4 @@
-import { type Request, type Response } from "express";
+import type { Request, Response } from "express";
 import { validateLogin, validateRegister } from "../services/validations.js";
 import { InvalidInputError } from "../services/errors.js";
 import type { AuthModel } from "../types/models.js";
@@ -22,7 +22,7 @@ export class AuthController {
     }
     // Registrar el usuario
     const { password, firstName, lastName, schoolId, roleId, email } = req.body;
-    const { user } = await this.authModel.registerUser({
+    const { profile } = await this.authModel.registerUser({
       firstName,
       lastName,
       password,
@@ -31,11 +31,11 @@ export class AuthController {
       email,
     });
     // Agregar las cookies de sesión
-    const token = generateToken({ userId: user.id });
+    const token = generateToken({ userId: profile.id });
     res.cookie(COOKIE_NAMES.TOKEN, token, cookieOptions);
 
     // Devolver la respuesta
-    return res.status(201).json(successResponse({ user }));
+    return res.status(201).json(successResponse({ profile }));
   };
 
   login = async (req: Request, res: Response) => {
@@ -47,12 +47,12 @@ export class AuthController {
     }
     // Iniciar sesión
     const { email, password } = req.body;
-    const { user } = await this.authModel.loginUser({ email, password });
+    const { profile } = await this.authModel.loginUser({ email, password });
     // Agregar las cookies de sesión
-    const token = generateToken({ userId: user.id });
+    const token = generateToken({ userId: profile.id });
     res.cookie(COOKIE_NAMES.TOKEN, token, cookieOptions);
 
     // Devolver la respuesta
-    return res.status(200).json(successResponse({ user }));
+    return res.status(200).json(successResponse({ profile }));
   };
 }

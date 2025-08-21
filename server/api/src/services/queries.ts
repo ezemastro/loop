@@ -32,4 +32,8 @@ export const queries = {
     "user.byEmail",
     `SELECT * FROM users WHERE email = $1`,
   ),
+
+  userById: q<DB_Users>("user.byId", `SELECT * FROM users WHERE id = $1`),
+
+  mediaById: q<DB_Media>("media.byId", `SELECT * FROM media WHERE id = $1`),
 } as const;

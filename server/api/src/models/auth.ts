@@ -13,8 +13,9 @@ import type {
 import type { AuthLoginPayload, AuthRegisterPayload } from "../types/models.js";
 import {
   parseSchoolFromDb,
+  parseProfileFromDb,
+  parseMediaFromDb,
   parseRoleFromDb,
-  parseUserFromDb,
 } from "../utils/parseDb.js";
 
 export class AuthModel {
@@ -81,7 +82,7 @@ export class AuthModel {
         roleId,
       ]);
       // Devolver el usuario creado
-      const user: User = {
+      const profile: Profile = {
         id: newUser!.id,
         firstName,
         lastName,
@@ -97,7 +98,7 @@ export class AuthModel {
         },
         profileMediaId: null,
       };
-      return { user };
+      return { profile };
     } catch (error) {
       // Deshacer cambios si ocurre un error
       await client.rollback();
@@ -137,16 +138,39 @@ export class AuthModel {
       if (!isPasswordCorrect) {
         throw new InvalidInputError(ERROR_MESSAGES.INVALID_CREDENTIALS);
       }
+      // Obtener información adicional del perfil
+      let profileMedia, school, role;
+      try {
+        [[profileMedia], [school], [role]] = await Promise.all([
+          client.query(this.queries.mediaById, [userDb.id]),
+          client.query(this.queries.schoolById, [userDb.school_id]),
+          client.query(this.queries.roleById, [userDb.role_id]),
+        ]);
+      } catch {
+        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+      }
+      if (!school || !role || (!profileMedia && userDb.profile_media_id)) {
+        throw new InternalServerError(ERROR_MESSAGES.UNEXPECTED_ERROR);
+      }
       // Devolver el usuario autenticado
-      return { user: parseUserFromDb(userDb) };
+      const profile: Profile = {
+        ...parseProfileFromDb(userDb),
+        profileMedia: userDb.profile_media_id
+          ? parseMediaFromDb(profileMedia!)
+          : null,
+        school: parseSchoolFromDb(school),
+        role: parseRoleFromDb(role),
+      };
+      return { profile };
     } catch (error) {
       // Manejar errores
       if (
-        error instanceof InvalidInputError ||
-        error instanceof ConflictError
+        error instanceof InternalServerError ||
+        error instanceof InvalidInputError
       ) {
         throw error;
       }
+      console.error(error);
       throw new InternalServerError(ERROR_MESSAGES.UNEXPECTED_ERROR);
     } finally {
       // Asegurarse de liberar el cliente en caso de error

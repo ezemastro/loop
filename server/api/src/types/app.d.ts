@@ -9,7 +9,7 @@ interface Media {
   url: string;
   mime?: string | null;
   mediaType?: MediaType | null;
-  uploadedBy: UUID;
+  uploadedBy?: UUID;
 }
 
 interface School {
@@ -25,7 +25,7 @@ interface Role {
   name: string;
 }
 
-interface User {
+interface Profile {
   id: UUID;
   firstName: string;
   lastName: string;
@@ -36,10 +36,11 @@ interface User {
   profileMediaId?: UUID | null;
   profileMedia?: Media | null;
   credits: { balance: number; locked: number };
-  /* Optionally expanded */
   school?: School;
   role?: Role;
 }
+
+type User = Omit<Profile, "credits">;
 
 interface Category {
   id: UUID;

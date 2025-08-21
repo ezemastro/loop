@@ -41,6 +41,26 @@ const roleSchema = z.object({
 });
 export const validateRole = (data: unknown) => roleSchema.parseAsync(data);
 
+const profileSchema = z.object({
+  id: z.uuid(),
+  firstName: z.string().min(2).max(100),
+  lastName: z.string().min(2).max(100),
+  email: z.email().optional(),
+  phone: z.string().nullable().optional(),
+  roleId: z.uuid(),
+  role: roleSchema.optional(),
+  schoolId: z.uuid(),
+  school: schoolSchema.optional(),
+  profileMediaId: z.uuid().nullable().optional(),
+  profileMedia: mediaSchema.nullable().optional(),
+  credits: z.object({
+    balance: z.number().nonnegative(),
+    locked: z.number().nonnegative(),
+  }),
+});
+export const validateProfile = (data: unknown) =>
+  profileSchema.parseAsync(data);
+
 const userSchema = z.object({
   id: z.uuid(),
   firstName: z.string().min(2).max(100),
@@ -52,11 +72,7 @@ const userSchema = z.object({
   schoolId: z.uuid(),
   school: schoolSchema.optional(),
   profileMediaId: z.uuid().nullable().optional(),
-  profileMedia: mediaSchema.optional(),
-  credits: z.object({
-    balance: z.number().nonnegative(),
-    locked: z.number().nonnegative(),
-  }),
+  profileMedia: mediaSchema.nullable().optional(),
 });
 export const validateUser = (data: unknown) => userSchema.parseAsync(data);
 

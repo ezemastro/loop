@@ -20,7 +20,7 @@
 {
   "data": {
     "token": "<jwt>",
-    "user": {
+    "profile": {
       "id": "<uuid>",
       "firstName": "Ana",
       "lastName": "García",
@@ -53,7 +53,7 @@
 {
   "data": {
     "token":"<jwt>",
-    "user":{
+    "profile":{
       "id":"<uuid>",
       "firstName":"Ana",
       "lastName":"García",
