@@ -7,3 +7,13 @@ export const generateToken = ({ userId }: { userId: string }) => {
   });
   return token;
 };
+export const parseToken = (token: string) => {
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET as string) as {
+      userId: string;
+    };
+    return decoded;
+  } catch {
+    throw new Error("Invalid token");
+  }
+};
