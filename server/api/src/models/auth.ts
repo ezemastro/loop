@@ -18,8 +18,8 @@ import {
 } from "../utils/parseDb.js";
 
 export class AuthModel {
-  dbConnection: DatabaseConnection;
-  queries: Queries;
+  private dbConnection: DatabaseConnection;
+  private queries: Queries;
   constructor({
     dbConnection,
     queries,

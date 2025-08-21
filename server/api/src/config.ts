@@ -1,3 +1,8 @@
+import dotenv from "dotenv";
+dotenv.config({
+  path: [".env", "../.env"],
+});
+
 export const {
   POSTGRES_USER: DB_USER,
   POSTGRES_DB: DB_NAME,
@@ -6,7 +11,6 @@ export const {
   JWT_SECRET,
   TOKEN_EXP = "30d",
 } = process.env;
-
 export const INITIAL_CREDITS = 0;
 
 export const ERROR_MESSAGES = {
