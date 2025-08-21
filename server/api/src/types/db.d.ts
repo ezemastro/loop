@@ -64,7 +64,8 @@ interface DB_Listings {
   description: string | null;
   category_id: UUID;
   price_credits: number;
-  status: DB_ListingStatus;
+  listing_status: DB_ListingStatus;
+  product_status: DB_ProductStatus;
   buyer_id: UUID | null;
   offered_credits: number | null;
   created_at: ISODateString;
@@ -111,7 +112,8 @@ interface DB_MissionPayload {
 interface DB_LoopPayload {
   listing_id: UUID;
   buyer_id: UUID | null;
-  status: DB_ListingStatus;
+  to_listing_status: DB_ListingStatus;
+  to_amount: number | null;
 }
 interface DB_DonationPayload {
   donor_user_id: UUID;

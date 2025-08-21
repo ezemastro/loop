@@ -1,6 +1,7 @@
 type UUID = string;
 
 type ListingStatus = "published" | "offered" | "accepted" | "received";
+type ProductStatus = "new" | "used" | "damaged" | "repaired";
 type MediaType = "image" | "video" | "audio" | string;
 type TransactionType = "loop" | "mission" | "admin" | "donation";
 type NotificationType = "mission" | "loop" | "donation" | "admin";
@@ -78,7 +79,8 @@ interface ListingBase {
   description: string | null;
   categoryId: UUID;
   price: number;
-  status: ListingStatus;
+  listingStatus: ListingStatus;
+  productStatus: ProductStatus;
   disabled: boolean;
   buyerId: UUID | null;
   offeredCredits: number | null;
@@ -144,7 +146,7 @@ interface NotificationBase {
     | {
         listingId: UUID;
         buyerId: UUID | null;
-        toStatus: ListingStatus;
+        toListingStatus: ListingStatus;
         toOfferedCredits: number | null;
       }
     | {
@@ -171,7 +173,7 @@ interface Notification extends NotificationBase {
         listing: Listing;
         buyerId: UUID | null;
         buyer: PublicUser | null;
-        toStatus: ListingStatus;
+        toListingStatus: ListingStatus;
         toOfferedCredits: number | null;
       }
     | {
