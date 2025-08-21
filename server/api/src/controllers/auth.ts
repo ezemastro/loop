@@ -4,10 +4,11 @@ import { InvalidInputError } from "../services/errors.js";
 import type { AuthModel } from "../types/models.js";
 import { generateToken } from "../services/jwt.js";
 import { COOKIE_NAMES, cookieOptions, ERROR_MESSAGES } from "../config.js";
+import { successResponse } from "../utils/responses.js";
 
 export class AuthController {
-  // Inyectar el modelo de autenticación
-  authModel: AuthModel;
+  // Inyección del modelo de autenticación
+  private authModel: AuthModel;
   constructor({ authModel }: { authModel: AuthModel }) {
     this.authModel = authModel;
   }
@@ -34,7 +35,7 @@ export class AuthController {
     res.cookie(COOKIE_NAMES.TOKEN, token, cookieOptions);
 
     // Devolver la respuesta
-    return res.status(201).json({ user });
+    return res.status(201).json(successResponse({ user }));
   };
 
   login = async (req: Request, res: Response) => {
@@ -52,6 +53,6 @@ export class AuthController {
     res.cookie(COOKIE_NAMES.TOKEN, token, cookieOptions);
 
     // Devolver la respuesta
-    return res.status(200).json({ user });
+    return res.status(200).json(successResponse({ user }));
   };
 }
