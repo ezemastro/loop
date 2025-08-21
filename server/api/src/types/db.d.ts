@@ -6,9 +6,10 @@ interface JsonObject {
 }
 type JsonArray = Array<JsonValue>;
 
-type DB_ListingStatus = "published" | "offered" | "accepted" | "received";
-type DB_TransactionType = "loop" | "mission" | "admin" | "donation";
-type DB_NotificationType = "mission" | "loop" | "donation" | "admin";
+type DB_ListingStatus = ListingStatus;
+type DB_TransactionType = TransactionType;
+type DB_NotificationType = NotificationType;
+type DB_AdminActions = AdminActions;
 
 interface DB_Schools {
   id: UUID;
@@ -109,23 +110,20 @@ interface DB_MissionPayload {
 }
 interface DB_LoopPayload {
   listing_id: UUID;
-  buyer_id?: UUID;
+  buyer_id: UUID | null;
   status: DB_ListingStatus;
 }
 interface DB_DonationPayload {
   donor_user_id: UUID;
   amount: number;
-  message?: string;
+  message: string | null;
 }
 interface DB_AdminPayload {
-  message?: string;
-  action: "delete" | "update" | "credits";
-  target?: {
-    type: "listing" | "unknown";
-    listing_id?: UUID;
-    text?: string;
-  };
-  amount?: number;
+  message: string | null;
+  action: DB_AdminActions;
+  target: "listing" | string;
+  referenceId: UUID | null;
+  amount: number | null;
 }
 interface DB_Notifications {
   id: UUID;
