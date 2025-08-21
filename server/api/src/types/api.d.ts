@@ -203,3 +203,12 @@ interface MessageBase {
 interface Message extends MessageBase {
   attachedListing: Listing | null;
 }
+
+interface UserMessageBase {
+  id: UUID;
+  userId: UUID;
+  pendingMessages: number;
+}
+interface UserMessage extends UserMessageBase {
+  lastMessage: Message;
+}
