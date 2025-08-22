@@ -11,7 +11,7 @@ const NOTIFICATION_TYPES: NotificationType[] = [
   "donation",
   "admin",
 ];
-const TRANSACTION_TYPES: TransactionKind[] = [
+const TRANSACTION_TYPES: TransactionType[] = [
   "loop",
   "mission",
   "donation",
@@ -21,7 +21,7 @@ const TRANSACTION_TYPES: TransactionKind[] = [
 const mediaSchema = z.object({
   id: z.uuid(),
   url: z.url(),
-  type: z.enum(["image", "video"]),
+  mediaType: z.enum(["image", "video"]),
   mime: z.string().nullable().optional(),
 });
 export const validateMedia = (data: unknown) => mediaSchema.parseAsync(data);
@@ -41,40 +41,40 @@ const roleSchema = z.object({
 });
 export const validateRole = (data: unknown) => roleSchema.parseAsync(data);
 
-const profileSchema = z.object({
+const privateUserSchema = z.object({
   id: z.uuid(),
   firstName: z.string().min(2).max(100),
   lastName: z.string().min(2).max(100),
-  email: z.email().optional(),
-  phone: z.string().nullable().optional(),
+  email: z.email(),
+  phone: z.string().nullable(),
   roleId: z.uuid(),
-  role: roleSchema.optional(),
+  role: roleSchema,
   schoolId: z.uuid(),
-  school: schoolSchema.optional(),
-  profileMediaId: z.uuid().nullable().optional(),
-  profileMedia: mediaSchema.nullable().optional(),
+  school: schoolSchema,
+  profileMediaId: z.uuid().nullable(),
+  profileMedia: mediaSchema.nullable(),
   credits: z.object({
     balance: z.number().nonnegative(),
     locked: z.number().nonnegative(),
   }),
 });
-export const validateProfile = (data: unknown) =>
-  profileSchema.parseAsync(data);
+export const validatePrivateUser = (data: unknown) =>
+  privateUserSchema.parseAsync(data);
 
-const userSchema = z.object({
+const publicUserSchema = z.object({
   id: z.uuid(),
   firstName: z.string().min(2).max(100),
   lastName: z.string().min(2).max(100),
-  email: z.email().optional(),
-  phone: z.string().nullable().optional(),
+  email: z.email(),
   roleId: z.uuid(),
-  role: roleSchema.optional(),
+  role: roleSchema,
   schoolId: z.uuid(),
-  school: schoolSchema.optional(),
-  profileMediaId: z.uuid().nullable().optional(),
-  profileMedia: mediaSchema.nullable().optional(),
+  school: schoolSchema,
+  profileMediaId: z.uuid().nullable(),
+  profileMedia: mediaSchema.nullable(),
 });
-export const validateUser = (data: unknown) => userSchema.parseAsync(data);
+export const validatePublicUser = (data: unknown) =>
+  publicUserSchema.parseAsync(data);
 
 const categorySchema = z.object({
   id: z.uuid(),
@@ -93,7 +93,7 @@ const categorySchema = z.object({
     kgCo2: z.number().min(0),
     lH2o: z.number().min(0),
   }),
-  children: z.array(z.lazy((): z.ZodTypeAny => categorySchema)).optional(),
+  children: z.array(z.lazy((): z.ZodTypeAny => categorySchema)).nullable(),
 });
 export const validateCategory = (data: unknown) =>
   categorySchema.parseAsync(data);
@@ -101,18 +101,18 @@ export const validateCategory = (data: unknown) =>
 const listingSchema = z.object({
   id: z.uuid(),
   sellerId: z.uuid(),
-  seller: userSchema.optional(),
+  seller: publicUserSchema,
   title: z.string().min(2).max(100),
-  description: z.string().nullable().optional(),
+  description: z.string().nullable(),
   categoryId: z.uuid(),
-  category: categorySchema.optional(),
+  category: categorySchema,
   priceCredits: z.number().min(0),
   status: z.enum(LISTING_STATUS),
   disabled: z.boolean(),
-  buyerId: z.uuid().nullable().optional(),
-  buyer: userSchema.optional(),
-  offeredCredits: z.number().min(0).nullable().optional(),
-  media: z.array(mediaSchema).optional(),
+  buyerId: z.uuid().nullable(),
+  buyer: publicUserSchema,
+  offeredCredits: z.number().min(0).nullable(),
+  media: z.array(mediaSchema).nullable(),
 });
 export const validateListing = (data: unknown) =>
   listingSchema.parseAsync(data);
@@ -172,23 +172,19 @@ const notificationSchema = z.object({
       listingId: z.string(),
       listing: listingSchema,
       buyerId: z.uuid().optional().nullable(),
-      buyer: userSchema.optional().nullable(),
+      buyer: publicUserSchema.optional().nullable(),
       offeredCredits: z.number().min(0).nullable().optional(),
       status: z.enum(LISTING_STATUS),
     }),
     z.object({
       donorUserId: z.uuid(),
-      donorUser: userSchema,
+      donorUser: publicUserSchema,
       amount: z.number().min(0),
       message: z.string().optional(),
     }),
     z.object({
       message: z.string().optional(),
-      action: z.enum([
-        "delete",
-        "update",
-        "credits",
-      ] as AdminPayload["action"][]),
+      action: z.enum(["delete", "update", "credits"] as AdminActions[]),
       target: z
         .object({
           type: z.enum(["listing", "unknown"]),
@@ -207,9 +203,9 @@ export const validateNotification = (data: unknown) =>
 const messageSchema = z.object({
   id: z.uuid(),
   senderId: z.uuid(),
-  sender: userSchema.optional(),
+  sender: publicUserSchema.optional(),
   recipientId: z.uuid(),
-  recipient: userSchema.optional(),
+  recipient: publicUserSchema.optional(),
   text: z.string().min(1).max(1000),
   createdAt: z.date(),
   attachedListingId: z.uuid().nullable().optional(),

@@ -5,33 +5,21 @@ import {
   InvalidInputError,
 } from "../services/errors.js";
 import { comparePasswords, hashPassword } from "../services/hash.js";
-import type {
-  DatabaseClient,
-  DatabaseConnection,
-  Queries,
-} from "../types/dbClient.js";
+import { dbConnection } from "../services/postgresClient.js";
+import { queries } from "../services/queries.js";
+import type { DatabaseClient } from "../types/dbClient.js";
 import type { AuthLoginPayload, AuthRegisterPayload } from "../types/models.js";
 import {
   parseSchoolFromDb,
-  parseProfileFromDb,
+  parseUserFromDb,
   parseMediaFromDb,
   parseRoleFromDb,
+  parseSchoolFromBase,
+  parsePrivateUserFromBase,
 } from "../utils/parseDb.js";
 
 export class AuthModel {
-  private dbConnection: DatabaseConnection;
-  private queries: Queries;
-  constructor({
-    dbConnection,
-    queries,
-  }: {
-    dbConnection: DatabaseConnection;
-    queries: Queries;
-  }) {
-    this.dbConnection = dbConnection;
-    this.queries = queries;
-  }
-  registerUser = async ({
+  static registerUser = async ({
     firstName,
     lastName,
     password,
@@ -42,13 +30,13 @@ export class AuthModel {
     // Iniciar conexión con la base de datos
     let client: DatabaseClient;
     try {
-      client = await this.dbConnection.connect();
+      client = await dbConnection.connect();
     } catch {
       throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
     }
     try {
       // Realizar la consulta para verificar si el usuario ya existe
-      const query = await client.query(this.queries.userExists, [
+      const query = await client.query(queries.userExists, [
         email,
         firstName,
         lastName,
@@ -58,8 +46,8 @@ export class AuthModel {
       }
       // Obtener rol y escuela
       const [[schoolDb], [roleDb]] = await Promise.all([
-        client.query(this.queries.schoolById, [schoolId]),
-        client.query(this.queries.roleById, [roleId]),
+        client.query(queries.schoolById, [schoolId]),
+        client.query(queries.roleById, [roleId]),
       ]);
 
       if (!schoolDb) {
@@ -68,12 +56,19 @@ export class AuthModel {
       if (!roleDb) {
         throw new InvalidInputError(ERROR_MESSAGES.ROLE_NOT_FOUND);
       }
+      const [schoolMediaDb] = await client.query(queries.mediaById, [
+        schoolDb.media_id,
+      ]);
+      if (!schoolMediaDb) {
+        throw new InternalServerError(ERROR_MESSAGES.UNEXPECTED_ERROR);
+      }
       const school = parseSchoolFromDb(schoolDb);
       const role = parseRoleFromDb(roleDb);
+      const schoolMedia = parseMediaFromDb(schoolMediaDb);
       // Encriptar la contraseña
       const hashedPassword = await hashPassword(password);
       // Insertar el nuevo usuario en la base de datos
-      const [newUser] = await client.query(this.queries.insertUser, [
+      const [newUser] = await client.query(queries.insertUser, [
         email,
         firstName,
         lastName,
@@ -82,51 +77,43 @@ export class AuthModel {
         roleId,
       ]);
       // Devolver el usuario creado
-      const profile: Profile = {
-        id: newUser!.id,
-        firstName,
-        lastName,
-        email,
-        phone: null,
-        schoolId,
-        school,
-        roleId,
-        role,
-        credits: {
-          balance: INITIAL_CREDITS,
-          locked: 0,
+      const user: PrivateUser = parsePrivateUserFromBase({
+        user: {
+          id: newUser!.id,
+          email,
+          firstName,
+          lastName,
+          phone: null,
+          profileMediaId: null,
+          roleId,
+          schoolId,
+          credits: {
+            balance: INITIAL_CREDITS,
+            locked: 0,
+          },
         },
-        profileMediaId: null,
-      };
-      return { profile };
-    } catch (error) {
-      // Deshacer cambios si ocurre un error
-      await client.rollback();
-      if (
-        error instanceof InvalidInputError ||
-        error instanceof ConflictError
-      ) {
-        throw error;
-      }
-      console.error(error);
-      throw new InternalServerError(ERROR_MESSAGES.UNEXPECTED_ERROR);
+        profileMedia: null,
+        role,
+        school: parseSchoolFromBase({ school, media: schoolMedia }),
+      });
+      return { user };
     } finally {
       // Liberar cliente aunque independientemente de si hubo error
       client.release();
     }
   };
 
-  loginUser = async ({ email, password }: AuthLoginPayload) => {
+  static loginUser = async ({ email, password }: AuthLoginPayload) => {
     // Iniciar conexión con la base de datos
     let client: DatabaseClient;
     try {
-      client = await this.dbConnection.connect();
+      client = await dbConnection.connect();
     } catch {
       throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
     }
     try {
       // Realizar la consulta para verificar si el usuario existe
-      const [userDb] = await client.query(this.queries.userByEmail, [email]);
+      const [userDb] = await client.query(queries.userByEmail, [email]);
       if (!userDb) {
         throw new InvalidInputError(ERROR_MESSAGES.INVALID_CREDENTIALS);
       }
@@ -139,39 +126,42 @@ export class AuthModel {
         throw new InvalidInputError(ERROR_MESSAGES.INVALID_CREDENTIALS);
       }
       // Obtener información adicional del perfil
-      let profileMedia, school, role;
+      let profileMedia, school, role, schoolMedia;
       try {
         [[profileMedia], [school], [role]] = await Promise.all([
-          client.query(this.queries.mediaById, [userDb.id]),
-          client.query(this.queries.schoolById, [userDb.school_id]),
-          client.query(this.queries.roleById, [userDb.role_id]),
+          client.query(queries.mediaById, [userDb.profile_media_id]),
+          client.query(queries.schoolById, [userDb.school_id]),
+          client.query(queries.roleById, [userDb.role_id]),
         ]);
+        if (school) {
+          [schoolMedia] = await client.query(queries.mediaById, [
+            school.media_id,
+          ]);
+        }
       } catch {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
       }
-      if (!school || !role || (!profileMedia && userDb.profile_media_id)) {
+      if (
+        !school ||
+        !role ||
+        (!profileMedia && userDb.profile_media_id) ||
+        !schoolMedia
+      ) {
         throw new InternalServerError(ERROR_MESSAGES.UNEXPECTED_ERROR);
       }
       // Devolver el usuario autenticado
-      const profile: Profile = {
-        ...parseProfileFromDb(userDb),
+      const user: PrivateUser = {
+        ...parseUserFromDb(userDb),
         profileMedia: userDb.profile_media_id
           ? parseMediaFromDb(profileMedia!)
           : null,
-        school: parseSchoolFromDb(school),
+        school: parseSchoolFromBase({
+          school: parseSchoolFromDb(school),
+          media: parseMediaFromDb(schoolMedia),
+        }),
         role: parseRoleFromDb(role),
       };
-      return { profile };
-    } catch (error) {
-      // Manejar errores
-      if (
-        error instanceof InternalServerError ||
-        error instanceof InvalidInputError
-      ) {
-        throw error;
-      }
-      console.error(error);
-      throw new InternalServerError(ERROR_MESSAGES.UNEXPECTED_ERROR);
+      return { user };
     } finally {
       // Asegurarse de liberar el cliente en caso de error
       client.release();

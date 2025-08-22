@@ -45,9 +45,11 @@ class PostgresSession implements DatabaseClient {
   }
 }
 
-export class PostgresClient implements DatabaseConnection {
+class PostgresClient implements DatabaseConnection {
   async connect(): Promise<DatabaseClient> {
     const client = await pool.connect();
     return new PostgresSession(client);
   }
 }
+
+export const dbConnection = new PostgresClient();

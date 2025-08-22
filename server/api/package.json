@@ -10,7 +10,7 @@
     "dev": "nodemon",
     "build": "tsc",
     "start": "node dist/app.js",
-    "test": "jest --silent",
+    "test": "jest",
     "test:watch": "npm run test -- --watch"
   },
   "dependencies": {

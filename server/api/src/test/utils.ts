@@ -1,10 +1,21 @@
 import { randomUUID } from "node:crypto";
 import { INITIAL_CREDITS } from "../config";
+import { parseMediaToDb } from "../utils/parseDb";
+import { queries } from "../services/queries";
+import type { NamedQuery } from "../types/dbClient";
 
+const schoolMediaId = randomUUID();
 export const MOCK_SCHOOL: School = {
   id: randomUUID(),
   name: "Test School",
-  mediaId: randomUUID(),
+  mediaId: schoolMediaId,
+  meta: null,
+  media: {
+    id: schoolMediaId,
+    url: "http://example.com/media.jpg",
+    mediaType: "image",
+    mime: "image/jpeg",
+  },
 };
 export const MOCK_ROLE: Role = {
   id: randomUUID(),
@@ -25,6 +36,8 @@ export const MOCK_USER: User & { password: string } = {
   phone: null,
   profileMediaId: null,
   profileMedia: null,
+  role: MOCK_ROLE,
+  school: MOCK_SCHOOL,
 };
 export const MOCK_USER_DB: DB_Users = {
   id: MOCK_USER.id,
@@ -50,4 +63,49 @@ export const MOCK_SCHOOL_DB: DB_Schools = {
 export const MOCK_ROLE_DB: DB_Roles = {
   id: MOCK_ROLE.id,
   name: MOCK_ROLE.name,
+};
+export const databaseQueryMock = async (
+  query: NamedQuery<unknown>,
+  params: unknown[],
+) => {
+  if (query === queries.userExists) {
+    return [{ exists: false }];
+  }
+  if (query === queries.insertUser) {
+    return [{ id: MOCK_USER.id }];
+  }
+  if (query === queries.schoolById) {
+    return [MOCK_SCHOOL_DB];
+  }
+  if (query === queries.roleById) {
+    return [MOCK_ROLE_DB];
+  }
+  if (query === queries.userByEmail) {
+    return [MOCK_USER_DB];
+  }
+  if (query === queries.userById) {
+    return [MOCK_USER_DB];
+  }
+  if (query === queries.mediaById) {
+    if (
+      params[0] === MOCK_USER_DB.profile_media_id &&
+      MOCK_USER_DB.profile_media_id !== null
+    ) {
+      return [
+        parseMediaToDb({
+          media: MOCK_USER.profileMedia!,
+          userId: MOCK_USER.id,
+        }),
+      ];
+    }
+    if (params[0] === MOCK_SCHOOL_DB.media_id) {
+      return [
+        parseMediaToDb({
+          media: MOCK_SCHOOL.media,
+          userId: randomUUID(),
+        }),
+      ];
+    }
+  }
+  return [];
 };

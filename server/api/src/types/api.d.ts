@@ -12,7 +12,6 @@ interface Media {
   url: string;
   mime: string | null;
   mediaType: MediaType;
-  uploadedBy: UUID;
 }
 
 interface Role {
@@ -33,11 +32,13 @@ interface School extends SchoolBase {
 interface UserBase {
   id: UUID;
   email: string;
+  phone: string | null;
   firstName: string;
   lastName: string;
   schoolId: UUID;
   roleId: UUID;
   profileMediaId: UUID | null;
+  credits: { balance: number; locked: number };
 }
 interface User extends UserBase {
   profileMedia: Media | null;
@@ -45,11 +46,8 @@ interface User extends UserBase {
   role: Role;
 }
 
-type PublicUser = User;
-interface PrivateUser extends User {
-  phone: string | null;
-  credits: { balance: number; locked: number };
-}
+type PublicUser = Omit<User, "phone" | "credits">;
+type PrivateUser = User;
 
 interface CategoryBase {
   id: UUID;

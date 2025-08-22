@@ -1,19 +1,13 @@
 import type { Request, Response } from "express";
 import { validateLogin, validateRegister } from "../services/validations.js";
 import { InvalidInputError } from "../services/errors.js";
-import type { AuthModel } from "../types/models.js";
 import { generateToken } from "../services/jwt.js";
 import { COOKIE_NAMES, cookieOptions, ERROR_MESSAGES } from "../config.js";
 import { successResponse } from "../utils/responses.js";
+import { AuthModel } from "../models/auth.js";
 
 export class AuthController {
-  // Inyección del modelo de autenticación
-  private authModel: AuthModel;
-  constructor({ authModel }: { authModel: AuthModel }) {
-    this.authModel = authModel;
-  }
-
-  register = async (req: Request, res: Response) => {
+  static register = async (req: Request, res: Response) => {
     // Validar los datos de la solicitud
     try {
       await validateRegister(req.body);
@@ -22,7 +16,7 @@ export class AuthController {
     }
     // Registrar el usuario
     const { password, firstName, lastName, schoolId, roleId, email } = req.body;
-    const { profile } = await this.authModel.registerUser({
+    const { user } = await AuthModel.registerUser({
       firstName,
       lastName,
       password,
@@ -31,14 +25,14 @@ export class AuthController {
       email,
     });
     // Agregar las cookies de sesión
-    const token = generateToken({ userId: profile.id });
+    const token = generateToken({ userId: user.id });
     res.cookie(COOKIE_NAMES.TOKEN, token, cookieOptions);
 
     // Devolver la respuesta
-    return res.status(201).json(successResponse({ profile }));
+    return res.status(201).json(successResponse({ user }));
   };
 
-  login = async (req: Request, res: Response) => {
+  static login = async (req: Request, res: Response) => {
     // Validar los datos de la solicitud
     try {
       await validateLogin(req.body);
@@ -47,12 +41,12 @@ export class AuthController {
     }
     // Iniciar sesión
     const { email, password } = req.body;
-    const { profile } = await this.authModel.loginUser({ email, password });
+    const { user } = await AuthModel.loginUser({ email, password });
     // Agregar las cookies de sesión
-    const token = generateToken({ userId: profile.id });
+    const token = generateToken({ userId: user.id });
     res.cookie(COOKIE_NAMES.TOKEN, token, cookieOptions);
 
     // Devolver la respuesta
-    return res.status(200).json(successResponse({ profile }));
+    return res.status(200).json(successResponse({ user }));
   };
 }

@@ -53,9 +53,9 @@ interface DB_Media {
   id: UUID;
   url: string;
   mime: string | null;
-  media_type: string | null; // free text in DB
+  media_type: string; // free text in DB
   uploaded_by: UUID;
-  created_at: ISODateString;
+  created_at?: ISODateString; // Default Now() in db
 }
 interface DB_Listings {
   id: UUID;

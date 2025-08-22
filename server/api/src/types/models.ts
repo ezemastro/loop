@@ -1,5 +1,5 @@
 import type { AuthModel as AuthModelType } from "../models/auth";
-import type { ProfileModel as ProfileModelType } from "../models/profile";
+import type { SelfModel as SelfModelType } from "../models/self";
 
 export interface AuthRegisterPayload {
   firstName: string;
@@ -16,4 +16,4 @@ export interface AuthLoginPayload {
 
 export type AuthModel = AuthModelType;
 
-export type ProfileModel = ProfileModelType;
+export type SelfModel = SelfModelType;

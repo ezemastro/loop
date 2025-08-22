@@ -1,0 +1,6 @@
+import { Router } from "express";
+import { SelfController } from "../controllers/self";
+
+export const selfRouter = Router();
+
+selfRouter.get("/", SelfController.getSelf);

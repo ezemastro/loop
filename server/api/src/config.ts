@@ -23,6 +23,7 @@ export const ERROR_MESSAGES = {
   DATABASE_QUERY_ERROR: "Error en la consulta a la base de datos",
   UNEXPECTED_ERROR: "Error inesperado",
   INVALID_INPUT: "Datos de entrada inválidos",
+  MEDIA_NOT_FOUND: "Medios no encontrados",
 };
 
 export const cookieOptions = {
