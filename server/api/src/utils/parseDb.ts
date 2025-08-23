@@ -1,3 +1,10 @@
+const parseDateFromDb = (date: ISODateString): Date => {
+  return new Date(date);
+};
+const parseDateToDb = (date: Date): ISODateString => {
+  return date.toISOString() as ISODateString;
+};
+
 export const parseSchoolFromDb = (row: DB_Schools): SchoolBase => {
   return {
     id: row.id,
@@ -79,5 +86,41 @@ export const parsePrivateUserFromBase = ({
     profileMedia,
     school,
     role,
+  };
+};
+export const parseUserMissionBaseFromDb = (
+  row: DB_UserMissions,
+): UserMissionBase => {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    missionTemplateId: row.mission_template_id,
+    completed: row.completed,
+    completedAt: row.completed_at ? parseDateFromDb(row.completed_at) : null,
+    progress: row.progress,
+  };
+};
+export const parseUserMissionFromBase = ({
+  userMission,
+  missionTemplate,
+}: {
+  userMission: UserMissionBase;
+  missionTemplate: MissionTemplate;
+}): UserMission => {
+  return {
+    ...userMission,
+    missionTemplate,
+  };
+};
+export const parseMissionTemplateFromDb = (
+  row: DB_MissionTemplates,
+): MissionTemplate => {
+  return {
+    id: row.id,
+    title: row.title,
+    key: row.key,
+    description: row.description,
+    active: row.active,
+    rewardCredits: row.reward_credits,
   };
 };

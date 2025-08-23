@@ -13,11 +13,14 @@ import {
 import type { DatabaseClient } from "../types/dbClient";
 import {
   parseMediaFromDb,
+  parseMissionTemplateFromDb,
   parsePrivateUserFromBase,
   parseRoleFromDb,
   parseSchoolFromBase,
   parseSchoolFromDb,
   parseUserFromDb,
+  parseUserMissionBaseFromDb,
+  parseUserMissionFromBase,
 } from "../utils/parseDb";
 
 export class SelfModel {
@@ -167,6 +170,75 @@ export class SelfModel {
           phone,
           profileMediaId,
         } as UserBase,
+      };
+    } finally {
+      client.release();
+    }
+  };
+
+  static getSelfMissions = async (userId: string) => {
+    // Crear conexión a la base de datos
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      // Obtener misión del usuario
+      let userMissionsDb: DB_UserMissions[];
+      try {
+        userMissionsDb = await client.query(queries.userMissionsByUserId, [
+          userId,
+        ]);
+      } catch {
+        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+      }
+      if (userMissionsDb.length === 0) {
+        return {
+          missions: [],
+        };
+      }
+      // Parsear misiones de DB a Base
+      const userMissionsBase = userMissionsDb.map((userMissionDb) =>
+        parseUserMissionBaseFromDb(userMissionDb),
+      );
+      // Obtener plantillas de misiones
+      let missionTemplatesDb: (DB_MissionTemplates | undefined)[];
+      try {
+        missionTemplatesDb = (
+          await Promise.all(
+            userMissionsBase.map((userMission) =>
+              client.query(queries.missionTemplateById, [
+                userMission.missionTemplateId,
+              ]),
+            ),
+          )
+        ).map(([missionTemplateDb]) => missionTemplateDb);
+      } catch {
+        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+      }
+      if (missionTemplatesDb.some((template) => !template)) {
+        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+      }
+      const missionTemplates = missionTemplatesDb.map((missionTemplateDb) =>
+        parseMissionTemplateFromDb(missionTemplateDb!),
+      );
+      // Parsear misiones de usuario
+      const userMissions = userMissionsBase.map((userMission) =>
+        parseUserMissionFromBase({
+          userMission,
+          missionTemplate: missionTemplates.find(
+            (template) => template.id === userMission.missionTemplateId,
+          )!,
+        }),
+      );
+      // Filtrar misiones inactivas
+      const activeUserMissions = userMissions.filter(
+        (userMission) => userMission.missionTemplate.active,
+      );
+      return {
+        missions: activeUserMissions,
       };
     } finally {
       client.release();

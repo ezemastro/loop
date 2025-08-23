@@ -5,3 +5,5 @@ export const selfRouter = Router();
 
 selfRouter.get("/", SelfController.getSelf);
 selfRouter.patch("/", SelfController.updateSelf);
+
+selfRouter.get("/missions", SelfController.getSelfMissions);

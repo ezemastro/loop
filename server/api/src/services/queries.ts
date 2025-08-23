@@ -43,4 +43,14 @@ export const queries = {
        WHERE id = $7
        RETURNING id`,
   ),
+
+  userMissionsByUserId: q<DB_UserMissions>(
+    "missions.byUserId",
+    `SELECT * FROM missions WHERE user_id = $1`,
+  ),
+
+  missionTemplateById: q<DB_MissionTemplates>(
+    "missions.templateById",
+    `SELECT * FROM template_missions WHERE id = $1`,
+  ),
 } as const;

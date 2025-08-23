@@ -103,7 +103,10 @@ interface DB_UserMissions {
   mission_template_id: UUID;
   completed_at: ISODateString | null;
   completed: boolean;
-  progress: JsonObject; // required jsonb
+  progress: {
+    total: number;
+    current: number;
+  }; // required jsonb
 }
 // Notification payloads:
 interface DB_MissionPayload {

@@ -35,4 +35,10 @@ export class SelfController {
 
     res.status(200).json({ user });
   };
+
+  static getSelfMissions = async (req: Request, res: Response) => {
+    const { userId } = req.session!;
+    const { missions } = await SelfModel.getSelfMissions(userId);
+    res.status(200).json({ missions });
+  };
 }
