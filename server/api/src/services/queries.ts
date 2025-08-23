@@ -36,4 +36,11 @@ export const queries = {
   userById: q<DB_Users>("user.byId", `SELECT * FROM users WHERE id = $1`),
 
   mediaById: q<DB_Media>("media.byId", `SELECT * FROM media WHERE id = $1`),
+
+  updateUser: q<{ id: UUID }>(
+    "user.update",
+    `UPDATE users SET email = $1, first_name = $2, last_name = $3, phone = $4, profile_media_id = $5, password = $6
+       WHERE id = $7
+       RETURNING id`,
+  ),
 } as const;

@@ -67,7 +67,7 @@ interface PatchSelfRequest extends AuthRequest {
   body: Partial<PrivateUser>;
 }
 type PatchSelfResponse = ApiResponse<{
-  user: PrivateUser;
+  user: UserBase;
 }>;
 
 // GET /me/missions

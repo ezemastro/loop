@@ -4,3 +4,4 @@ import { SelfController } from "../controllers/self";
 export const selfRouter = Router();
 
 selfRouter.get("/", SelfController.getSelf);
+selfRouter.patch("/", SelfController.updateSelf);

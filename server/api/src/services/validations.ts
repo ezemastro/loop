@@ -18,13 +18,30 @@ const TRANSACTION_TYPES: TransactionType[] = [
   "admin",
 ];
 
+const firstNameSchema = z.string().min(2).max(100);
+const lastNameSchema = z.string().min(2).max(100);
+const emailSchema = z.email();
+const phoneSchema = z.string().min(10).max(20);
+const passwordSchema = z.string().min(8).max(100);
+
 const mediaSchema = z.object({
   id: z.uuid(),
   url: z.url(),
   mediaType: z.enum(["image", "video"]),
   mime: z.string().nullable().optional(),
 });
-export const validateMedia = (data: unknown) => mediaSchema.parseAsync(data);
+export const safeValidateFirstName = (data: unknown) =>
+  firstNameSchema.safeParseAsync(data);
+export const safeValidateLastName = (data: unknown) =>
+  lastNameSchema.safeParseAsync(data);
+export const safeValidateEmail = (data: unknown) =>
+  emailSchema.safeParseAsync(data);
+export const safeValidatePhone = (data: unknown) =>
+  phoneSchema.safeParseAsync(data);
+export const safeValidatePassword = (data: unknown) =>
+  passwordSchema.safeParseAsync(data);
+export const safeValidateUUID = (data: unknown) =>
+  z.uuid().safeParseAsync(data);
 
 const schoolSchema = z.object({
   id: z.uuid(),
@@ -43,10 +60,10 @@ export const validateRole = (data: unknown) => roleSchema.parseAsync(data);
 
 const privateUserSchema = z.object({
   id: z.uuid(),
-  firstName: z.string().min(2).max(100),
-  lastName: z.string().min(2).max(100),
-  email: z.email(),
-  phone: z.string().nullable(),
+  firstName: firstNameSchema,
+  lastName: lastNameSchema,
+  email: emailSchema,
+  phone: phoneSchema.nullable(),
   roleId: z.uuid(),
   role: roleSchema,
   schoolId: z.uuid(),
@@ -63,9 +80,9 @@ export const validatePrivateUser = (data: unknown) =>
 
 const publicUserSchema = z.object({
   id: z.uuid(),
-  firstName: z.string().min(2).max(100),
-  lastName: z.string().min(2).max(100),
-  email: z.email(),
+  firstName: firstNameSchema,
+  lastName: lastNameSchema,
+  email: emailSchema,
   roleId: z.uuid(),
   role: roleSchema,
   schoolId: z.uuid(),
@@ -215,12 +232,12 @@ export const validateMessage = (data: unknown) =>
   messageSchema.parseAsync(data);
 
 const registerSchema = z.object({
-  password: z.string().min(6).max(100),
-  firstName: z.string().min(2).max(100),
-  lastName: z.string().min(2).max(100),
+  password: passwordSchema,
+  firstName: firstNameSchema,
+  lastName: lastNameSchema,
   schoolId: z.uuid(),
   roleId: z.uuid(),
-  email: z.email(),
+  email: emailSchema,
 });
 export const validateRegister = (data: unknown) =>
   registerSchema.parseAsync(data);
@@ -230,3 +247,14 @@ const loginSchema = z.object({
   password: z.string().min(6).max(100),
 });
 export const validateLogin = (data: unknown) => loginSchema.parseAsync(data);
+
+const updateSelfSchema = z.object({
+  email: emailSchema.optional(),
+  firstName: firstNameSchema.optional(),
+  lastName: lastNameSchema.optional(),
+  phone: phoneSchema.optional(),
+  profileMediaId: z.uuid().nullable().optional(),
+  password: passwordSchema.optional(),
+});
+export const validateUpdateSelf = (data: unknown) =>
+  updateSelfSchema.parseAsync(data);

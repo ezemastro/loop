@@ -1,7 +1,15 @@
 import { ERROR_MESSAGES } from "../config";
-import { InternalServerError } from "../services/errors";
+import { InternalServerError, UnauthorizedError } from "../services/errors";
 import { dbConnection } from "../services/postgresClient";
 import { queries } from "../services/queries";
+import {
+  safeValidateEmail,
+  safeValidateFirstName,
+  safeValidateLastName,
+  safeValidatePassword,
+  safeValidatePhone,
+  safeValidateUUID,
+} from "../services/validations";
 import type { DatabaseClient } from "../types/dbClient";
 import {
   parseMediaFromDb,
@@ -71,6 +79,94 @@ export class SelfModel {
           }),
           profileMedia: userMediaDb ? parseMediaFromDb(userMediaDb) : null,
         }),
+      };
+    } finally {
+      client.release();
+    }
+  };
+
+  static updateSelf = async ({
+    userId,
+    email,
+    firstName,
+    lastName,
+    phone,
+    profileMediaId,
+    password,
+  }: {
+    userId: string;
+    email?: string;
+    firstName?: string;
+    lastName?: string;
+    phone?: string | null;
+    profileMediaId?: string | null;
+    password?: string;
+  }) => {
+    // Crear conexión a la base de datos
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      // Obtener usuario
+      let user: UserBase & { password: string };
+      try {
+        const [userDb] = await client.query(queries.userById, [userId]);
+        if (!userDb) {
+          throw new UnauthorizedError(ERROR_MESSAGES.USER_NOT_FOUND);
+        }
+        user = { ...parseUserFromDb(userDb), password: userDb.password };
+      } catch {
+        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+      }
+      // Preparar datos para actualizar usuario
+      email =
+        email && (await safeValidateEmail(email)).success ? email : user.email;
+      firstName =
+        firstName && (await safeValidateFirstName(firstName)).success
+          ? firstName
+          : user.firstName;
+      lastName =
+        lastName && (await safeValidateLastName(lastName)).success
+          ? lastName
+          : user.lastName;
+      phone =
+        phone && (await safeValidatePhone(phone)).success ? phone : user.phone;
+      profileMediaId =
+        profileMediaId && (await safeValidateUUID(profileMediaId)).success
+          ? profileMediaId
+          : user.profileMediaId;
+      password =
+        password && (await safeValidatePassword(password))
+          ? password
+          : user.password;
+
+      // Actualizar usuario
+      try {
+        await client.query(queries.updateUser, [
+          email,
+          firstName,
+          lastName,
+          phone,
+          profileMediaId,
+          password,
+          userId,
+        ]);
+      } catch {
+        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+      }
+      // Devolver usuario base actualizado
+      return {
+        user: {
+          id: userId,
+          email,
+          firstName,
+          lastName,
+          phone,
+          profileMediaId,
+        } as UserBase,
       };
     } finally {
       client.release();

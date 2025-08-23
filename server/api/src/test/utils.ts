@@ -3,6 +3,7 @@ import { INITIAL_CREDITS } from "../config";
 import { parseMediaToDb } from "../utils/parseDb";
 import { queries } from "../services/queries";
 import type { NamedQuery } from "../types/dbClient";
+import { safeValidateUUID } from "../services/validations";
 
 const schoolMediaId = randomUUID();
 export const MOCK_SCHOOL: School = {
@@ -21,7 +22,7 @@ export const MOCK_ROLE: Role = {
   id: randomUUID(),
   name: "Test Role",
 };
-export const MOCK_USER: User & { password: string } = {
+export const MOCK_USER: PrivateUser & { password: string } = {
   id: randomUUID(),
   email: "test@example.com",
   firstName: "firstName",
@@ -64,6 +65,12 @@ export const MOCK_ROLE_DB: DB_Roles = {
   id: MOCK_ROLE.id,
   name: MOCK_ROLE.name,
 };
+export const MOCK_RANDOM_MEDIA: Media = {
+  id: randomUUID(),
+  url: "http://example.com/random-media.jpg",
+  mediaType: "image",
+  mime: "image/jpeg",
+};
 export const databaseQueryMock = async (
   query: NamedQuery<unknown>,
   params: unknown[],
@@ -103,6 +110,14 @@ export const databaseQueryMock = async (
         parseMediaToDb({
           media: MOCK_SCHOOL.media,
           userId: randomUUID(),
+        }),
+      ];
+    }
+    if ((await safeValidateUUID(params[0])).success) {
+      return [
+        parseMediaToDb({
+          media: MOCK_RANDOM_MEDIA,
+          userId: MOCK_USER.id,
         }),
       ];
     }
