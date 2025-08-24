@@ -54,7 +54,7 @@ export const parseRoleFromDb = (row: DB_Roles): Role => {
     name: row.name,
   };
 };
-export const parseUserFromDb = (row: DB_Users): UserBase => {
+export const parseUserBaseFromDb = (row: DB_Users): UserBase => {
   return {
     id: row.id,
     email: row.email,
@@ -81,6 +81,24 @@ export const parsePrivateUserFromBase = ({
   school: School;
   role: Role;
 }): PrivateUser => {
+  return {
+    ...user,
+    profileMedia,
+    school,
+    role,
+  };
+};
+export const parsePublicUserFromBase = ({
+  user,
+  profileMedia,
+  school,
+  role,
+}: {
+  user: UserBase;
+  profileMedia: Media | null;
+  school: School;
+  role: Role;
+}): PublicUser => {
   return {
     ...user,
     profileMedia,
@@ -122,5 +140,209 @@ export const parseMissionTemplateFromDb = (
     description: row.description,
     active: row.active,
     rewardCredits: row.reward_credits,
+  };
+};
+export const parseNotificationBaseFromDb = (
+  row: DB_Notifications,
+): NotificationBase => {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    isRead: row.is_read,
+    type: row.type,
+    payload: row.payload,
+    readAt: row.read_at ? parseDateFromDb(row.read_at) : null,
+    createdAt: parseDateFromDb(row.created_at),
+  };
+};
+export const parseListingBaseFromDb = (row: DB_Listings): ListingBase => {
+  return {
+    buyerId: row.buyer_id,
+    categoryId: row.category_id,
+    description: row.description,
+    disabled: row.disabled,
+    id: row.id,
+    listingStatus: row.listing_status,
+    offeredCredits: row.offered_credits,
+    price: row.price_credits,
+    productStatus: row.product_status,
+    sellerId: row.seller_id,
+    title: row.title,
+    createdAt: parseDateFromDb(row.created_at),
+  };
+};
+export const parseListingFromBase = ({
+  listing,
+  seller,
+  buyer,
+  media,
+  category,
+}: {
+  listing: ListingBase;
+  seller: PublicUser;
+  buyer: PublicUser | null;
+  media: Media[];
+  category: Category;
+}): Listing => {
+  return {
+    ...listing,
+    seller,
+    buyer,
+    media,
+    category,
+  };
+};
+export const parseCategoryBaseFromDb = (row: DB_Categories): CategoryBase => {
+  return {
+    description: row.description,
+    icon: row.icon,
+    id: row.id,
+    name: row.name,
+    parentId: row.parent_id,
+    price:
+      row.min_price_credits !== null && row.max_price_credits !== null
+        ? {
+            max: row.max_price_credits,
+            min: row.min_price_credits,
+          }
+        : null,
+    stats:
+      row.stat_kg_co2 && row.stat_kg_waste && row.stat_l_h2o
+        ? {
+            kgCo2: row.stat_kg_co2,
+            kgWaste: row.stat_kg_waste,
+            lH2o: row.stat_l_h2o,
+          }
+        : null,
+  };
+};
+export const parseCategoryFromBase = ({
+  category,
+  children,
+  parents,
+}: {
+  category: CategoryBase;
+  children: Category[];
+  parents: CategoryBase[];
+}): Category => {
+  return {
+    ...category,
+    children,
+    parents,
+  };
+};
+export const parseNotificationFromBase = ({
+  notification,
+  listing,
+  donorUser,
+  buyer,
+  userMission,
+}: {
+  notification: NotificationBase;
+  listing?: Listing | undefined;
+  donorUser?: PublicUser | undefined;
+  buyer?: PublicUser | null | undefined;
+  userMission?: UserMission | undefined;
+}): Notification => {
+  let newPayload: Notification["payload"];
+  switch (notification.type) {
+    case "admin": {
+      const payload = notification.payload as AdminNotificationPayloadBase;
+      newPayload = {
+        action: payload.action,
+        amount: payload.amount,
+        message: payload.message,
+        referenceId: payload.referenceId,
+        target: payload.target,
+        reference:
+          payload.referenceId && payload.target === "listing" ? listing! : null,
+      } as AdminNotificationPayload;
+      break;
+    }
+    case "donation": {
+      const payload = notification.payload as DonationNotificationPayloadBase;
+      newPayload = {
+        amount: payload.amount,
+        donorUserId: payload.donorUserId,
+        donorUser: donorUser!,
+        message: payload.message,
+      } as DonationNotificationPayload;
+      break;
+    }
+    case "loop": {
+      const payload = notification.payload as LoopNotificationPayloadBase;
+      newPayload = {
+        listingId: payload.listingId,
+        buyerId: payload.buyerId,
+        buyer: payload.buyerId ? buyer! : null,
+        listing: payload.listingId ? listing! : null,
+        toListingStatus: payload.toListingStatus,
+        toOfferedCredits: payload.toOfferedCredits,
+      } as LoopNotificationPayload;
+      break;
+    }
+    case "mission": {
+      const payload = notification.payload as MissionNotificationPayloadBase;
+      newPayload = {
+        userMissionId: payload.userMissionId,
+        userMission: userMission!,
+      } as MissionNotificationPayload;
+      break;
+    }
+  }
+  return {
+    ...notification,
+    payload: newPayload,
+  };
+};
+
+export const parseListingToDb = (listing: Listing): DB_Listings => {
+  return {
+    id: listing.id,
+    title: listing.title,
+    description: listing.description,
+    price_credits: listing.price,
+    seller_id: listing.sellerId,
+    created_at: listing.createdAt.toISOString(),
+    buyer_id: listing.buyerId,
+    category_id: listing.categoryId,
+    disabled: listing.disabled,
+    listing_status: listing.listingStatus,
+    offered_credits: listing.offeredCredits,
+    product_status: listing.productStatus,
+    updated_at: parseDateToDb(new Date()),
+  };
+};
+export const parseChatFromDb = (row: {
+  other_user_id: UUID;
+  last_message_id: UUID;
+  unread_count: number;
+}): UserMessageBase => {
+  return {
+    userId: row.other_user_id,
+    lastMessageId: row.last_message_id,
+    pendingMessages: row.unread_count,
+  };
+};
+export const parseMessageBaseFromDb = (row: DB_Messages): MessageBase => {
+  return {
+    id: row.id,
+    createdAt: parseDateFromDb(row.created_at),
+    recipientId: row.recipient_id,
+    senderId: row.sender_id,
+    text: row.text,
+    attachedListingId: row.attached_listing_id,
+  };
+};
+export const parseMessageFromBase = ({
+  message,
+  listing,
+}: {
+  message: MessageBase;
+  listing?: Listing | null;
+}): Message => {
+  return {
+    ...message,
+    attachedListing: listing ? listing : null,
   };
 };

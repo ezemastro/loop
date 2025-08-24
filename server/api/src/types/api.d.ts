@@ -82,6 +82,7 @@ interface ListingBase {
   disabled: boolean;
   buyerId: UUID | null;
   offeredCredits: number | null;
+  createdAt: Date;
 }
 interface Listing extends ListingBase {
   seller: PublicUser;
@@ -130,6 +131,40 @@ interface WalletTransaction extends WalletTransactionBase {
   reference: Listing | UserMission | PublicUser;
 }
 
+interface MissionNotificationPayloadBase {
+  userMissionId: UUID;
+}
+interface MissionNotificationPayload extends MissionNotificationPayloadBase {
+  userMission: UserMission;
+}
+interface LoopNotificationPayloadBase {
+  listingId: UUID;
+  buyerId: UUID | null;
+  toListingStatus: ListingStatus;
+  toOfferedCredits: number | null;
+}
+interface LoopNotificationPayload extends LoopNotificationPayloadBase {
+  listing: Listing;
+  buyer: PublicUser | null;
+}
+interface AdminNotificationPayloadBase {
+  message: string | null;
+  action: AdminActions;
+  target: "listing" | string | null;
+  referenceId: UUID | null;
+  amount: number | null;
+}
+interface AdminNotificationPayload extends AdminNotificationPayloadBase {
+  reference: Listing | null;
+}
+interface DonationNotificationPayloadBase {
+  donorUserId: UUID;
+  amount: number;
+  message: string | null;
+}
+interface DonationNotificationPayload extends DonationNotificationPayloadBase {
+  donorUser: PublicUser;
+}
 interface NotificationBase {
   id: UUID;
   userId: UUID;
@@ -138,56 +173,17 @@ interface NotificationBase {
   isRead: boolean;
   readAt: Date | null;
   payload:
-    | {
-        userMissionId: UUID;
-      }
-    | {
-        listingId: UUID;
-        buyerId: UUID | null;
-        toListingStatus: ListingStatus;
-        toOfferedCredits: number | null;
-      }
-    | {
-        donorUserId: UUID;
-        amount: number;
-        message: string | null;
-      }
-    | {
-        message: string | null;
-        action: AdminActions;
-        target: "listing" | string;
-        referenceId: UUID | null;
-        amount: number | null;
-      };
+    | MissionNotificationPayloadBase
+    | LoopNotificationPayloadBase
+    | DonationNotificationPayloadBase
+    | AdminNotificationPayloadBase;
 }
 interface Notification extends NotificationBase {
   payload:
-    | {
-        userMissionId: UUID;
-        userMission: UserMission;
-      }
-    | {
-        listingId: UUID;
-        listing: Listing;
-        buyerId: UUID | null;
-        buyer: PublicUser | null;
-        toListingStatus: ListingStatus;
-        toOfferedCredits: number | null;
-      }
-    | {
-        donorUserId: UUID;
-        donorUser: PublicUser;
-        amount: number;
-        message: string | null;
-      }
-    | {
-        message: string | null;
-        action: AdminActions;
-        target: "listing" | string;
-        referenceId: UUID | null;
-        reference: Listing | null;
-        amount: number | null;
-      };
+    | MissionNotificationPayload
+    | LoopNotificationPayload
+    | DonationNotificationPayload
+    | AdminNotificationPayload;
 }
 
 interface MessageBase {
@@ -203,8 +199,8 @@ interface Message extends MessageBase {
 }
 
 interface UserMessageBase {
-  id: UUID;
   userId: UUID;
+  lastMessageId: UUID;
   pendingMessages: number;
 }
 interface UserMessage extends UserMessageBase {

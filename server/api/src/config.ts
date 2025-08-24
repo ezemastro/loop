@@ -24,6 +24,12 @@ export const ERROR_MESSAGES = {
   UNEXPECTED_ERROR: "Error inesperado",
   INVALID_INPUT: "Datos de entrada inválidos",
   MEDIA_NOT_FOUND: "Medios no encontrados",
+  CATEGORY_NOT_FOUND: "Categoría no encontrada",
+  LISTING_NOT_FOUND: "Listado no encontrado",
+  MISSION_TEMPLATE_NOT_FOUND: "Plantilla de misión no encontrada",
+  MISSION_NOT_FOUND: "Misión no encontrada",
+  MESSAGE_NOT_FOUND: "Mensaje no encontrado",
+  USER_NOT_AUTHORIZED: "Usuario no autorizado",
 };
 
 export const cookieOptions = {

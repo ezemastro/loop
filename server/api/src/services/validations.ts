@@ -92,24 +92,46 @@ const publicUserSchema = z.object({
 });
 export const validatePublicUser = (data: unknown) =>
   publicUserSchema.parseAsync(data);
-
-const categorySchema = z.object({
+const categoryBaseSchema = z.object({
   id: z.uuid(),
   name: z.string().min(2).max(100),
   parentId: z.uuid().nullable().optional(),
   description: z.string().nullable().optional(),
-  priceRange: z
+  price: z
     .object({
       min: z.number().min(0).nullable().optional(),
       max: z.number().min(0).nullable().optional(),
     })
-    .optional(),
+    .nullable(),
   icon: z.string().nullable().optional(),
-  stats: z.object({
-    kgWaste: z.number().min(0),
-    kgCo2: z.number().min(0),
-    lH2o: z.number().min(0),
-  }),
+  stats: z
+    .object({
+      kgWaste: z.number().min(0),
+      kgCo2: z.number().min(0),
+      lH2o: z.number().min(0),
+    })
+    .nullable(),
+});
+const categorySchema = z.object({
+  id: z.uuid(),
+  name: z.string().min(2).max(100),
+  parentId: z.uuid().nullable(),
+  parents: z.array(categoryBaseSchema).nullable(),
+  description: z.string().nullable(),
+  price: z
+    .object({
+      min: z.number().min(0).nullable(),
+      max: z.number().min(0).nullable(),
+    })
+    .nullable(),
+  icon: z.string().nullable(),
+  stats: z
+    .object({
+      kgWaste: z.number().min(0),
+      kgCo2: z.number().min(0),
+      lH2o: z.number().min(0),
+    })
+    .nullable(),
   children: z.array(z.lazy((): z.ZodTypeAny => categorySchema)).nullable(),
 });
 export const validateCategory = (data: unknown) =>

@@ -38,7 +38,25 @@ export class SelfController {
 
   static getSelfMissions = async (req: Request, res: Response) => {
     const { userId } = req.session!;
-    const { missions } = await SelfModel.getSelfMissions(userId);
+    const { missions } = await SelfModel.getSelfMissions({ userId });
     res.status(200).json({ missions });
+  };
+
+  static getSelfNotifications = async (req: Request, res: Response) => {
+    const { userId } = req.session!;
+    const { notifications } = await SelfModel.getSelfNotifications({ userId });
+    res.status(200).json({ notifications });
+  };
+
+  static postReadAllSelfNotification = async (req: Request, res: Response) => {
+    const { userId } = req.session!;
+    await SelfModel.setAllSelfNotificationsRead({ userId });
+    res.status(204).send();
+  };
+
+  static getSelfChats = async (req: Request, res: Response) => {
+    const { userId } = req.session!;
+    const { chats } = await SelfModel.getSelfChats({ userId });
+    res.status(200).json({ chats });
   };
 }

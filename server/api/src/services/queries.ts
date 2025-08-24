@@ -49,8 +49,78 @@ export const queries = {
     `SELECT * FROM missions WHERE user_id = $1`,
   ),
 
+  userMissionsById: q<DB_UserMissions>(
+    "missions.byId",
+    `SELECT * FROM missions WHERE id = $1`,
+  ),
+
   missionTemplateById: q<DB_MissionTemplates>(
     "missions.templateById",
     `SELECT * FROM template_missions WHERE id = $1`,
+  ),
+
+  notificationsByUserId: q<DB_Notifications>(
+    "notifications.byUserId",
+    `SELECT * FROM notifications WHERE user_id = $1`,
+  ),
+
+  listingById: q<DB_Listings>(
+    "listings.byId",
+    `SELECT * FROM listings WHERE id = $1`,
+  ),
+
+  mediasByListingId: q<DB_Media>(
+    "listings.mediasById",
+    `SELECT * FROM media WHERE listing_id = $1`,
+  ),
+
+  categoryById: q<DB_Categories>(
+    "categories.byId",
+    `SELECT * FROM categories WHERE id = $1`,
+  ),
+
+  categoriesByParentId: q<DB_Categories>(
+    "categories.byParentId",
+    `SELECT * FROM categories WHERE parent_id = $1`,
+  ),
+
+  markNotificationsAsRead: q<DB_Notifications>(
+    "notifications.markAsRead",
+    `UPDATE notifications SET read = TRUE WHERE user_id = $1`,
+  ),
+
+  chatsByUserId: q<{
+    other_user_id: UUID;
+    last_message_id: UUID;
+    unread_count: number;
+  }>(
+    "chats.byUserId",
+    `SELECT 
+      other_user_id,
+      last_message_id,
+      unread_count
+    FROM (
+      SELECT 
+          CASE 
+              WHEN m.sender_id = $1 THEN m.recipient_id 
+              ELSE m.sender_id 
+          END as other_user_id,
+          MAX(m.id) as last_message_id,
+          COUNT(CASE WHEN m.sender_id != $1 AND m.is_read = false THEN 1 END) as unread_count
+      FROM 
+          db_messages m
+      WHERE 
+          m.sender_id = $1 OR m.recipient_id = $1
+      GROUP BY 
+          CASE 
+              WHEN m.sender_id = $1 THEN m.recipient_id 
+              ELSE m.sender_id 
+          END
+    )`,
+  ),
+
+  messageById: q<DB_Messages>(
+    "messages.byId",
+    `SELECT * FROM messages WHERE id = $1`,
   ),
 } as const;

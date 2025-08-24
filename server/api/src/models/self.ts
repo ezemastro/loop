@@ -12,15 +12,17 @@ import {
 } from "../services/validations";
 import type { DatabaseClient } from "../types/dbClient";
 import {
+  getUserMissionsByUserId,
+  getNotificationsByUserId,
+  getChatsByUserId,
+} from "../utils/helpersDb";
+import {
   parseMediaFromDb,
-  parseMissionTemplateFromDb,
   parsePrivateUserFromBase,
   parseRoleFromDb,
   parseSchoolFromBase,
   parseSchoolFromDb,
-  parseUserFromDb,
-  parseUserMissionBaseFromDb,
-  parseUserMissionFromBase,
+  parseUserBaseFromDb,
 } from "../utils/parseDb";
 
 export class SelfModel {
@@ -51,7 +53,9 @@ export class SelfModel {
         [[schoolDb], [roleDb], [userMediaDb]] = await Promise.all([
           client.query(queries.schoolById, [userDb.school_id]),
           client.query(queries.roleById, [userDb.role_id]),
-          client.query(queries.mediaById, [userDb.profile_media_id]),
+          userDb.profile_media_id
+            ? client.query(queries.mediaById, [userDb.profile_media_id])
+            : Promise.resolve([undefined]),
         ]);
       } catch {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
@@ -74,7 +78,7 @@ export class SelfModel {
       // Devolver datos
       return {
         user: parsePrivateUserFromBase({
-          user: parseUserFromDb(userDb),
+          user: parseUserBaseFromDb(userDb),
           role: parseRoleFromDb(roleDb),
           school: parseSchoolFromBase({
             school: parseSchoolFromDb(schoolDb),
@@ -120,7 +124,7 @@ export class SelfModel {
         if (!userDb) {
           throw new UnauthorizedError(ERROR_MESSAGES.USER_NOT_FOUND);
         }
-        user = { ...parseUserFromDb(userDb), password: userDb.password };
+        user = { ...parseUserBaseFromDb(userDb), password: userDb.password };
       } catch {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
       }
@@ -176,7 +180,7 @@ export class SelfModel {
     }
   };
 
-  static getSelfMissions = async (userId: string) => {
+  static getSelfMissions = async ({ userId }: { userId: string }) => {
     // Crear conexión a la base de datos
     let client: DatabaseClient;
     try {
@@ -185,61 +189,65 @@ export class SelfModel {
       throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
     }
     try {
-      // Obtener misión del usuario
-      let userMissionsDb: DB_UserMissions[];
-      try {
-        userMissionsDb = await client.query(queries.userMissionsByUserId, [
-          userId,
-        ]);
-      } catch {
-        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
-      }
-      if (userMissionsDb.length === 0) {
-        return {
-          missions: [],
-        };
-      }
-      // Parsear misiones de DB a Base
-      const userMissionsBase = userMissionsDb.map((userMissionDb) =>
-        parseUserMissionBaseFromDb(userMissionDb),
-      );
-      // Obtener plantillas de misiones
-      let missionTemplatesDb: (DB_MissionTemplates | undefined)[];
-      try {
-        missionTemplatesDb = (
-          await Promise.all(
-            userMissionsBase.map((userMission) =>
-              client.query(queries.missionTemplateById, [
-                userMission.missionTemplateId,
-              ]),
-            ),
-          )
-        ).map(([missionTemplateDb]) => missionTemplateDb);
-      } catch {
-        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
-      }
-      if (missionTemplatesDb.some((template) => !template)) {
-        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
-      }
-      const missionTemplates = missionTemplatesDb.map((missionTemplateDb) =>
-        parseMissionTemplateFromDb(missionTemplateDb!),
-      );
-      // Parsear misiones de usuario
-      const userMissions = userMissionsBase.map((userMission) =>
-        parseUserMissionFromBase({
-          userMission,
-          missionTemplate: missionTemplates.find(
-            (template) => template.id === userMission.missionTemplateId,
-          )!,
-        }),
-      );
-      // Filtrar misiones inactivas
-      const activeUserMissions = userMissions.filter(
-        (userMission) => userMission.missionTemplate.active,
-      );
+      // Obtener misiones del usuario
+      const missions = await getUserMissionsByUserId({ client, userId });
+      // Devolver filtrando las inactivas
       return {
-        missions: activeUserMissions,
+        missions: missions.filter((mission) => mission.missionTemplate.active),
       };
+    } finally {
+      client.release();
+    }
+  };
+
+  static getSelfNotifications = async ({ userId }: { userId: string }) => {
+    // Crear conexión a la base de datos
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      // Obtener notificaciones del usuario
+      const notifications = await getNotificationsByUserId({ client, userId });
+
+      return { notifications };
+    } finally {
+      client.release();
+    }
+  };
+
+  static setAllSelfNotificationsRead = async ({ userId }: { userId: UUID }) => {
+    // Crear conexión a la base de datos
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      // Marcar todas las notificaciones como leídas
+      await client.query(queries.markNotificationsAsRead, [userId]);
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+    } finally {
+      client.release();
+    }
+  };
+
+  static getSelfChats = async ({ userId }: { userId: string }) => {
+    // Crear conexión a la base de datos
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      // Obtener chats del usuario
+      const chats = await getChatsByUserId({ client, userId });
+      return { chats };
     } finally {
       client.release();
     }

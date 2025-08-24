@@ -11,7 +11,7 @@ import type { DatabaseClient } from "../types/dbClient.js";
 import type { AuthLoginPayload, AuthRegisterPayload } from "../types/models.js";
 import {
   parseSchoolFromDb,
-  parseUserFromDb,
+  parseUserBaseFromDb,
   parseMediaFromDb,
   parseRoleFromDb,
   parseSchoolFromBase,
@@ -151,7 +151,7 @@ export class AuthModel {
       }
       // Devolver el usuario autenticado
       const user: PrivateUser = {
-        ...parseUserFromDb(userDb),
+        ...parseUserBaseFromDb(userDb),
         profileMedia: userDb.profile_media_id
           ? parseMediaFromDb(profileMedia!)
           : null,

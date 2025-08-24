@@ -45,9 +45,9 @@ interface DB_Categories {
   max_price_credits: number | null;
   created_at: ISODateString;
   icon: string | null;
-  stat_kg_waste: number;
-  stat_kg_co2: number;
-  stat_l_h2o: number;
+  stat_kg_waste: number | null;
+  stat_kg_co2: number | null;
+  stat_l_h2o: number | null;
 }
 interface DB_Media {
   id: UUID;
@@ -59,6 +59,7 @@ interface DB_Media {
 }
 interface DB_Listings {
   id: UUID;
+  disabled: boolean;
   seller_id: UUID;
   title: string;
   description: string | null;
@@ -108,37 +109,11 @@ interface DB_UserMissions {
     current: number;
   }; // required jsonb
 }
-// Notification payloads:
-interface DB_MissionPayload {
-  mission_id: UUID;
-}
-interface DB_LoopPayload {
-  listing_id: UUID;
-  buyer_id: UUID | null;
-  to_listing_status: DB_ListingStatus;
-  to_amount: number | null;
-}
-interface DB_DonationPayload {
-  donor_user_id: UUID;
-  amount: number;
-  message: string | null;
-}
-interface DB_AdminPayload {
-  message: string | null;
-  action: DB_AdminActions;
-  target: "listing" | string;
-  referenceId: UUID | null;
-  amount: number | null;
-}
 interface DB_Notifications {
   id: UUID;
   user_id: UUID;
   type: DB_NotificationType;
-  payload:
-    | DB_MissionPayload
-    | DB_LoopPayload
-    | DB_DonationPayload
-    | DB_AdminPayload;
+  payload: NotificationBase["payload"];
   is_read: boolean;
   read_at: ISODateString | null;
   created_at: ISODateString;

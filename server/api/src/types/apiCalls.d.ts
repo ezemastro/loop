@@ -89,7 +89,7 @@ type PostSelfNotificationsReadAllResponse = ApiResponse;
 // GET /me/messages
 type GetSelfMessagesRequest = AuthApiRequest;
 type GetSelfMessagesResponse = ApiResponse<{
-  userMessages: UserMessage[];
+  chats: UserMessage[];
 }>;
 
 // GET /users/:id
