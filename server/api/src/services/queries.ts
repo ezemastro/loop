@@ -192,6 +192,27 @@ export const queries = {
               ELSE created_at::text
           END
     END DESC
-    LIMIT $6 OFFSET (($7 - 1) * $6);`,
+    LIMIT $6 OFFSET $7;`,
+  ),
+
+  searchSchools: q<DB_Schools & DB_Pagination>(
+    "schools.search",
+    `SELECT 
+        *,
+        COUNT(*) OVER() as total_records
+    FROM schools
+    WHERE 
+        ($1::text IS NULL OR $1::text = '' OR 
+        LOWER(name) LIKE LOWER(CONCAT('%', COALESCE($1::text, ''), '%')))
+    ORDER BY
+        CASE 
+            WHEN $2 = 'name' AND $3 = 'asc' THEN name
+            ELSE NULL
+        END ASC,
+        CASE 
+            WHEN $2 = 'name' AND $3 = 'desc' THEN name
+            ELSE NULL
+        END DESC
+    LIMIT $4 OFFSET $5;`,
   ),
 } as const;

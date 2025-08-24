@@ -79,7 +79,8 @@ export const getMediaById = async ({
   mediaId: UUID;
 }) => {
   const [mediaDb] = await client.query(queries.mediaById, [mediaId]);
-  return mediaDb ? parseMediaFromDb(mediaDb) : null;
+  if (!mediaDb) throw new InternalServerError(ERROR_MESSAGES.MEDIA_NOT_FOUND);
+  return parseMediaFromDb(mediaDb);
 };
 export const getSchoolById = async ({
   client,

@@ -39,7 +39,7 @@ export class UsersModel {
       sort,
       order,
       PAGE_SIZE,
-      page,
+      page ? (page - 1) * PAGE_SIZE : 0,
     ]);
     const totalRecords = usersSearchDb[0]?.total_records || 0;
     const users = await Promise.all(

@@ -301,3 +301,8 @@ const getUsersRequestQuery = paginatedQuery.extend({
 });
 export const validateGetUsersRequest = (data: unknown) =>
   getUsersRequestQuery.parseAsync(data);
+const getSchoolsRequestQuery = paginatedQuery.extend({
+  searchTerm: z.string().min(1).max(100).optional(),
+});
+export const validateGetSchoolsRequest = (data: unknown) =>
+  getSchoolsRequestQuery.parseAsync(data);
