@@ -1,9 +1,14 @@
 import { ERROR_MESSAGES, PAGE_SIZE } from "../config";
-import { InternalServerError } from "../services/errors";
+import { InternalServerError, InvalidInputError } from "../services/errors";
 import { dbConnection } from "../services/postgresClient";
 import { queries } from "../services/queries";
 import type { DatabaseClient } from "../types/dbClient";
-import { getMediaById, getRoleById, getSchoolById } from "../utils/helpersDb";
+import {
+  getMediaById,
+  getRoleById,
+  getSchoolById,
+  getUserById,
+} from "../utils/helpersDb";
 import {
   parsePagination,
   parsePublicUserFromBase,
@@ -62,5 +67,26 @@ export class UsersModel {
         totalRecords,
       }),
     };
+  };
+
+  static getUserById = async ({ userId }: { userId: string }) => {
+    // Obtener conexión a la base de datos
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      let user: PublicUser;
+      try {
+        user = await getUserById({ client, userId });
+      } catch {
+        throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
+      }
+      return { user };
+    } finally {
+      client.release();
+    }
   };
 }

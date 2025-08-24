@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { validateGetUsersRequest } from "../services/validations";
+import { validateGetUsersRequest, validateId } from "../services/validations";
 import { InvalidInputError } from "../services/errors";
 import { ERROR_MESSAGES } from "../config";
 import { UsersModel } from "../models/users";
@@ -29,5 +29,20 @@ export class UsersController {
       schoolId,
     });
     res.status(200).json({ users, pagination });
+  };
+
+  static getUserById = async (req: Request, res: Response) => {
+    const { userId } = req.params;
+    try {
+      validateId(userId);
+    } catch {
+      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+    }
+    try {
+      const { user } = await UsersModel.getUserById({ userId: userId! });
+      res.status(200).json({ user });
+    } catch {
+      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+    }
   };
 }

@@ -24,12 +24,7 @@ const emailSchema = z.email();
 const phoneSchema = z.string().min(10).max(20);
 const passwordSchema = z.string().min(8).max(100);
 
-const mediaSchema = z.object({
-  id: z.uuid(),
-  url: z.url(),
-  mediaType: z.enum(["image", "video"]),
-  mime: z.string().nullable().optional(),
-});
+export const validateId = (data: unknown) => z.uuid().parseAsync(data);
 export const safeValidateFirstName = (data: unknown) =>
   firstNameSchema.safeParseAsync(data);
 export const safeValidateLastName = (data: unknown) =>
@@ -43,6 +38,12 @@ export const safeValidatePassword = (data: unknown) =>
 export const safeValidateUUID = (data: unknown) =>
   z.uuid().safeParseAsync(data);
 
+const mediaSchema = z.object({
+  id: z.uuid(),
+  url: z.url(),
+  mediaType: z.enum(["image", "video"]),
+  mime: z.string().nullable().optional(),
+});
 const schoolSchema = z.object({
   id: z.uuid(),
   name: z.string().min(2).max(100),
