@@ -1,5 +1,5 @@
 import { validateCategory } from "../services/validations";
-import { databaseQueryMock, MOCK_CATEGORIES_DB } from "../test/utils";
+import { databaseQueryMock, MOCK_CATEGORIES_DB } from "../tests/utils";
 import type { DatabaseClient } from "../types/dbClient";
 import { getCategoryById } from "./helpersDb";
 

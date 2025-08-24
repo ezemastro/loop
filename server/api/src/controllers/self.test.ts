@@ -7,7 +7,7 @@ jest.mock("../models/self", () => ({
 
 import { getMockReq, getMockRes } from "@jest-mock/express";
 import { SelfController } from "./self";
-import { MOCK_USER } from "../test/utils";
+import { MOCK_USER } from "../tests/utils";
 import type { Request } from "express";
 import { validatePrivateUser } from "../services/validations";
 

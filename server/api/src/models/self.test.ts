@@ -10,7 +10,7 @@ import { ERROR_MESSAGES } from "../config";
 import { InternalServerError } from "../services/errors";
 import { dbConnection } from "../services/postgresClient";
 import { validatePrivateUser } from "../services/validations";
-import { databaseQueryMock, MOCK_RANDOM_MEDIA, MOCK_USER } from "../test/utils";
+import { databaseQueryMock, MOCK_RANDOM_MEDIA, MOCK_USER } from "../tests/utils";
 import { SelfModel } from "./self";
 
 describe("SelfModel", () => {

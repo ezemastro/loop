@@ -10,7 +10,7 @@ jest.mock("../models/auth", () => ({
 import { ERROR_MESSAGES } from "../config";
 import { InvalidInputError } from "../services/errors";
 import * as jwt from "../services/jwt";
-import { MOCK_USER } from "../test/utils";
+import { MOCK_USER } from "../tests/utils";
 import { successResponse } from "../utils/responses";
 import { AuthController } from "./auth";
 import { getMockReq, getMockRes } from "@jest-mock/express";

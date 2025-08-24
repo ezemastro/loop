@@ -23,7 +23,7 @@ import {
   InternalServerError,
   InvalidInputError,
 } from "../services/errors";
-import { databaseQueryMock, MOCK_USER, MOCK_USER_DB } from "../test/utils";
+import { databaseQueryMock, MOCK_USER, MOCK_USER_DB } from "../tests/utils";
 
 describe("AuthModel", () => {
   beforeEach(() => {
