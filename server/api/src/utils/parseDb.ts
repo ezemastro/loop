@@ -1,8 +1,30 @@
+import { PAGE_SIZE } from "../config";
+
 const parseDateFromDb = (date: ISODateString): Date => {
   return new Date(date);
 };
 const parseDateToDb = (date: Date): ISODateString => {
   return date.toISOString() as ISODateString;
+};
+export const parsePagination = ({
+  currentPage,
+  totalRecords,
+}: {
+  currentPage: number;
+  totalRecords: number;
+}): PaginatedApiResponse<unknown>["pagination"] => {
+  const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
+  const nextPage = currentPage < totalPages ? currentPage + 1 : null;
+  const previousPage = currentPage > 1 ? currentPage - 1 : null;
+
+  return {
+    currentPage,
+    nextPage,
+    totalPages,
+    pageSize: PAGE_SIZE,
+    totalRecords,
+    previousPage,
+  };
 };
 
 export const parseSchoolFromDb = (row: DB_Schools): SchoolBase => {

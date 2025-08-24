@@ -40,3 +40,4 @@ export const cookieOptions = {
 export const COOKIE_NAMES = {
   TOKEN: "token",
 };
+export const PAGE_SIZE = 10;

@@ -280,3 +280,12 @@ const updateSelfSchema = z.object({
 });
 export const validateUpdateSelf = (data: unknown) =>
   updateSelfSchema.parseAsync(data);
+
+const getRolesRequestQuery = z.object({
+  page: z.string().min(1).optional(),
+  sort: z.string().min(2).max(100).optional(),
+  order: z.enum(["asc", "desc"]).optional(),
+  searchTerm: z.string().min(2).max(100).optional(),
+});
+export const validateGetRolesRequest = (data: unknown) =>
+  getRolesRequestQuery.parseAsync(data);

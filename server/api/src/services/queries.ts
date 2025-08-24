@@ -123,4 +123,29 @@ export const queries = {
     "messages.byId",
     `SELECT * FROM messages WHERE id = $1`,
   ),
+
+  searchRoles: q<DB_Roles & DB_Pagination>(
+    "roles.search",
+    `SELECT 
+        *,
+        COUNT(*) OVER() as total_records
+    FROM roles
+    WHERE 
+        -- Búsqueda por nombre (parcial, case-insensitive)
+        ($1::text IS NULL OR name ILIKE '%' || $1 || '%')
+    ORDER BY
+        -- Ordenamiento dinámico usando expresiones CASE
+        CASE 
+            WHEN $2 = 'name' AND $3 = 'asc' THEN name
+            ELSE NULL
+        END ASC,
+        CASE 
+            WHEN $2 = 'name' AND $3 = 'desc' THEN name
+            ELSE NULL
+        END DESC,
+        -- Orden por defecto
+        name DESC
+    LIMIT $4
+    OFFSET $5;`,
+  ),
 } as const;

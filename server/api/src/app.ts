@@ -1,20 +1,27 @@
-import express from "express";
+import express, { type Request, type Response } from "express";
 import { PORT } from "./config.js";
 import cookieParser from "cookie-parser";
 import { tokenMiddleware } from "./middlewares/parseToken.js";
 import { authRouter } from "./routes/auth.js";
 import { selfRouter } from "./routes/self.js";
+import { rolesRouter } from "./routes/roles.js";
 
 export const app = express();
-console.log(process.env.NODE_ENV);
 
 app.use(express.json());
 app.use(cookieParser());
 
 app.use("/auth", authRouter);
 app.use("/me", tokenMiddleware, selfRouter);
+app.use("/roles", rolesRouter);
+
+// Middleware para manejo de errores
+app.use((err: Error, req: Request, res: Response) => {
+  console.error("Error en la aplicación:", err);
+  res.status(500).json({ error: err.message });
+});
 
 // Iniciar el servidor
-app.listen(PORT, () => {
+export const server = app.listen(PORT, () => {
   console.log(`Servidor escuchando en http://localhost:${PORT}`);
 });

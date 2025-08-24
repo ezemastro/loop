@@ -126,3 +126,7 @@ interface DB_Messages {
   attached_listing_id: UUID | null;
   created_at: ISODateString;
 }
+
+interface DB_Pagination {
+  total_records: number;
+}
