@@ -156,26 +156,42 @@ export const queries = {
       COUNT(*) OVER() as total_records
     FROM users
     WHERE 
-        ($1 IS NULL OR $1 = '' OR 
-        LOWER(first_name) LIKE LOWER('%' || $1 || '%') OR 
-        LOWER(last_name) LIKE LOWER('%' || $1 || '%'))
+        ($1::text IS NULL OR $1::text = '' OR 
+        LOWER(first_name) LIKE LOWER(CONCAT('%', COALESCE($1::text, ''), '%')) OR 
+        LOWER(last_name) LIKE LOWER(CONCAT('%', COALESCE($1::text, ''), '%')) OR
+        LOWER(CONCAT(first_name, ' ', last_name)) LIKE LOWER(CONCAT('%', COALESCE($1::text, ''), '%')) OR
+        LOWER(CONCAT(last_name, ' ', first_name)) LIKE LOWER(CONCAT('%', COALESCE($1::text, ''), '%')))
     AND
-        ($2 IS NULL OR $2 = '' OR role_id::text = $2)
+        ($2::text IS NULL OR $2::text = '' OR role_id::text = $2::text)
     AND
-        ($3 IS NULL OR $3 = '' OR school_id::text = $3)
-    ORDER BY 
-        CASE 
-            WHEN $4 = 'id' THEN id::text
-            WHEN $4 = 'first_name' THEN first_name
-            WHEN $4 = 'last_name' THEN last_name
-            WHEN $4 = 'email' THEN email
-            WHEN $4 = 'school_id' THEN school_id::text
-            WHEN $4 = 'role_id' THEN role_id::text
-            WHEN $4 = 'created_at' THEN created_at::text
-            WHEN $4 = 'credits_balance' THEN credits_balance::text
-            ELSE created_at::text
-        END
-        CASE WHEN $5 = 'desc' THEN DESC ELSE ASC END
+        ($3::text IS NULL OR $3::text = '' OR school_id::text = $3::text)
+    ORDER BY
+    CASE 
+        WHEN $5 = 'asc' THEN
+          CASE 
+              WHEN $4 = 'id' THEN id::text
+              WHEN $4 = 'first_name' THEN first_name
+              WHEN $4 = 'last_name' THEN last_name
+              WHEN $4 = 'email' THEN email
+              WHEN $4 = 'school_id' THEN school_id::text
+              WHEN $4 = 'role_id' THEN role_id::text
+              WHEN $4 = 'created_at' THEN created_at::text
+              ELSE created_at::text
+          END
+    END ASC,
+    CASE 
+        WHEN $5 = 'desc' THEN
+          CASE 
+              WHEN $4 = 'id' THEN id::text
+              WHEN $4 = 'first_name' THEN first_name
+              WHEN $4 = 'last_name' THEN last_name
+              WHEN $4 = 'email' THEN email
+              WHEN $4 = 'school_id' THEN school_id::text
+              WHEN $4 = 'role_id' THEN role_id::text
+              WHEN $4 = 'created_at' THEN created_at::text
+              ELSE created_at::text
+          END
+    END DESC
     LIMIT $6 OFFSET (($7 - 1) * $6);`,
   ),
 } as const;
