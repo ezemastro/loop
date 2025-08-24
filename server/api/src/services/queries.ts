@@ -148,4 +148,34 @@ export const queries = {
     LIMIT $4
     OFFSET $5;`,
   ),
+
+  searchUsers: q<DB_Users & DB_Pagination>(
+    "users.search",
+    `SELECT 
+      *,
+      COUNT(*) OVER() as total_records
+    FROM users
+    WHERE 
+        ($1 IS NULL OR $1 = '' OR 
+        LOWER(first_name) LIKE LOWER('%' || $1 || '%') OR 
+        LOWER(last_name) LIKE LOWER('%' || $1 || '%'))
+    AND
+        ($2 IS NULL OR $2 = '' OR role_id::text = $2)
+    AND
+        ($3 IS NULL OR $3 = '' OR school_id::text = $3)
+    ORDER BY 
+        CASE 
+            WHEN $4 = 'id' THEN id::text
+            WHEN $4 = 'first_name' THEN first_name
+            WHEN $4 = 'last_name' THEN last_name
+            WHEN $4 = 'email' THEN email
+            WHEN $4 = 'school_id' THEN school_id::text
+            WHEN $4 = 'role_id' THEN role_id::text
+            WHEN $4 = 'created_at' THEN created_at::text
+            WHEN $4 = 'credits_balance' THEN credits_balance::text
+            ELSE created_at::text
+        END
+        CASE WHEN $5 = 'desc' THEN DESC ELSE ASC END
+    LIMIT $6 OFFSET (($7 - 1) * $6);`,
+  ),
 } as const;

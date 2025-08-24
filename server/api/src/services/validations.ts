@@ -281,11 +281,22 @@ const updateSelfSchema = z.object({
 export const validateUpdateSelf = (data: unknown) =>
   updateSelfSchema.parseAsync(data);
 
-const getRolesRequestQuery = z.object({
+const paginatedQuery = z.object({
   page: z.string().min(1).optional(),
+  limit: z.string().min(1).optional(),
   sort: z.string().min(2).max(100).optional(),
   order: z.enum(["asc", "desc"]).optional(),
-  searchTerm: z.string().min(2).max(100).optional(),
+});
+
+const getRolesRequestQuery = paginatedQuery.extend({
+  searchTerm: z.string().min(1).max(100).optional(),
 });
 export const validateGetRolesRequest = (data: unknown) =>
   getRolesRequestQuery.parseAsync(data);
+const getUsersRequestQuery = paginatedQuery.extend({
+  searchTerm: z.string().min(1).max(100).optional(),
+  roleId: z.uuid().optional(),
+  schoolId: z.uuid().optional(),
+});
+export const validateGetUsersRequest = (data: unknown) =>
+  getUsersRequestQuery.parseAsync(data);

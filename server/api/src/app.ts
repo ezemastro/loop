@@ -5,6 +5,7 @@ import { tokenMiddleware } from "./middlewares/parseToken.js";
 import { authRouter } from "./routes/auth.js";
 import { selfRouter } from "./routes/self.js";
 import { rolesRouter } from "./routes/roles.js";
+import { usersRouter } from "./routes/users.js";
 
 export const app = express();
 
@@ -14,6 +15,7 @@ app.use(cookieParser());
 app.use("/auth", authRouter);
 app.use("/me", tokenMiddleware, selfRouter);
 app.use("/roles", rolesRouter);
+app.use("/users", usersRouter);
 
 // Middleware para manejo de errores
 app.use((err: Error, req: Request, res: Response) => {
