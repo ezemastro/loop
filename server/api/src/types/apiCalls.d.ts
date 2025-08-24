@@ -123,6 +123,15 @@ interface GetSchoolsRequest {
 type GetSchoolsResponse = PaginatedApiResponse<{
   schools: School[];
 }>;
+// GET /schools/:id
+interface GetSchoolByIdRequest {
+  params: {
+    schoolId: UUID;
+  };
+}
+type GetSchoolByIdResponse = ApiResponse<{
+  school: School;
+}>;
 
 // GET /roles
 interface GetRolesRequest {
