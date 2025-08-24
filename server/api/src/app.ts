@@ -5,7 +5,8 @@ import { tokenMiddleware } from "./middlewares/parseToken.js";
 import { authRouter } from "./routes/auth.js";
 import { selfRouter } from "./routes/self.js";
 
-const app = express();
+export const app = express();
+console.log(process.env.NODE_ENV);
 
 app.use(express.json());
 app.use(cookieParser());

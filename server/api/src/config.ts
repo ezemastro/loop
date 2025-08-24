@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config({
-  path: [".env", "../.env"],
+  path: [".env", "../.env", "*/.env"],
 });
 
 export const {
