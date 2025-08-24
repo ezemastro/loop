@@ -7,17 +7,19 @@
   "type": "module",
   "main": "index.ts",
   "scripts": {
-    "dev": "NODE_ENV=development nodemon",
+    "dev": "cross-env NODE_ENV=development nodemon",
     "docker:dev": "docker compose up --build",
     "build": "tsc",
-    "start": "NODE_ENV=production node dist/app.js",
-    "test": "NODE_ENV=test jest",
+    "start": "cross-env NODE_ENV=production node dist/app.js",
+    "test": "cross-env NODE_ENV=test jest",
+    "test:debug": "cross-env NODE_ENV=test jest --detectOpenHandles --verbose",
     "test:watch": "npm run test -- --watch",
     "docker:test": "docker compose run --rm api npm run test"
   },
   "dependencies": {
     "bcrypt": "6.0.0",
     "cookie-parser": "1.4.7",
+    "cross-env": "^10.0.0",
     "express": "5.1.0",
     "jsonwebtoken": "9.0.2",
     "pg": "8.16.3",
