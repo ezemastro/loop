@@ -253,6 +253,73 @@ const getCategoryParents = async ({
 
   return [parent];
 };
+// Obtener todas las categorías
+export const getAllCategories = async ({
+  client,
+}: {
+  client: DatabaseClient;
+}): Promise<Category[]> => {
+  // 1. Traer todas las categorías en una sola query
+  const categoriesDb = await client.query(queries.allCategories);
+  if (categoriesDb.length === 0) return [];
+
+  // 2. Parsear a objetos base
+  const categoriesBase: CategoryBase[] = categoriesDb.map(
+    parseCategoryBaseFromDb,
+  );
+
+  // 3. Crear un diccionario id -> categoryBase
+  const categoryMap = new Map<UUID, CategoryBase>();
+  categoriesBase.forEach((cat) => categoryMap.set(cat.id, cat));
+
+  // 4. Inicializar children vacíos
+  const childrenMap = new Map<UUID, Category[]>();
+  categoriesBase.forEach((cat) => childrenMap.set(cat.id, []));
+
+  // 5. Armar la relación padre-hijo en memoria
+  categoriesBase.forEach((cat) => {
+    if (cat.parentId) {
+      const parentChildren = childrenMap.get(cat.parentId);
+      if (parentChildren) {
+        parentChildren.push({ ...cat, children: null, parents: [] });
+      }
+    }
+  });
+
+  // 6. Función recursiva para obtener parents
+  const buildParents = (category: CategoryBase, depth = 0): CategoryBase[] => {
+    if (depth >= MAX_RECURSION_DEPTH) return [];
+    if (!category.parentId) return [];
+
+    const parent = categoryMap.get(category.parentId);
+    if (!parent) return [];
+
+    return [parent, ...buildParents(parent, depth + 1)];
+  };
+
+  // 7. Construir la estructura final
+  const buildCategory = (cat: CategoryBase, depth = 0): Category => {
+    if (depth >= MAX_RECURSION_DEPTH) {
+      console.warn("Max recursion depth reached in getAllCategories");
+      return { ...cat, children: null, parents: [] };
+    }
+
+    const children =
+      childrenMap.get(cat.id)?.map((c) => buildCategory(c, depth + 1)) ?? null;
+    const parents = buildParents(cat);
+
+    return {
+      ...cat,
+      children,
+      parents,
+    };
+  };
+
+  // 8. Devolvemos solo las categorías raíz
+  return categoriesBase
+    .filter((cat) => !cat.parentId)
+    .map((cat) => buildCategory(cat));
+};
 
 export const getUserMissionsByUserId = async ({
   client,

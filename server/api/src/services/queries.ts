@@ -84,6 +84,8 @@ export const queries = {
     `SELECT * FROM categories WHERE parent_id = $1`,
   ),
 
+  allCategories: q<DB_Categories>("categories.all", `SELECT * FROM categories`),
+
   markNotificationsAsRead: q<DB_Notifications>(
     "notifications.markAsRead",
     `UPDATE notifications SET read = TRUE WHERE user_id = $1`,
