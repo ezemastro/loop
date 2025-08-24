@@ -8,3 +8,8 @@ selfRouter.patch("/", SelfController.updateSelf);
 
 selfRouter.get("/missions", SelfController.getSelfMissions);
 selfRouter.get("/notifications", SelfController.getSelfNotifications);
+selfRouter.post(
+  "/notifications/read-all",
+  SelfController.postReadAllSelfNotification,
+);
+selfRouter.get("/messages", SelfController.getSelfChats);
