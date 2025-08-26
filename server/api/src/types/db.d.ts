@@ -78,6 +78,11 @@ interface DB_ListingMedia {
   media_id: UUID;
   position: number | null; // SMALLINT
 }
+interface DB_ListingTrades {
+  id: UUID;
+  listing_id: UUID;
+  trade_listing_id: UUID;
+}
 interface DB_WalletTransactions {
   id: UUID;
   user_id: UUID;

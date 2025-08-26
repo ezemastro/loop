@@ -29,7 +29,7 @@ export class AuthController {
     res.cookie(COOKIE_NAMES.TOKEN, token, cookieOptions);
 
     // Devolver la respuesta
-    return res.status(201).json(successResponse({ user }));
+    return res.status(201).json(successResponse({ data: { user } }));
   };
 
   static login = async (req: Request, res: Response) => {
@@ -47,6 +47,6 @@ export class AuthController {
     res.cookie(COOKIE_NAMES.TOKEN, token, cookieOptions);
 
     // Devolver la respuesta
-    return res.status(200).json(successResponse({ user }));
+    return res.status(200).json(successResponse({ data: { user } }));
   };
 }

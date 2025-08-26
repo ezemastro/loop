@@ -69,9 +69,9 @@ export const queries = {
     `SELECT * FROM listings WHERE id = $1`,
   ),
 
-  mediasByListingId: q<DB_Media>(
+  listingMediasByListingId: q<DB_ListingMedia>(
     "listings.mediasById",
-    `SELECT * FROM media WHERE listing_id = $1`,
+    `SELECT * FROM listing_media WHERE listing_id = $1`,
   ),
 
   categoryById: q<DB_Categories>(
@@ -216,5 +216,138 @@ export const queries = {
             ELSE NULL
         END DESC
     LIMIT $4 OFFSET $5;`,
+  ),
+
+  searchListings: q<DB_Listings & DB_Pagination>(
+    "listings.search",
+    `SELECT
+        *,
+        COUNT(*) OVER() as total_records,
+        u.school_id
+    FROM listings l
+    JOIN users u ON l.seller_id = u.id
+    WHERE
+        NOT disabled = true
+        AND listing_status = 'published'
+
+        -- searchTerm: busca en título o descripción
+        ($1::text IS NULL OR $1::text = '' OR
+            LOWER(title) LIKE LOWER(CONCAT('%', $1::text, '%')) OR
+            LOWER(description) LIKE LOWER(CONCAT('%', $1::text, '%')))
+
+        -- categoryId
+        AND ($2::uuid IS NULL OR category_id = $2::uuid)
+
+        -- productStatus
+        AND ($3::product_status IS NULL OR product_status = $3::product_status)
+
+        -- schoolId
+        AND ($4::uuid IS NULL OR u.school_id = $4::uuid)
+
+        -- userId (vendedor)
+        AND ($5::uuid IS NULL OR seller_id = $5::uuid)
+
+    ORDER BY
+      CASE 
+        WHEN $7 = 'asc' THEN
+          CASE 
+              WHEN $6 = 'id' THEN id::text
+              WHEN $6 = 'title' THEN title
+              WHEN $6 = 'price_credits' THEN price_credits::text
+              WHEN $6 = 'created_at' THEN created_at::text
+              WHEN $6 = 'updated_at' THEN updated_at::text
+              ELSE created_at::text
+          END
+    END ASC,
+      CASE 
+        WHEN NOT $7 = 'asc' THEN
+          CASE 
+              WHEN $6 = 'id' THEN id::text
+              WHEN $6 = 'title' THEN title
+              WHEN $6 = 'price_credits' THEN price_credits::text
+              WHEN $6 = 'created_at' THEN created_at::text
+              WHEN $6 = 'updated_at' THEN updated_at::text
+              ELSE created_at::text
+          END
+    END DESC
+
+    LIMIT $8 OFFSET $9;
+`,
+  ),
+
+  createListing: q<{ id: UUID }>(
+    "listing.create",
+    `INSERT INTO listings (title, description, price_credits, category_id, seller_id, product_status, listing_status)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    RETURNING id;`,
+  ),
+
+  linkMediaToListing: q<void>(
+    "listing.linkMedia",
+    `INSERT INTO listing_media (listing_id, media_id)
+    VALUES ($1, $2);`,
+  ),
+
+  getListingById: q<DB_Listings>(
+    "listing.getById",
+    `SELECT * FROM listings WHERE id = $1;`,
+  ),
+
+  updateListingById: q<void>(
+    "listing.updateById",
+    `UPDATE listings SET title = $1, description = $2, price_credits = $3, category_id = $4, product_status = $5
+    WHERE id = $6;`,
+  ),
+
+  unlinkAllMediaFromListing: q<void>(
+    "listing.unlinkAllMedia",
+    `DELETE FROM listing_media WHERE listing_id = $1;`,
+  ),
+
+  newOffer: q<DB_Listings>(
+    "listing.newOffer",
+    `UPDATE listings SET listing_status = 'offered', offered_credits = $1, buyer_id = $2
+    WHERE id = $3;`,
+  ),
+
+  deleteOffer: q<void>(
+    "listing.deleteOffer",
+    `UPDATE listings SET listing_status = 'published', offered_credits = NULL, buyer_id = NULL
+    WHERE id = $1;`,
+  ),
+
+  updateUserBalance: q<void>(
+    "user.updateBalance",
+    `UPDATE users SET credits_balance = $1, credits_locked = $2 WHERE id = $3;`,
+  ),
+
+  storeTrade: q<void>(
+    "trades.newTrade",
+    `INSERT INTO listing_trades (listing_id, trade_listing_id)
+    VALUES ($1, $2);`,
+  ),
+
+  acceptOffer: q<void>(
+    "listing.acceptOffer",
+    `UPDATE listings SET listing_status = 'accepted'
+    WHERE id = $1;`,
+  ),
+
+  updateListingStatus: q<void>(
+    "listing.updateListingStatus",
+    `UPDATE listings SET listing_status = $1, buyer_id = $2, offered_credits = $3
+    WHERE id = $4;`,
+  ),
+
+  markListingAsSold: q<void>(
+    "listing.markAsSold",
+    `UPDATE listings SET listing_status = 'accepted', buyer_id = $1
+    WHERE id = $2;`,
+  ),
+
+  markListingAsReceived: q<void>(
+    "listing.markAsReceived",
+    `UPDATE listings SET listing_status = 'received'
+    WHERE id = $1;`,
   ),
 } as const;

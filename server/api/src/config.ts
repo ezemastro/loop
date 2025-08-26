@@ -30,6 +30,19 @@ export const ERROR_MESSAGES = {
   MISSION_NOT_FOUND: "Misión no encontrada",
   MESSAGE_NOT_FOUND: "Mensaje no encontrado",
   USER_NOT_AUTHORIZED: "Usuario no autorizado",
+  INVALID_LISTING_STATUS_TO_MODIFY:
+    "Estado de publicación inválido para modificar",
+  INVALID_LISTING_STATUS_TO_OFFER:
+    "Estado de listado inválido para hacer una oferta",
+  NOT_LISTING_BUYER: "No eres el comprador de esta publicación",
+  INVALID_LISTING_STATUS_TO_DELETE_OFFER:
+    "Estado de publicación inválido para eliminar una oferta",
+  NOT_LISTING_SELLER: "No eres el vendedor de esta publicación",
+  INVALID_LISTING_STATUS:
+    "Estado de publicación inválido para la acción que se quiere realizar",
+  TOTAL_PRICE_EXCEEDED: "El precio total excede lo ofrecido",
+  INSUFFICIENT_CREDITS: "Créditos insuficientes",
+  OFFERED_CREDITS_NOT_FOUND: "Créditos ofrecidos no encontrados",
 };
 
 export const cookieOptions = {

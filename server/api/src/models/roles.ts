@@ -8,7 +8,7 @@ import { parsePagination, parseRoleFromDb } from "../utils/parseDb";
 export class RolesModel {
   static getRoles = async (query: NonNullable<GetRolesRequest["query"]>) => {
     // Desestructuración y asignación de valores por defecto
-    const { page = 1, sort = "name", order = "asc", searchTerm = "" } = query;
+    const { page = 1, sort = "name", order = "asc", searchTerm } = query;
     // Obtener cliente
     let client: DatabaseClient;
     try {
@@ -19,7 +19,7 @@ export class RolesModel {
     }
     try {
       const rolesSearchDb = await client.query(queries.searchRoles, [
-        searchTerm,
+        searchTerm ?? null,
         sort,
         order,
         PAGE_SIZE,

@@ -181,9 +181,9 @@ type PostListingsResponse = ApiResponse<{
 // PATCH /listing/:id
 interface PatchListingsRequest extends AuthRequest {
   params: {
-    id: UUID;
+    listingId: UUID;
   };
-  body: Partial<Listing>;
+  body: Partial<Listing> & { mediaIds: UUID[] };
 }
 type PatchListingsResponse = ApiResponse<{
   listing: Listing;
@@ -192,7 +192,7 @@ type PatchListingsResponse = ApiResponse<{
 // GET /listing/:id
 interface GetListingByIdRequest {
   params: {
-    id: UUID;
+    listingId: UUID;
   };
 }
 type GetListingByIdResponse = ApiResponse<{
@@ -202,7 +202,7 @@ type GetListingByIdResponse = ApiResponse<{
 // POST /listings/:id/offer
 interface PostListingOfferRequest extends AuthRequest {
   params: {
-    id: UUID;
+    listingId: UUID;
   };
   body: {
     price: number;
@@ -215,7 +215,7 @@ type PostListingOfferResponse = ApiResponse<{
 // DELETE /listings/:id/offer
 interface DeleteListingOfferRequest extends AuthRequest {
   params: {
-    id: UUID;
+    listingId: UUID;
   };
 }
 type DeleteListingOfferResponse = ApiResponse;
@@ -223,7 +223,7 @@ type DeleteListingOfferResponse = ApiResponse;
 // POST /listings/:id/offer/reject
 interface PostListingOfferRejectRequest extends AuthRequest {
   params: {
-    id: UUID;
+    listingId: UUID;
   };
 }
 type PostListingOfferRejectResponse = ApiResponse;
@@ -231,7 +231,7 @@ type PostListingOfferRejectResponse = ApiResponse;
 // POST /listings/:id/offer/accept
 interface PostListingOfferAcceptRequest extends AuthRequest {
   params: {
-    id: UUID;
+    listingId: UUID;
   };
   body: {
     tradingListingIds?: UUID[];
@@ -242,7 +242,7 @@ type PostListingOfferAcceptResponse = ApiResponse;
 // POST /listings/:id/received
 interface PostListingReceivedRequest extends AuthRequest {
   params: {
-    id: UUID;
+    listingId: UUID;
   };
 }
 type PostListingReceivedResponse = ApiResponse;

@@ -39,7 +39,7 @@ describe("AuthController", () => {
       expect(registerUserMock).toHaveBeenCalled();
       expect(resMock.status).toHaveBeenCalledWith(201);
       expect(resMock.json).toHaveBeenCalledWith(
-        successResponse({ user: MOCK_USER }),
+        successResponse({ data: { user: MOCK_USER } }),
       );
       expect(resMock.cookie).toHaveBeenCalledTimes(1);
       expect(generateTokenSpy).toHaveBeenCalledWith({ userId: MOCK_USER.id });
@@ -65,7 +65,7 @@ describe("AuthController", () => {
       expect(loginUserMock).toHaveBeenCalled();
       expect(resMock.status).toHaveBeenCalledWith(200);
       expect(resMock.json).toHaveBeenCalledWith(
-        successResponse({ user: MOCK_USER }),
+        successResponse({ data: { user: MOCK_USER } }),
       );
       expect(resMock.cookie).toHaveBeenCalledTimes(1);
       expect(generateTokenSpy).toHaveBeenCalledWith({ userId: MOCK_USER.id });

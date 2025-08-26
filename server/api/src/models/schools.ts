@@ -30,7 +30,7 @@ export class SchoolsModel {
       let searchSchoolsDb;
       try {
         searchSchoolsDb = await client.query(queries.searchSchools, [
-          searchTerm,
+          searchTerm ?? null,
           sort,
           order,
           PAGE_SIZE,

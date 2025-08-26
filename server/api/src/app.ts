@@ -8,6 +8,7 @@ import { rolesRouter } from "./routes/roles.js";
 import { usersRouter } from "./routes/users.js";
 import { schoolsRouter } from "./routes/schools.js";
 import { categoriesRouter } from "./routes/categories.js";
+import { listingsRouter } from "./routes/listings.js";
 
 export const app = express();
 
@@ -20,6 +21,7 @@ app.use("/roles", rolesRouter);
 app.use("/users", usersRouter);
 app.use("/categories", categoriesRouter);
 app.use("/schools", schoolsRouter);
+app.use("/listings", listingsRouter);
 
 // Middleware para manejo de errores
 app.use((err: Error, req: Request, res: Response) => {

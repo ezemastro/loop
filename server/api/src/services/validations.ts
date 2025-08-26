@@ -17,6 +17,7 @@ const TRANSACTION_TYPES: TransactionType[] = [
   "donation",
   "admin",
 ];
+const PRODUCT_STATUS: ProductStatus[] = ["damaged", "new", "repaired", "used"];
 
 const firstNameSchema = z.string().min(2).max(100);
 const lastNameSchema = z.string().min(2).max(100);
@@ -306,3 +307,30 @@ const getSchoolsRequestQuery = paginatedQuery.extend({
 });
 export const validateGetSchoolsRequest = (data: unknown) =>
   getSchoolsRequestQuery.parseAsync(data);
+const getListingsRequestQuery = paginatedQuery.extend({
+  searchTerm: z.string().min(1).max(100).optional(),
+  categoryId: z.uuid().optional(),
+  userId: z.uuid().optional(),
+});
+export const validateGetListingsRequest = (data: unknown) =>
+  getListingsRequestQuery.parseAsync(data);
+const postListingsRequestBody = z.object({
+  title: z.string().min(2).max(100),
+  description: z.string().min(10).max(1000),
+  price: z.number().min(0),
+  categoryId: z.uuid(),
+  productStatus: z.enum(PRODUCT_STATUS),
+  mediaIds: z.array(z.uuid()).min(1).max(7),
+});
+export const validatePostListingsRequest = (data: unknown) =>
+  postListingsRequestBody.parseAsync(data);
+const patchListingsRequestBody = z.object({
+  title: z.string().min(2).max(100).optional(),
+  description: z.string().min(10).max(1000).optional(),
+  price: z.number().min(0).optional(),
+  categoryId: z.uuid().optional(),
+  productStatus: z.enum(PRODUCT_STATUS).optional(),
+  mediaIds: z.array(z.uuid()).min(1).max(7).optional(),
+});
+export const validatePatchListingsRequest = (data: unknown) =>
+  patchListingsRequestBody.parseAsync(data);

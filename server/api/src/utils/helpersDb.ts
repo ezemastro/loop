@@ -38,7 +38,7 @@ export const getListingById = async ({
     buyer: listingBase.buyerId
       ? await getUserById({ client, userId: listingBase.buyerId })
       : null,
-    media: await getListingMediasById({ client, listingId }),
+    media: await getMediasByListingId({ client, listingId }),
     seller: await getUserById({ client, userId: listingBase.sellerId }),
     category: await getCategoryById({
       client,
@@ -115,15 +115,21 @@ export const getRoleById = async ({
   if (!roleDb) throw new InternalServerError(ERROR_MESSAGES.ROLE_NOT_FOUND);
   return parseRoleFromDb(roleDb);
 };
-export const getListingMediasById = async ({
+export const getMediasByListingId = async ({
   client,
   listingId,
 }: {
   client: DatabaseClient;
   listingId: UUID;
 }) => {
-  const mediasDb = await client.query(queries.mediasByListingId, [listingId]);
-  return mediasDb.map(parseMediaFromDb);
+  const listingMediasDb = await client.query(queries.listingMediasByListingId, [
+    listingId,
+  ]);
+  return await Promise.all(
+    listingMediasDb.map((listingMediaDb) =>
+      getMediaById({ client, mediaId: listingMediaDb.media_id }),
+    ),
+  );
 };
 // Categories
 const MAX_RECURSION_DEPTH = 20;

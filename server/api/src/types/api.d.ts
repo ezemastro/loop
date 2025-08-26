@@ -90,6 +90,11 @@ interface Listing extends ListingBase {
   category: Category;
   buyer: PublicUser | null;
 }
+interface ListingTrade {
+  id: UUID;
+  listingId: UUID;
+  tradeListingId: UUID;
+}
 
 interface MissionTemplate {
   id: UUID;
