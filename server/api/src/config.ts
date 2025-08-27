@@ -43,6 +43,7 @@ export const ERROR_MESSAGES = {
   TOTAL_PRICE_EXCEEDED: "El precio total excede lo ofrecido",
   INSUFFICIENT_CREDITS: "Créditos insuficientes",
   OFFERED_CREDITS_NOT_FOUND: "Créditos ofrecidos no encontrados",
+  INVALID_OFFER_PRICE: "Precio de oferta inválido",
 };
 
 export const cookieOptions = {

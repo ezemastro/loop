@@ -16,3 +16,23 @@ listingsRouter.post(
   tokenMiddleware,
   ListingsController.makeOffer,
 );
+listingsRouter.delete(
+  "/:listingId/offer",
+  tokenMiddleware,
+  ListingsController.deleteOffer,
+);
+listingsRouter.post(
+  "/:listingId/offer/reject",
+  tokenMiddleware,
+  ListingsController.rejectOffer,
+);
+listingsRouter.post(
+  "/:listingId/offer/accept",
+  tokenMiddleware,
+  ListingsController.acceptOffer,
+);
+listingsRouter.post(
+  "/:listingId/receive",
+  tokenMiddleware,
+  ListingsController.receiveListing,
+);

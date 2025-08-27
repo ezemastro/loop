@@ -2,9 +2,9 @@ export const successResponse = ({
   data,
   pagination,
 }: {
-  data: unknown;
+  data?: unknown;
   pagination?: unknown;
-}) => {
+} = {}) => {
   if (pagination) {
     return {
       status: "success",

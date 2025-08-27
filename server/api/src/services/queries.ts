@@ -341,8 +341,8 @@ export const queries = {
 
   markListingAsSold: q<void>(
     "listing.markAsSold",
-    `UPDATE listings SET listing_status = 'accepted', buyer_id = $1
-    WHERE id = $2;`,
+    `UPDATE listings SET listing_status = 'accepted', buyer_id = $1, offered_credits = $2
+    WHERE id = $3;`,
   ),
 
   markListingAsReceived: q<void>(

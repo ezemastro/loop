@@ -75,7 +75,7 @@ export class ListingsModel {
         pagination: parsePagination({ currentPage: page, totalRecords }),
       };
     } finally {
-      client.release();
+      await client.release();
     }
   };
 
@@ -145,7 +145,7 @@ export class ListingsModel {
 
       return { listing };
     } finally {
-      client.release();
+      await client.release();
     }
   };
 
@@ -253,7 +253,7 @@ export class ListingsModel {
       await client.rollback();
       throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
     } finally {
-      client.release();
+      await client.release();
     }
   };
 
@@ -268,7 +268,7 @@ export class ListingsModel {
       const listing = await getListingById({ client, listingId });
       return { listing };
     } finally {
-      client.release();
+      await client.release();
     }
   };
 
@@ -281,14 +281,17 @@ export class ListingsModel {
     userId: UUID;
     price: number;
   }) => {
+    // Obtener cliente de base de datos
     let client: DatabaseClient;
     try {
       client = await dbConnection.connect();
+      // Iniciar transacción
       await client.begin();
     } catch {
       throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
     }
     try {
+      // Obtener publicación
       const [listingBaseDb] = await client.query(queries.listingById, [
         listingId,
       ]);
@@ -302,8 +305,10 @@ export class ListingsModel {
           ERROR_MESSAGES.INVALID_LISTING_STATUS_TO_OFFER,
         );
       }
-      // TODO - Validar precio
-
+      // Validar precio
+      if (price < 0 || price > listingBase.price) {
+        throw new InvalidInputError(ERROR_MESSAGES.INVALID_OFFER_PRICE);
+      }
       // Almacenar la oferta
       const [newListingDb] = await client.query(queries.newOffer, [
         price,
@@ -311,7 +316,7 @@ export class ListingsModel {
         listingId,
       ]);
       const newListingBase = parseListingBaseFromDb(newListingDb!);
-      const listing = await parseListingFromBase({
+      const listing = parseListingFromBase({
         listing: newListingBase,
         buyer: await getUserById({ client, userId: newListingBase.buyerId! }),
         category: await getCategoryById({
@@ -324,14 +329,17 @@ export class ListingsModel {
         }),
         seller: await getUserById({ client, userId: newListingBase.sellerId! }),
       });
-
+      // TODO - Enviar notificación al vendedor
+      // Confirmar transacción
       await client.commit();
+      // Devolver publicación
       return { listing };
-    } catch {
+    } catch (err) {
+      // Cancelar transacción
       await client.rollback();
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+      throw err;
     } finally {
-      client.release();
+      await client.release();
     }
   };
 
@@ -369,11 +377,11 @@ export class ListingsModel {
       }
       await client.query(queries.deleteOffer, [listingId]);
     } finally {
-      client.release();
+      await client.release();
     }
   };
 
-  static cancelOffer = async ({
+  static rejectOffer = async ({
     listingId,
     userId,
   }: {
@@ -407,7 +415,7 @@ export class ListingsModel {
 
       // TODO - Enviar notificación
     } finally {
-      client.release();
+      await client.release();
     }
   };
 
@@ -530,11 +538,56 @@ export class ListingsModel {
       }
       // Actualizar las publicaciones que se intercambiaron
       try {
-        await Promise.all(
-          tradingListings.map((listing) => {
-            client.query(queries.markListingAsSold, [userId, listing.id]);
-          }),
-        );
+        if (totalPrice < 0 && tradingListings.length > 0) {
+          // Repartir los créditos del vendedor entre las publicaciones
+          const tradingListingsTotalPrice = tradingListings.reduce(
+            (acc, listing) => acc + listing.price,
+            0,
+          );
+          let accumulated = 0;
+          await Promise.all(
+            tradingListings.map((listing, index) => {
+              const offeredCredits =
+                index !== tradingListings.length - 1
+                  ? Math.floor(
+                      (listing.price / tradingListingsTotalPrice) * -totalPrice,
+                    )
+                  : -totalPrice - accumulated;
+              accumulated += offeredCredits;
+              return client.query(queries.markListingAsSold, [
+                userId,
+                offeredCredits,
+                listing.id,
+              ]);
+            }),
+          );
+          // Poner en 0 los créditos ofrecidos a la publicación original
+          await client.query(queries.markListingAsSold, [
+            oldListing.buyerId,
+            null,
+            oldListing.id,
+          ]);
+        }
+        // Si las publicaciones a intercambiar no cubren el precio total
+        if (totalPrice >= 0) {
+          // Marcar como vendidas las publicaciones a intercambiar
+          await Promise.all(
+            tradingListings.map((listing) => {
+              return client.query(queries.markListingAsSold, [
+                userId,
+                null,
+                listing.id,
+              ]);
+            }),
+          );
+          // Marcar como vendida la publicación original actualizando
+          // el precio ofrecido
+          await client.query(queries.markListingAsSold, [
+            oldListing.buyerId,
+            totalPrice,
+            oldListing.id,
+          ]);
+        }
       } catch {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
       }
@@ -544,7 +597,7 @@ export class ListingsModel {
       await client.rollback();
       throw err;
     } finally {
-      client.release();
+      await client.release();
     }
   };
 
@@ -563,6 +616,8 @@ export class ListingsModel {
       throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
     }
     try {
+      // Iniciar transacción
+      await client.begin();
       // Obtener publicación
       const [listingDb] = await client.query(queries.getListingById, [
         listingId,
@@ -570,14 +625,69 @@ export class ListingsModel {
       if (!listingDb) {
         throw new InvalidInputError(ERROR_MESSAGES.LISTING_NOT_FOUND);
       }
-      const listing = parseListingBaseFromDb(listingDb);
+      const listingBase = parseListingBaseFromDb(listingDb);
       // Verificar que el usuario sea el comprador
-      if (listing.buyerId !== userId) {
+      if (listingBase.buyerId !== userId) {
         throw new UnauthorizedError(ERROR_MESSAGES.NOT_LISTING_BUYER);
       }
-      // TODO - Terminar esta funcionalidad (actualizar listing)
+      // Verificar el estado de la publicación
+      if (listingBase.listingStatus !== "accepted") {
+        throw new InvalidInputError(ERROR_MESSAGES.INVALID_LISTING_STATUS);
+      }
+      // Transferir los créditos del comprador
+      try {
+        // Obtener comprador
+        const [buyerDb] = await client.query(queries.userById, [
+          listingBase.buyerId,
+        ]);
+        if (!buyerDb) {
+          throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
+        }
+        const buyer = parseUserBaseFromDb(buyerDb);
+        // Descontar créditos
+        await client.query(queries.updateUserBalance, [
+          buyer.credits.balance,
+          buyer.credits.locked - (listingBase.offeredCredits ?? 0),
+          buyer.id,
+        ]);
+      } catch {
+        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+      }
+      // Transferir los créditos al vendedor
+      try {
+        // Obtener vendedor
+        const [sellerDb] = await client.query(queries.userById, [
+          listingBase.sellerId,
+        ]);
+        if (!sellerDb) {
+          throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
+        }
+        const seller = parseUserBaseFromDb(sellerDb);
+        // Transferir créditos
+        await client.query(queries.updateUserBalance, [
+          seller.credits.balance + (listingBase.offeredCredits ?? 0),
+          seller.credits.locked,
+          seller.id,
+        ]);
+      } catch {
+        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+      }
+      // Marcar la publicación como recibida
+      await client.query(queries.markListingAsReceived, [listingId]);
+      // TODO - Enviar notificación al comprador
+      // Finalizar transacción
+      await client.commit();
+    } catch (err) {
+      await client.rollback();
+      throw err;
     } finally {
-      client.release();
+      await client.release();
     }
   };
+  // TODO - Cancelar pedido ("accepted")
+  // 1. Verificar si la publicación es la principal o una de intercambio
+  // 2. Si era usada como medio de pago, descontar créditos
+  // 3. Ajustar offered_credits de las demás publicaciones
+
+  // TODO - Ruta para saber cuanto deberán pagar si se quiere cancelar
 }

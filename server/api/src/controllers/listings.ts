@@ -113,4 +113,70 @@ export class ListingsController {
     });
     res.status(201).json(successResponse({ data: { listing } }));
   };
+
+  static deleteOffer = async (req: Request, res: Response) => {
+    try {
+      await validateId(req.params.listingId);
+    } catch {
+      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+    }
+    const { listingId } = req.params as DeleteListingOfferRequest["params"];
+
+    await ListingsModel.deleteOffer({
+      listingId,
+      userId: req.session!.userId,
+    });
+    res.status(204).json(successResponse());
+  };
+
+  static rejectOffer = async (req: Request, res: Response) => {
+    try {
+      await validateId(req.params.listingId);
+    } catch {
+      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+    }
+    const { listingId } = req.params as PostListingOfferRejectRequest["params"];
+
+    await ListingsModel.rejectOffer({
+      listingId,
+      userId: req.session!.userId,
+    });
+    res.status(204).json(successResponse());
+  };
+
+  static acceptOffer = async (req: Request, res: Response) => {
+    try {
+      await validateId(req.params.listingId);
+      if (req.body.tradingListingIds) {
+        await Promise.all(req.body.tradingListingIds.map(validateId));
+      }
+    } catch {
+      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+    }
+    const { listingId } = req.params as PostListingOfferAcceptRequest["params"];
+    const { tradingListingIds } =
+      (req.body as PostListingOfferAcceptRequest["body"]) || {};
+
+    await ListingsModel.acceptOffer({
+      listingId,
+      tradingListingIds: tradingListingIds || [],
+      userId: req.session!.userId,
+    });
+    res.status(204).json(successResponse());
+  };
+
+  static receiveListing = async (req: Request, res: Response) => {
+    try {
+      await validateId(req.params.listingId);
+    } catch {
+      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+    }
+    const { listingId } = req.params as PostListingOfferRequest["params"];
+
+    await ListingsModel.receiveListing({
+      listingId,
+      userId: req.session!.userId,
+    });
+    res.status(204).json(successResponse());
+  };
 }
