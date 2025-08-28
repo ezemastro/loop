@@ -350,4 +350,21 @@ export const queries = {
     `UPDATE listings SET listing_status = 'received'
     WHERE id = $1;`,
   ),
+
+  newMessage: q<{ id: UUID }>(
+    "message.new",
+    `INSERT INTO messages (sender_id, recipient_id, text, attached_listing_id)
+    VALUES ($1, $2, $3, $4)
+    RETURNING id;`,
+  ),
+
+  messagesBySenderAndRecipient: q<DB_Messages & DB_Pagination>(
+    "message.bySenderAndRecipient",
+    `SELECT *, COUNT(*) OVER() AS total_count
+    FROM messages
+    WHERE (sender_id = $1 AND recipient_id = $2)
+    OR (sender_id = $2 AND recipient_id = $1)
+    ORDER BY created_at DESC
+    LIMIT $3 OFFSET $4;`,
+  ),
 } as const;

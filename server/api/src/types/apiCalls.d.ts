@@ -252,6 +252,9 @@ interface GetMessagesByUserIdRequest {
   params: {
     userId: UUID;
   };
+  query: {
+    page?: number;
+  };
 }
 type GetMessagesByUserIdResponse = ApiResponse<{
   messages: Message[];

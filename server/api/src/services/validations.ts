@@ -289,6 +289,8 @@ const paginatedQuery = z.object({
   sort: z.string().min(2).max(100).optional(),
   order: z.enum(["asc", "desc"]).optional(),
 });
+export const validatePaginationParams = (data: unknown) =>
+  paginatedQuery.parseAsync(data);
 
 const getRolesRequestQuery = paginatedQuery.extend({
   searchTerm: z.string().min(1).max(100).optional(),
@@ -334,3 +336,9 @@ const patchListingsRequestBody = z.object({
 });
 export const validatePatchListingsRequest = (data: unknown) =>
   patchListingsRequestBody.parseAsync(data);
+const postMessageRequestBody = z.object({
+  text: z.string().min(1).max(1000),
+  attachedListingId: z.uuid().nullable().optional(),
+});
+export const validatePostMessageRequest = (data: unknown) =>
+  postMessageRequestBody.parseAsync(data);
