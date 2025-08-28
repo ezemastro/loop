@@ -1,5 +1,11 @@
 type UUID = string;
 
+type JsonValue = string | number | boolean | null | JsonObject | JsonArray;
+interface JsonObject {
+  [k: string]: JsonValue;
+}
+type JsonArray = Array<JsonValue>;
+
 type ListingStatus = "published" | "offered" | "accepted" | "received";
 type ProductStatus = "new" | "used" | "damaged" | "repaired";
 type MediaType = "image" | "video" | "audio" | string;

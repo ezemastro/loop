@@ -15,6 +15,11 @@
     "type": "git",
     "url": "git+ssh://git@github.com/ezemastro/loop.git"
   },
+  "workspaces":[
+    "client",
+    "shared",
+    "server/api"
+  ],
   "license": "Apache-2.0",
   "author": "Ezequiel Mastropietro",
   "type": "module",
