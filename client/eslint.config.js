@@ -9,7 +9,12 @@ module.exports = defineConfig([
   {
     ignores: ["dist/*"],
     rules: {
-      "end-of-line": "auto",
+      "prettier/prettier": [
+        "error",
+        {
+          endOfLine: "auto",
+        },
+      ],
     },
   },
 ]);
