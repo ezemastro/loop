@@ -17,7 +17,7 @@ import { getMockReq, getMockRes } from "@jest-mock/express";
 
 const generateTokenSpy = jest.spyOn(jwt, "generateToken");
 
-const { res: resMock } = getMockRes();
+const { res: resMock, next: nextMock } = getMockRes();
 
 describe("AuthController", () => {
   beforeEach(() => {
@@ -35,7 +35,7 @@ describe("AuthController", () => {
       const reqMock = getMockReq({
         body: { ...MOCK_USER },
       });
-      await AuthController.register(reqMock, resMock);
+      await AuthController.register(reqMock, resMock, nextMock);
       expect(registerUserMock).toHaveBeenCalled();
       expect(resMock.status).toHaveBeenCalledWith(201);
       expect(resMock.json).toHaveBeenCalledWith(
@@ -48,9 +48,9 @@ describe("AuthController", () => {
       const reqMock = getMockReq({
         body: {},
       });
-      expect(AuthController.register(reqMock, resMock)).rejects.toThrow(
-        new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT),
-      );
+      expect(
+        AuthController.register(reqMock, resMock, nextMock),
+      ).rejects.toThrow(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
       expect(registerUserMock).not.toHaveBeenCalled();
       expect(generateTokenSpy).not.toHaveBeenCalled();
     });
@@ -61,7 +61,7 @@ describe("AuthController", () => {
       const reqMock = getMockReq({
         body: { email: MOCK_USER.email, password: "password123" },
       });
-      await AuthController.login(reqMock, resMock);
+      await AuthController.login(reqMock, resMock, nextMock);
       expect(loginUserMock).toHaveBeenCalled();
       expect(resMock.status).toHaveBeenCalledWith(200);
       expect(resMock.json).toHaveBeenCalledWith(
@@ -74,7 +74,7 @@ describe("AuthController", () => {
       const reqMock = getMockReq({
         body: {},
       });
-      expect(AuthController.login(reqMock, resMock)).rejects.toThrow(
+      expect(AuthController.login(reqMock, resMock, nextMock)).rejects.toThrow(
         new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT),
       );
       expect(loginUserMock).not.toHaveBeenCalled();

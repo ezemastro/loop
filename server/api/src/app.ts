@@ -1,4 +1,8 @@
-import express, { type Request, type Response } from "express";
+import express, {
+  type NextFunction,
+  type Request,
+  type Response,
+} from "express";
 import { PORT } from "./config.js";
 import cookieParser from "cookie-parser";
 import { tokenMiddleware } from "./middlewares/parseToken.js";
@@ -26,7 +30,7 @@ app.use("/listings", listingsRouter);
 app.use("/messages", tokenMiddleware, messagesRouter);
 
 // Middleware para manejo de errores
-app.use((err: Error, req: Request, res: Response) => {
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error("Error en la aplicación:", err);
   res.status(500).json({ error: err.message });
 });

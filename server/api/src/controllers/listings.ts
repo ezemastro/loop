@@ -1,4 +1,4 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { ListingsModel } from "../models/listings";
 import {
   validateGetListingsRequest,
@@ -11,11 +11,15 @@ import { ERROR_MESSAGES } from "../config";
 import { successResponse } from "../utils/responses";
 
 export class ListingsController {
-  static getListings = async (req: Request, res: Response) => {
+  static getListings = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       await validateGetListingsRequest(req.query);
     } catch {
-      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     const {
       page,

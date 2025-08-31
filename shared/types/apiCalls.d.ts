@@ -6,16 +6,22 @@ interface ApiResponseError {
   success: false;
   error: string;
 }
-type ApiResponse<T> = ApiResponseBase<T> | ApiResponseError;
-interface PaginatedApiResponse<T> extends ApiResponse<T> {
-  pagination: {
+// type ApiResponse<T> = ApiResponseBase<T> | ApiResponseError;
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+interface Pagination {
     totalRecords: number;
     currentPage: number;
     pageSize: number;
     totalPages: number;
     nextPage: number | null;
     previousPage: number | null;
-  };
+}
+interface PaginatedApiResponse<T> extends ApiResponse<T> {
+  pagination: Pagination;
 }
 
 interface AuthApiRequest {
