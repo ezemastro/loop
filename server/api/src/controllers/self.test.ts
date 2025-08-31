@@ -11,7 +11,7 @@ import { MOCK_USER } from "../tests/utils";
 import type { Request } from "express";
 import { validatePrivateUser } from "../services/validations";
 
-const { res } = getMockRes();
+const { res, next } = getMockRes();
 let req: Request;
 describe("SelfController", () => {
   beforeEach(() => {
@@ -25,7 +25,7 @@ describe("SelfController", () => {
   });
   describe("getSelf", () => {
     it("Should get the user information", async () => {
-      await SelfController.getSelf(req, res);
+      await SelfController.getSelf(req, res, next);
       await expect(
         validatePrivateUser((res.json as jest.Mock).mock.calls[0][0].user),
       ).resolves.not.toThrow();

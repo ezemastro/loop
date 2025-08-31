@@ -15,6 +15,9 @@ import {
   getUserMissionsByUserId,
   getNotificationsByUserId,
   getChatsByUserId,
+  getMediaById,
+  getRoleById,
+  getSchoolById,
 } from "../utils/helpersDb";
 import {
   parseMediaFromDb,
@@ -166,14 +169,22 @@ export class SelfModel {
       }
       // Devolver usuario base actualizado
       return {
-        user: {
-          id: userId,
-          email,
-          firstName,
-          lastName,
-          phone,
-          profileMediaId,
-        } as UserBase,
+        user: parsePrivateUserFromBase({
+          user: {
+            ...user,
+            id: userId,
+            email,
+            firstName,
+            lastName,
+            phone,
+            profileMediaId,
+          },
+          profileMedia: profileMediaId
+            ? await getMediaById({ client, mediaId: profileMediaId })
+            : null,
+          role: await getRoleById({ client, roleId: user.roleId }),
+          school: await getSchoolById({ client, schoolId: user.schoolId }),
+        }),
       };
     } finally {
       client.release();

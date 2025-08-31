@@ -32,20 +32,30 @@ export class ListingsController {
       schoolId,
     } = (req.query as GetListingsRequest["query"]) || {};
 
-    const { listings, pagination } = await ListingsModel.getListings({
-      page,
-      order,
-      sort,
-      searchTerm,
-      categoryId,
-      userId,
-      productStatus,
-      schoolId,
-    });
+    let listings: Listing[];
+    let pagination: Pagination;
+    try {
+      ({ listings, pagination } = await ListingsModel.getListings({
+        page,
+        order,
+        sort,
+        searchTerm,
+        categoryId,
+        userId,
+        productStatus,
+        schoolId,
+      }));
+    } catch (err) {
+      return next(err);
+    }
     res.status(200).json(successResponse({ data: { listings }, pagination }));
   };
 
-  static createListing = async (req: Request, res: Response) => {
+  static createListing = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       await validatePostListingsRequest(req.body);
     } catch {
@@ -54,19 +64,28 @@ export class ListingsController {
     const { title, description, price, categoryId, productStatus, mediaIds } =
       req.body as PostListingsRequest["body"];
 
-    const listing = await ListingsModel.createListing({
-      title,
-      description,
-      price,
-      categoryId,
-      userId: req.session!.userId,
-      productStatus,
-      mediaIds,
-    });
+    let listing: Listing;
+    try {
+      ({ listing } = await ListingsModel.createListing({
+        title,
+        description,
+        price,
+        categoryId,
+        userId: req.session!.userId,
+        productStatus,
+        mediaIds,
+      }));
+    } catch (err) {
+      return next(err);
+    }
     res.status(201).json(successResponse({ data: { listing } }));
   };
 
-  static updateListing = async (req: Request, res: Response) => {
+  static updateListing = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       await validatePatchListingsRequest(req.body);
     } catch {
@@ -76,20 +95,29 @@ export class ListingsController {
     const { title, description, price, categoryId, productStatus, mediaIds } =
       req.body as PatchListingsRequest["body"];
 
-    const listing = await ListingsModel.updateListing({
-      listingId,
-      title,
-      description,
-      price,
-      categoryId,
-      userId: req.session!.userId,
-      productStatus,
-      mediaIds,
-    });
+    let listing: Listing;
+    try {
+      ({ listing } = await ListingsModel.updateListing({
+        listingId,
+        title,
+        description,
+        price,
+        categoryId,
+        userId: req.session!.userId,
+        productStatus,
+        mediaIds,
+      }));
+    } catch (err) {
+      return next(err);
+    }
     res.status(200).json(successResponse({ data: { listing } }));
   };
 
-  static getListingById = async (req: Request, res: Response) => {
+  static getListingById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       await validateId(req.params.listingId);
     } catch {
@@ -97,11 +125,20 @@ export class ListingsController {
     }
     const { listingId } = req.params as GetListingByIdRequest["params"];
 
-    const { listing } = await ListingsModel.getListingById({ listingId });
+    let listing: Listing;
+    try {
+      ({ listing } = await ListingsModel.getListingById({ listingId }));
+    } catch (err) {
+      return next(err);
+    }
     res.status(200).json(successResponse({ data: { listing } }));
   };
 
-  static makeOffer = async (req: Request, res: Response) => {
+  static makeOffer = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       await validateId(req.params.listingId);
     } catch {
@@ -110,15 +147,24 @@ export class ListingsController {
     const { listingId } = req.params as PostListingOfferRequest["params"];
     const { price } = req.body as PostListingOfferRequest["body"];
 
-    const { listing } = await ListingsModel.newOffer({
-      listingId,
-      userId: req.session!.userId,
-      price,
-    });
+    let listing: Listing;
+    try {
+      ({ listing } = await ListingsModel.newOffer({
+        listingId,
+        userId: req.session!.userId,
+        price,
+      }));
+    } catch (err) {
+      return next(err);
+    }
     res.status(201).json(successResponse({ data: { listing } }));
   };
 
-  static deleteOffer = async (req: Request, res: Response) => {
+  static deleteOffer = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       await validateId(req.params.listingId);
     } catch {
@@ -126,14 +172,22 @@ export class ListingsController {
     }
     const { listingId } = req.params as DeleteListingOfferRequest["params"];
 
-    await ListingsModel.deleteOffer({
-      listingId,
-      userId: req.session!.userId,
-    });
+    try {
+      await ListingsModel.deleteOffer({
+        listingId,
+        userId: req.session!.userId,
+      });
+    } catch (err) {
+      return next(err);
+    }
     res.status(204).json(successResponse());
   };
 
-  static rejectOffer = async (req: Request, res: Response) => {
+  static rejectOffer = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       await validateId(req.params.listingId);
     } catch {
@@ -141,14 +195,22 @@ export class ListingsController {
     }
     const { listingId } = req.params as PostListingOfferRejectRequest["params"];
 
-    await ListingsModel.rejectOffer({
-      listingId,
-      userId: req.session!.userId,
-    });
+    try {
+      await ListingsModel.rejectOffer({
+        listingId,
+        userId: req.session!.userId,
+      });
+    } catch (err) {
+      return next(err);
+    }
     res.status(204).json(successResponse());
   };
 
-  static acceptOffer = async (req: Request, res: Response) => {
+  static acceptOffer = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       await validateId(req.params.listingId);
       if (req.body.tradingListingIds) {
@@ -161,15 +223,23 @@ export class ListingsController {
     const { tradingListingIds } =
       (req.body as PostListingOfferAcceptRequest["body"]) || {};
 
-    await ListingsModel.acceptOffer({
-      listingId,
-      tradingListingIds: tradingListingIds || [],
-      userId: req.session!.userId,
-    });
+    try {
+      await ListingsModel.acceptOffer({
+        listingId,
+        tradingListingIds: tradingListingIds || [],
+        userId: req.session!.userId,
+      });
+    } catch (err) {
+      return next(err);
+    }
     res.status(204).json(successResponse());
   };
 
-  static receiveListing = async (req: Request, res: Response) => {
+  static receiveListing = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       await validateId(req.params.listingId);
     } catch {
@@ -177,10 +247,14 @@ export class ListingsController {
     }
     const { listingId } = req.params as PostListingOfferRequest["params"];
 
-    await ListingsModel.receiveListing({
-      listingId,
-      userId: req.session!.userId,
-    });
+    try {
+      await ListingsModel.receiveListing({
+        listingId,
+        userId: req.session!.userId,
+      });
+    } catch (err) {
+      return next(err);
+    }
     res.status(204).json(successResponse());
   };
 }

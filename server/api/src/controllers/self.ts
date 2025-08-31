@@ -1,19 +1,27 @@
 import { SelfModel } from "../models/self";
-import type { Response, Request } from "express";
+import type { Response, Request, NextFunction } from "express";
 import { validateUpdateSelf } from "../services/validations";
 import { InvalidInputError } from "../services/errors";
 import { ERROR_MESSAGES } from "../config";
+import { successResponse } from "../utils/responses";
 
 export class SelfController {
-  static getSelf = async (req: Request, res: Response) => {
-    const { user } = await SelfModel.getSelf({
-      userId: req.session!.userId,
-    });
-
-    //send profile
-    res.status(200).json({ user });
+  static getSelf = async (req: Request, res: Response, next: NextFunction) => {
+    let user: User;
+    try {
+      ({ user } = await SelfModel.getSelf({
+        userId: req.session!.userId,
+      }));
+    } catch (err) {
+      return next(err);
+    }
+    res.status(200).json(successResponse({ data: { user } }));
   };
-  static updateSelf = async (req: Request, res: Response) => {
+  static updateSelf = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     const { userId } = req.session!;
     try {
       await validateUpdateSelf(req.body);
@@ -23,40 +31,71 @@ export class SelfController {
     const { email, firstName, lastName, phone, profileMediaId, password } =
       req.body;
 
-    const { user } = await SelfModel.updateSelf({
-      userId,
-      email,
-      firstName,
-      lastName,
-      phone,
-      profileMediaId,
-      password,
-    });
+    let user: User;
+    try {
+      ({ user } = await SelfModel.updateSelf({
+        userId,
+        email,
+        firstName,
+        lastName,
+        phone,
+        profileMediaId,
+        password,
+      }));
+    } catch (err) {
+      return next(err);
+    }
 
-    res.status(200).json({ user });
+    res.status(200).json(successResponse({ data: { user } }));
   };
 
-  static getSelfMissions = async (req: Request, res: Response) => {
+  static getSelfMissions = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     const { userId } = req.session!;
-    const { missions } = await SelfModel.getSelfMissions({ userId });
-    res.status(200).json({ missions });
+    let missions: UserMission[];
+    try {
+      ({ missions } = await SelfModel.getSelfMissions({ userId }));
+    } catch (err) {
+      return next(err);
+    }
+    res.status(200).json(successResponse({ data: { missions } }));
   };
 
-  static getSelfNotifications = async (req: Request, res: Response) => {
+  static getSelfNotifications = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     const { userId } = req.session!;
-    const { notifications } = await SelfModel.getSelfNotifications({ userId });
-    res.status(200).json({ notifications });
+    let notifications: Notification[];
+    try {
+      ({ notifications } = await SelfModel.getSelfNotifications({ userId }));
+    } catch (err) {
+      return next(err);
+    }
+    res.status(200).json(successResponse({ data: { notifications } }));
   };
 
-  static postReadAllSelfNotification = async (req: Request, res: Response) => {
+  static postReadAllSelfNotification = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     const { userId } = req.session!;
-    await SelfModel.setAllSelfNotificationsRead({ userId });
-    res.status(204).send();
+    try {
+      await SelfModel.setAllSelfNotificationsRead({ userId });
+    } catch (err) {
+      return next(err);
+    }
+    res.status(204).send(successResponse());
   };
 
   static getSelfChats = async (req: Request, res: Response) => {
     const { userId } = req.session!;
     const { chats } = await SelfModel.getSelfChats({ userId });
-    res.status(200).json({ chats });
+    res.status(200).json(successResponse({ data: { chats } }));
   };
 }

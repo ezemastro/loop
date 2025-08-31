@@ -16,16 +16,26 @@ export class AuthController {
     }
     // Registrar el usuario
     const { password, firstName, lastName, schoolId, roleId, email } = req.body;
-    const { user } = await AuthModel.registerUser({
-      firstName,
-      lastName,
-      password,
-      schoolId,
-      roleId,
-      email,
-    });
+    let user: User;
+    try {
+      ({ user } = await AuthModel.registerUser({
+        firstName,
+        lastName,
+        password,
+        schoolId,
+        roleId,
+        email,
+      }));
+    } catch (err) {
+      return next(err);
+    }
     // Agregar las cookies de sesión
-    const token = generateToken({ userId: user.id });
+    let token: string;
+    try {
+      token = generateToken({ userId: user.id });
+    } catch (err) {
+      return next(err);
+    }
     res.cookie(COOKIE_NAMES.TOKEN, token, cookieOptions);
 
     // Devolver la respuesta
@@ -48,7 +58,12 @@ export class AuthController {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     // Agregar las cookies de sesión
-    const token = generateToken({ userId: user.id });
+    let token: string;
+    try {
+      token = generateToken({ userId: user.id });
+    } catch (err) {
+      return next(err);
+    }
     res.cookie(COOKIE_NAMES.TOKEN, token, cookieOptions);
 
     // Devolver la respuesta

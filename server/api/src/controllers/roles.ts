@@ -1,10 +1,11 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { InvalidInputError } from "../services/errors";
 import { ERROR_MESSAGES } from "../config";
 import { validateGetRolesRequest } from "../services/validations";
 import { RolesModel } from "../models/roles";
+import { successResponse } from "../utils/responses";
 export class RoleController {
-  static getRoles = async (req: Request, res: Response) => {
+  static getRoles = async (req: Request, res: Response, next: NextFunction) => {
     const { page, sort, order, searchTerm } =
       (req.query as GetRolesRequest["query"]) || {};
     try {
@@ -12,12 +13,19 @@ export class RoleController {
     } catch {
       throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
     }
-    const { roles, pagination } = await RolesModel.getRoles({
-      page,
-      sort,
-      order,
-      searchTerm,
-    });
-    res.status(200).json({ roles, pagination });
+
+    let roles: Role[];
+    let pagination: Pagination;
+    try {
+      ({ roles, pagination } = await RolesModel.getRoles({
+        page,
+        sort,
+        order,
+        searchTerm,
+      }));
+    } catch (err) {
+      return next(err);
+    }
+    res.status(200).json(successResponse({ data: { roles }, pagination }));
   };
 }
