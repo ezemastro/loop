@@ -32,9 +32,9 @@ CREATE TABLE "categories"(
     "max_price_credits" INTEGER,
     "created_at" TIMESTAMP(0) default NOW() NOT null,
     "icon" TEXT,
-    "stat_kg_waste" FLOAT(53) NOT NULL,
-    "stat_kg_co2" FLOAT(53) NOT NULL,
-    "stat_l_h2o" FLOAT(53) NOT NULL
+    "stat_kg_waste" FLOAT(53),
+    "stat_kg_co2" FLOAT(53),
+    "stat_l_h2o" FLOAT(53)
 );
 CREATE TABLE "media"(
     "id" UUID default gen_random_uuid() primary key,
