@@ -293,24 +293,24 @@ export const validatePaginationParams = (data: unknown) =>
   paginatedQuery.parseAsync(data);
 
 const getRolesRequestQuery = paginatedQuery.extend({
-  searchTerm: z.string().min(1).max(100).optional(),
+  searchTerm: z.string().max(100).optional(),
 });
 export const validateGetRolesRequest = (data: unknown) =>
   getRolesRequestQuery.parseAsync(data);
 const getUsersRequestQuery = paginatedQuery.extend({
-  searchTerm: z.string().min(1).max(100).optional(),
+  searchTerm: z.string().max(100).optional(),
   roleId: z.uuid().optional(),
   schoolId: z.uuid().optional(),
 });
 export const validateGetUsersRequest = (data: unknown) =>
   getUsersRequestQuery.parseAsync(data);
 const getSchoolsRequestQuery = paginatedQuery.extend({
-  searchTerm: z.string().min(1).max(100).optional(),
+  searchTerm: z.string().max(100).optional(),
 });
 export const validateGetSchoolsRequest = (data: unknown) =>
   getSchoolsRequestQuery.parseAsync(data);
 const getListingsRequestQuery = paginatedQuery.extend({
-  searchTerm: z.string().min(1).max(100).optional(),
+  searchTerm: z.string().max(100).optional(),
   categoryId: z.uuid().optional(),
   userId: z.uuid().optional(),
 });
