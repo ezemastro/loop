@@ -4,11 +4,15 @@ import { InvalidInputError } from "../services/errors";
 import { ERROR_MESSAGES } from "../config";
 import { UsersModel } from "../models/users";
 import { successResponse } from "../utils/responses";
+import { safeNumber } from "../utils/safeNumber";
 
 export class UsersController {
   static getUsers = async (req: Request, res: Response, next: NextFunction) => {
-    const { page, sort, order, searchTerm, roleId, schoolId } =
-      (req.query as GetUsersRequest["query"]) || {};
+    const parsedQuery: GetUsersRequest["query"] = {
+      page: safeNumber(req.query.page),
+      ...req.query,
+    };
+    const { page, sort, order, searchTerm, roleId, schoolId } = parsedQuery;
     try {
       await validateGetUsersRequest({
         page,

@@ -27,7 +27,7 @@ describe("SelfController", () => {
     it("Should get the user information", async () => {
       await SelfController.getSelf(req, res, next);
       await expect(
-        validatePrivateUser((res.json as jest.Mock).mock.calls[0][0].user),
+        validatePrivateUser((res.json as jest.Mock).mock.calls[0][0].data.user),
       ).resolves.not.toThrow();
       expect(getSelfMock).toHaveBeenCalledWith({ userId: MOCK_USER.id });
       expect(res.status).toHaveBeenCalledWith(200);

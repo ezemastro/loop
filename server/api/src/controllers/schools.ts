@@ -4,6 +4,7 @@ import { InvalidInputError } from "../services/errors";
 import { ERROR_MESSAGES } from "../config";
 import { SchoolsModel } from "../models/schools";
 import { successResponse } from "../utils/responses";
+import { safeNumber } from "../utils/safeNumber";
 
 export class SchoolsController {
   static getSchools = async (
@@ -11,13 +12,16 @@ export class SchoolsController {
     res: Response,
     next: NextFunction,
   ) => {
+    const parsedQuery: GetSchoolsRequest["query"] = {
+      page: safeNumber(req.query.page),
+      ...req.query,
+    };
     try {
-      await validateGetSchoolsRequest(req.query);
+      await validateGetSchoolsRequest(parsedQuery);
     } catch {
       throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
     }
-    const { page, sort, order, searchTerm } =
-      (req.query as GetSchoolsRequest["query"]) || {};
+    const { page, sort, order, searchTerm } = parsedQuery;
 
     let schools: School[];
     let pagination: Pagination;

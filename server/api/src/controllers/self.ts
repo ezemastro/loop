@@ -71,6 +71,7 @@ export class SelfController {
   ) => {
     const { userId } = req.session!;
     let notifications: Notification[];
+    // TODO - Add pagination
     try {
       ({ notifications } = await SelfModel.getSelfNotifications({ userId }));
     } catch (err) {

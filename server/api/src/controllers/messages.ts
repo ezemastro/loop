@@ -8,6 +8,7 @@ import {
 import type { NextFunction, Request, Response } from "express";
 import { successResponse } from "../utils/responses";
 import { MessagesModel } from "../models/messages";
+import { safeNumber } from "../utils/safeNumber";
 
 export class MessagesController {
   static getMessagesFromUser = async (
@@ -16,14 +17,18 @@ export class MessagesController {
     next: NextFunction,
   ) => {
     // Validate parameters
+    const parsedQuery: GetMessagesByUserIdRequest["query"] = {
+      page: safeNumber(req.query.page),
+      ...req.query,
+    };
     try {
       validateId(req.params.userId);
-      validatePaginationParams(req.query);
+      validatePaginationParams(parsedQuery);
     } catch {
       throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
     }
     const { userId } = req.params as GetMessagesByUserIdRequest["params"];
-    const { page } = req.query as GetMessagesByUserIdRequest["query"];
+    const { page } = parsedQuery;
 
     let messages: Message[];
     try {

@@ -9,6 +9,7 @@ import {
 import { InvalidInputError } from "../services/errors";
 import { ERROR_MESSAGES } from "../config";
 import { successResponse } from "../utils/responses";
+import { safeNumber } from "../utils/safeNumber";
 
 export class ListingsController {
   static getListings = async (
@@ -16,8 +17,12 @@ export class ListingsController {
     res: Response,
     next: NextFunction,
   ) => {
+    const parsedQuery: GetListingsRequest["query"] = {
+      page: safeNumber(req.query.page),
+      ...req.query,
+    };
     try {
-      await validateGetListingsRequest(req.query);
+      await validateGetListingsRequest(parsedQuery);
     } catch {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
@@ -30,7 +35,7 @@ export class ListingsController {
       userId,
       productStatus,
       schoolId,
-    } = (req.query as GetListingsRequest["query"]) || {};
+    } = parsedQuery || {};
 
     let listings: Listing[];
     let pagination: Pagination;
@@ -56,13 +61,17 @@ export class ListingsController {
     res: Response,
     next: NextFunction,
   ) => {
+    const parsedBody: PostListingsRequest["body"] = {
+      price: safeNumber(req.body.price),
+      ...req.body,
+    };
     try {
-      await validatePostListingsRequest(req.body);
+      await validatePostListingsRequest(parsedBody);
     } catch {
       throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
     }
     const { title, description, price, categoryId, productStatus, mediaIds } =
-      req.body as PostListingsRequest["body"];
+      parsedBody;
 
     let listing: Listing;
     try {
@@ -86,14 +95,18 @@ export class ListingsController {
     res: Response,
     next: NextFunction,
   ) => {
+    const parsedBody: PatchListingsRequest["body"] = {
+      price: safeNumber(req.body.price),
+      ...req.body,
+    };
     try {
-      await validatePatchListingsRequest(req.body);
+      await validatePatchListingsRequest(parsedBody);
     } catch {
       throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
     }
     const { listingId } = req.params as PatchListingsRequest["params"];
     const { title, description, price, categoryId, productStatus, mediaIds } =
-      req.body as PatchListingsRequest["body"];
+      parsedBody;
 
     let listing: Listing;
     try {
@@ -139,13 +152,17 @@ export class ListingsController {
     res: Response,
     next: NextFunction,
   ) => {
+    const parsedBody: PostListingOfferRequest["body"] = {
+      price: safeNumber(req.body.price),
+      ...req.body,
+    };
     try {
       await validateId(req.params.listingId);
     } catch {
       throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
     }
     const { listingId } = req.params as PostListingOfferRequest["params"];
-    const { price } = req.body as PostListingOfferRequest["body"];
+    const { price } = parsedBody;
 
     let listing: Listing;
     try {

@@ -4,10 +4,14 @@ import { ERROR_MESSAGES } from "../config";
 import { validateGetRolesRequest } from "../services/validations";
 import { RolesModel } from "../models/roles";
 import { successResponse } from "../utils/responses";
+import { safeNumber } from "../utils/safeNumber";
 export class RoleController {
   static getRoles = async (req: Request, res: Response, next: NextFunction) => {
-    const { page, sort, order, searchTerm } =
-      (req.query as GetRolesRequest["query"]) || {};
+    const parsedQuery: GetRolesRequest["query"] = {
+      page: safeNumber(req.query.page),
+      ...req.query,
+    };
+    const { page, sort, order, searchTerm } = parsedQuery;
     try {
       await validateGetRolesRequest({ page, sort, order, searchTerm });
     } catch {
