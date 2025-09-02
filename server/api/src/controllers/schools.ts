@@ -17,10 +17,12 @@ export class SchoolsController {
       ...parseQuery(req.query),
       page: safeNumber(req.query.page),
     };
+    console.log(parsedQuery);
     try {
       await validateGetSchoolsRequest(parsedQuery);
-    } catch {
-      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+    } catch (err) {
+      console.error(err);
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     const { page, sort, order, searchTerm } = parsedQuery;
 
@@ -47,7 +49,7 @@ export class SchoolsController {
     try {
       await validateId(schoolId);
     } catch {
-      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     let school: School;
     try {

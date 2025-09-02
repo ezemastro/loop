@@ -284,7 +284,7 @@ export const validateUpdateSelf = (data: unknown) =>
   updateSelfSchema.parseAsync(data);
 
 const paginatedQuery = z.object({
-  page: z.string().min(1).optional(),
+  page: z.number().min(1).optional(),
   limit: z.string().min(1).optional(),
   sort: z.string().min(2).max(100).optional(),
   order: z.enum(["asc", "desc"]).optional(),
