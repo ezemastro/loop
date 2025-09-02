@@ -10,8 +10,8 @@ import { parseQuery } from "../utils/parseQuery";
 export class UsersController {
   static getUsers = async (req: Request, res: Response, next: NextFunction) => {
     const parsedQuery: GetUsersRequest["query"] = {
-      page: safeNumber(req.query.page),
       ...parseQuery(req.query),
+      page: safeNumber(req.query.page),
     };
     const { page, sort, order, searchTerm, roleId, schoolId } = parsedQuery;
     try {

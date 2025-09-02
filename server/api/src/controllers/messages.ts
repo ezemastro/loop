@@ -19,8 +19,8 @@ export class MessagesController {
   ) => {
     // Validate parameters
     const parsedQuery: GetMessagesByUserIdRequest["query"] = {
-      page: safeNumber(req.query.page),
       ...parseQuery(req.query),
+      page: safeNumber(req.query.page),
     };
     try {
       validateId(req.params.userId);

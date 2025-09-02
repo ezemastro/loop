@@ -14,8 +14,8 @@ export class SchoolsController {
     next: NextFunction,
   ) => {
     const parsedQuery: GetSchoolsRequest["query"] = {
-      page: safeNumber(req.query.page),
       ...parseQuery(req.query),
+      page: safeNumber(req.query.page),
     };
     try {
       await validateGetSchoolsRequest(parsedQuery);

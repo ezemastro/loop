@@ -9,8 +9,8 @@ import { parseQuery } from "../utils/parseQuery";
 export class RoleController {
   static getRoles = async (req: Request, res: Response, next: NextFunction) => {
     const parsedQuery: GetRolesRequest["query"] = {
-      page: safeNumber(req.query.page),
       ...parseQuery(req.query),
+      page: safeNumber(req.query.page),
     };
     const { page, sort, order, searchTerm } = parsedQuery;
     try {

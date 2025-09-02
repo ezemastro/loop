@@ -19,8 +19,8 @@ export class ListingsController {
     next: NextFunction,
   ) => {
     const parsedQuery: GetListingsRequest["query"] = {
-      page: safeNumber(req.query.page),
       ...parseQuery(req.query),
+      page: safeNumber(req.query.page),
     };
     try {
       await validateGetListingsRequest(parsedQuery);
@@ -63,8 +63,8 @@ export class ListingsController {
     next: NextFunction,
   ) => {
     const parsedBody = {
-      price: safeNumber(req.body.price) as number,
       ...parseQuery(req.body),
+      price: safeNumber(req.body.price) as number,
     } as PostListingsRequest["body"];
     try {
       await validatePostListingsRequest(parsedBody);
@@ -97,8 +97,8 @@ export class ListingsController {
     next: NextFunction,
   ) => {
     const parsedBody = {
-      price: safeNumber(req.body.price) as number,
       ...parseQuery(req.body),
+      price: safeNumber(req.body.price) as number,
     } as PatchListingsRequest["body"];
     try {
       await validatePatchListingsRequest(parsedBody);
@@ -154,8 +154,8 @@ export class ListingsController {
     next: NextFunction,
   ) => {
     const parsedBody: PostListingOfferRequest["body"] = {
-      price: safeNumber(req.body.price),
       ...req.body,
+      price: safeNumber(req.body.price),
     };
     try {
       await validateId(req.params.listingId);
