@@ -17,11 +17,9 @@ export class SchoolsController {
       ...parseQuery(req.query),
       page: safeNumber(req.query.page),
     };
-    console.log(parsedQuery);
     try {
       await validateGetSchoolsRequest(parsedQuery);
-    } catch (err) {
-      console.error(err);
+    } catch {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     const { page, sort, order, searchTerm } = parsedQuery;
