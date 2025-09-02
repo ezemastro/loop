@@ -4,6 +4,7 @@ dotenv.config({
 });
 
 export const {
+  NODE_ENV,
   POSTGRES_USER: DB_USER,
   POSTGRES_DB: DB_NAME,
   POSTGRES_PASSWORD: DB_PASSWORD,
