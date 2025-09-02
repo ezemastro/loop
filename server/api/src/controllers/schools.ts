@@ -5,6 +5,7 @@ import { ERROR_MESSAGES } from "../config";
 import { SchoolsModel } from "../models/schools";
 import { successResponse } from "../utils/responses";
 import { safeNumber } from "../utils/safeNumber";
+import { parseQuery } from "../utils/parseQuery";
 
 export class SchoolsController {
   static getSchools = async (
@@ -14,7 +15,7 @@ export class SchoolsController {
   ) => {
     const parsedQuery: GetSchoolsRequest["query"] = {
       page: safeNumber(req.query.page),
-      ...req.query,
+      ...parseQuery(req.query),
     };
     try {
       await validateGetSchoolsRequest(parsedQuery);

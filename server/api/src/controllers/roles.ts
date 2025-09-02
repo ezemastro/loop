@@ -5,11 +5,12 @@ import { validateGetRolesRequest } from "../services/validations";
 import { RolesModel } from "../models/roles";
 import { successResponse } from "../utils/responses";
 import { safeNumber } from "../utils/safeNumber";
+import { parseQuery } from "../utils/parseQuery";
 export class RoleController {
   static getRoles = async (req: Request, res: Response, next: NextFunction) => {
     const parsedQuery: GetRolesRequest["query"] = {
       page: safeNumber(req.query.page),
-      ...req.query,
+      ...parseQuery(req.query),
     };
     const { page, sort, order, searchTerm } = parsedQuery;
     try {

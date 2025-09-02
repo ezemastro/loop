@@ -9,6 +9,7 @@ import type { NextFunction, Request, Response } from "express";
 import { successResponse } from "../utils/responses";
 import { MessagesModel } from "../models/messages";
 import { safeNumber } from "../utils/safeNumber";
+import { parseQuery } from "../utils/parseQuery";
 
 export class MessagesController {
   static getMessagesFromUser = async (
@@ -19,7 +20,7 @@ export class MessagesController {
     // Validate parameters
     const parsedQuery: GetMessagesByUserIdRequest["query"] = {
       page: safeNumber(req.query.page),
-      ...req.query,
+      ...parseQuery(req.query),
     };
     try {
       validateId(req.params.userId);

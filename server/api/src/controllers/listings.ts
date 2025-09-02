@@ -10,6 +10,7 @@ import { InvalidInputError } from "../services/errors";
 import { ERROR_MESSAGES } from "../config";
 import { successResponse } from "../utils/responses";
 import { safeNumber } from "../utils/safeNumber";
+import { parseQuery } from "../utils/parseQuery";
 
 export class ListingsController {
   static getListings = async (
@@ -19,7 +20,7 @@ export class ListingsController {
   ) => {
     const parsedQuery: GetListingsRequest["query"] = {
       page: safeNumber(req.query.page),
-      ...req.query,
+      ...parseQuery(req.query),
     };
     try {
       await validateGetListingsRequest(parsedQuery);
@@ -61,10 +62,10 @@ export class ListingsController {
     res: Response,
     next: NextFunction,
   ) => {
-    const parsedBody: PostListingsRequest["body"] = {
-      price: safeNumber(req.body.price),
-      ...req.body,
-    };
+    const parsedBody = {
+      price: safeNumber(req.body.price) as number,
+      ...parseQuery(req.body),
+    } as PostListingsRequest["body"];
     try {
       await validatePostListingsRequest(parsedBody);
     } catch {
@@ -95,10 +96,10 @@ export class ListingsController {
     res: Response,
     next: NextFunction,
   ) => {
-    const parsedBody: PatchListingsRequest["body"] = {
-      price: safeNumber(req.body.price),
-      ...req.body,
-    };
+    const parsedBody = {
+      price: safeNumber(req.body.price) as number,
+      ...parseQuery(req.body),
+    } as PatchListingsRequest["body"];
     try {
       await validatePatchListingsRequest(parsedBody);
     } catch {

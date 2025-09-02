@@ -5,12 +5,13 @@ import { ERROR_MESSAGES } from "../config";
 import { UsersModel } from "../models/users";
 import { successResponse } from "../utils/responses";
 import { safeNumber } from "../utils/safeNumber";
+import { parseQuery } from "../utils/parseQuery";
 
 export class UsersController {
   static getUsers = async (req: Request, res: Response, next: NextFunction) => {
     const parsedQuery: GetUsersRequest["query"] = {
       page: safeNumber(req.query.page),
-      ...req.query,
+      ...parseQuery(req.query),
     };
     const { page, sort, order, searchTerm, roleId, schoolId } = parsedQuery;
     try {
