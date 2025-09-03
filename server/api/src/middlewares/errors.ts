@@ -13,16 +13,16 @@ export const errorMiddleware = (
   _next: NextFunction,
 ) => {
   if (err instanceof InvalidInputError) {
-    return res.status(400).json({ error: err.message });
+    return res.status(400).json({ success: false, error: err.message });
   }
   if (err instanceof ConflictError) {
-    return res.status(409).json({ error: err.message });
+    return res.status(409).json({ success: false, error: err.message });
   }
   if (err instanceof UnauthorizedError) {
-    return res.status(401).json({ error: err.message });
+    return res.status(401).json({ success: false, error: err.message });
   }
   if (err instanceof InternalServerError) {
     console.error("Error en la aplicación:", err);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ success: false, error: err.message });
   }
 };
