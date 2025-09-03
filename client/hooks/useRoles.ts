@@ -1,23 +1,23 @@
 import { api } from "@/api/loop";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
-const fetchSchools = async (
-  params: GetSchoolsRequest["query"],
-): Promise<{ schools: School[]; pagination: Pagination }> => {
+const fetchRoles = async (
+  params: GetRolesRequest["query"],
+): Promise<{ roles: Role[]; pagination: Pagination }> => {
   const { page = 1, searchTerm = "" } = params || {};
-  const response = await api.get<GetSchoolsResponse>("/schools", {
+  const response = await api.get<GetRolesResponse>("/roles", {
     params: { page, searchTerm },
   });
   return {
-    schools: response.data.data!.schools,
+    roles: response.data.data!.roles,
     pagination: response.data.pagination,
   };
 };
 
-export const useSchools = (params?: GetSchoolsRequest["query"]) => {
+export const useRoles = (params?: GetRolesRequest["query"]) => {
   return useInfiniteQuery({
-    queryKey: ["schools", params],
-    queryFn: () => fetchSchools(params),
+    queryKey: ["roles", params],
+    queryFn: () => fetchRoles(params),
     getNextPageParam: (lastPage) => {
       return lastPage.pagination.nextPage;
     },

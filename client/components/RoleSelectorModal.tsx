@@ -1,27 +1,25 @@
+import { useRoles } from "@/hooks/useRoles";
 import ResourceSelectorModal from "./bases/ResourceSelectorModal";
-import { useSchools } from "@/hooks/useSchools";
-import School from "./cards/School";
+import Role from "./cards/Role";
 
-export default function SchoolSelectorModal({
+export default function RoleSelectorModal({
   isVisible,
   onClose,
   onSelect,
 }: {
   isVisible: boolean;
   onClose: () => void;
-  onSelect: (school: School) => void;
+  onSelect: (role: Role) => void;
 }) {
   return (
-    <ResourceSelectorModal<School>
+    <ResourceSelectorModal<Role>
       isVisible={isVisible}
       onClose={onClose}
       onSelect={onSelect}
-      title="Seleccione una escuela"
-      useResource={useSchools}
-      renderItem={(school) => <School school={school} />}
-      getItems={(data) =>
-        data?.pages.flatMap((page: any) => page.schools) || []
-      }
+      title="Seleccione un rol"
+      useResource={useRoles}
+      renderItem={(role) => <Role role={role} />}
+      getItems={(data) => data?.pages.flatMap((page: any) => page.roles) || []}
       getTotal={(data) => data?.pages[0].pagination.totalRecords}
       filterItems={(items, searchTerm) =>
         items.filter((i) =>

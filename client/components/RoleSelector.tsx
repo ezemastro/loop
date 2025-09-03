@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { View, Text, Pressable } from "react-native";
-import SchoolSelectorModal from "./SchoolSelectorModal";
-import School from "./cards/School";
+import Role from "./cards/Role";
+import RoleSelectorModal from "./RoleSelectorModal";
 
-export default function SchoolSelector({
+export default function RoleSelector({
   onChange,
 }: {
-  onChange?: (school: School) => void;
+  onChange?: (role: Role) => void;
 }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
 
   const openModal = () => {
     setIsModalVisible(true);
@@ -17,9 +17,9 @@ export default function SchoolSelector({
   const closeModal = () => {
     setIsModalVisible(false);
   };
-  const handleSelect = (school: School) => {
-    onChange?.(school);
-    setSelectedSchool(school);
+  const handleSelect = (role: Role) => {
+    onChange?.(role);
+    setSelectedRole(role);
     closeModal();
   };
 
@@ -29,17 +29,15 @@ export default function SchoolSelector({
         onPress={openModal}
         className="bg-white rounded border border-stroke"
       >
-        {selectedSchool ? (
-          <School school={selectedSchool} />
+        {selectedRole ? (
+          <Role role={selectedRole} />
         ) : (
-          <View className="h-16 justify-center items-center">
-            <Text className="text-secondary-text text-lg">
-              Seleccionar escuela
-            </Text>
+          <View className="h-14 justify-center items-center">
+            <Text className="text-secondary-text text-lg">Seleccionar rol</Text>
           </View>
         )}
       </Pressable>
-      <SchoolSelectorModal
+      <RoleSelectorModal
         isVisible={isModalVisible}
         onSelect={handleSelect}
         onClose={closeModal}
