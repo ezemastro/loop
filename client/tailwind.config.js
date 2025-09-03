@@ -14,7 +14,7 @@ export const theme = {
       "secondary-text": "#9E9E9E",
       credits: "#FFA826",
       stroke: "#E4E4E4",
-      background: "#EAEAEA",
+      background: "#F0F0F0",
     },
   },
 };
