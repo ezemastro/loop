@@ -13,6 +13,7 @@ export const useLoginForm = () => {
     mutate: login,
     isError: isLoginError,
     error: loginError,
+    isPending: isLoginLoading,
   } = useLogin();
   const [formData, setFormData] = useState<FormData>({
     email: "",
@@ -49,5 +50,6 @@ export const useLoginForm = () => {
     handleSubmit,
     isLoginError,
     loginError,
+    isLoginLoading,
   };
 };

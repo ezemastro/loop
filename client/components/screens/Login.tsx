@@ -26,6 +26,7 @@ export default function Login() {
     handleSubmit,
     isLoginError,
     loginError,
+    isLoginLoading,
   } = useLoginForm();
   const fields: Field[] = [
     {
@@ -65,10 +66,10 @@ export default function Login() {
         data={fields}
         keyExtractor={(item) => item.key}
         className="p-4"
-        contentContainerClassName="gap-4 pt-6 pb-16"
+        contentContainerClassName="gap-4 pt-6 pb-16 flex-1 justify-center"
         ListHeaderComponent={
-          <Text className="text-3xl py-3 text-center font-bold color-main-text">
-            Registrarse
+          <Text className="text-3xl py-4 text-center font-bold color-main-text">
+            Iniciar sesión
           </Text>
         }
         renderItem={({ item }) => (
@@ -78,20 +79,19 @@ export default function Login() {
             {item.error && <Error>{item.errorMessage}</Error>}
           </View>
         )}
-        ListFooterComponentStyle={{ marginTop: "auto" }}
         ListFooterComponent={
           <>
-            {loginError?.name === ERROR_NAMES.CONFLICT && (
-              <Error>El correo electrónico ya está en uso</Error>
-            )}
-            {isLoginError && loginError?.name !== ERROR_NAMES.CONFLICT && (
-              <Error>Ocurrió un error al iniciar sesión</Error>
-            )}
-            <CustomButton
-              onPress={handleSubmit}
-              className={isLoginError ? "my-3" : "my-6"}
-            >
-              Registrarse
+            {!isLoginLoading &&
+              loginError?.name === ERROR_NAMES.INVALID_INPUT && (
+                <Error>Correo electrónico o contraseña incorrectos</Error>
+              )}
+            {isLoginError &&
+              !isLoginLoading &&
+              loginError?.name === ERROR_NAMES.INTERNAL_SERVER && (
+                <Error>Ocurrió un error al iniciar sesión</Error>
+              )}
+            <CustomButton onPress={handleSubmit} className="mt-6">
+              Iniciar sesión
             </CustomButton>
           </>
         }
