@@ -231,6 +231,31 @@ export class SelfModel {
     }
   };
 
+  static getSelfUnreadNotificationsCount = async ({
+    userId,
+  }: {
+    userId: UUID;
+  }) => {
+    // Crear conexión a la base de datos
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      // Obtener cuantas notificaciones no leídas tiene el usuario
+      const result = await client.query(
+        queries.unreadNotificationsCountByUserId,
+        [userId],
+      );
+      const unreadNotificationsCount = result[0]?.unread_count ?? 0;
+      return { unreadNotificationsCount };
+    } finally {
+      client.release();
+    }
+  };
+
   static setAllSelfNotificationsRead = async ({ userId }: { userId: UUID }) => {
     // Crear conexión a la base de datos
     let client: DatabaseClient;
@@ -261,6 +286,26 @@ export class SelfModel {
       // Obtener chats del usuario
       const chats = await getChatsByUserId({ client, userId });
       return { chats };
+    } finally {
+      client.release();
+    }
+  };
+
+  static getSelfUnreadChatsCount = async ({ userId }: { userId: string }) => {
+    // Crear conexión a la base de datos
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      // Obtener cuantos chats tiene con mensajes no leídos
+      const result = await client.query(queries.unreadChatsCountByUserId, [
+        userId,
+      ]);
+      const unreadChatsCount = result[0]?.unread_count ?? 0;
+      return { unreadChatsCount };
     } finally {
       client.release();
     }

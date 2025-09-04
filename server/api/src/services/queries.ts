@@ -88,7 +88,7 @@ export const queries = {
 
   markNotificationsAsRead: q<DB_Notifications>(
     "notifications.markAsRead",
-    `UPDATE notifications SET read = TRUE WHERE user_id = $1`,
+    `UPDATE notifications SET is_read = TRUE WHERE user_id = $1`,
   ),
 
   chatsByUserId: q<{
@@ -366,5 +366,19 @@ export const queries = {
     OR (sender_id = $2 AND recipient_id = $1)
     ORDER BY created_at DESC
     LIMIT $3 OFFSET $4;`,
+  ),
+
+  unreadChatsCountByUserId: q<{ unread_count: number }>(
+    "message.unreadCount",
+    `SELECT COUNT(DISTINCT sender_id) AS unread_count
+    FROM messages
+    WHERE recipient_id = $1 AND is_read = false;`,
+  ),
+
+  unreadNotificationsCountByUserId: q<{ unread_count: number }>(
+    "notifications.unreadCount",
+    `SELECT COUNT(*) AS unread_count
+    FROM notifications
+    WHERE user_id = $1 AND is_read = false;`,
   ),
 } as const;

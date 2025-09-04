@@ -87,6 +87,11 @@ type GetSelfNotificationsRequest = AuthApiRequest;
 type GetSelfNotificationsResponse = ApiResponse<{
   userNotifications: UserNotification[];
 }>;
+// GET /me/notifications/unread
+type GetSelfNotificationsUnreadRequest = AuthApiRequest;
+type GetSelfNotificationsUnreadResponse = ApiResponse<{
+  unreadNotifications: number;
+}>;
 
 // POST /me/notifications/read-all
 type PostSelfNotificationsReadAllRequest = AuthApiRequest;
@@ -96,6 +101,11 @@ type PostSelfNotificationsReadAllResponse = ApiResponse;
 type GetSelfMessagesRequest = AuthApiRequest;
 type GetSelfMessagesResponse = ApiResponse<{
   chats: UserMessage[];
+}>;
+// GET /me/messages/unread
+type GetSelfMessagesUnreadRequest = AuthApiRequest;
+type GetSelfMessagesUnreadResponse = ApiResponse<{
+  unreadChatsCount: number;
 }>;
 
 // GET /users/:id

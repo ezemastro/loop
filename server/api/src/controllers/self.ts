@@ -80,6 +80,26 @@ export class SelfController {
     res.status(200).json(successResponse({ data: { notifications } }));
   };
 
+  static getSelfNotificationsUnread = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const { userId } = req.session!;
+    let unreadNotificationsCount: number;
+    try {
+      ({ unreadNotificationsCount } =
+        await SelfModel.getSelfUnreadNotificationsCount({
+          userId,
+        }));
+    } catch (err) {
+      return next(err);
+    }
+    res
+      .status(200)
+      .json(successResponse({ data: { unreadNotificationsCount } }));
+  };
+
   static postReadAllSelfNotification = async (
     req: Request,
     res: Response,
@@ -98,5 +118,21 @@ export class SelfController {
     const { userId } = req.session!;
     const { chats } = await SelfModel.getSelfChats({ userId });
     res.status(200).json(successResponse({ data: { chats } }));
+  };
+  static getSelfChatsUnread = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const { userId } = req.session!;
+    let unreadChatsCount: number;
+    try {
+      ({ unreadChatsCount } = await SelfModel.getSelfUnreadChatsCount({
+        userId,
+      }));
+    } catch (err) {
+      return next(err);
+    }
+    res.status(200).json(successResponse({ data: { unreadChatsCount } }));
   };
 }
