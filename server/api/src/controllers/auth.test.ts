@@ -48,9 +48,10 @@ describe("AuthController", () => {
       const reqMock = getMockReq({
         body: {},
       });
-      expect(
-        AuthController.register(reqMock, resMock, nextMock),
-      ).rejects.toThrow(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+      await AuthController.register(reqMock, resMock, nextMock);
+      expect(nextMock).toHaveBeenCalledWith(
+        new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT),
+      );
       expect(registerUserMock).not.toHaveBeenCalled();
       expect(generateTokenSpy).not.toHaveBeenCalled();
     });
@@ -74,7 +75,8 @@ describe("AuthController", () => {
       const reqMock = getMockReq({
         body: {},
       });
-      expect(AuthController.login(reqMock, resMock, nextMock)).rejects.toThrow(
+      await AuthController.login(reqMock, resMock, nextMock);
+      expect(nextMock).toHaveBeenCalledWith(
         new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT),
       );
       expect(loginUserMock).not.toHaveBeenCalled();
