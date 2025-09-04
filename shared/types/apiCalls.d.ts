@@ -90,7 +90,7 @@ type GetSelfNotificationsResponse = ApiResponse<{
 // GET /me/notifications/unread
 type GetSelfNotificationsUnreadRequest = AuthApiRequest;
 type GetSelfNotificationsUnreadResponse = ApiResponse<{
-  unreadNotifications: number;
+  unreadNotificationsCount: number;
 }>;
 
 // POST /me/notifications/read-all
