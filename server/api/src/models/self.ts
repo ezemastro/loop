@@ -171,13 +171,15 @@ export class SelfModel {
       return {
         user: parsePrivateUserFromBase({
           user: {
-            ...user,
             id: userId,
             email,
             firstName,
             lastName,
             phone,
             profileMediaId,
+            roleId: user.roleId,
+            schoolId: user.schoolId,
+            credits: user.credits,
           },
           profileMedia: profileMediaId
             ? await getMediaById({ client, mediaId: profileMediaId })

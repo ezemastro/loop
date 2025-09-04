@@ -1,6 +1,7 @@
+type DbNumber = string;
 type ISODateString = string;
 
-type JsonValue = string | number | boolean | null | JsonObject | JsonArray;
+type JsonValue = string | DbNumber | boolean | null | JsonObject | JsonArray;
 interface JsonObject {
   [k: string]: JsonValue;
 }
@@ -31,8 +32,8 @@ interface DB_Users {
   school_id: UUID;
   role_id: UUID;
   profile_media_id: UUID | null;
-  credits_balance: number;
-  credits_locked: number;
+  credits_balance: DbNumber;
+  credits_locked: DbNumber;
   created_at: ISODateString;
   updated_at: ISODateString | null;
 }
@@ -41,13 +42,13 @@ interface DB_Categories {
   name: string;
   parent_id: UUID | null;
   description: string | null;
-  min_price_credits: number | null;
-  max_price_credits: number | null;
+  min_price_credits: DbNumber | null;
+  max_price_credits: DbNumber | null;
   created_at: ISODateString;
   icon: string | null;
-  stat_kg_waste: number | null;
-  stat_kg_co2: number | null;
-  stat_l_h2o: number | null;
+  stat_kg_waste: DbNumber | null;
+  stat_kg_co2: DbNumber | null;
+  stat_l_h2o: DbNumber | null;
 }
 interface DB_Media {
   id: UUID;
@@ -64,11 +65,11 @@ interface DB_Listings {
   title: string;
   description: string | null;
   category_id: UUID;
-  price_credits: number;
+  price_credits: DbNumber;
   listing_status: DB_ListingStatus;
   product_status: DB_ProductStatus;
   buyer_id: UUID | null;
-  offered_credits: number | null;
+  offered_credits: DbNumber | null;
   created_at: ISODateString;
   updated_at: ISODateString | null;
 }
@@ -76,7 +77,7 @@ interface DB_ListingMedia {
   id: UUID;
   listing_id: UUID;
   media_id: UUID;
-  position: number | null; // SMALLINT
+  position: DbNumber | null; // SMALLINT
 }
 interface DB_ListingTrades {
   id: UUID;
@@ -88,8 +89,8 @@ interface DB_WalletTransactions {
   user_id: UUID;
   type: DB_TransactionType;
   positive: boolean;
-  amount: number;
-  balance_after: number | null;
+  amount: DbNumber;
+  balance_after: DbNumber | null;
   reference_id: UUID | null;
   meta: JsonObject | null;
   created_at: ISODateString;
@@ -99,7 +100,7 @@ interface DB_MissionTemplates {
   key: string;
   title: string;
   description: string | null;
-  reward_credits: number;
+  reward_credits: DbNumber;
   active: boolean;
   created_at: ISODateString;
 }
@@ -110,8 +111,8 @@ interface DB_UserMissions {
   completed_at: ISODateString | null;
   completed: boolean;
   progress: {
-    total: number;
-    current: number;
+    total: DbNumber;
+    current: DbNumber;
   }; // required jsonb
 }
 interface DB_Notifications {
@@ -133,5 +134,5 @@ interface DB_Messages {
 }
 
 interface DB_Pagination {
-  total_records: number;
+  total_records: DbNumber;
 }

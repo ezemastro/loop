@@ -87,8 +87,8 @@ export const parseUserBaseFromDb = (row: DB_Users): UserBase => {
     roleId: row.role_id,
     profileMediaId: row.profile_media_id,
     credits: {
-      balance: row.credits_balance,
-      locked: row.credits_locked,
+      balance: Number(row.credits_balance),
+      locked: Number(row.credits_locked),
     },
   };
 };
@@ -137,7 +137,10 @@ export const parseUserMissionBaseFromDb = (
     missionTemplateId: row.mission_template_id,
     completed: row.completed,
     completedAt: row.completed_at ? parseDateFromDb(row.completed_at) : null,
-    progress: row.progress,
+    progress: {
+      current: Number(row.progress.current),
+      total: Number(row.progress.total),
+    },
   };
 };
 export const parseUserMissionFromBase = ({
@@ -161,7 +164,7 @@ export const parseMissionTemplateFromDb = (
     key: row.key,
     description: row.description,
     active: row.active,
-    rewardCredits: row.reward_credits,
+    rewardCredits: Number(row.reward_credits),
   };
 };
 export const parseNotificationBaseFromDb = (
@@ -185,8 +188,8 @@ export const parseListingBaseFromDb = (row: DB_Listings): ListingBase => {
     disabled: row.disabled,
     id: row.id,
     listingStatus: row.listing_status,
-    offeredCredits: row.offered_credits,
-    price: row.price_credits,
+    offeredCredits: Number(row.offered_credits),
+    price: Number(row.price_credits),
     productStatus: row.product_status,
     sellerId: row.seller_id,
     title: row.title,
@@ -224,16 +227,16 @@ export const parseCategoryBaseFromDb = (row: DB_Categories): CategoryBase => {
     price:
       row.min_price_credits !== null && row.max_price_credits !== null
         ? {
-            max: row.max_price_credits,
-            min: row.min_price_credits,
+            max: Number(row.max_price_credits),
+            min: Number(row.min_price_credits),
           }
         : null,
     stats:
       row.stat_kg_co2 && row.stat_kg_waste && row.stat_l_h2o
         ? {
-            kgCo2: row.stat_kg_co2,
-            kgWaste: row.stat_kg_waste,
-            lH2o: row.stat_l_h2o,
+            kgCo2: Number(row.stat_kg_co2),
+            kgWaste: Number(row.stat_kg_waste),
+            lH2o: Number(row.stat_l_h2o),
           }
         : null,
   };
@@ -323,14 +326,16 @@ export const parseListingToDb = (listing: Listing): DB_Listings => {
     id: listing.id,
     title: listing.title,
     description: listing.description,
-    price_credits: listing.price,
+    price_credits: listing.price.toString() as DbNumber,
     seller_id: listing.sellerId,
     created_at: listing.createdAt.toISOString(),
     buyer_id: listing.buyerId,
     category_id: listing.categoryId,
     disabled: listing.disabled,
     listing_status: listing.listingStatus,
-    offered_credits: listing.offeredCredits,
+    offered_credits: listing.offeredCredits
+      ? (listing.offeredCredits.toString() as DbNumber)
+      : null,
     product_status: listing.productStatus,
     updated_at: parseDateToDb(new Date()),
   };
