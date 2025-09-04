@@ -7,20 +7,20 @@ export const successResponse = ({
 } = {}) => {
   if (pagination) {
     return {
-      status: "success",
+      success: true,
       data,
       pagination,
     };
   }
   return {
-    status: "success",
+    success: true,
     data,
   };
 };
 
 export const errorResponse = (error: unknown) => {
   return {
-    status: "error",
+    success: false,
     error,
   };
 };
