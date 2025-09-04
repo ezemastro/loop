@@ -1,11 +1,10 @@
-import { Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Login from "@/components/screens/Login";
 
 export default function LoginPage() {
   return (
     <SafeAreaView>
-      <Text>Iniciar sesión</Text>
-      {/* <Login /> */}
+      <Login />
     </SafeAreaView>
   );
 }

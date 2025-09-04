@@ -5,11 +5,12 @@ import RoleSelectorModal from "./RoleSelectorModal";
 
 export default function RoleSelector({
   onChange,
+  value,
 }: {
   onChange?: (role: Role) => void;
+  value: Role | null;
 }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
 
   const openModal = () => {
     setIsModalVisible(true);
@@ -19,7 +20,6 @@ export default function RoleSelector({
   };
   const handleSelect = (role: Role) => {
     onChange?.(role);
-    setSelectedRole(role);
     closeModal();
   };
 
@@ -29,8 +29,8 @@ export default function RoleSelector({
         onPress={openModal}
         className="bg-white rounded border border-stroke"
       >
-        {selectedRole ? (
-          <Role role={selectedRole} />
+        {value ? (
+          <Role role={value} />
         ) : (
           <View className="h-14 justify-center items-center">
             <Text className="text-secondary-text text-lg">Seleccionar rol</Text>

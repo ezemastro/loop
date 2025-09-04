@@ -5,11 +5,12 @@ import School from "./cards/School";
 
 export default function SchoolSelector({
   onChange,
+  value,
 }: {
   onChange?: (school: School) => void;
+  value: School | null;
 }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
 
   const openModal = () => {
     setIsModalVisible(true);
@@ -19,7 +20,6 @@ export default function SchoolSelector({
   };
   const handleSelect = (school: School) => {
     onChange?.(school);
-    setSelectedSchool(school);
     closeModal();
   };
 
@@ -29,8 +29,8 @@ export default function SchoolSelector({
         onPress={openModal}
         className="bg-white rounded border border-stroke"
       >
-        {selectedSchool ? (
-          <School school={selectedSchool} />
+        {value ? (
+          <School school={value} />
         ) : (
           <View className="h-16 justify-center items-center">
             <Text className="text-secondary-text text-lg">
