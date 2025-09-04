@@ -1,14 +1,27 @@
 import { api } from "@/api/loop";
+import { ApiError, parseErrorName } from "@/services/errors";
 import { useSessionStore } from "@/stores/session";
 import { useMutation } from "@tanstack/react-query";
+import { AxiosError } from "axios";
 
-const fetchLogin = async (body: PostAuthRegisterRequest["body"]) => {
-  const response = await api.post<PostAuthLoginResponse>("/auth/login", body);
+const fetchLogin = async (body: PostAuthLoginRequest["body"]) => {
+  try {
+    const response = await api.post<PostAuthLoginResponse>("/auth/login", body);
 
-  if (!response.data.success) {
-    throw new Error("Error al iniciar sesión");
+    if (!response.data.success) {
+      throw new Error(response.data.error || "Error desconocido");
+    }
+    return response.data.data;
+  } catch (err) {
+    if (err instanceof AxiosError) {
+      const errName = parseErrorName({ status: err.response?.status || 500 });
+      throw {
+        name: errName,
+        message: err.message,
+      } as ApiError;
+    }
+    throw err;
   }
-  return response.data.data;
 };
 
 export const useLogin = () => {
@@ -16,8 +29,8 @@ export const useLogin = () => {
 
   return useMutation({
     mutationFn: fetchLogin,
-    onSuccess: ({ user }) => {
-      login(user);
+    onSuccess: (result) => {
+      login(result!.user);
     },
   });
 };
