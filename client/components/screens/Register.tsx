@@ -69,6 +69,7 @@ export default function Register() {
           placeholder="Ingrese su correo electrónico"
           value={formData.email}
           onChangeText={(text) => setFormData({ ...formData, email: text })}
+          autoCapitalize="none"
         />
       ),
     },
@@ -84,6 +85,7 @@ export default function Register() {
           secureTextEntry
           value={formData.password}
           onChangeText={(text) => setFormData({ ...formData, password: text })}
+          autoCapitalize="none"
         />
       ),
     },
@@ -101,6 +103,7 @@ export default function Register() {
           onChangeText={(text) =>
             setFormData({ ...formData, confirmPassword: text })
           }
+          autoCapitalize="none"
         />
       ),
     },

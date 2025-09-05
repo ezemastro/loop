@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import Error from "../Error";
 import { ERROR_NAMES } from "@/services/errors";
 import { useLoginForm } from "@/hooks/useLoginForm";
+import Loader from "../Loader";
 
 const TextLabel = ({ children }: { children: string }) => (
   <Text className="color-main-text text-xl">{children}</Text>
@@ -40,6 +41,7 @@ export default function Login() {
           placeholder="Ingrese su correo electrónico"
           value={formData.email}
           onChangeText={(text) => setFormData({ ...formData, email: text })}
+          autoCapitalize="none"
         />
       ),
     },
@@ -55,6 +57,7 @@ export default function Login() {
           secureTextEntry
           value={formData.password}
           onChangeText={(text) => setFormData({ ...formData, password: text })}
+          autoCapitalize="none"
         />
       ),
     },
@@ -90,6 +93,7 @@ export default function Login() {
               loginError?.name === ERROR_NAMES.INTERNAL_SERVER && (
                 <Error>Ocurrió un error al iniciar sesión</Error>
               )}
+            {isLoginLoading && <Loader />}
             <CustomButton onPress={handleSubmit} className="mt-6">
               Iniciar sesión
             </CustomButton>
