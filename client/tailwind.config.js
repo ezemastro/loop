@@ -1,4 +1,5 @@
 /** @type {import('tailwindcss').Config} */
+import { COLORS } from "./config";
 export const content = [
   "./app/**/*.{js,jsx,ts,tsx}",
   "./components/**/*.{js,jsx,ts,tsx}",
@@ -7,14 +8,14 @@ export const presets = [require("nativewind/preset")];
 export const theme = {
   extend: {
     colors: {
-      primary: "#FF5900",
-      secondary: "#4C9F38",
-      tertiary: "#009E7C",
-      "main-text": "#424242",
-      "secondary-text": "#9E9E9E",
-      credits: "#FFA826",
-      stroke: "#E4E4E4",
-      background: "#F0F0F0",
+      primary: COLORS.PRIMARY,
+      secondary: COLORS.SECONDARY,
+      tertiary: COLORS.TERTIARY,
+      "main-text": COLORS.MAIN_TEXT,
+      "secondary-text": COLORS.SECONDARY_TEXT,
+      credits: COLORS.CREDITS,
+      stroke: COLORS.STROKE,
+      background: COLORS.BACKGROUND,
     },
   },
 };
