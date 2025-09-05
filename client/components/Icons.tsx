@@ -2,6 +2,7 @@ import { IconProps } from "@expo/vector-icons/build/createIconSet";
 import Feather from "@expo/vector-icons/Feather";
 import { cssInterop } from "nativewind";
 import { Image } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 cssInterop(Feather, {
   className: {
@@ -41,4 +42,19 @@ export const NotificationIcon = ({
   className?: string;
 } & Partial<IconProps<string>>) => (
   <Feather size={24} className={className} {...props} name="bell" />
+);
+export const HomeIcon = (props: Partial<IconProps<string>>) => (
+  <Ionicons size={24} {...props} name="home-outline" />
+);
+export const MyListingsIcon = (props: Partial<IconProps<string>>) => (
+  <Ionicons size={24} {...props} name="library-outline" />
+);
+export const PublishIcon = (props: Partial<IconProps<string>>) => (
+  <Ionicons size={24} {...props} name="add-circle-outline" />
+);
+export const WishlistIcon = (props: Partial<IconProps<string>>) => (
+  <Ionicons size={24} {...props} name="bookmarks-outline" />
+);
+export const ProfileIcon = (props: Partial<IconProps<string>>) => (
+  <Ionicons size={24} {...props} name="person-outline" />
 );
