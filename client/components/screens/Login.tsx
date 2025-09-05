@@ -1,4 +1,10 @@
-import { Text, TextInput, View, FlatList } from "react-native";
+import {
+  Text,
+  TextInput,
+  View,
+  FlatList,
+  KeyboardAvoidingView,
+} from "react-native";
 import { MainView } from "../bases/MainView";
 import CustomButton from "../bases/CustomButton";
 import type { ReactNode } from "react";
@@ -65,41 +71,43 @@ export default function Login() {
 
   return (
     <MainView>
-      <FlatList
-        data={fields}
-        keyExtractor={(item) => item.key}
-        className="p-4"
-        contentContainerClassName="gap-4 pt-6 pb-16 flex-1 justify-center"
-        ListHeaderComponent={
-          <Text className="text-3xl py-4 text-center font-bold color-main-text">
-            Iniciar sesión
-          </Text>
-        }
-        renderItem={({ item }) => (
-          <View className="gap-2">
-            <TextLabel>{item.label}</TextLabel>
-            {item.render()}
-            {item.error && <Error>{item.errorMessage}</Error>}
-          </View>
-        )}
-        ListFooterComponent={
-          <>
-            {!isLoginLoading &&
-              loginError?.name === ERROR_NAMES.INVALID_INPUT && (
-                <Error>Correo electrónico o contraseña incorrectos</Error>
-              )}
-            {isLoginError &&
-              !isLoginLoading &&
-              loginError?.name === ERROR_NAMES.INTERNAL_SERVER && (
-                <Error>Ocurrió un error al iniciar sesión</Error>
-              )}
-            {isLoginLoading && <Loader />}
-            <CustomButton onPress={handleSubmit} className="mt-6">
+      <KeyboardAvoidingView behavior="padding" className="flex-1">
+        <FlatList
+          data={fields}
+          keyExtractor={(item) => item.key}
+          className="p-4"
+          contentContainerClassName="gap-4 pt-6 pb-16 flex-1 justify-center"
+          ListHeaderComponent={
+            <Text className="text-3xl py-4 text-center font-bold color-main-text">
               Iniciar sesión
-            </CustomButton>
-          </>
-        }
-      />
+            </Text>
+          }
+          renderItem={({ item }) => (
+            <View className="gap-2">
+              <TextLabel>{item.label}</TextLabel>
+              {item.render()}
+              {item.error && <Error>{item.errorMessage}</Error>}
+            </View>
+          )}
+          ListFooterComponent={
+            <>
+              {!isLoginLoading &&
+                loginError?.name === ERROR_NAMES.INVALID_INPUT && (
+                  <Error>Correo electrónico o contraseña incorrectos</Error>
+                )}
+              {isLoginError &&
+                !isLoginLoading &&
+                loginError?.name === ERROR_NAMES.INTERNAL_SERVER && (
+                  <Error>Ocurrió un error al iniciar sesión</Error>
+                )}
+              {isLoginLoading && <Loader />}
+              <CustomButton onPress={handleSubmit} className="mt-6">
+                Iniciar sesión
+              </CustomButton>
+            </>
+          }
+        />
+      </KeyboardAvoidingView>
     </MainView>
   );
 }

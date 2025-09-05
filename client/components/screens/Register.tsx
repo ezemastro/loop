@@ -1,4 +1,10 @@
-import { Text, TextInput, View, FlatList } from "react-native";
+import {
+  Text,
+  TextInput,
+  View,
+  FlatList,
+  KeyboardAvoidingView,
+} from "react-native";
 import { MainView } from "../bases/MainView";
 import SchoolSelector from "../SchoolSelector";
 import RoleSelector from "../RoleSelector";
@@ -135,41 +141,43 @@ export default function Register() {
 
   return (
     <MainView>
-      <FlatList
-        data={fields}
-        keyExtractor={(item) => item.key}
-        className="p-4"
-        contentContainerClassName="gap-4 pt-6 pb-16"
-        ListHeaderComponent={
-          <Text className="text-3xl py-3 text-center font-bold color-main-text">
-            Registrarse
-          </Text>
-        }
-        renderItem={({ item }) => (
-          <View className="gap-2">
-            <TextLabel>{item.label}</TextLabel>
-            {item.render()}
-            {item.error && <Error>{item.errorMessage}</Error>}
-          </View>
-        )}
-        ListFooterComponent={
-          <>
-            {registerError?.name === ERROR_NAMES.CONFLICT && (
-              <Error>El correo electrónico ya está en uso</Error>
-            )}
-            {isRegisterError &&
-              registerError?.name !== ERROR_NAMES.CONFLICT && (
-                <Error>Ocurrió un error al registrarse</Error>
-              )}
-            <CustomButton
-              onPress={handleSubmit}
-              className={isRegisterError ? "my-3" : "my-6"}
-            >
+      <KeyboardAvoidingView behavior="padding" className="flex-1">
+        <FlatList
+          data={fields}
+          keyExtractor={(item) => item.key}
+          className="p-4"
+          contentContainerClassName="gap-4 pt-6 pb-16"
+          ListHeaderComponent={
+            <Text className="text-3xl py-3 text-center font-bold color-main-text">
               Registrarse
-            </CustomButton>
-          </>
-        }
-      />
+            </Text>
+          }
+          renderItem={({ item }) => (
+            <View className="gap-2">
+              <TextLabel>{item.label}</TextLabel>
+              {item.render()}
+              {item.error && <Error>{item.errorMessage}</Error>}
+            </View>
+          )}
+          ListFooterComponent={
+            <>
+              {registerError?.name === ERROR_NAMES.CONFLICT && (
+                <Error>El correo electrónico ya está en uso</Error>
+              )}
+              {isRegisterError &&
+                registerError?.name !== ERROR_NAMES.CONFLICT && (
+                  <Error>Ocurrió un error al registrarse</Error>
+                )}
+              <CustomButton
+                onPress={handleSubmit}
+                className={isRegisterError ? "my-3" : "my-6"}
+              >
+                Registrarse
+              </CustomButton>
+            </>
+          }
+        />
+      </KeyboardAvoidingView>
     </MainView>
   );
 }

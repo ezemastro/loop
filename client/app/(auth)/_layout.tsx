@@ -2,7 +2,7 @@ import { Tabs } from "expo-router";
 
 export default function AuthLayout() {
   return (
-    <Tabs>
+    <Tabs screenOptions={{ tabBarHideOnKeyboard: true }}>
       <Tabs.Screen
         name="register"
         options={{ title: "Registrarse", headerShown: false }}
