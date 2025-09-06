@@ -52,7 +52,6 @@ export class ListingsModel {
         PAGE_SIZE,
         page ? (page - 1) * PAGE_SIZE : 0,
       ]);
-      console.log(listingsSearchDb);
       const totalRecords = safeNumber(listingsSearchDb[0]?.total_records) ?? 0;
       const listingsBase = listingsSearchDb.map(parseListingBaseFromDb);
       const listings = await Promise.all(
