@@ -1,10 +1,11 @@
-import { View, Text, Pressable, FlatList } from "react-native";
+import { View, Pressable, FlatList } from "react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import CustomModal from "../bases/CustomModal";
 import SearchBar from "../SearchBar";
 import Error from "../Error";
 import Loader from "../Loader";
 import TextInfo from "../bases/TextInfo";
+import TextTitle from "./TextTitle";
 
 type ResourceSelectorModalProps<T> = {
   isVisible: boolean;
@@ -61,7 +62,7 @@ export default function ResourceSelectorModal<T>({
   return (
     <CustomModal isVisible={isVisible} handleClose={onClose}>
       <View className="bg-background rounded p-4 py-6 w-full h-3/4 gap-5">
-        <Text className="text-center text-2xl text-main-text">{title}</Text>
+        <TextTitle>{title}</TextTitle>
         <SearchBar
           onChange={handleChangeSearch}
           onDebounce={handleDebouncedSearch}
