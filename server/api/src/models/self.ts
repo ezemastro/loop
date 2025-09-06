@@ -27,6 +27,7 @@ import {
   parseSchoolFromDb,
   parseUserBaseFromDb,
 } from "../utils/parseDb";
+import { safeNumber } from "../utils/safeNumber";
 
 export class SelfModel {
   static getSelf = async ({ userId }: { userId: string }) => {
@@ -301,10 +302,15 @@ export class SelfModel {
     }
     try {
       // Obtener cuantos chats tiene con mensajes no leídos
-      const result = await client.query(queries.unreadChatsCountByUserId, [
-        userId,
-      ]);
-      const unreadChatsCount = result[0]?.unread_count ?? 0;
+      let unreadChatsCount: number;
+      try {
+        const result = await client.query(queries.unreadChatsCountByUserId, [
+          userId,
+        ]);
+        unreadChatsCount = safeNumber(result[0]?.unread_count) ?? 0;
+      } catch {
+        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+      }
       return { unreadChatsCount };
     } finally {
       client.release();

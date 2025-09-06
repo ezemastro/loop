@@ -25,4 +25,8 @@ export const errorMiddleware = (
     console.error("Error en la aplicación:", err);
     return res.status(500).json({ success: false, error: err.message });
   }
+  console.error("Error no manejado:", err);
+  return res
+    .status(500)
+    .json({ success: false, error: "Error interno del servidor" });
 };

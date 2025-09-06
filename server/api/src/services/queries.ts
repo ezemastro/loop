@@ -221,55 +221,55 @@ export const queries = {
   searchListings: q<DB_Listings & DB_Pagination>(
     "listings.search",
     `SELECT
-        *,
+        l.*,
         COUNT(*) OVER() as total_records,
         u.school_id
     FROM listings l
     JOIN users u ON l.seller_id = u.id
     WHERE
-        NOT disabled = true
-        AND listing_status = 'published'
+        NOT l.disabled = true
+        AND l.listing_status = 'published'
 
         -- searchTerm: busca en título o descripción
-        ($1::text IS NULL OR $1::text = '' OR
-            LOWER(title) LIKE LOWER(CONCAT('%', $1::text, '%')) OR
-            LOWER(description) LIKE LOWER(CONCAT('%', $1::text, '%')))
+        AND ($1::text IS NULL OR $1::text = '' OR
+            LOWER(l.title) LIKE LOWER(CONCAT('%', $1::text, '%')) OR
+            LOWER(l.description) LIKE LOWER(CONCAT('%', $1::text, '%')))
 
         -- categoryId
-        AND ($2::uuid IS NULL OR category_id = $2::uuid)
+        AND ($2::uuid IS NULL OR l.category_id = $2::uuid)
 
         -- productStatus
-        AND ($3::product_status IS NULL OR product_status = $3::product_status)
+        AND ($3::product_status IS NULL OR l.product_status = $3::product_status)
 
         -- schoolId
         AND ($4::uuid IS NULL OR u.school_id = $4::uuid)
 
         -- userId (vendedor)
-        AND ($5::uuid IS NULL OR seller_id = $5::uuid)
+        AND ($5::uuid IS NULL OR l.seller_id = $5::uuid)
 
     ORDER BY
-      CASE 
-        WHEN $7 = 'asc' THEN
-          CASE 
-              WHEN $6 = 'id' THEN id::text
-              WHEN $6 = 'title' THEN title
-              WHEN $6 = 'price_credits' THEN price_credits::text
-              WHEN $6 = 'created_at' THEN created_at::text
-              WHEN $6 = 'updated_at' THEN updated_at::text
-              ELSE created_at::text
-          END
-    END ASC,
-      CASE 
-        WHEN NOT $7 = 'asc' THEN
-          CASE 
-              WHEN $6 = 'id' THEN id::text
-              WHEN $6 = 'title' THEN title
-              WHEN $6 = 'price_credits' THEN price_credits::text
-              WHEN $6 = 'created_at' THEN created_at::text
-              WHEN $6 = 'updated_at' THEN updated_at::text
-              ELSE created_at::text
-          END
-    END DESC
+        CASE 
+            WHEN $7 = 'asc' THEN
+                CASE 
+                    WHEN $6 = 'id' THEN l.id::text
+                    WHEN $6 = 'title' THEN l.title
+                    WHEN $6 = 'price_credits' THEN l.price_credits::text
+                    WHEN $6 = 'created_at' THEN l.created_at::text
+                    WHEN $6 = 'updated_at' THEN l.updated_at::text
+                    ELSE l.created_at::text
+                END
+        END ASC NULLS LAST,
+        CASE 
+            WHEN $7 = 'desc' THEN
+                CASE 
+                    WHEN $6 = 'id' THEN l.id::text
+                    WHEN $6 = 'title' THEN l.title
+                    WHEN $6 = 'price_credits' THEN l.price_credits::text
+                    WHEN $6 = 'created_at' THEN l.created_at::text
+                    WHEN $6 = 'updated_at' THEN l.updated_at::text
+                    ELSE l.created_at::text
+                END
+        END DESC NULLS LAST
 
     LIMIT $8 OFFSET $9;
 `,

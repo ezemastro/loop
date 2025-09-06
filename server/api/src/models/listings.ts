@@ -20,6 +20,7 @@ import {
   parsePagination,
   parseUserBaseFromDb,
 } from "../utils/parseDb";
+import { safeNumber } from "../utils/safeNumber";
 
 export class ListingsModel {
   static getListings = async (query: GetListingsRequest["query"]) => {
@@ -51,7 +52,8 @@ export class ListingsModel {
         PAGE_SIZE,
         page ? (page - 1) * PAGE_SIZE : 0,
       ]);
-      const totalRecords = listingsSearchDb[0]?.total_records ?? 0;
+      console.log(listingsSearchDb);
+      const totalRecords = safeNumber(listingsSearchDb[0]?.total_records) ?? 0;
       const listingsBase = listingsSearchDb.map(parseListingBaseFromDb);
       const listings = await Promise.all(
         listingsBase.map(async (listingBase) =>
