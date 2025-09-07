@@ -5,6 +5,7 @@ import { tokenMiddleware } from "../middlewares/parseToken";
 export const listingsRouter = Router();
 
 listingsRouter.get("/", ListingsController.getListings);
+listingsRouter.get("/:listingId", ListingsController.getListingById);
 listingsRouter.post("/", tokenMiddleware, ListingsController.createListing);
 listingsRouter.patch(
   "/:listingId",
