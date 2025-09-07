@@ -1,6 +1,6 @@
 import { useListing } from "@/hooks/useListing";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { View, Text, FlatList, Pressable } from "react-native";
+import { View, FlatList, Pressable } from "react-native";
 import { BackIcon } from "../Icons";
 import ReportButton from "../ReportButton";
 

@@ -24,10 +24,11 @@ export default function ListingSearchFilters({
   const closeModal = () => {
     setIsModalOpen(false);
   };
+  const filtersCount = Object.values(value).filter((v) => v !== null).length;
   return (
     <>
       <CustomButton onPress={() => openModal()} className="flex-grow">
-        <Text>Filtros</Text>
+        <Text>Filtros{filtersCount > 0 ? ` (${filtersCount})` : ""}</Text>
       </CustomButton>
       <ListingSearchFiltersModal
         onClose={closeModal}
