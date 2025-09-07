@@ -4,12 +4,12 @@ export default function AuthLayout() {
   return (
     <Tabs screenOptions={{ tabBarHideOnKeyboard: true }}>
       <Tabs.Screen
-        name="register"
-        options={{ title: "Registrarse", headerShown: false }}
-      />
-      <Tabs.Screen
         name="login"
         options={{ title: "Iniciar sesión", headerShown: false }}
+      />
+      <Tabs.Screen
+        name="register"
+        options={{ title: "Registrarse", headerShown: false }}
       />
     </Tabs>
   );
