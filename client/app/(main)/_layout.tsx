@@ -81,15 +81,10 @@ export default function TabsLayout() {
             ),
           }}
         />
-        <Tabs.Screen name="search" options={{ title: "Buscar", href: null }} />
-        <Tabs.Screen
-          name="messages"
-          options={{ title: "Mensajes", href: null }}
-        />
-        <Tabs.Screen
-          name="notifications"
-          options={{ title: "Notificaciones", href: null }}
-        />
+        <Tabs.Screen name="search" options={{ href: null }} />
+        <Tabs.Screen name="listing" options={{ href: null }} />
+        <Tabs.Screen name="messages" options={{ href: null }} />
+        <Tabs.Screen name="notifications" options={{ href: null }} />
       </Tabs>
     </>
   );

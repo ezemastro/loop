@@ -11,22 +11,12 @@ export default function MainLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
-        <Stack>
+        <Stack screenOptions={{ headerShown: false }}>
           <Stack.Protected guard={!isLoggedIn}>
-            <Stack.Screen
-              name="(auth)"
-              options={{
-                headerShown: false,
-              }}
-            ></Stack.Screen>
+            <Stack.Screen name="(auth)"></Stack.Screen>
           </Stack.Protected>
           <Stack.Protected guard={isLoggedIn}>
-            <Stack.Screen
-              name="(tabs)"
-              options={{
-                headerShown: false,
-              }}
-            ></Stack.Screen>
+            <Stack.Screen name="(main)"></Stack.Screen>
           </Stack.Protected>
         </Stack>
       </SafeAreaProvider>
