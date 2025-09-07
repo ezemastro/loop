@@ -1,4 +1,7 @@
 {
   "jest.jestCommandLine": "npm run test --",
-  "jest.rootPath": "server/api"
+  "jest.rootPath": "server/api",
+  "cSpell.words": [
+    "Loopear"
+  ]
 }

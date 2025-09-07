@@ -9,6 +9,7 @@ import CustomButton from "../bases/CustomButton";
 import { CrossIcon } from "../Icons";
 import ProductStatusSelector from "../selectors/ProductStatusSelector";
 import UserSelector from "../selectors/UserSelector";
+import ButtonText from "../bases/ButtonText";
 
 export default function ListingSearchFiltersModal({
   onClose,
@@ -124,7 +125,7 @@ export default function ListingSearchFiltersModal({
               onPress={() => onSelect(selectedFilters)}
               className="mt-4"
             >
-              Aplicar
+              <ButtonText>Aplicar</ButtonText>
             </CustomButton>
           }
         />

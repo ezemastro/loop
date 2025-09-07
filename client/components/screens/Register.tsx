@@ -13,6 +13,7 @@ import type { ReactNode } from "react";
 import Error from "../Error";
 import { ERROR_NAMES } from "@/services/errors";
 import { useRegisterForm } from "@/hooks/useRegisterForm";
+import ButtonText from "../bases/ButtonText";
 
 const TextLabel = ({ children }: { children: string }) => (
   <Text className="color-main-text text-xl">{children}</Text>
@@ -172,7 +173,7 @@ export default function Register() {
                 onPress={handleSubmit}
                 className={isRegisterError ? "my-3" : "my-6"}
               >
-                Registrarse
+                <ButtonText>Registrarse</ButtonText>
               </CustomButton>
             </>
           }

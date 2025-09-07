@@ -12,6 +12,7 @@ import Error from "../Error";
 import { ERROR_NAMES } from "@/services/errors";
 import { useLoginForm } from "@/hooks/useLoginForm";
 import Loader from "../Loader";
+import ButtonText from "../bases/ButtonText";
 
 const TextLabel = ({ children }: { children: string }) => (
   <Text className="color-main-text text-xl">{children}</Text>
@@ -102,7 +103,7 @@ export default function Login() {
                 )}
               {isLoginLoading && <Loader />}
               <CustomButton onPress={handleSubmit} className="mt-6">
-                Iniciar sesión
+                <ButtonText>Iniciar sesión</ButtonText>
               </CustomButton>
             </>
           }

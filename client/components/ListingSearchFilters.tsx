@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Text } from "react-native";
 import ListingSearchFiltersModal from "./modals/ListingSearchFiltersModal";
 import CustomButton from "./bases/CustomButton";
+import ButtonText from "./bases/ButtonText";
 
 export interface FiltersValue {
   school: School | null;
@@ -28,7 +29,9 @@ export default function ListingSearchFilters({
   return (
     <>
       <CustomButton onPress={() => openModal()} className="flex-grow">
-        <Text>Filtros{filtersCount > 0 ? ` (${filtersCount})` : ""}</Text>
+        <ButtonText>
+          Filtros{filtersCount > 0 ? ` (${filtersCount})` : ""}
+        </ButtonText>
       </CustomButton>
       <ListingSearchFiltersModal
         onClose={closeModal}

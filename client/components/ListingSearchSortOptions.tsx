@@ -3,6 +3,7 @@ import { Pressable, Text, View } from "react-native";
 import CustomButton from "./bases/CustomButton";
 import { ArrowDownIcon, ArrowUpIcon } from "./Icons";
 import { useDebouncedCallback } from "use-debounce";
+import ButtonText from "./bases/ButtonText";
 
 export interface SortValue {
   sortBy?: string;
@@ -65,7 +66,7 @@ export default function ListingSearchSortOptions({
     <View className="flex-1">
       {!sort ? (
         <CustomButton onPress={nextSortOption} className="bg-secondary">
-          <Text>Ordenar</Text>
+          <ButtonText>Ordenar</ButtonText>
         </CustomButton>
       ) : (
         <View className="flex-1 flex-row border border-main-text rounded px-2">

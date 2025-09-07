@@ -20,10 +20,17 @@ export const SearchIcon = ({
   <Feather size={24} className={className} {...props} name="search" />
 );
 
-export const CreditIcon = ({ className }: { className?: string }) => (
+export const CreditIcon = ({
+  className,
+  size,
+}: {
+  className?: string;
+  size?: number;
+}) => (
   <Image
     source={require("../assets/icons/credit.png")}
     className={"size-7 " + className}
+    style={size ? { width: size, height: size } : {}}
   />
 );
 

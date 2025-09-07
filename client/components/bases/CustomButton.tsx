@@ -1,4 +1,4 @@
-import { Text, Pressable, type PressableProps } from "react-native";
+import { Pressable, type PressableProps } from "react-native";
 
 export default function CustomButton({
   children,
@@ -9,9 +9,7 @@ export default function CustomButton({
       {...props}
       className={`bg-tertiary p-3 rounded ${props.className}`}
     >
-      <Text className="text-white text-xl font-medium text-center">
-        {children}
-      </Text>
+      {children}
     </Pressable>
   );
 }

@@ -3,8 +3,12 @@ import React from "react";
 
 export default function ProductStatusBadge({
   status,
+  containerClassName,
+  textClassName,
 }: {
   status: ProductStatus;
+  containerClassName?: string;
+  textClassName?: string;
 }) {
   const getBackgroundColor = () => {
     switch (status) {
@@ -25,8 +29,10 @@ export default function ProductStatusBadge({
     damaged: "Dañado",
   };
   return (
-    <View className={`px-2.5 py-0.5 rounded-full ${getBackgroundColor()}`}>
-      <Text className="text-white font-medium">
+    <View
+      className={`px-2.5 py-0.5 rounded-full ${getBackgroundColor()} ${containerClassName}`}
+    >
+      <Text className={`text-white font-medium ${textClassName}`}>
         {STATUS_TRANSLATIONS[status]}
       </Text>
     </View>
