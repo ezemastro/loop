@@ -16,7 +16,7 @@ cssInterop(Feather, {
 export const SearchIcon = ({
   className,
   ...props
-}: { className?: string } & Partial<IconProps<string>>) => (
+}: Partial<IconProps<string>>) => (
   <Feather size={24} className={className} {...props} name="search" />
 );
 
@@ -30,19 +30,34 @@ export const CreditIcon = ({ className }: { className?: string }) => (
 export const MessageIcon = ({
   className,
   ...props
-}: {
-  className?: string;
-} & Partial<IconProps<string>>) => (
+}: Partial<IconProps<string>>) => (
   <Feather size={24} className={className} {...props} name="message-circle" />
 );
 export const NotificationIcon = ({
   className,
   ...props
-}: {
-  className?: string;
-} & Partial<IconProps<string>>) => (
+}: Partial<IconProps<string>>) => (
   <Feather size={24} className={className} {...props} name="bell" />
 );
+export const BackIcon = ({
+  className,
+  ...props
+}: Partial<IconProps<string>>) => (
+  <Feather size={24} className={className} {...props} name="arrow-left" />
+);
+export const ArrowDownIcon = ({
+  className,
+  ...props
+}: Partial<IconProps<string>>) => (
+  <Feather size={24} className={className} {...props} name="arrow-down" />
+);
+export const ArrowUpIcon = ({
+  className,
+  ...props
+}: Partial<IconProps<string>>) => (
+  <Feather size={24} className={className} {...props} name="arrow-up" />
+);
+
 export const HomeIcon = (props: Partial<IconProps<string>>) => (
   <Ionicons size={24} {...props} name="home-outline" />
 );

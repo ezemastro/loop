@@ -1,6 +1,6 @@
-import ResourceSelectorModal from "./bases/ResourceSelectorModal";
+import ResourceSelectorModal from "../bases/ResourceSelectorModal";
 import { useSchools } from "@/hooks/useSchools";
-import School from "./cards/School";
+import School from "../cards/School";
 
 export default function SchoolSelectorModal({
   isVisible,

@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { View, Text, Pressable } from "react-native";
-import SchoolSelectorModal from "./SchoolSelectorModal";
-import School from "./cards/School";
+import Category from "../cards/Category";
+import CategorySelectorModal from "../modals/CategorySelectorModal";
 
-export default function SchoolSelector({
+export default function CategorySelector({
   onChange,
   value,
 }: {
-  onChange?: (school: School) => void;
-  value: School | null;
+  onChange?: (category: Category) => void;
+  value: Category | null;
 }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -18,8 +18,8 @@ export default function SchoolSelector({
   const closeModal = () => {
     setIsModalVisible(false);
   };
-  const handleSelect = (school: School) => {
-    onChange?.(school);
+  const handleSelect = (category: Category) => {
+    onChange?.(category);
     closeModal();
   };
 
@@ -30,16 +30,16 @@ export default function SchoolSelector({
         className="bg-white rounded border border-stroke"
       >
         {value ? (
-          <School school={value} />
+          <Category category={value} extended />
         ) : (
           <View className="h-16 justify-center items-center">
             <Text className="text-secondary-text text-lg">
-              Seleccionar escuela
+              Seleccionar categoría
             </Text>
           </View>
         )}
       </Pressable>
-      <SchoolSelectorModal
+      <CategorySelectorModal
         isVisible={isModalVisible}
         onSelect={handleSelect}
         onClose={closeModal}

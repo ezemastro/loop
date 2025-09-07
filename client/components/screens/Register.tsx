@@ -6,8 +6,8 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import { MainView } from "../bases/MainView";
-import SchoolSelector from "../SchoolSelector";
-import RoleSelector from "../RoleSelector";
+import SchoolSelector from "../selectors/SchoolSelector";
+import RoleSelector from "../selectors/RoleSelector";
 import CustomButton from "../bases/CustomButton";
 import type { ReactNode } from "react";
 import Error from "../Error";

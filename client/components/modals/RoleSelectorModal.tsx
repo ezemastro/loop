@@ -1,6 +1,6 @@
 import { useRoles } from "@/hooks/useRoles";
-import ResourceSelectorModal from "./bases/ResourceSelectorModal";
-import Role from "./cards/Role";
+import ResourceSelectorModal from "../bases/ResourceSelectorModal";
+import Role from "../cards/Role";
 
 export default function RoleSelectorModal({
   isVisible,

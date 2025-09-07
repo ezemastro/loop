@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { View, Text, Pressable } from "react-native";
-import Role from "./cards/Role";
-import RoleSelectorModal from "./RoleSelectorModal";
+import Role from "../cards/Role";
+import RoleSelectorModal from "../modals/RoleSelectorModal";
 
 export default function RoleSelector({
   onChange,
