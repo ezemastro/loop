@@ -4,24 +4,14 @@ import AppLogo from "./AppLogo";
 import CreditsBalance from "./CreditsBalance";
 import Messages from "./Messages";
 import Notifications from "./Notifications";
-import {
-  ParamListBase,
-  RouteProp,
-  useIsFocused,
-} from "@react-navigation/native";
-import type { BottomTabHeaderProps } from "@react-navigation/bottom-tabs";
 import HeaderSearchBar from "./HeaderSearchBar";
+import { usePathname, useRouter } from "expo-router";
 
-export default function Header({
-  route,
-  navigation,
-}: {
-  route: RouteProp<ParamListBase>;
-  navigation: BottomTabHeaderProps["navigation"];
-}) {
+export default function Header() {
   const insets = useSafeAreaInsets();
-  const isFocused = useIsFocused();
-  const isSearchScreen = route.name === "search" && isFocused;
+  const router = useRouter();
+  const pathname = usePathname();
+  const isSearchScreen = pathname === "/search";
   return (
     <View
       className="bg-secondary p-5 gap-4 shadow-lg"
@@ -33,10 +23,12 @@ export default function Header({
         </View>
         <View className="flex-row items-center gap-4">
           <CreditsBalance />
-          <Pressable onPress={() => navigation.navigate("messages")}>
+          <Pressable onPress={() => router.push("/(main)/(tabs)/messages")}>
             <Messages />
           </Pressable>
-          <Pressable onPress={() => navigation.navigate("notifications")}>
+          <Pressable
+            onPress={() => router.push("/(main)/(tabs)/notifications")}
+          >
             <Notifications />
           </Pressable>
         </View>
@@ -44,7 +36,7 @@ export default function Header({
       <View>
         <HeaderSearchBar
           isSearchScreen={isSearchScreen}
-          onNavigate={() => navigation.navigate("search")}
+          onNavigate={() => router.push("/(main)/(tabs)/search")}
         />
       </View>
     </View>

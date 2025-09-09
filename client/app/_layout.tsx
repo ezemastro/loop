@@ -7,7 +7,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const queryClient = new QueryClient();
 
-export default function MainLayout() {
+export default function RootLayout() {
   const { isLoggedIn } = useAuth();
   return (
     <QueryClientProvider client={queryClient}>
