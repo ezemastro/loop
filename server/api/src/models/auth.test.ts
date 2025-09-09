@@ -50,7 +50,7 @@ describe("AuthModel", () => {
     it("Should throw an error if user already exists", async () => {
       mockQuery.mockImplementation(async (query, params) => {
         if (query === queries.userExists) {
-          return [{ exists: true }];
+          return [{ user_exists: true }];
         }
         return databaseQueryMock(query, params);
       });

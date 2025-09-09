@@ -7,11 +7,11 @@ const q = <T>(key: string, text: string): NamedQuery<T> => ({
 });
 
 export const queries = {
-  userExists: q<{ exists: boolean }>(
+  userExists: q<{ user_exists: boolean }>(
     "user.exists",
     `SELECT EXISTS(
-       SELECT 1 FROM users WHERE email = $1 AND first_name = $2 AND last_name = $3
-     ) AS exists`,
+       SELECT 1 FROM users WHERE email = $1
+     ) AS user_exists`,
   ),
 
   insertUser: q<{ id: UUID }>(

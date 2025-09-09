@@ -36,12 +36,8 @@ export class AuthModel {
     }
     try {
       // Realizar la consulta para verificar si el usuario ya existe
-      const query = await client.query(queries.userExists, [
-        email,
-        firstName,
-        lastName,
-      ]);
-      if (query[0]?.exists) {
+      const query = await client.query(queries.userExists, [email]);
+      if (query[0]?.user_exists) {
         throw new ConflictError(ERROR_MESSAGES.USER_ALREADY_EXISTS);
       }
       // Obtener rol y escuela
