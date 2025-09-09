@@ -6,6 +6,7 @@ interface SessionStore {
   user: User | null;
   login: (user: User) => void;
   logout: () => void;
+  setUser: (user: User) => void;
 }
 export const useSessionStore = create<SessionStore>()(
   persist(
@@ -13,6 +14,7 @@ export const useSessionStore = create<SessionStore>()(
       user: null,
       login: (user) => set({ user }),
       logout: () => set({ user: null }),
+      setUser: (user) => set({ user }),
     }),
     {
       name: "session-storage",
