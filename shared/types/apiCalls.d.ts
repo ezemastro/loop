@@ -225,7 +225,7 @@ interface PostListingOfferRequest extends AuthRequest {
   };
 }
 type PostListingOfferResponse = ApiResponse<{
-  offer: Offer;
+  listing: Listing;
 }>;
 
 // DELETE /listings/:id/offer
