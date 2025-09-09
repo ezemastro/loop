@@ -1,4 +1,5 @@
 import { Pressable, type PressableProps } from "react-native";
+import { twMerge } from "tailwind-merge";
 
 export default function CustomButton({
   children,
@@ -7,7 +8,7 @@ export default function CustomButton({
   return (
     <Pressable
       {...props}
-      className={`bg-tertiary p-3 rounded ${props.className}`}
+      className={twMerge(`bg-tertiary p-3 rounded`, props.className)}
     >
       {children}
     </Pressable>
