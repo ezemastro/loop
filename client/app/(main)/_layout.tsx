@@ -1,4 +1,4 @@
-import React from "react";
+import { useEffect } from "react";
 import { Tabs } from "expo-router";
 import Header from "@/components/header/Header";
 import { StatusBar } from "react-native";
@@ -11,8 +11,12 @@ import {
 } from "@/components/Icons";
 import { COLORS } from "@/config";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSelf } from "@/hooks/useSelf";
 
 export default function TabsLayout() {
+  // Agregar esto al main layout autenticado
+  useSelf(); // Hook para mantener la sesión del usuario actualizada
+
   const insets = useSafeAreaInsets();
   return (
     <>
