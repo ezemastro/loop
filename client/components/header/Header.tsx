@@ -23,7 +23,10 @@ export default function Header({
   const isFocused = useIsFocused();
   const isSearchScreen = route.name === "search" && isFocused;
   return (
-    <View className="bg-secondary p-5 gap-4" style={{ paddingTop: insets.top }}>
+    <View
+      className="bg-secondary p-5 gap-4 shadow-lg"
+      style={{ paddingTop: insets.top }}
+    >
       <View className="flex-row justify-between pt-3">
         <View>
           <AppLogo />
