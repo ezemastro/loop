@@ -313,24 +313,24 @@ export class ListingsModel {
         throw new InvalidInputError(ERROR_MESSAGES.INVALID_OFFER_PRICE);
       }
       // Almacenar la oferta
-      const [newListingDb] = await client.query(queries.newOffer, [
-        price,
-        userId,
-        listingId,
-      ]);
-      const newListingBase = parseListingBaseFromDb(newListingDb!);
+      await client.query(queries.newOffer, [price, userId, listingId]);
       const listing = parseListingFromBase({
-        listing: newListingBase,
-        buyer: await getUserById({ client, userId: newListingBase.buyerId! }),
+        listing: {
+          ...listingBase,
+          offeredCredits: price,
+          buyerId: userId,
+          listingStatus: "offered",
+        },
+        buyer: await getUserById({ client, userId }),
         category: await getCategoryById({
           client,
-          categoryId: newListingBase.categoryId!,
+          categoryId: listingBase.categoryId,
         }),
         media: await getMediasByListingId({
           client,
-          listingId: newListingBase.id!,
+          listingId: listingBase.id,
         }),
-        seller: await getUserById({ client, userId: newListingBase.sellerId! }),
+        seller: await getUserById({ client, userId: listingBase.sellerId }),
       });
       // TODO - Enviar notificación al vendedor
       // Confirmar transacción
