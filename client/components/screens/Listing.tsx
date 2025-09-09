@@ -8,16 +8,20 @@ import CategoryBadge from "../CategoryBadge";
 import ProductStatusBadge from "../badges/ProductStatusBadge";
 import BigCreditsBadge from "../BigCreditsBadge";
 import UserBadge from "../badges/UserBadge";
-import CustomButton from "../bases/CustomButton";
-import ButtonText from "../bases/ButtonText";
+import ListingButtons from "../ListingButtons";
+import Loader from "../Loader";
+import Error from "../Error";
 
 export default function Listing() {
   const router = useRouter();
   const { listingId } = useLocalSearchParams();
-  const { data, isLoading, error } = useListing({
+  const { data, isLoading, error, refetch } = useListing({
     listingId: listingId as string,
   });
   const listing = data?.listing;
+  const handleMutation = () => {
+    refetch();
+  };
 
   const sections = listing
     ? [
@@ -88,9 +92,7 @@ export default function Listing() {
           // TODO - Cambiar botones dependiendo del ListingStatus y si el usuario es el vendedor o no
           component: () => (
             <View className="p-4 gap-3">
-              <CustomButton>
-                <ButtonText className="text-main-text">Loopear</ButtonText>
-              </CustomButton>
+              <ListingButtons listing={listing} onMutate={handleMutation} />
             </View>
           ),
         },
@@ -100,7 +102,17 @@ export default function Listing() {
   // TODO - Agregar estadísticas de la publicación
   return (
     <View>
-      <FlatList data={sections} renderItem={({ item }) => item.component()} />
+      <FlatList
+        data={sections}
+        renderItem={({ item }) => item.component()}
+        ListEmptyComponent={
+          isLoading ? (
+            <Loader />
+          ) : error ? (
+            <Error>No se encontró la publicación</Error>
+          ) : null
+        }
+      />
     </View>
   );
 }
