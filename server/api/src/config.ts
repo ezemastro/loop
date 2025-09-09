@@ -45,6 +45,8 @@ export const ERROR_MESSAGES = {
   INSUFFICIENT_CREDITS: "Créditos insuficientes",
   OFFERED_CREDITS_NOT_FOUND: "Créditos ofrecidos no encontrados",
   INVALID_OFFER_PRICE: "Precio de oferta inválido",
+  CANNOT_OFFER_OWN_LISTING:
+    "No puedes hacer una oferta en tu propia publicación",
 };
 
 export const cookieOptions = {

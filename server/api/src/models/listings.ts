@@ -312,6 +312,19 @@ export class ListingsModel {
       if (price < 0 || price > listingBase.price) {
         throw new InvalidInputError(ERROR_MESSAGES.INVALID_OFFER_PRICE);
       }
+      // Validar que no sea el mismo usuario
+      if (listingBase.sellerId === userId) {
+        throw new InvalidInputError(ERROR_MESSAGES.CANNOT_OFFER_OWN_LISTING);
+      }
+      // Validar que el usuario tenga créditos suficientes
+      const [userDb] = await client.query(queries.userById, [userId]);
+      if (!userDb) {
+        throw new UnauthorizedError(ERROR_MESSAGES.USER_NOT_FOUND);
+      }
+      const user = parseUserBaseFromDb(userDb);
+      if (user.credits.balance < price) {
+        throw new InvalidInputError(ERROR_MESSAGES.INSUFFICIENT_CREDITS);
+      }
       // Almacenar la oferta
       await client.query(queries.newOffer, [price, userId, listingId]);
       const listing = parseListingFromBase({
@@ -332,6 +345,12 @@ export class ListingsModel {
         }),
         seller: await getUserById({ client, userId: listingBase.sellerId }),
       });
+      // Descontar los créditos del comprador
+      await client.query(queries.updateUserBalance, [
+        user.credits.balance - price,
+        user.credits.locked + price,
+        user.id,
+      ]);
       // TODO - Enviar notificación al vendedor
       // Confirmar transacción
       await client.commit();
@@ -360,6 +379,7 @@ export class ListingsModel {
       throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
     }
     try {
+      client.begin();
       // Obtener publicación
       const [oldListingDb] = await client.query(queries.getListingById, [
         listingId,
@@ -378,7 +398,45 @@ export class ListingsModel {
           ERROR_MESSAGES.INVALID_LISTING_STATUS_TO_DELETE_OFFER,
         );
       }
+      // Eliminar la oferta
       await client.query(queries.deleteOffer, [listingId]);
+      // Devolver los créditos al comprador
+      const [buyerDb] = await client.query(queries.userById, [userId]);
+      if (!buyerDb) {
+        throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
+      }
+      const buyer = parseUserBaseFromDb(buyerDb);
+      await client.query(queries.updateUserBalance, [
+        buyer.credits.balance + (oldListing.offeredCredits || 0),
+        buyer.credits.locked - (oldListing.offeredCredits || 0),
+        buyer.id,
+      ]);
+
+      const listing = parseListingFromBase({
+        listing: {
+          ...oldListing,
+          offeredCredits: null,
+          buyerId: null,
+          listingStatus: "published",
+        },
+        buyer: null,
+        category: await getCategoryById({
+          client,
+          categoryId: oldListing.categoryId,
+        }),
+        media: await getMediasByListingId({
+          client,
+          listingId: oldListing.id,
+        }),
+        seller: await getUserById({ client, userId: oldListing.sellerId }),
+      });
+      client.commit();
+      return {
+        listing,
+      };
+    } catch (err) {
+      await client.rollback();
+      throw err;
     } finally {
       await client.release();
     }
