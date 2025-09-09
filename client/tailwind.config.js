@@ -16,6 +16,7 @@ export const theme = {
       credits: COLORS.CREDITS,
       stroke: COLORS.STROKE,
       background: COLORS.BACKGROUND,
+      alert: COLORS.ALERT,
     },
   },
 };

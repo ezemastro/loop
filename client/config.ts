@@ -7,4 +7,5 @@ export const COLORS = {
   CREDITS: "#8436D1",
   STROKE: "#E4E4E4",
   BACKGROUND: "#F0F0F0",
+  ALERT: "#FF3B30",
 };
