@@ -8,9 +8,9 @@ export default function CreditsBalance() {
     return num.toLocaleString("es-AR");
   };
   return (
-    <View className="bg-white/20 p-1 px-3 rounded-full flex-row items-center gap-3">
+    <View className="bg-white/35 p-1 px-3 rounded-full flex-row items-center gap-3">
       <CreditIcon />
-      <Text className="text-white font-medium text-lg">
+      <Text className="text-credits-light font-medium text-lg">
         {formatNumber(credits || 0)}
       </Text>
     </View>

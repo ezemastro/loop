@@ -17,6 +17,7 @@ export const theme = {
       stroke: COLORS.STROKE,
       background: COLORS.BACKGROUND,
       alert: COLORS.ALERT,
+      "credits-light": COLORS.CREDITS_LIGHT,
     },
   },
 };

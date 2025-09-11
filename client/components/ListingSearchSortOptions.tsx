@@ -65,18 +65,21 @@ export default function ListingSearchSortOptions({
   return (
     <View className="flex-1">
       {!sort ? (
-        <CustomButton onPress={nextSortOption} className="bg-secondary">
+        <CustomButton onPress={nextSortOption}>
           <ButtonText>Ordenar</ButtonText>
         </CustomButton>
       ) : (
-        <View className="flex-1 flex-row border border-main-text rounded px-2">
+        <View className="flex-1 flex-row rounded">
           <Pressable
             onPress={nextSortOption}
-            className="flex-grow justify-center items-center px-2"
+            className="flex-grow justify-center items-center px-2 border border-secondary-text rounded"
           >
             <Text className="text-lg">{sort?.sortBy.label}</Text>
           </Pressable>
-          <Pressable onPress={nextSortOrder} className="justify-center px-2">
+          <Pressable
+            onPress={nextSortOrder}
+            className="justify-center px-3 border border-secondary-text rounded"
+          >
             {sort?.sortOrder === SORT_ORDERS.ASCENDING ? (
               <ArrowUpIcon className="text-main-text" />
             ) : (

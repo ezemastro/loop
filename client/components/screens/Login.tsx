@@ -13,6 +13,7 @@ import { ERROR_NAMES } from "@/services/errors";
 import { useLoginForm } from "@/hooks/useLoginForm";
 import Loader from "../Loader";
 import ButtonText from "../bases/ButtonText";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const TextLabel = ({ children }: { children: string }) => (
   <Text className="color-main-text text-xl">{children}</Text>
@@ -27,6 +28,7 @@ type Field = {
 };
 
 export default function Login() {
+  const insets = useSafeAreaInsets();
   const {
     formData,
     setFormData,
@@ -77,6 +79,11 @@ export default function Login() {
           data={fields}
           keyExtractor={(item) => item.key}
           className="p-4"
+          style={{
+            paddingTop: insets.top,
+            paddingLeft: insets.left,
+            paddingRight: insets.right,
+          }}
           contentContainerClassName="gap-4 pt-6 pb-16 flex-1 justify-center"
           ListHeaderComponent={
             <Text className="text-3xl py-4 text-center font-bold color-main-text">
