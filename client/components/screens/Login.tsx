@@ -81,8 +81,6 @@ export default function Login() {
           className="p-4"
           style={{
             paddingTop: insets.top,
-            paddingLeft: insets.left,
-            paddingRight: insets.right,
           }}
           contentContainerClassName="gap-4 pt-6 pb-16 flex-1 justify-center"
           ListHeaderComponent={
