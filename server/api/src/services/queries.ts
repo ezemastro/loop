@@ -381,4 +381,11 @@ export const queries = {
     FROM notifications
     WHERE user_id = $1 AND is_read = false;`,
   ),
+
+  uploadFile: q<{ id: UUID }>(
+    "media.insert",
+    `INSERT INTO media (url, mime, media_type, uploaded_by)
+    VALUES ($1, $2, $3, $4)
+    RETURNING id;`,
+  ),
 } as const;

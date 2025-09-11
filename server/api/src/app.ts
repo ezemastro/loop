@@ -12,6 +12,7 @@ import { listingsRouter } from "./routes/listings.js";
 import { messagesRouter } from "./routes/messages.js";
 import morgan from "morgan";
 import { errorMiddleware } from "./middlewares/errors.js";
+import { uploadsRouter } from "./routes/uploads.js";
 
 export const app = express();
 
@@ -29,6 +30,7 @@ app.use("/categories", categoriesRouter);
 app.use("/schools", schoolsRouter);
 app.use("/listings", listingsRouter);
 app.use("/messages", tokenMiddleware, messagesRouter);
+app.use("/uploads", uploadsRouter);
 
 app.use(errorMiddleware);
 

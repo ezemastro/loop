@@ -11,6 +11,8 @@ export const {
   PORT = 3000,
   JWT_SECRET,
   TOKEN_EXP = "30d",
+  UPLOAD_DIR = "/uploads",
+  BASE_URL = "http://localhost:3000",
 } = process.env;
 export const INITIAL_CREDITS = 0;
 
@@ -47,6 +49,9 @@ export const ERROR_MESSAGES = {
   INVALID_OFFER_PRICE: "Precio de oferta inválido",
   CANNOT_OFFER_OWN_LISTING:
     "No puedes hacer una oferta en tu propia publicación",
+  FILE_NOT_FOUND: "Archivo no encontrado",
+  INVALID_FILE_TYPE: "Tipo de archivo inválido",
+  FILE_TOO_LARGE: "El archivo es demasiado grande",
 };
 
 export const cookieOptions = {
