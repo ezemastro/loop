@@ -28,8 +28,9 @@ services:
       - PGHOST=db
       - API_PORT=${API_PORT}
     volumes:
-      - ./api:/app         # monta tu código local (TS) en dev
-      - /app/node_modules  # evita sobreescribir node_modules del contenedor
+      - ./api:/app
+      - /app/node_modules
+      - ./uploads:/uploads
     depends_on:
       - db
 volumes:
