@@ -1,9 +1,5 @@
-import { View, Text } from "react-native";
+import CreateListing from "@/components/screens/CreateListing";
 
 export default function PublishPage() {
-  return (
-    <View>
-      <Text>Publish</Text>
-    </View>
-  );
+  return <CreateListing />;
 }
