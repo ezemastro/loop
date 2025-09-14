@@ -2,13 +2,18 @@ import { useState } from "react";
 import { View, Text, Pressable } from "react-native";
 import Category from "../cards/Category";
 import CategorySelectorModal from "../modals/CategorySelectorModal";
+import { twMerge } from "tailwind-merge";
 
 export default function CategorySelector({
   onChange,
   value,
+  className,
+  placeholderClassName,
 }: {
   onChange?: (category: Category) => void;
   value: Category | null;
+  className?: string;
+  placeholderClassName?: string;
 }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -27,13 +32,18 @@ export default function CategorySelector({
     <View>
       <Pressable
         onPress={openModal}
-        className="bg-white rounded border border-stroke"
+        className={twMerge("bg-white rounded border border-stroke", className)}
       >
         {value ? (
           <Category category={value} extended />
         ) : (
           <View className="h-16 justify-center items-center">
-            <Text className="text-secondary-text text-lg">
+            <Text
+              className={twMerge(
+                "text-secondary-text text-lg",
+                placeholderClassName,
+              )}
+            >
               Seleccionar categoría
             </Text>
           </View>
