@@ -1,4 +1,5 @@
 import { COLORS } from "@/config";
+import { getUrl } from "@/services/getUrl";
 import { View, Image, Dimensions } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import Carousel, { Pagination } from "react-native-reanimated-carousel";
@@ -20,7 +21,7 @@ export default function ImageGallery({ images }: { images: Media[] }) {
         renderItem={({ item }) => (
           <View>
             <Image
-              source={{ uri: item.url }}
+              source={{ uri: getUrl(item.url) }}
               className="h-full w-full rounded"
               style={{ resizeMode: "contain" }}
             />

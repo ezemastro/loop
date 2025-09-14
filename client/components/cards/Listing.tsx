@@ -4,6 +4,7 @@ import ProductStatusBadge from "../badges/ProductStatusBadge";
 import UserBadge from "../badges/UserBadge";
 import CreditsBadge from "../badges/CreditsBadge";
 import { useRouter } from "expo-router";
+import { getUrl } from "@/services/getUrl";
 
 export default function Listing({ listing }: { listing: Listing }) {
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function Listing({ listing }: { listing: Listing }) {
     >
       <View>
         <Image
-          source={{ uri: listing.media[0].url }}
+          source={{ uri: getUrl(listing.media[0].url) }}
           className="size-20 object-contain"
         />
       </View>
