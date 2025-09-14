@@ -52,6 +52,7 @@ export const ERROR_MESSAGES = {
   FILE_NOT_FOUND: "Archivo no encontrado",
   INVALID_FILE_TYPE: "Tipo de archivo inválido",
   FILE_TOO_LARGE: "El archivo es demasiado grande",
+  INVALID_PRICE_FOR_CATEGORY: "Precio inválido para la categoría",
 };
 
 export const cookieOptions = {
