@@ -70,6 +70,12 @@ export const CrossIcon = ({
 }: Partial<IconProps<string>>) => (
   <Feather size={24} className={className} {...props} name="x" />
 );
+export const CameraIcon = ({
+  className,
+  ...props
+}: Partial<IconProps<string>>) => (
+  <Feather size={24} className={className} {...props} name="camera" />
+);
 
 export const HomeIcon = (props: Partial<IconProps<string>>) => (
   <Ionicons size={24} {...props} name="home-outline" />
