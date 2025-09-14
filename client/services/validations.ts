@@ -1,3 +1,7 @@
+import {
+  MAX_LISTING_DESCRIPTION_LENGTH,
+  MAX_LISTING_TITLE_LENGTH,
+} from "@/config";
 import { z } from "zod";
 
 const registerFormSchema = z.object({
@@ -22,4 +26,15 @@ const loginFormSchema = z.object({
 });
 export const validateLoginForm = (data: unknown) => {
   return loginFormSchema.safeParse(data);
+};
+
+const publishListingFormSchema = z.object({
+  title: z.string().min(2).max(MAX_LISTING_TITLE_LENGTH),
+  description: z.string().max(MAX_LISTING_DESCRIPTION_LENGTH).nullable(),
+  categoryId: z.uuid(),
+  productStatus: z.string().min(2).max(100),
+  price: z.number().min(0),
+});
+export const validatePublishListingForm = (data: unknown) => {
+  return publishListingFormSchema.safeParseAsync(data);
 };
