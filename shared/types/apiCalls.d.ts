@@ -263,6 +263,21 @@ interface PostListingReceivedRequest extends AuthRequest {
 }
 type PostListingReceivedResponse = ApiResponse;
 
+// POST /uploads
+interface PostMediaRequest extends AuthRequest {
+  body: {
+    file: {
+      uri: string;
+      type: string;
+      name: string;
+    };
+  };
+}
+type PostMediaResponse = ApiResponse<{
+  media: Media;
+}>;
+
+
 // GET /messages/:userId
 interface GetMessagesByUserIdRequest {
   params: {
