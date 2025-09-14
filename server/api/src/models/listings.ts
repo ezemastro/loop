@@ -15,6 +15,7 @@ import {
   getListingById,
 } from "../utils/helpersDb";
 import {
+  parseCategoryBaseFromDb,
   parseListingBaseFromDb,
   parseListingFromBase,
   parsePagination,
@@ -106,6 +107,26 @@ export class ListingsModel {
       throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
     }
     try {
+      // Validar que el precio sea valido para la categoría
+      const [categoryDb] = await client.query(queries.categoryById, [
+        categoryId,
+      ]);
+      if (!categoryDb) {
+        throw new InvalidInputError(ERROR_MESSAGES.CATEGORY_NOT_FOUND);
+      }
+      const category = parseCategoryBaseFromDb(categoryDb);
+      if (
+        category.price &&
+        category.price?.max !== null &&
+        category.price?.min !== null
+      ) {
+        if (price > category.price.max || price < category.price.min) {
+          throw new InvalidInputError(
+            ERROR_MESSAGES.INVALID_PRICE_FOR_CATEGORY,
+          );
+        }
+      }
+
       const listingStatus: ListingStatus = "published";
       const [newListing] = await client.query(queries.createListing, [
         title,
@@ -117,7 +138,6 @@ export class ListingsModel {
         listingStatus,
       ]);
       if (!newListing?.id) {
-        console.error("Id mal obtenido en listings");
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
       }
       await Promise.all(
