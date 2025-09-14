@@ -1,5 +1,7 @@
 import { View, Text } from "react-native";
 import { CreditIcon } from "../Icons";
+import { twMerge } from "tailwind-merge";
+import { formatNumber } from "@/utils/formatNumber";
 
 export default function CreditsBadge({
   credits,
@@ -12,15 +14,17 @@ export default function CreditsBadge({
   numberClassName?: string;
   iconSize?: number;
 }) {
-  const formatNumber = (num: number) => {
-    return num.toLocaleString("es-AR");
-  };
   return (
     <View
-      className={`flex-row items-center justify-center gap-2 px-2.5 py-0.5 rounded-full ${containerClassName}`}
+      className={twMerge(
+        `flex-row items-center justify-center gap-2 px-2.5 py-0.5 rounded-full`,
+        containerClassName,
+      )}
     >
       <CreditIcon size={iconSize} />
-      <Text className={`text-sm font-medium text-credits ${numberClassName}`}>
+      <Text
+        className={twMerge(`text-md font-medium text-credits`, numberClassName)}
+      >
         {formatNumber(credits)}
       </Text>
     </View>
