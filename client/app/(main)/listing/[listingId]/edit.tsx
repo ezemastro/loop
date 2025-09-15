@@ -1,9 +1,5 @@
-import { View, Text } from "react-native";
+import EditListing from "@/components/screens/UpdateListing";
 
 export default function UpdateListing() {
-  return (
-    <View>
-      <Text>Update Listing</Text>
-    </View>
-  );
+  return <EditListing />;
 }

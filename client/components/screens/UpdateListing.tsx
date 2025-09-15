@@ -1,15 +1,15 @@
-import { useRouter } from "expo-router";
-import { View, Text, Pressable } from "react-native";
-import { BackIcon } from "../Icons";
+import { View } from "react-native";
+import ModifyListing from "../ModifyListing";
+import { useListing } from "@/hooks/useListing";
+import { useLocalSearchParams } from "expo-router";
 
-export default function UpdateListing() {
-  const router = useRouter();
+export default function EditListing() {
+  const { listingId } = useLocalSearchParams() as { listingId: string };
+  const { data } = useListing({ listingId });
+  const listing = data?.listing;
   return (
     <View>
-      <Pressable onPress={() => router.back()} className="p-2">
-        <BackIcon />
-      </Pressable>
-      <Text>UpdateListing</Text>
+      <ModifyListing backButton={true} initialData={listing} />
     </View>
   );
 }

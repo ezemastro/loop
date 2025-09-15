@@ -1,5 +1,5 @@
 import { useEffect, useState, type JSX } from "react";
-import { View, Text, FlatList, TextInput } from "react-native";
+import { View, Text, FlatList, TextInput, Pressable } from "react-native";
 import ImagesSelector from "./selectors/ImagesSelector";
 import {
   MAX_LISTING_DESCRIPTION_LENGTH,
@@ -12,10 +12,12 @@ import ButtonText from "./bases/ButtonText";
 import { usePublishListing } from "@/hooks/usePublishListing";
 import { validatePublishListingForm } from "@/services/validations";
 import Error from "./Error";
-import { CreditIcon } from "./Icons";
+import { BackIcon, CreditIcon } from "./Icons";
 import { formatNumber } from "@/utils/formatNumber";
 import { useRouter } from "expo-router";
 import { useUploadFiles } from "@/hooks/useUploadFiles";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useUpdateListing } from "@/hooks/useUpdateListing";
 
 interface Section {
   key: string;
@@ -24,8 +26,9 @@ interface Section {
   component: () => JSX.Element;
 }
 interface FormMedia {
-  uri: string;
-  type: string;
+  uri?: string;
+  type?: string;
+  id?: UUID;
 }
 interface FormData {
   title: string | null;
@@ -35,15 +38,24 @@ interface FormData {
   productStatus: ProductStatus | null;
   price: number | null;
 }
-export default function ModifyListing() {
+
+export default function ModifyListing({
+  backButton = false,
+  initialData = null,
+}: {
+  backButton?: boolean;
+  initialData?: Listing | null;
+}) {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+
   const [form, setForm] = useState<FormData>({
-    title: null,
-    description: null,
-    images: [],
-    category: null,
-    productStatus: null,
-    price: null,
+    title: initialData?.title || null,
+    description: initialData?.description || null,
+    images: initialData?.media || [],
+    category: initialData?.category || null,
+    productStatus: initialData?.productStatus || null,
+    price: initialData?.price || null,
   });
   const [errors, setErrors] = useState<Record<keyof FormData, boolean>>({
     title: false,
@@ -55,20 +67,32 @@ export default function ModifyListing() {
   });
   const {
     mutate: publishListing,
-    isSuccess,
+    isSuccess: isPublishSuccess,
     isError: isPublishListingError,
     data: listingData,
   } = usePublishListing();
+  const {
+    mutate: updateListing,
+    isSuccess: isUpdateSuccess,
+    isError: isUpdateListingError,
+  } = useUpdateListing();
   const { mutate: uploadFiles, isError: isUploadFilesError } = useUploadFiles();
 
   useEffect(() => {
-    if (isSuccess && listingData?.listing?.id) {
-      router.push({
+    if (
+      (isPublishSuccess && listingData?.listing?.id) ||
+      (isUpdateSuccess && initialData?.id)
+    ) {
+      router.replace({
         pathname: "/listing/[listingId]",
-        params: { listingId: listingData.listing.id },
+        params: {
+          listingId: isPublishSuccess
+            ? listingData?.listing?.id!
+            : initialData?.id!,
+        },
       });
     }
-  }, [isSuccess, router, listingData]);
+  }, [isPublishSuccess, isUpdateSuccess, router, listingData, initialData]);
 
   const handleSubmit = async () => {
     // Validaciones
@@ -110,21 +134,39 @@ export default function ModifyListing() {
     }
 
     // Subir imágenes
-    uploadFiles(form.images, {
-      onSuccess: (results) => {
-        // Publicar
-        const medias = results.map((res) => res?.media);
-        console.log(medias);
-        publishListing({
-          title: form.title!,
-          description: form.description,
-          mediaIds: medias.map((media) => media!.id),
-          categoryId: form.category!.id,
-          productStatus: form.productStatus!,
-          price: 10000, // TODO
-        });
+    uploadFiles(
+      form.images
+        .filter((image) => !image.id)
+        .map((image) => ({ uri: image.uri!, type: image.type! })),
+      {
+        onSuccess: (results) => {
+          let c = 0;
+          const medias = form.images.map((image) => {
+            if (image.id) return image;
+            c++;
+            return results[c - 1]?.media!;
+          });
+          const body = {
+            title: form.title!,
+            description: form.description,
+            mediaIds: medias.map((media) => media.id!),
+            categoryId: form.category!.id,
+            productStatus: form.productStatus!,
+            price: form.price!,
+          };
+          // Publicar
+          if (initialData?.id) {
+            publishListing(body);
+          } else {
+            // Actualizar
+            updateListing({
+              ...body,
+              listingId: initialData?.id!,
+            });
+          }
+        },
       },
-    });
+    );
   };
   const handleImageChange = (images: FormMedia[]) => {
     setForm((prev) => ({ ...prev, images }));
@@ -133,7 +175,11 @@ export default function ModifyListing() {
     {
       key: "Images",
       component: () => (
-        <ImagesSelector onChange={handleImageChange} className="mb-4" />
+        <ImagesSelector
+          onChange={handleImageChange}
+          initialImages={initialData?.media}
+          className="mb-4"
+        />
       ),
       isError: errors.images,
     },
@@ -267,7 +313,8 @@ export default function ModifyListing() {
       <FlatList
         data={sections}
         keyExtractor={(item) => item.key}
-        contentContainerClassName="gap-2 py-4"
+        contentContainerClassName="gap-2"
+        contentContainerStyle={{ paddingBottom: insets.bottom }}
         renderItem={({ item }) => (
           <View className="w-full gap-2">
             {item.title && <Text className="px-4 text-2xl">{item.title}</Text>}
@@ -283,11 +330,23 @@ export default function ModifyListing() {
             {isPublishListingError && (
               <Error>Ha ocurrido un error al publicar la publicación.</Error>
             )}
-            <CustomButton className="m-4" onPress={handleSubmit}>
-              <ButtonText>Publicar</ButtonText>
+            {isUpdateListingError && (
+              <Error>Ha ocurrido un error al actualizar la publicación.</Error>
+            )}
+            <CustomButton className="m-4 mb-6" onPress={handleSubmit}>
+              <ButtonText>
+                {initialData?.id ? "Actualizar" : "Publicar"}
+              </ButtonText>
             </CustomButton>
           </>
         )}
+        ListHeaderComponent={() =>
+          backButton ? (
+            <Pressable onPress={() => router.back()} className="p-4">
+              <BackIcon />
+            </Pressable>
+          ) : null
+        }
       />
     </View>
   );

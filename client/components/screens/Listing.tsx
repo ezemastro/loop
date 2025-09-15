@@ -38,13 +38,15 @@ export default function Listing() {
                 <BackIcon />
               </Pressable>
               {isOwner ? (
-                <View className="flex-row gap-2">
-                  <DeleteListingButton
-                    listingId={listing.id}
-                    onDelete={() => router.back()}
-                  />
-                  <EditListingButton listingId={listing.id} />
-                </View>
+                listing.listingStatus === "published" && (
+                  <View className="flex-row gap-2">
+                    <DeleteListingButton
+                      listingId={listing.id}
+                      onDelete={() => router.back()}
+                    />
+                    <EditListingButton listingId={listing.id} />
+                  </View>
+                )
               ) : (
                 <AskButton />
               )}

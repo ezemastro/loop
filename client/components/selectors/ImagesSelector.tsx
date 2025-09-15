@@ -6,20 +6,22 @@ import { useSharedValue } from "react-native-reanimated";
 import { COLORS, MAX_LISTING_IMAGES } from "@/config";
 import { CameraIcon, CrossIcon } from "../Icons";
 import { twMerge } from "tailwind-merge";
+import { getUrl } from "@/services/getUrl";
 
 const width = Dimensions.get("window").width;
 
 export default function ImagesSelector({
   onChange,
   className,
+  initialImages = [],
 }: {
-  onChange: (images: { uri: string; type: string }[]) => void;
+  onChange: (images: ({ uri: string; type: string } | Media)[]) => void;
   className?: string;
+  initialImages?: Media[];
 }) {
   const progress = useSharedValue(0);
-  const [selectedImages, setSelectedImages] = useState<
-    ImagePicker.ImagePickerAsset[]
-  >([]);
+  const [selectedImages, setSelectedImages] =
+    useState<(ImagePicker.ImagePickerAsset | Media)[]>(initialImages);
   const allowAddMore = selectedImages.length < MAX_LISTING_IMAGES;
   const pickImages = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -35,14 +37,16 @@ export default function ImagesSelector({
         console.log("Error: some assets have no mimeType");
         return;
       }
-      setSelectedImages((prev) => [
-        ...prev,
-        ...result.assets.slice(0, MAX_LISTING_IMAGES - prev.length),
-      ]);
+      const newImages = [
+        ...selectedImages,
+        ...result.assets.slice(0, MAX_LISTING_IMAGES - selectedImages.length),
+      ];
+      setSelectedImages(newImages);
       onChange(
-        result.assets.map((asset) => ({
-          uri: asset.uri,
-          type: asset.mimeType!,
+        newImages.map((img) => ({
+          uri: "uri" in img ? img.uri : "url" in img ? getUrl(img.url) : "",
+          type: "mimeType" in img && img.mimeType ? img.mimeType : "",
+          id: "id" in img ? img.id : undefined,
         })),
       );
     }
@@ -73,7 +77,14 @@ export default function ImagesSelector({
             ) : (
               <>
                 <Image
-                  source={{ uri: item.uri }}
+                  source={{
+                    uri:
+                      "uri" in item
+                        ? item.uri
+                        : "url" in item
+                          ? getUrl(item.url)
+                          : "",
+                  }}
                   className="h-full w-full rounded"
                   style={{ resizeMode: "contain" }}
                 />
@@ -82,6 +93,23 @@ export default function ImagesSelector({
                   onPress={() => {
                     setSelectedImages((prev) =>
                       prev.filter((_, i) => i !== index),
+                    );
+                    onChange(
+                      selectedImages
+                        .filter((_, i) => i !== index)
+                        .map((img) => ({
+                          uri:
+                            "uri" in img
+                              ? img.uri
+                              : "url" in img
+                                ? getUrl(img.url)
+                                : "",
+                          type:
+                            "mimeType" in img && img.mimeType
+                              ? img.mimeType
+                              : "",
+                          id: "id" in img ? img.id : undefined,
+                        })),
                     );
                   }}
                 >
