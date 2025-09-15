@@ -11,6 +11,9 @@ import UserBadge from "../badges/UserBadge";
 import ListingButtons from "../ListingButtons";
 import Loader from "../Loader";
 import Error from "../Error";
+import { useAuth } from "@/hooks/useAuth";
+import DeleteListingButton from "../buttons/DeleteListingButton";
+import EditListingButton from "../buttons/EditListingButton";
 
 export default function Listing() {
   const router = useRouter();
@@ -22,6 +25,8 @@ export default function Listing() {
   const handleMutation = () => {
     refetch();
   };
+  const { user } = useAuth();
+  const isOwner = listing?.seller.id === user?.id;
 
   const sections = listing
     ? [
@@ -32,7 +37,17 @@ export default function Listing() {
               <Pressable onPress={() => router.back()}>
                 <BackIcon />
               </Pressable>
-              <AskButton />
+              {isOwner ? (
+                <View className="flex-row gap-2">
+                  <DeleteListingButton
+                    listingId={listing.id}
+                    onDelete={() => router.back()}
+                  />
+                  <EditListingButton listingId={listing.id} />
+                </View>
+              ) : (
+                <AskButton />
+              )}
             </View>
           ),
         },
