@@ -76,6 +76,21 @@ type PatchSelfResponse = ApiResponse<{
   user: UserBase;
 }>;
 
+// GET /me/listings
+interface GetSelfListingsRequest extends AuthApiRequest {
+  query?: PaginationParams & {
+    searchTerm?: string;
+    categoryId?: UUID;
+    productStatus?: ProductStatus;
+    listingStatus?: ListingStatus;
+    sellerId?: UUID;
+    buyerId?: UUID;
+  };
+}
+type GetSelfListingsResponse = PaginatedApiResponse<{
+  listings: Listing[];
+}>;
+
 // GET /me/missions
 type GetSelfMissionsRequest = AuthApiRequest;
 type GetSelfMissionsResponse = ApiResponse<{

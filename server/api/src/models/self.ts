@@ -1,4 +1,4 @@
-import { ERROR_MESSAGES } from "../config";
+import { ERROR_MESSAGES, PAGE_SIZE } from "../config";
 import { InternalServerError, UnauthorizedError } from "../services/errors";
 import { dbConnection } from "../services/postgresClient";
 import { queries } from "../services/queries";
@@ -18,9 +18,15 @@ import {
   getMediaById,
   getRoleById,
   getSchoolById,
+  getUserById,
+  getCategoryById,
+  getMediasByListingId,
 } from "../utils/helpersDb";
 import {
+  parseListingBaseFromDb,
+  parseListingFromBase,
   parseMediaFromDb,
+  parsePagination,
   parsePrivateUserFromBase,
   parseRoleFromDb,
   parseSchoolFromBase,
@@ -189,6 +195,83 @@ export class SelfModel {
           school: await getSchoolById({ client, schoolId: user.schoolId }),
         }),
       };
+    } finally {
+      client.release();
+    }
+  };
+
+  static getSelfListings = async ({
+    userId,
+    sellerId,
+    buyerId,
+    searchTerm,
+    categoryId,
+    productStatus,
+    listingStatus,
+    page,
+    sort,
+    order,
+  }: {
+    userId: string;
+    sellerId?: string;
+    buyerId?: string;
+    searchTerm?: string;
+    categoryId?: string;
+    productStatus?: ProductStatus;
+    listingStatus?: ListingStatus;
+    page?: number;
+    sort?: string;
+    order?: "asc" | "desc";
+  }) => {
+    // Crear conexión a la base de datos
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      // Obtener publicaciones del usuario
+      const listingsDb = await client.query(queries.listings, [
+        searchTerm ?? null,
+        listingStatus ?? null,
+        categoryId ?? null,
+        productStatus ?? null,
+        sellerId ?? null,
+        buyerId ?? null,
+        userId,
+        order ?? "desc",
+        sort ?? "created_at",
+        PAGE_SIZE,
+        PAGE_SIZE * ((page ?? 1) - 1),
+      ]);
+      const listings = await Promise.all(
+        listingsDb.map(async (listingDb) => {
+          return parseListingFromBase({
+            listing: parseListingBaseFromDb(listingDb),
+            buyer: listingDb.buyer_id
+              ? await getUserById({
+                  client,
+                  userId: listingDb.buyer_id,
+                })
+              : null,
+            seller: await getUserById({ client, userId: listingDb.seller_id }),
+            category: await getCategoryById({
+              client,
+              categoryId: listingDb.category_id,
+            }),
+            media: await getMediasByListingId({
+              client,
+              listingId: listingDb.id,
+            }),
+          });
+        }),
+      );
+      const pagination = parsePagination({
+        currentPage: page ?? 1,
+        totalRecords: safeNumber(listingsDb[0]?.total_records) ?? 0,
+      });
+      return { listings, pagination };
     } finally {
       client.release();
     }

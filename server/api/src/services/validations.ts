@@ -342,3 +342,13 @@ const postMessageRequestBody = z.object({
 });
 export const validatePostMessageRequest = (data: unknown) =>
   postMessageRequestBody.parseAsync(data);
+const getSelfListingsRequestQuery = paginatedQuery.extend({
+  searchTerm: z.string().max(100).optional(),
+  categoryId: z.uuid().optional(),
+  productStatus: z.enum(PRODUCT_STATUS).optional(),
+  listingStatus: z.enum(LISTING_STATUS).optional(),
+  sellerId: z.uuid().optional(),
+  buyerId: z.uuid().optional(),
+});
+export const validateGetSelfListingsRequest = (data: unknown) =>
+  getSelfListingsRequestQuery.parseAsync(data);

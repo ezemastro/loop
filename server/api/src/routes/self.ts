@@ -6,6 +6,7 @@ export const selfRouter = Router();
 selfRouter.get("/", SelfController.getSelf);
 selfRouter.patch("/", SelfController.updateSelf);
 
+selfRouter.get("/listings", SelfController.getSelfListings);
 selfRouter.get("/missions", SelfController.getSelfMissions);
 selfRouter.get("/notifications", SelfController.getSelfNotifications);
 selfRouter.get(

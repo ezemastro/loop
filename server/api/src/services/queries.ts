@@ -388,4 +388,61 @@ export const queries = {
     VALUES ($1, $2, $3, $4)
     RETURNING id;`,
   ),
+
+  listings: q<DB_Listings & DB_Pagination>(
+    "listing.byUserId",
+    `SELECT
+        *,
+        COUNT(*) OVER() as total_records
+    FROM listings
+    WHERE
+        -- searchTerm: busca en título o descripción
+        ($1::text IS NULL OR $1::text = '' OR
+            LOWER(title) LIKE LOWER(CONCAT('%', $1::text, '%')) OR
+            LOWER(description) LIKE LOWER(CONCAT('%', $1::text, '%')))
+            
+        -- listingStatus
+        AND ($2 IS NULL OR listing_status = $2)
+
+        -- categoryId
+        AND ($3::uuid IS NULL OR category_id = $3::uuid)
+
+        -- productStatus
+        AND ($4::product_status IS NULL OR product_status = $4::product_status)
+
+        -- userId (vendedor)
+        AND ($5::uuid IS NULL OR seller_id = $5::uuid)
+
+        -- buyerId (comprador)
+        AND ($6::uuid IS NULL OR buyer_id = $6::uuid)
+
+        -- Seller or Buyer
+        AND ($7::uuid IS NULL OR seller_id = $7::uuid OR buyer_id = $7::uuid)
+
+    ORDER BY
+        CASE 
+            WHEN $9 = 'asc' THEN
+                CASE 
+                    WHEN $8 = 'id' THEN id::text
+                    WHEN $8 = 'title' THEN title
+                    WHEN $8 = 'price_credits' THEN price_credits::text
+                    WHEN $8 = 'created_at' THEN created_at::text
+                    WHEN $8 = 'updated_at' THEN updated_at::text
+                    ELSE created_at::text
+                END
+        END ASC NULLS LAST,
+        CASE 
+            WHEN $9 = 'desc' THEN
+                CASE 
+                    WHEN $8 = 'id' THEN id::text
+                    WHEN $8 = 'title' THEN title
+                    WHEN $8 = 'price_credits' THEN price_credits::text
+                    WHEN $8 = 'created_at' THEN created_at::text
+                    WHEN $8 = 'updated_at' THEN updated_at::text
+                    ELSE created_at::text
+                END
+        END DESC NULLS LAST
+
+    LIMIT $10 OFFSET $11;`,
+  ),
 } as const;

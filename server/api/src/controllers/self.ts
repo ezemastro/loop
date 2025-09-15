@@ -1,9 +1,14 @@
 import { SelfModel } from "../models/self";
 import type { Response, Request, NextFunction } from "express";
-import { validateUpdateSelf } from "../services/validations";
+import {
+  validateGetSelfListingsRequest,
+  validateUpdateSelf,
+} from "../services/validations";
 import { InvalidInputError } from "../services/errors";
 import { ERROR_MESSAGES } from "../config";
 import { successResponse } from "../utils/responses";
+import { parseQuery } from "../utils/parseQuery";
+import { safeNumber } from "../utils/safeNumber";
 
 export class SelfController {
   static getSelf = async (req: Request, res: Response, next: NextFunction) => {
@@ -47,6 +52,53 @@ export class SelfController {
     }
 
     res.status(200).json(successResponse({ data: { user } }));
+  };
+
+  static getSelfListings = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const { userId } = req.session!;
+    const parsedQuery: GetSelfListingsRequest["query"] = {
+      ...parseQuery(req.query),
+      page: safeNumber(req.query.page),
+    };
+    try {
+      await validateGetSelfListingsRequest(parsedQuery);
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    const {
+      page,
+      order,
+      sort,
+      searchTerm,
+      categoryId,
+      productStatus,
+      listingStatus,
+      sellerId,
+      buyerId,
+    } = parsedQuery || {};
+
+    let listings: Listing[];
+    try {
+      ({ listings } = await SelfModel.getSelfListings({
+        userId,
+        page,
+        order,
+        sort,
+        searchTerm,
+        categoryId,
+        productStatus,
+        listingStatus,
+        sellerId,
+        buyerId,
+      }));
+    } catch (err) {
+      return next(err);
+    }
+    res.status(200).json(successResponse({ data: { listings } }));
   };
 
   static getSelfMissions = async (
