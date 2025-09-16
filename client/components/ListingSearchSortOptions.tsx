@@ -6,12 +6,12 @@ import { useDebouncedCallback } from "use-debounce";
 import ButtonText from "./bases/ButtonText";
 
 export interface SortValue {
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
+  sortBy?: SortOptions;
+  sortOrder?: OrderOptions;
 }
 const SORT_OPTIONS = [
   { label: "Fecha", key: "createdAt" },
-  { label: "Precio", key: "price_credits" },
+  { label: "Precio", key: "price" },
 ] as const;
 const SORT_ORDERS = {
   ASCENDING: "asc",
