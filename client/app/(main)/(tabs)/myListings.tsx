@@ -1,9 +1,5 @@
-import { View, Text } from "react-native";
+import MyListings from "@/components/screens/MyListings";
 
 export default function MyListingsPage() {
-  return (
-    <View>
-      <Text>My Listings</Text>
-    </View>
-  );
+  return <MyListings />;
 }

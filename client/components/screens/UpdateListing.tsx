@@ -9,7 +9,7 @@ export default function EditListing() {
   const listing = data?.listing;
   return (
     <View>
-      <ModifyListing backButton={true} initialData={listing} />
+      <ModifyListing backButton={true} initialData={listing} action={"edit"} />
     </View>
   );
 }
