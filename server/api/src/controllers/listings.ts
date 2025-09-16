@@ -36,6 +36,7 @@ export class ListingsController {
       userId,
       productStatus,
       schoolId,
+      sellerId,
     } = parsedQuery || {};
 
     let listings: Listing[];
@@ -50,6 +51,7 @@ export class ListingsController {
         userId,
         productStatus,
         schoolId,
+        sellerId,
       }));
     } catch (err) {
       return next(err);

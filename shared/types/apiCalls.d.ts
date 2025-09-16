@@ -188,6 +188,7 @@ interface GetListingsRequest {
     userId?: UUID;
     categoryId?: UUID;
     productStatus?: ProductStatus;
+    sellerId?: UUID;
   };
 }
 type GetListingsResponse = PaginatedApiResponse<{

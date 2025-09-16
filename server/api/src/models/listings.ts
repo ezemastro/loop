@@ -35,6 +35,7 @@ export class ListingsModel {
       schoolId,
       searchTerm,
       userId,
+      sellerId,
     } = query || {};
     let client: DatabaseClient;
     try {
@@ -53,6 +54,7 @@ export class ListingsModel {
           categoryId ?? null,
           productStatus ?? null,
           schoolId ?? null,
+          sellerId ?? null,
           userId ?? null,
           PAGE_SIZE,
           page ? (page - 1) * PAGE_SIZE : 0,

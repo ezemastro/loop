@@ -316,6 +316,9 @@ const getListingsRequestQuery = paginatedQuery.extend({
   searchTerm: z.string().max(100).optional(),
   categoryId: z.uuid().optional(),
   userId: z.uuid().optional(),
+  sellerId: z.uuid().optional(),
+  productStatus: z.enum(PRODUCT_STATUS).optional(),
+  schoolId: z.uuid().optional(),
 });
 export const validateGetListingsRequest = (data: unknown) =>
   getListingsRequestQuery.parseAsync(data);

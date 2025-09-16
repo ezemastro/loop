@@ -251,12 +251,15 @@ export const queries = {
         -- schoolId
         AND ($4::uuid IS NULL OR u.school_id = $4::uuid)
 
-        -- userId (vendedor)
+        -- sellerId (vendedor)
         AND ($5::uuid IS NULL OR l.seller_id = $5::uuid)
+        
+        -- userId 
+        AND ($6::uuid IS NULL OR NOT l.seller_id = $6::uuid)
 
     ORDER BY ${sort} ${order}
 
-    LIMIT $6 OFFSET $7;
+    LIMIT $7 OFFSET $8;
 `,
     ),
 
