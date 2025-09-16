@@ -7,6 +7,7 @@ import Loader from "../Loader";
 import Listing from "../cards/Listing";
 import ListingSearchSortOptions from "../ListingSearchSortOptions";
 import ListingSearchFilters, { FiltersValue } from "../ListingSearchFilters";
+import { MainView } from "../bases/MainView";
 
 export default function Search() {
   const searchTerm = useSearchStore((state) => state.query);
@@ -28,8 +29,8 @@ export default function Search() {
   }, [debouncedTerm]);
 
   const handleSortChange = (newSort: {
-    sortBy?: string;
-    sortOrder?: "asc" | "desc";
+    sortBy?: SortOptions;
+    sortOrder?: OrderOptions;
   }) => {
     setQuery((prev) => ({
       ...prev,
@@ -49,7 +50,7 @@ export default function Search() {
   };
 
   return (
-    <View>
+    <MainView>
       <View className="flex-row p-4 gap-4 w-full">
         <ListingSearchFilters onChange={handleFiltersChange} value={filters} />
         <ListingSearchSortOptions onDebounce={handleSortChange} />
@@ -68,9 +69,9 @@ export default function Search() {
             </View>
           </>
         )}
-        contentContainerClassName="px-4 gap-4"
+        contentContainerClassName="px-4 gap-2"
         renderItem={({ item }) => <Listing listing={item} />}
       />
-    </View>
+    </MainView>
   );
 }
