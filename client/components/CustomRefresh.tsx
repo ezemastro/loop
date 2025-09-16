@@ -11,7 +11,9 @@ export default function CustomRefresh(
 ) {
   const queryClient = useQueryClient();
   const onRefresh = async () => {
-    await queryClient.invalidateQueries();
+    await queryClient.refetchQueries({
+      type: "all",
+    });
   };
   return <RefreshControl refreshing={false} onRefresh={onRefresh} {...props} />;
 }
