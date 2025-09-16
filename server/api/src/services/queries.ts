@@ -224,9 +224,10 @@ export const queries = {
   ),
 
   // TODO - Transformar en función que reciba filtros y orden
-  searchListings: q<DB_Listings & DB_Pagination>(
-    "listings.search",
-    `SELECT
+  searchListings: ({ sort, order }: { sort: string; order: string }) =>
+    q<DB_Listings & DB_Pagination>(
+      "listings.search",
+      `SELECT
         l.*,
         COUNT(*) OVER() as total_records,
         u.school_id
@@ -253,33 +254,11 @@ export const queries = {
         -- userId (vendedor)
         AND ($5::uuid IS NULL OR l.seller_id = $5::uuid)
 
-    ORDER BY
-        CASE 
-            WHEN $7 = 'asc' THEN
-                CASE 
-                    WHEN $6 = 'id' THEN l.id::text
-                    WHEN $6 = 'title' THEN l.title
-                    WHEN $6 = 'price_credits' THEN l.price_credits::text
-                    WHEN $6 = 'created_at' THEN l.created_at::text
-                    WHEN $6 = 'updated_at' THEN l.updated_at::text
-                    ELSE l.created_at::text
-                END
-        END ASC NULLS LAST,
-        CASE 
-            WHEN $7 = 'desc' THEN
-                CASE 
-                    WHEN $6 = 'id' THEN l.id::text
-                    WHEN $6 = 'title' THEN l.title
-                    WHEN $6 = 'price_credits' THEN l.price_credits::text
-                    WHEN $6 = 'created_at' THEN l.created_at::text
-                    WHEN $6 = 'updated_at' THEN l.updated_at::text
-                    ELSE l.created_at::text
-                END
-        END DESC NULLS LAST
+    ORDER BY ${sort} ${order}
 
-    LIMIT $8 OFFSET $9;
+    LIMIT $6 OFFSET $7;
 `,
-  ),
+    ),
 
   createListing: q<{ id: UUID }>(
     "listing.create",

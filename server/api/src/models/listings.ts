@@ -22,13 +22,14 @@ import {
   parseUserBaseFromDb,
 } from "../utils/parseDb";
 import { safeNumber } from "../utils/safeNumber";
+import { getOrderValue, getSortValue } from "../utils/sortOptions";
 
 export class ListingsModel {
   static getListings = async (query: GetListingsRequest["query"]) => {
     const {
       page = 1,
       order,
-      sort = "created_at",
+      sort,
       categoryId,
       productStatus,
       schoolId,
@@ -42,17 +43,21 @@ export class ListingsModel {
       throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
     }
     try {
-      const listingsSearchDb = await client.query(queries.searchListings, [
-        searchTerm ?? null,
-        categoryId ?? null,
-        productStatus ?? null,
-        schoolId ?? null,
-        userId ?? null,
-        sort,
-        order,
-        PAGE_SIZE,
-        page ? (page - 1) * PAGE_SIZE : 0,
-      ]);
+      const listingsSearchDb = await client.query(
+        queries.searchListings({
+          sort: getSortValue(sort),
+          order: getOrderValue(order),
+        }),
+        [
+          searchTerm ?? null,
+          categoryId ?? null,
+          productStatus ?? null,
+          schoolId ?? null,
+          userId ?? null,
+          PAGE_SIZE,
+          page ? (page - 1) * PAGE_SIZE : 0,
+        ],
+      );
       const totalRecords = safeNumber(listingsSearchDb[0]?.total_records) ?? 0;
       const listingsBase = listingsSearchDb.map(parseListingBaseFromDb);
       const listings = await Promise.all(
