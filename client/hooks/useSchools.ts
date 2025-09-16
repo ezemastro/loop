@@ -17,7 +17,7 @@ const fetchSchools = async (
 export const useSchools = (params?: GetSchoolsRequest["query"]) => {
   return useInfiniteQuery({
     queryKey: ["schools", params],
-    queryFn: () => fetchSchools(params),
+    queryFn: ({ pageParam }) => fetchSchools({ ...params, page: pageParam }),
     getNextPageParam: (lastPage) => {
       return lastPage.pagination.nextPage;
     },

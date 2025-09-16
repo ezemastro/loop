@@ -17,7 +17,7 @@ const fetchRoles = async (
 export const useRoles = (params?: GetRolesRequest["query"]) => {
   return useInfiniteQuery({
     queryKey: ["roles", params],
-    queryFn: () => fetchRoles(params),
+    queryFn: ({ pageParam }) => fetchRoles({ ...params, page: pageParam }),
     getNextPageParam: (lastPage) => {
       return lastPage.pagination.nextPage;
     },

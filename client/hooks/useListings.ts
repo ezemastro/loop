@@ -22,8 +22,8 @@ const fetchListings = async (params: GetListingsRequest["query"]) => {
 export const useListings = (params: GetListingsRequest["query"]) => {
   return useInfiniteQuery({
     queryKey: ["listings", params],
-    queryFn: () => fetchListings(params),
-    getNextPageParam: (lastPage) => lastPage?.pagination.nextPage || undefined,
+    queryFn: ({ pageParam }) => fetchListings({ ...params, page: pageParam }),
+    getNextPageParam: (lastPage) => lastPage?.pagination.nextPage || null,
     initialPageParam: 1,
   });
 };

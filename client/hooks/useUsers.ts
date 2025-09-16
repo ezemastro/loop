@@ -17,7 +17,7 @@ const fetchUsers = async (
 export const useUsers = (params?: GetUsersRequest["query"]) => {
   return useInfiniteQuery({
     queryKey: ["users", params],
-    queryFn: () => fetchUsers(params),
+    queryFn: ({ pageParam }) => fetchUsers({ ...params, page: pageParam }),
     getNextPageParam: (lastPage) => {
       return lastPage.pagination.nextPage;
     },
