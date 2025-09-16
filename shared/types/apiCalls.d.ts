@@ -32,8 +32,8 @@ interface AuthApiRequest {
 
 interface PaginationParams {
   page?: number;
-  sort?: string;
-  order?: "asc" | "desc";
+  sort?: SortOptions;
+  order?: OrderOptions;
 }
 
 // POST /auth/register
@@ -227,6 +227,16 @@ interface GetListingByIdRequest {
   };
 }
 type GetListingByIdResponse = ApiResponse<{
+  listing: Listing;
+}>;
+
+// DELETE /listing/:id
+interface DeleteListingRequest extends AuthRequest {
+  params: {
+    listingId: UUID;
+  };
+}
+type DeleteListingResponse = ApiResponse<{
   listing: Listing;
 }>;
 

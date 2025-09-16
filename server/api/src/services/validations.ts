@@ -1,4 +1,5 @@
 import z from "zod";
+import { SORT_OPTIONS } from "../utils/sortOptions";
 const LISTING_STATUS: ListingStatus[] = [
   "published",
   "offered",
@@ -24,6 +25,8 @@ const lastNameSchema = z.string().min(2).max(100);
 const emailSchema = z.email();
 const phoneSchema = z.string().min(10).max(20);
 const passwordSchema = z.string().min(8).max(100);
+const orderSchema = z.enum(["asc", "desc"]);
+const sortSchema = z.enum(SORT_OPTIONS);
 
 export const validateId = (data: unknown) => z.uuid().parseAsync(data);
 export const safeValidateFirstName = (data: unknown) =>
@@ -286,8 +289,8 @@ export const validateUpdateSelf = (data: unknown) =>
 const paginatedQuery = z.object({
   page: z.number().min(1).optional(),
   limit: z.string().min(1).optional(),
-  sort: z.string().min(2).max(100).optional(),
-  order: z.enum(["asc", "desc"]).optional(),
+  sort: sortSchema.optional(),
+  order: orderSchema.optional(),
 });
 export const validatePaginationParams = (data: unknown) =>
   paginatedQuery.parseAsync(data);

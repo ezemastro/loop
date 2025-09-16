@@ -69,6 +69,11 @@ export const queries = {
     `SELECT * FROM listings WHERE id = $1`,
   ),
 
+  deleteListingById: q<DB_Listings>(
+    "listings.deleteById",
+    `DELETE FROM listings WHERE id = $1 AND seller_id = $2`,
+  ),
+
   listingMediasByListingId: q<DB_ListingMedia>(
     "listings.mediasById",
     `SELECT * FROM listing_media WHERE listing_id = $1`,
@@ -218,6 +223,7 @@ export const queries = {
     LIMIT $4 OFFSET $5;`,
   ),
 
+  // TODO - Transformar en función que reciba filtros y orden
   searchListings: q<DB_Listings & DB_Pagination>(
     "listings.search",
     `SELECT
@@ -290,7 +296,7 @@ export const queries = {
 
   getListingById: q<DB_Listings>(
     "listing.getById",
-    `SELECT * FROM listings WHERE id = $1;`,
+    `SELECT * FROM listings WHERE id = $1::UUID;`,
   ),
 
   updateListingById: q<void>(
@@ -389,9 +395,10 @@ export const queries = {
     RETURNING id;`,
   ),
 
-  listings: q<DB_Listings & DB_Pagination>(
-    "listing.byUserId",
-    `SELECT
+  listings: ({ sort, order }: { sort: string; order: "asc" | "desc" }) =>
+    q<DB_Listings & DB_Pagination>(
+      "listing.byUserId",
+      `SELECT
         *,
         COUNT(*) OVER() as total_records
     FROM listings
@@ -402,7 +409,7 @@ export const queries = {
             LOWER(description) LIKE LOWER(CONCAT('%', $1::text, '%')))
             
         -- listingStatus
-        AND ($2 IS NULL OR listing_status = $2)
+        AND ($2::listing_status IS NULL OR listing_status = $2::listing_status)
 
         -- categoryId
         AND ($3::uuid IS NULL OR category_id = $3::uuid)
@@ -419,30 +426,7 @@ export const queries = {
         -- Seller or Buyer
         AND ($7::uuid IS NULL OR seller_id = $7::uuid OR buyer_id = $7::uuid)
 
-    ORDER BY
-        CASE 
-            WHEN $9 = 'asc' THEN
-                CASE 
-                    WHEN $8 = 'id' THEN id::text
-                    WHEN $8 = 'title' THEN title
-                    WHEN $8 = 'price_credits' THEN price_credits::text
-                    WHEN $8 = 'created_at' THEN created_at::text
-                    WHEN $8 = 'updated_at' THEN updated_at::text
-                    ELSE created_at::text
-                END
-        END ASC NULLS LAST,
-        CASE 
-            WHEN $9 = 'desc' THEN
-                CASE 
-                    WHEN $8 = 'id' THEN id::text
-                    WHEN $8 = 'title' THEN title
-                    WHEN $8 = 'price_credits' THEN price_credits::text
-                    WHEN $8 = 'created_at' THEN created_at::text
-                    WHEN $8 = 'updated_at' THEN updated_at::text
-                    ELSE created_at::text
-                END
-        END DESC NULLS LAST
-
-    LIMIT $10 OFFSET $11;`,
-  ),
+    ORDER BY ${sort} ${order}
+    LIMIT $8 OFFSET $9;`,
+    ),
 } as const;

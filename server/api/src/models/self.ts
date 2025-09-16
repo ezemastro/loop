@@ -34,6 +34,7 @@ import {
   parseUserBaseFromDb,
 } from "../utils/parseDb";
 import { safeNumber } from "../utils/safeNumber";
+import { getOrderValue, getSortValue } from "../utils/sortOptions";
 
 export class SelfModel {
   static getSelf = async ({ userId }: { userId: string }) => {
@@ -232,19 +233,22 @@ export class SelfModel {
     }
     try {
       // Obtener publicaciones del usuario
-      const listingsDb = await client.query(queries.listings, [
-        searchTerm ?? null,
-        listingStatus ?? null,
-        categoryId ?? null,
-        productStatus ?? null,
-        sellerId ?? null,
-        buyerId ?? null,
-        userId,
-        order ?? "desc",
-        sort ?? "created_at",
-        PAGE_SIZE,
-        PAGE_SIZE * ((page ?? 1) - 1),
-      ]);
+      const sortValue = getSortValue(sort);
+      const orderValue = getOrderValue(order);
+      const listingsDb = await client.query(
+        queries.listings({ sort: sortValue, order: orderValue }),
+        [
+          searchTerm ?? null,
+          listingStatus ?? null,
+          categoryId ?? null,
+          productStatus ?? null,
+          sellerId ?? null,
+          buyerId ?? null,
+          userId,
+          PAGE_SIZE,
+          PAGE_SIZE * ((page ?? 1) - 1),
+        ],
+      );
       const listings = await Promise.all(
         listingsDb.map(async (listingDb) => {
           return parseListingFromBase({
