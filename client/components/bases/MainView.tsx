@@ -1,4 +1,5 @@
 import { View } from "react-native";
+import { twMerge } from "tailwind-merge";
 
 export const MainView = ({
   children,
@@ -7,5 +8,5 @@ export const MainView = ({
   children: React.ReactNode;
   className?: string;
 }) => {
-  return <View className={`flex-1 ${className}`}>{children}</View>;
+  return <View className={twMerge(`flex-1`, className)}>{children}</View>;
 };
