@@ -18,6 +18,7 @@ import { useRouter } from "expo-router";
 import { useUploadFiles } from "@/hooks/useUploadFiles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useUpdateListing } from "@/hooks/useUpdateListing";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface Section {
   key: string;
@@ -42,12 +43,15 @@ interface FormData {
 export default function ModifyListing({
   backButton = false,
   initialData = null,
+  action,
 }: {
   backButton?: boolean;
   initialData?: Listing | null;
+  action: "edit" | "create";
 }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
 
   const [form, setForm] = useState<FormData>({
     title: initialData?.title || null,
@@ -83,16 +87,30 @@ export default function ModifyListing({
       (isPublishSuccess && listingData?.listing?.id) ||
       (isUpdateSuccess && initialData?.id)
     ) {
-      router.replace({
-        pathname: "/listing/[listingId]",
-        params: {
-          listingId: isPublishSuccess
-            ? listingData?.listing?.id!
-            : initialData?.id!,
-        },
-      });
+      if (action === "create") {
+        router.replace({
+          pathname: "/listing/[listingId]",
+          params: {
+            listingId: listingData?.listing?.id!,
+          },
+        });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["listings"], exact: false });
+        queryClient.invalidateQueries({
+          queryKey: ["listing", { listingId: initialData?.id }],
+        });
+        router.back();
+      }
     }
-  }, [isPublishSuccess, isUpdateSuccess, router, listingData, initialData]);
+  }, [
+    isPublishSuccess,
+    isUpdateSuccess,
+    router,
+    listingData,
+    initialData,
+    action,
+    queryClient,
+  ]);
 
   const handleSubmit = async () => {
     // Validaciones
@@ -155,9 +173,9 @@ export default function ModifyListing({
             price: form.price!,
           };
           // Publicar
-          if (initialData?.id) {
+          if (action === "create") {
             publishListing(body);
-          } else {
+          } else if (action === "edit") {
             // Actualizar
             updateListing({
               ...body,
@@ -335,7 +353,7 @@ export default function ModifyListing({
             )}
             <CustomButton className="m-4 mb-6" onPress={handleSubmit}>
               <ButtonText>
-                {initialData?.id ? "Actualizar" : "Publicar"}
+                {action === "edit" ? "Actualizar" : "Publicar"}
               </ButtonText>
             </CustomButton>
           </>
