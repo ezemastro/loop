@@ -46,12 +46,12 @@ export const queries = {
 
   userMissionsByUserId: q<DB_UserMissions>(
     "missions.byUserId",
-    `SELECT * FROM missions WHERE user_id = $1`,
+    `SELECT * FROM user_missions WHERE user_id = $1`,
   ),
 
   userMissionsById: q<DB_UserMissions>(
     "missions.byId",
-    `SELECT * FROM missions WHERE id = $1`,
+    `SELECT * FROM user_missions WHERE id = $1`,
   ),
 
   missionTemplateById: q<DB_MissionTemplates>(
