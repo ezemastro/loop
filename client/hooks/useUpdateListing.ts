@@ -8,7 +8,7 @@ const fetchUpdateListing = async (
 ) => {
   try {
     const response = await api.patch<PatchListingsResponse>(
-      `/listings/${params.id}`,
+      `/listings/${params.listingId}`,
       params,
     );
 
