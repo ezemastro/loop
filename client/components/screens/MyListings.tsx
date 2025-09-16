@@ -4,6 +4,7 @@ import { MainView } from "../bases/MainView";
 import TextTitle from "../bases/TextTitle";
 import { useState } from "react";
 import MyPendingList from "../MyPendingList";
+import CustomRefresh from "../CustomRefresh";
 
 interface Section {
   key: string;
@@ -93,6 +94,7 @@ export default function MyListings() {
     <MainView>
       <FlatList
         data={sections}
+        refreshControl={<CustomRefresh />}
         contentContainerClassName="px-4 py-4"
         renderItem={({ item }) => (
           <>
