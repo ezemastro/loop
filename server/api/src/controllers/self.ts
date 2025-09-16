@@ -82,8 +82,9 @@ export class SelfController {
     } = parsedQuery || {};
 
     let listings: Listing[];
+    let pagination: Pagination;
     try {
-      ({ listings } = await SelfModel.getSelfListings({
+      ({ listings, pagination } = await SelfModel.getSelfListings({
         userId,
         page,
         order,
@@ -98,7 +99,7 @@ export class SelfController {
     } catch (err) {
       return next(err);
     }
-    res.status(200).json(successResponse({ data: { listings } }));
+    res.status(200).json(successResponse({ data: { listings }, pagination }));
   };
 
   static getSelfMissions = async (
