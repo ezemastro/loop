@@ -88,6 +88,24 @@ export const DeleteIcon = ({
 }: Partial<IconProps<string>>) => (
   <Feather size={24} className={className} {...props} name="trash-2" />
 );
+export const WasteIcon = ({
+  className,
+  ...props
+}: Partial<IconProps<string>>) => (
+  <Feather size={24} className={className} {...props} name="trash" />
+);
+export const CO2Icon = ({
+  className,
+  ...props
+}: Partial<IconProps<string>>) => (
+  <Feather size={24} className={className} {...props} name="cloud" />
+);
+export const H20Icon = ({
+  className,
+  ...props
+}: Partial<IconProps<string>>) => (
+  <Feather size={24} className={className} {...props} name="droplet" />
+);
 
 export const HomeIcon = (props: Partial<IconProps<string>>) => (
   <Ionicons size={24} {...props} name="home-outline" />
