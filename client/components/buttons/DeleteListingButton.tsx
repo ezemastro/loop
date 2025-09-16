@@ -2,6 +2,7 @@ import { useDeleteListing } from "@/hooks/useDeleteListing";
 import CustomButton from "../bases/CustomButton";
 import { DeleteIcon } from "../Icons";
 import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function DeleteListingButton({
   listingId,
@@ -10,6 +11,7 @@ export default function DeleteListingButton({
   listingId: string;
   onDelete?: () => void;
 }) {
+  const queryClient = useQueryClient();
   const { mutate: deleteListing, isSuccess } = useDeleteListing();
   const handleDelete = () => {
     deleteListing(listingId);
@@ -17,8 +19,10 @@ export default function DeleteListingButton({
   useEffect(() => {
     if (isSuccess && onDelete) {
       onDelete();
+      queryClient.invalidateQueries({ queryKey: ["listings"] });
+      queryClient.invalidateQueries({ queryKey: ["listing", listingId] });
     }
-  }, [isSuccess, onDelete]);
+  }, [isSuccess, onDelete, queryClient, listingId]);
 
   return (
     <CustomButton className="bg-alert" onPress={handleDelete}>
