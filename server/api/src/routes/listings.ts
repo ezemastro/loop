@@ -12,6 +12,11 @@ listingsRouter.patch(
   tokenMiddleware,
   ListingsController.updateListing,
 );
+listingsRouter.delete(
+  "/:listingId",
+  tokenMiddleware,
+  ListingsController.deleteListing,
+);
 listingsRouter.post(
   "/:listingId/offer",
   tokenMiddleware,

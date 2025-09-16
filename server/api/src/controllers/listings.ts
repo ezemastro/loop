@@ -100,12 +100,13 @@ export class ListingsController {
       ...parseQuery(req.body),
       price: safeNumber(req.body.price) as number,
     } as PatchListingsRequest["body"];
+    const { listingId } = req.params as PatchListingsRequest["params"];
     try {
       await validatePatchListingsRequest(parsedBody);
+      await validateId(listingId);
     } catch {
       throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
     }
-    const { listingId } = req.params as PatchListingsRequest["params"];
     const { title, description, price, categoryId, productStatus, mediaIds } =
       parsedBody;
 
@@ -125,6 +126,29 @@ export class ListingsController {
       return next(err);
     }
     res.status(200).json(successResponse({ data: { listing } }));
+  };
+
+  static deleteListing = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const { listingId } = req.params as DeleteListingRequest["params"];
+    try {
+      await validateId(listingId);
+    } catch {
+      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+    }
+
+    try {
+      await ListingsModel.deleteListing({
+        listingId,
+        userId: req.session!.userId,
+      });
+    } catch (err) {
+      return next(err);
+    }
+    res.status(204).json(successResponse());
   };
 
   static getListingById = async (

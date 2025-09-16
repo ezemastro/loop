@@ -53,6 +53,8 @@ export const ERROR_MESSAGES = {
   INVALID_FILE_TYPE: "Tipo de archivo inválido",
   FILE_TOO_LARGE: "El archivo es demasiado grande",
   INVALID_PRICE_FOR_CATEGORY: "Precio inválido para la categoría",
+  INVALID_LISTING_STATUS_TO_DELETE:
+    "Estado de publicación inválido para eliminar",
 };
 
 export const cookieOptions = {

@@ -280,6 +280,46 @@ export class ListingsModel {
     }
   };
 
+  static deleteListing = async ({
+    listingId,
+    userId,
+  }: {
+    listingId: UUID;
+    userId: UUID;
+  }) => {
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      // Validar que sea el dueño
+      const [listingDb] = await client.query(queries.getListingById, [
+        listingId,
+      ]);
+      if (!listingDb) {
+        throw new InvalidInputError(ERROR_MESSAGES.LISTING_NOT_FOUND);
+      }
+      if (listingDb.seller_id !== userId) {
+        throw new UnauthorizedError(ERROR_MESSAGES.USER_NOT_AUTHORIZED);
+      }
+      // Validar que el estado de la publicación sea "Publicado"
+      if (listingDb.listing_status !== "published") {
+        throw new InvalidInputError(
+          ERROR_MESSAGES.INVALID_LISTING_STATUS_TO_DELETE,
+        );
+      }
+      try {
+        await client.query(queries.deleteListingById, [listingId, userId]);
+      } catch {
+        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+      }
+    } finally {
+      await client.release();
+    }
+  };
+
   static getListingById = async ({ listingId }: { listingId: UUID }) => {
     let client: DatabaseClient;
     try {
