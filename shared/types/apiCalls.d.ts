@@ -69,7 +69,7 @@ type GetSelfResponse = ApiResponse<{
 }>;
 
 // PATCH /me
-interface PatchSelfRequest extends AuthRequest {
+interface PatchSelfRequest extends AuthApiRequest {
   body: Partial<PrivateUser>;
 }
 type PatchSelfResponse = ApiResponse<{
@@ -100,7 +100,7 @@ type GetSelfMissionsResponse = ApiResponse<{
 // GET /me/notifications
 type GetSelfNotificationsRequest = AuthApiRequest;
 type GetSelfNotificationsResponse = ApiResponse<{
-  userNotifications: UserNotification[];
+  notifications: Notification[];
 }>;
 // GET /me/notifications/unread
 type GetSelfNotificationsUnreadRequest = AuthApiRequest;
@@ -281,7 +281,7 @@ interface PostListingOfferAcceptRequest extends AuthRequest {
 }
 type PostListingOfferAcceptResponse = ApiResponse;
 
-// POST /listings/:id/received
+// POST /listings/:id/receive
 interface PostListingReceivedRequest extends AuthRequest {
   params: {
     listingId: UUID;
