@@ -106,6 +106,18 @@ export const H20Icon = ({
 }: Partial<IconProps<string>>) => (
   <Feather size={24} className={className} {...props} name="droplet" />
 );
+export const PlusCircleIcon = ({
+  className,
+  ...props
+}: Partial<IconProps<string>>) => (
+  <Feather size={24} className={className} {...props} name="plus-circle" />
+);
+export const MinusCircleIcon = ({
+  className,
+  ...props
+}: Partial<IconProps<string>>) => (
+  <Feather size={24} className={className} {...props} name="minus-circle" />
+);
 
 export const HomeIcon = (props: Partial<IconProps<string>>) => (
   <Ionicons size={24} {...props} name="home-outline" />
