@@ -5,8 +5,8 @@ import Stats from "../Stats";
 import Missions from "../Missions";
 import { useRef, useState } from "react";
 import CustomRefresh from "../CustomRefresh";
-import MyPendingList from "../MyPendingList";
 import Feed from "../Feed";
+import AllMyPendingList from "../AllMyPendingList";
 
 interface Section {
   key: string;
@@ -33,9 +33,10 @@ export default function Home() {
       title: "Loops pendientes",
       show: hasPending,
       component: () => (
-        <MyPendingList
-          hasResults={(has) => setHasPending(has)}
-          type="to-accept"
+        <AllMyPendingList
+          haveResultsProp={(has) =>
+            hasPending !== has ? setHasPending(has) : null
+          }
         />
       ),
     },
@@ -57,19 +58,17 @@ export default function Home() {
       <FlatList
         data={sections}
         refreshControl={<CustomRefresh />}
-        contentContainerClassName="p-4"
+        contentContainerClassName="p-4 pt-6"
         onEndReached={() => {
           getMore.current();
         }}
         onEndReachedThreshold={0.5}
-        renderItem={({ item }) =>
-          item.show === false ? null : (
-            <View className="gap-6 mb-4">
-              {item.title && <TextTitle>{item.title}</TextTitle>}
-              {item.component()}
-            </View>
-          )
-        }
+        renderItem={({ item }) => (
+          <View className={`gap-4 mb-6 ${item.show === false && "hidden"}`}>
+            {item.title && <TextTitle>{item.title}</TextTitle>}
+            {item.component()}
+          </View>
+        )}
       />
     </MainView>
   );

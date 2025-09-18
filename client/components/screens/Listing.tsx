@@ -1,7 +1,6 @@
 import { useListing } from "@/hooks/useListing";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { View, FlatList, Pressable, Text } from "react-native";
-import { BackIcon } from "../Icons";
 import ImageGallery from "../ImageGallery";
 import AskButton from "../AskButton";
 import CategoryBadge from "../CategoryBadge";
@@ -14,6 +13,10 @@ import Error from "../Error";
 import { useAuth } from "@/hooks/useAuth";
 import DeleteListingButton from "../buttons/DeleteListingButton";
 import EditListingButton from "../buttons/EditListingButton";
+import BackButton from "../BackButton";
+import { MainView } from "../bases/MainView";
+import CustomRefresh from "../CustomRefresh";
+import ListingStatusInfo from "../ListingStatusInfo";
 
 export default function Listing() {
   const router = useRouter();
@@ -34,9 +37,7 @@ export default function Listing() {
           key: "title",
           component: () => (
             <View className="flex-row justify-between items-center p-4">
-              <Pressable onPress={() => router.back()}>
-                <BackIcon />
-              </Pressable>
+              <BackButton />
               {isOwner ? (
                 listing.listingStatus === "published" && (
                   <View className="flex-row gap-2">
@@ -93,23 +94,21 @@ export default function Listing() {
           key: "seller",
           component: () => (
             <View className="p-4 gap-3">
-              <Text className="text-lg text-main-text">Vendedor:</Text>
               <Pressable className="shadow">
                 <UserBadge
                   user={listing.seller}
                   textClassName="!text-main-text"
-                  containerClassName="bg-white px-3 py-2 rounded-full self-start ml-4"
+                  containerClassName="bg-white px-3 py-2 rounded-full self-start"
                 />
               </Pressable>
             </View>
           ),
         },
         {
-          key: "buttons",
-          // TODO - Cambiar botones dependiendo del ListingStatus y si el usuario es el vendedor o no
+          key: "status",
           component: () => (
-            <View className="p-4 gap-3">
-              <ListingButtons listing={listing} onMutate={handleMutation} />
+            <View>
+              <ListingStatusInfo listing={listing} />
             </View>
           ),
         },
@@ -117,10 +116,13 @@ export default function Listing() {
     : null;
   // TODO - Agregar deseados del vendedor
   // TODO - Agregar estadísticas de la publicación
+  // TODO - Agregar datos del comprador si hay
   return (
-    <View>
+    <MainView safeBottom>
       <FlatList
         data={sections}
+        refreshControl={<CustomRefresh />}
+        contentContainerClassName="flex-1"
         renderItem={({ item }) => item.component()}
         ListEmptyComponent={
           isLoading ? (
@@ -130,6 +132,11 @@ export default function Listing() {
           ) : null
         }
       />
-    </View>
+      <View className="p-4 flex-row gap-4">
+        {listing && (
+          <ListingButtons listing={listing} onMutate={handleMutation} />
+        )}
+      </View>
+    </MainView>
   );
 }

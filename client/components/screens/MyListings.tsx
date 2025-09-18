@@ -3,8 +3,8 @@ import MyListingsList from "../MyListingsList";
 import { MainView } from "../bases/MainView";
 import TextTitle from "../bases/TextTitle";
 import { useState } from "react";
-import MyPendingList from "../MyPendingList";
 import CustomRefresh from "../CustomRefresh";
+import AllMyPendingList from "../AllMyPendingList";
 
 interface Section {
   key: string;
@@ -13,67 +13,20 @@ interface Section {
   component: () => React.ReactElement;
 }
 export default function MyListings() {
+  const [haveResults, setHaveResults] = useState(false);
   const sections: Section[] = [
     {
       key: "pending-title",
-      show: () =>
-        haveResults["pending-to-accept"] ||
-        haveResults["pending-to-deliver"] ||
-        haveResults["pending-to-receive"] ||
-        haveResults["pending-waiting-acceptance"],
+      show: () => haveResults,
       component: () => <TextTitle>Publicaciones pendientes</TextTitle>,
     },
     {
-      key: "pending-to-accept",
-      title: "Ofertas pendientes",
-      show: () => haveResults["pending-to-accept"],
+      key: "pending-list",
+      show: () => haveResults,
       component: () => (
-        <MyPendingList
-          type={"to-accept"}
-          hasResults={(has) =>
-            setHaveResults((prev) => ({ ...prev, ["pending-to-accept"]: has }))
-          }
-        />
-      ),
-    },
-    {
-      key: "pending-to-deliver",
-      title: "Deber entregar",
-      show: () => haveResults["pending-to-deliver"],
-      component: () => (
-        <MyPendingList
-          type={"to-deliver"}
-          hasResults={(has) =>
-            setHaveResults((prev) => ({ ...prev, ["pending-to-deliver"]: has }))
-          }
-        />
-      ),
-    },
-    {
-      key: "pending-to-receive",
-      title: "Deber recibir",
-      show: () => haveResults["pending-to-receive"],
-      component: () => (
-        <MyPendingList
-          type={"to-receive"}
-          hasResults={(has) =>
-            setHaveResults((prev) => ({ ...prev, ["pending-to-receive"]: has }))
-          }
-        />
-      ),
-    },
-    {
-      key: "pending-waiting-acceptance",
-      title: "Deber recibir",
-      show: () => haveResults["pending-waiting-acceptance"],
-      component: () => (
-        <MyPendingList
-          type={"waiting-acceptance"}
-          hasResults={(has) =>
-            setHaveResults((prev) => ({
-              ...prev,
-              ["pending-waiting-acceptance"]: has,
-            }))
+        <AllMyPendingList
+          haveResultsProp={(have) =>
+            haveResults !== have ? setHaveResults(have) : null
           }
         />
       ),
@@ -87,9 +40,6 @@ export default function MyListings() {
       component: () => <MyListingsList />,
     },
   ];
-  const [haveResults, setHaveResults] = useState(
-    Object.fromEntries(sections.map((s) => [s.key, false])),
-  );
   return (
     <MainView>
       <FlatList
@@ -97,14 +47,16 @@ export default function MyListings() {
         refreshControl={<CustomRefresh />}
         contentContainerClassName="px-4 py-4"
         renderItem={({ item }) => (
-          <>
-            {(!item.show || item.show()) && (
-              <View className="mb-4">
-                {item.title && <Text>{item.title}</Text>}
-                {item.component()}
-              </View>
+          <View
+            className={`mb-4 ${(!item.show || item.show()) === false && "hidden"}`}
+          >
+            {item.title && (
+              <Text className="text-lg text-main-text text-center">
+                {item.title}
+              </Text>
             )}
-          </>
+            {item.component()}
+          </View>
         )}
       />
     </MainView>
