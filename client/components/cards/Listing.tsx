@@ -6,11 +6,17 @@ import CreditsBadge from "../badges/CreditsBadge";
 import { useRouter } from "expo-router";
 import { getUrl } from "@/services/getUrl";
 
-export default function Listing({ listing }: { listing: Listing }) {
+export default function Listing({
+  listing,
+  customButton,
+}: {
+  listing: Listing;
+  customButton?: React.ReactNode;
+}) {
   const router = useRouter();
   return (
     <Pressable
-      className="flex-row items-center px-2 py-3 bg-white rounded-xl shadow border border-stroke gap-2"
+      className="flex-row px-2 py-3 bg-white rounded-xl shadow border border-stroke gap-2"
       onPress={() =>
         router.push({
           pathname: "/(main)/listing/[listingId]",
@@ -43,7 +49,10 @@ export default function Listing({ listing }: { listing: Listing }) {
         </View>
         <UserBadge user={listing.seller} />
       </View>
-      <CreditsBadge credits={listing.price} />
+      <View className="justify-center gap-2">
+        {customButton}
+        <CreditsBadge credits={listing.price} />
+      </View>
     </Pressable>
   );
 }
