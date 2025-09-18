@@ -218,4 +218,5 @@ interface UserMessageBase {
 }
 interface UserMessage extends UserMessageBase {
   lastMessage: Message;
+  user: PublicUser;
 }
