@@ -5,6 +5,7 @@ import { useListingNewOffer } from "@/hooks/useListingNewOffer";
 import { useListingDeleteOffer } from "@/hooks/useListingDeleteOffer";
 import { useSelf } from "@/hooks/useSelf";
 import { useListingMarkReceived } from "@/hooks/useListingMarkReceived";
+import { useRouter } from "expo-router";
 
 export default function ListingButtons({
   listing,
@@ -14,6 +15,7 @@ export default function ListingButtons({
   onMutate: () => void;
 }) {
   const { user } = useAuth();
+  const router = useRouter();
   const { refetch: userRefetch } = useSelf();
   // TODO - Implementar elección de precio de oferta
   const { mutateAsync: createOffer } = useListingNewOffer({
@@ -67,7 +69,14 @@ export default function ListingButtons({
     case "offered":
       if (user?.id === listing.seller.id) {
         return (
-          <CustomButton>
+          <CustomButton
+            onPress={() => {
+              router.push({
+                pathname: "/(main)/listing/[listingId]/offer",
+                params: { listingId: listing.id },
+              });
+            }}
+          >
             <ButtonText>Elegir Loop</ButtonText>
           </CustomButton>
         );
@@ -85,9 +94,14 @@ export default function ListingButtons({
     case "accepted":
       if (user?.id === listing.seller.id) {
         return (
-          <CustomButton className="bg-alert">
-            <ButtonText>Cancelar</ButtonText>
-          </CustomButton>
+          <>
+            <CustomButton onPress={() => {}} className="flex-grow">
+              <ButtonText>Mensaje</ButtonText>
+            </CustomButton>
+            <CustomButton className="bg-alert/20">
+              <ButtonText>Cancelar</ButtonText>
+            </CustomButton>
+          </>
         );
       }
       if (user?.id === listing.buyer?.id) {
