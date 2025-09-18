@@ -21,7 +21,7 @@ const fetchListing = async (params: GetListingByIdRequest["params"]) => {
 
 export const useListing = (params: GetListingByIdRequest["params"]) => {
   return useQuery({
-    queryKey: ["listing", params],
+    queryKey: ["listing", params.listingId],
     queryFn: () => fetchListing(params),
   });
 };
