@@ -12,7 +12,7 @@ export default function CustomRefresh(
   const queryClient = useQueryClient();
   const onRefresh = async () => {
     await queryClient.invalidateQueries({
-      type: "all",
+      type: "active",
     });
   };
   return <RefreshControl refreshing={false} onRefresh={onRefresh} {...props} />;
