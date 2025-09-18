@@ -103,27 +103,29 @@ export const queries = {
   }>(
     "chats.byUserId",
     `SELECT 
-      other_user_id,
-      last_message_id,
-      unread_count
+        other_user_id,
+        (SELECT m2.id 
+        FROM messages m2 
+        WHERE (m2.sender_id = $1 AND m2.recipient_id = other_user_id)
+            OR (m2.recipient_id = $1 AND m2.sender_id = other_user_id)
+        ORDER BY m2.created_at DESC 
+        LIMIT 1) as last_message_id,
+        unread_count
     FROM (
-      SELECT 
-          CASE 
-              WHEN m.sender_id = $1 THEN m.recipient_id 
-              ELSE m.sender_id 
-          END as other_user_id,
-          MAX(m.id) as last_message_id,
-          COUNT(CASE WHEN m.sender_id != $1 AND m.is_read = false THEN 1 END) as unread_count
-      FROM 
-          db_messages m
-      WHERE 
-          m.sender_id = $1 OR m.recipient_id = $1
-      GROUP BY 
-          CASE 
-              WHEN m.sender_id = $1 THEN m.recipient_id 
-              ELSE m.sender_id 
-          END
-    )`,
+        SELECT 
+            CASE 
+                WHEN m.sender_id = $1 THEN m.recipient_id 
+                ELSE m.sender_id 
+            END as other_user_id,
+            COUNT(CASE WHEN m.sender_id != $1 AND m.is_read = false THEN 1 END) as unread_count
+        FROM messages m
+        WHERE m.sender_id = $1 OR m.recipient_id = $1
+        GROUP BY 
+            CASE 
+                WHEN m.sender_id = $1 THEN m.recipient_id 
+                ELSE m.sender_id 
+            END
+    ) sub`,
   ),
 
   messageById: q<DB_Messages>(
