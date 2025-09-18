@@ -35,7 +35,7 @@ export default function Feed({
       {!isLoading && listings.length === 0 && (
         <Error>No se han encontrado publicaciones</Error>
       )}
-      {!hasNextPage && !isLoading && (
+      {!hasNextPage && !isLoading && listings.length > 0 && (
         <Text className="text-center text-secondary-text mt-2">
           No hay más publicaciones
         </Text>
