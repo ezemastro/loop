@@ -3,11 +3,13 @@ import { parseErrorName } from "@/services/errors";
 import { useMutation } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 
-type Params = PostListingReceivedRequest["params"];
-const fetchMarkReceived = async (params: Params) => {
+type Params = PostListingOfferAcceptRequest["params"] &
+  PostListingOfferAcceptRequest["body"];
+const fetchAcceptOffer = async (params: Params) => {
   try {
-    const response = await api.post<PostListingReceivedResponse>(
-      `/listings/${params.listingId}/receive`,
+    const response = await api.post<PostListingOfferAcceptResponse>(
+      `/listings/${params.listingId}/offer/accept`,
+      params,
     );
     return response.data.data;
   } catch (error) {
@@ -20,9 +22,9 @@ const fetchMarkReceived = async (params: Params) => {
   }
 };
 
-export const useListingMarkReceived = (params: Params) => {
+export const useListingAcceptOffer = (params: Params) => {
   return useMutation({
-    mutationKey: ["listing", "received", params],
-    mutationFn: () => fetchMarkReceived(params),
+    mutationKey: ["listing", "offer", "accept", params],
+    mutationFn: () => fetchAcceptOffer(params),
   });
 };
