@@ -1,7 +1,7 @@
 import { useMyListings } from "@/hooks/useMyListings";
 import ListingViewList from "./bases/ListingViewList";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 type PendingType =
   | "to-receive"
@@ -40,12 +40,26 @@ export default function MyPendingList({
         };
     }
   };
-  const { data, isError, isLoading, fetchNextPage, hasNextPage } =
-    useMyListings(getParams());
+  const {
+    data,
+    isError,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isSuccess,
+    isFetching,
+  } = useMyListings(getParams());
   const listings = data?.pages.flatMap((page) => page!.data!.listings) || [];
+  const hasResultsRef = useRef(false);
   useEffect(() => {
+    if (!isSuccess || isFetching) return;
+    if (hasResultsRef.current) return;
     hasResults(listings.length > 0);
-  }, [listings.length, hasResults]);
+    hasResultsRef.current = true;
+  }, [listings.length, hasResults, isSuccess, isFetching]);
+  useEffect(() => {
+    if (isFetching) hasResultsRef.current = false;
+  }, [isFetching]);
   return (
     <ListingViewList
       fetchNextPage={fetchNextPage}
