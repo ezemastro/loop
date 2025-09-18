@@ -4,7 +4,7 @@ import { CO2Icon, H20Icon, WasteIcon } from "./Icons";
 
 export default function Stats() {
   return (
-    <View className="flex-row justify-between my-4 gap-2">
+    <View className="flex-row justify-between gap-2">
       <Stat
         label="Kg. de desechos reciclados"
         value={150}

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Text } from "react-native";
 import ListingSearchFiltersModal from "./modals/ListingSearchFiltersModal";
 import CustomButton from "./bases/CustomButton";
 import ButtonText from "./bases/ButtonText";

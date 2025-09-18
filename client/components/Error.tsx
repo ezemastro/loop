@@ -9,7 +9,7 @@ export default function Error({
 }) {
   return (
     <View className={`items-center justify-center ${className}`}>
-      <Text>{children}</Text>
+      <Text className="text-main-text">{children}</Text>
     </View>
   );
 }
