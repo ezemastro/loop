@@ -61,7 +61,7 @@ CREATE TABLE "listings"(
     "created_at" TIMESTAMP(0) default NOW() not null,
     "updated_at" TIMESTAMP(0)
 );
-create table "listing_trade" (
+create table "listing_trades" (
 	"id" UUID default gen_random_uuid() primary key,
 	"listing_id" UUID not null,
 	"trade_listing_id" UUID not null
@@ -136,11 +136,11 @@ ALTER TABLE
 ALTER TABLE
     messages ADD CONSTRAINT "messages_sender_id_foreign" FOREIGN KEY("sender_id") REFERENCES "users"("id");
 ALTER TABLE
-    listing_media ADD CONSTRAINT "listing_media_listing_id_foreign" FOREIGN KEY("listing_id") REFERENCES "listings"("id");
+    listing_media ADD CONSTRAINT "listing_media_listing_id_foreign" FOREIGN KEY("listing_id") REFERENCES "listings"("id") ON DELETE CASCADE;
 ALTER TABLE
-    listing_trade ADD CONSTRAINT "listing_trade_listing_id_foreign" FOREIGN KEY("listing_id") REFERENCES "listings"("id");
+    listing_trades ADD CONSTRAINT "listing_trades_listing_id_foreign" FOREIGN KEY("listing_id") REFERENCES "listings"("id");
 ALTER TABLE
-    listing_trade ADD CONSTRAINT "listing_trade_trade_listing_id_foreign" FOREIGN KEY("trade_listing_id") REFERENCES "listings"("id");
+    listing_trades ADD CONSTRAINT "listing_trades_trade_listing_id_foreign" FOREIGN KEY("trade_listing_id") REFERENCES "listings"("id");
 ALTER TABLE
     listing_media ADD CONSTRAINT "listing_media_media_id_foreign" FOREIGN KEY("media_id") REFERENCES "media"("id");
 ALTER TABLE
