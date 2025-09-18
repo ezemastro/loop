@@ -8,11 +8,15 @@ import Listing from "../cards/Listing";
 import ListingSearchSortOptions from "../ListingSearchSortOptions";
 import ListingSearchFilters, { FiltersValue } from "../ListingSearchFilters";
 import { MainView } from "../bases/MainView";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Search() {
   const searchTerm = useSearchStore((state) => state.query);
+  const { user } = useAuth();
   const [debouncedTerm] = useDebounce(searchTerm, 500);
-  const [query, setQuery] = useState<GetListingsRequest["query"]>({});
+  const [query, setQuery] = useState<GetListingsRequest["query"]>({
+    userId: user?.id,
+  });
   const [filters, setFilters] = useState<FiltersValue>({
     school: null,
     category: null,
