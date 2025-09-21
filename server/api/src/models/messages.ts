@@ -4,7 +4,12 @@ import { dbConnection } from "../services/postgresClient";
 import { queries } from "../services/queries";
 import type { DatabaseClient } from "../types/dbClient";
 import { getListingById } from "../utils/helpersDb";
-import { parseMessageBaseFromDb, parseMessageFromBase } from "../utils/parseDb";
+import {
+  parseMessageBaseFromDb,
+  parseMessageFromBase,
+  parsePagination,
+} from "../utils/parseDb";
+import { safeNumber } from "../utils/safeNumber";
 
 export class MessagesModel {
   static async getMessagesFromUser({
@@ -14,7 +19,7 @@ export class MessagesModel {
   }: {
     senderId: UUID;
     recipientId: UUID;
-    page: number;
+    page: number | undefined;
   }) {
     // Obtener cliente de base de datos
     let client: DatabaseClient;
@@ -27,7 +32,7 @@ export class MessagesModel {
       // Obtener mensajes
       const messagesDb = await client.query(
         queries.messagesBySenderAndRecipient,
-        [senderId, recipientId, PAGE_SIZE, page ? (page - 1) * PAGE_SIZE : 0],
+        [senderId, recipientId, PAGE_SIZE, PAGE_SIZE * ((page ?? 1) - 1)],
       );
       const messages = await Promise.all(
         messagesDb.map(async (msg) => {
@@ -43,8 +48,12 @@ export class MessagesModel {
           });
         }),
       );
+      const pagination = parsePagination({
+        currentPage: page ?? 1,
+        totalRecords: safeNumber(messagesDb[0]?.total_records) || 0,
+      });
       // Devolver mensajes
-      return { messages };
+      return { messages, pagination };
     } finally {
       client.release();
     }
