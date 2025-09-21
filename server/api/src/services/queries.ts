@@ -59,9 +59,15 @@ export const queries = {
     `SELECT * FROM template_missions WHERE id = $1`,
   ),
 
-  notificationsByUserId: q<DB_Notifications>(
+  notificationsByUserId: q<DB_Notifications & DB_Pagination>(
     "notifications.byUserId",
-    `SELECT * FROM notifications WHERE user_id = $1`,
+    `SELECT 
+      *,
+      COUNT(*) OVER() as total_records
+    FROM notifications
+    WHERE user_id = $1
+    ORDER BY created_at DESC
+    LIMIT $2 OFFSET $3`,
   ),
 
   listingById: q<DB_Listings>(
@@ -96,28 +102,32 @@ export const queries = {
     `UPDATE notifications SET is_read = TRUE WHERE user_id = $1`,
   ),
 
-  chatsByUserId: q<{
-    other_user_id: UUID;
-    last_message_id: UUID;
-    unread_count: number;
-  }>(
+  chatsByUserId: q<
+    {
+      other_user_id: UUID;
+      last_message_id: UUID;
+      unread_count: number;
+    } & DB_Pagination
+  >(
     "chats.byUserId",
     `SELECT 
         other_user_id,
         (SELECT m2.id 
         FROM messages m2 
-        WHERE (m2.sender_id = $1 AND m2.recipient_id = other_user_id)
-            OR (m2.recipient_id = $1 AND m2.sender_id = other_user_id)
+        WHERE (m2.sender_id = $1 AND m2.recipient_id = sub.other_user_id)
+            OR (m2.recipient_id = $1 AND m2.sender_id = sub.other_user_id)
         ORDER BY m2.created_at DESC 
         LIMIT 1) as last_message_id,
-        unread_count
+        unread_count,
+        total_records
     FROM (
         SELECT 
             CASE 
                 WHEN m.sender_id = $1 THEN m.recipient_id 
                 ELSE m.sender_id 
             END as other_user_id,
-            COUNT(CASE WHEN m.sender_id != $1 AND m.is_read = false THEN 1 END) as unread_count
+            COUNT(CASE WHEN m.sender_id != $1 AND m.is_read = false THEN 1 END) as unread_count,
+            COUNT(*) OVER() as total_records
         FROM messages m
         WHERE m.sender_id = $1 OR m.recipient_id = $1
         GROUP BY 
@@ -125,6 +135,8 @@ export const queries = {
                 WHEN m.sender_id = $1 THEN m.recipient_id 
                 ELSE m.sender_id 
             END
+        ORDER BY MAX(m.created_at) DESC
+        LIMIT $2 OFFSET $3
     ) sub`,
   ),
 
@@ -350,7 +362,7 @@ export const queries = {
 
   messagesBySenderAndRecipient: q<DB_Messages & DB_Pagination>(
     "message.bySenderAndRecipient",
-    `SELECT *, COUNT(*) OVER() AS total_count
+    `SELECT *, COUNT(*) OVER() AS total_records
     FROM messages
     WHERE (sender_id = $1 AND recipient_id = $2)
     OR (sender_id = $2 AND recipient_id = $1)
