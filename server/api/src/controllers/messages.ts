@@ -32,8 +32,9 @@ export class MessagesController {
     const { page } = parsedQuery;
 
     let messages: Message[];
+    let pagination: Pagination;
     try {
-      ({ messages } = await MessagesModel.getMessagesFromUser({
+      ({ messages, pagination } = await MessagesModel.getMessagesFromUser({
         senderId: userId,
         recipientId: req.session!.userId,
         page: page ?? 0,
@@ -41,7 +42,7 @@ export class MessagesController {
     } catch (err) {
       return next(err);
     }
-    res.status(200).json(successResponse({ data: { messages } }));
+    res.status(200).json(successResponse({ data: { messages }, pagination }));
   };
 
   static sendMessageToUser = async (
