@@ -98,8 +98,10 @@ type GetSelfMissionsResponse = ApiResponse<{
 }>;
 
 // GET /me/notifications
-type GetSelfNotificationsRequest = AuthApiRequest;
-type GetSelfNotificationsResponse = ApiResponse<{
+interface GetSelfNotificationsRequest extends AuthApiRequest {
+  query?: PaginationParams;
+}
+type GetSelfNotificationsResponse = PaginatedApiResponse<{
   notifications: Notification[];
 }>;
 // GET /me/notifications/unread
@@ -113,8 +115,10 @@ type PostSelfNotificationsReadAllRequest = AuthApiRequest;
 type PostSelfNotificationsReadAllResponse = ApiResponse;
 
 // GET /me/messages
-type GetSelfMessagesRequest = AuthApiRequest;
-type GetSelfMessagesResponse = ApiResponse<{
+interface GetSelfMessagesRequest extends AuthApiRequest {
+  query?: PaginationParams;
+}
+type GetSelfMessagesResponse = PaginatedApiResponse<{
   chats: UserMessage[];
 }>;
 // GET /me/messages/unread
@@ -126,7 +130,7 @@ type GetSelfMessagesUnreadResponse = ApiResponse<{
 // GET /users/:id
 interface GetUserByIdRequest {
   params: {
-    id: UUID;
+    userId: UUID;
   };
 }
 type GetUserByIdResponse = ApiResponse<{
@@ -313,7 +317,7 @@ interface GetMessagesByUserIdRequest {
     page?: number;
   };
 }
-type GetMessagesByUserIdResponse = ApiResponse<{
+type GetMessagesByUserIdResponse = PaginatedApiResponse<{
   messages: Message[];
 }>;
 
