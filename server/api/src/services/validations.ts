@@ -358,3 +358,9 @@ const getSelfListingsRequestQuery = paginatedQuery.extend({
 });
 export const validateGetSelfListingsRequest = (data: unknown) =>
   getSelfListingsRequestQuery.parseAsync(data);
+const getSelfNotificationsRequestQuery = paginatedQuery;
+export const validateGetSelfNotificationsRequest = (data: unknown) =>
+  getSelfNotificationsRequestQuery.parseAsync(data);
+const getSelfMessagesRequestQuery = paginatedQuery;
+export const validateGetSelfMessagesRequest = (data: unknown) =>
+  getSelfMessagesRequestQuery.parseAsync(data);

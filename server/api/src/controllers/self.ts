@@ -2,6 +2,8 @@ import { SelfModel } from "../models/self";
 import type { Response, Request, NextFunction } from "express";
 import {
   validateGetSelfListingsRequest,
+  validateGetSelfMessagesRequest,
+  validateGetSelfNotificationsRequest,
   validateUpdateSelf,
 } from "../services/validations";
 import { InvalidInputError } from "../services/errors";
@@ -123,14 +125,29 @@ export class SelfController {
     next: NextFunction,
   ) => {
     const { userId } = req.session!;
+    const parsedQuery: GetSelfNotificationsRequest["query"] = {
+      ...parseQuery(req.query),
+      page: safeNumber(req.query.page),
+    };
+    try {
+      await validateGetSelfNotificationsRequest(parsedQuery);
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
     let notifications: Notification[];
+    let pagination: Pagination;
     // TODO - Add pagination
     try {
-      ({ notifications } = await SelfModel.getSelfNotifications({ userId }));
+      ({ notifications, pagination } = await SelfModel.getSelfNotifications({
+        userId,
+        page: parsedQuery.page,
+      }));
     } catch (err) {
       return next(err);
     }
-    res.status(200).json(successResponse({ data: { notifications } }));
+    res
+      .status(200)
+      .json(successResponse({ data: { notifications }, pagination }));
   };
 
   static getSelfNotificationsUnread = async (
@@ -167,10 +184,26 @@ export class SelfController {
     res.status(204).send(successResponse());
   };
 
-  static getSelfChats = async (req: Request, res: Response) => {
+  static getSelfChats = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     const { userId } = req.session!;
-    const { chats } = await SelfModel.getSelfChats({ userId });
-    res.status(200).json(successResponse({ data: { chats } }));
+    const parsedQuery: GetSelfMessagesRequest["query"] = {
+      ...parseQuery(req.query),
+      page: safeNumber(req.query.page),
+    };
+    try {
+      await validateGetSelfMessagesRequest(parsedQuery);
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    const { chats, pagination } = await SelfModel.getSelfChats({
+      userId,
+      page: parsedQuery.page,
+    });
+    res.status(200).json(successResponse({ data: { chats }, pagination }));
   };
   static getSelfChatsUnread = async (
     req: Request,
