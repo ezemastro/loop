@@ -1,12 +1,12 @@
 import { api } from "@/api/loop";
 import { parseErrorName } from "@/services/errors";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 
 const fetchChats = async () => {
   try {
     const response = await api.get<GetSelfMessagesResponse>("/me/messages");
-    return response.data.data;
+    return response.data;
   } catch (error) {
     if (error instanceof AxiosError) {
       throw {
@@ -18,8 +18,12 @@ const fetchChats = async () => {
 };
 
 export const useChats = () => {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ["chats"],
     queryFn: fetchChats,
+    getNextPageParam: (lastPage) => {
+      return lastPage?.pagination?.nextPage || null;
+    },
+    initialPageParam: 1,
   });
 };
