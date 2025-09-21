@@ -65,8 +65,8 @@ export default function Messages() {
             </View>
             <View className="flex-1 items-end px-3">
               {item.pendingMessages > 0 && (
-                <View className="bg-primary p-1 aspect-square rounded-full items-center justify-center">
-                  <Text className="text-white font-bold text-center">
+                <View className="bg-primary size-9 rounded-full items-center justify-center">
+                  <Text className="text-white font-bold text-center text-lg">
                     {item.pendingMessages}
                   </Text>
                 </View>

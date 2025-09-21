@@ -1,7 +1,5 @@
-import { useEffect } from "react";
 import { Tabs } from "expo-router";
-import Header from "@/components/header/Header";
-import { StatusBar } from "react-native";
+import { Keyboard, StatusBar } from "react-native";
 import {
   HomeIcon,
   MyListingsIcon,
@@ -12,10 +10,27 @@ import {
 import { COLORS } from "@/config";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSelf } from "@/hooks/useSelf";
+import { useEffect, useState } from "react";
 
 export default function TabsLayout() {
   // Agregar esto al main layout autenticado
   useSelf(); // Hook para mantener la sesión del usuario actualizada
+
+  // Ocultar tab bar al mostrar el teclado
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
+      setVisible(false);
+    });
+    const hideSubscription = Keyboard.addListener("keyboardDidHide", () => {
+      setVisible(true);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   const insets = useSafeAreaInsets();
   return (
@@ -26,10 +41,14 @@ export default function TabsLayout() {
           headerShown: false,
           tabBarInactiveTintColor: COLORS.SECONDARY_TEXT,
           tabBarActiveTintColor: COLORS.PRIMARY,
-          tabBarLabelStyle: { fontSize: 11.5, fontWeight: "600" },
+          tabBarLabelStyle: {
+            fontSize: 11.5,
+            fontWeight: "600",
+          },
           tabBarStyle: {
             height: 60 + insets.bottom,
             paddingTop: 5,
+            display: visible ? "flex" : "none",
           },
           tabBarHideOnKeyboard: true,
         }}

@@ -28,6 +28,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient } from "@tanstack/react-query";
 import Error from "../Error";
 import Loader from "../Loader";
+import AvoidingKeyboard from "../AvoidingKeyboard";
 
 export default function Chat() {
   const queryClient = useQueryClient();
@@ -87,83 +88,85 @@ export default function Chat() {
   };
 
   return (
-    <MainView>
-      <View className="flex-row items-center p-4">
-        <BackButton />
-      </View>
-      <View className="flex-row items-center gap-4 px-4">
-        <Image
-          source={{ uri: getUrl(user?.profileMedia?.url ?? "") }}
-          className="size-20 rounded-full bg-secondary-text"
-        />
-        <View>
-          <Text className="text-2xl text-main-text">
-            {user?.firstName} {user?.lastName}
-          </Text>
-          <Text className="text-secondary-text">{user?.school.name}</Text>
+    <AvoidingKeyboard>
+      <MainView>
+        <View className="flex-row items-center p-4">
+          <BackButton />
         </View>
-      </View>
-      <FlatList
-        data={messages}
-        contentContainerClassName="bg-white flex-grow gap-1"
-        renderItem={({ item, index }) => (
-          <>
-            {!messages[index - 1] ||
-            item.senderId !== messages[index - 1]?.senderId ? (
-              <ChatHourLabel date={item.createdAt} senderId={item.senderId} />
-            ) : null}
-            <MessageItem message={item} />
-            {!messages[index + 1] ||
-            !sameDay(item.createdAt, messages[index + 1]?.createdAt) ? (
-              <ChatDayLabel date={item.createdAt} />
-            ) : null}
-          </>
-        )}
-        ListFooterComponent={
-          !hasNextPage ? (
-            <Text className="text-secondary-text text-center p-4">
-              No hay más mensajes
-            </Text>
-          ) : null
-        }
-        ListEmptyComponent={
-          isError ? (
-            <Error>Ocurrió un error</Error>
-          ) : isLoading ? (
-            <Loader />
-          ) : (
-            <Text className="text-secondary-text text-center p-4">
-              No hay mensajes aún, envía el primer mensaje
-            </Text>
-          )
-        }
-        onEndReached={() => {
-          fetchNextPage();
-        }}
-        inverted
-        onEndReachedThreshold={0.4}
-        refreshControl={
-          <RefreshControl refreshing={isLoading} onRefresh={refetch} />
-        }
-      />
-      <View className="bg-white p-2">
-        <View className="flex-row items-center gap-2">
-          <TextInput
-            placeholder="Mensaje..."
-            className="border border-stroke rounded-2xl px-4 py-2 text-main-text flex-grow text-lg"
-            multiline
-            numberOfLines={4}
-            value={messageText}
-            onChangeText={setMessageText}
+        <View className="flex-row items-center gap-4 px-4">
+          <Image
+            source={{ uri: getUrl(user?.profileMedia?.url ?? "") }}
+            className="size-20 rounded-full bg-secondary-text"
           />
-          <Pressable
-            className="p-3 bg-tertiary rounded-full"
-            onPress={handleSendMessage}
-          >
-            <SendIcon className="text-white" size={20} />
-          </Pressable>
+          <View>
+            <Text className="text-2xl text-main-text">
+              {user?.firstName} {user?.lastName}
+            </Text>
+            <Text className="text-secondary-text">{user?.school.name}</Text>
+          </View>
         </View>
-      </View>
-    </MainView>
+        <FlatList
+          data={messages}
+          contentContainerClassName="bg-white flex-grow gap-1"
+          renderItem={({ item, index }) => (
+            <>
+              {!messages[index - 1] ||
+              item.senderId !== messages[index - 1]?.senderId ? (
+                <ChatHourLabel date={item.createdAt} senderId={item.senderId} />
+              ) : null}
+              <MessageItem message={item} />
+              {!messages[index + 1] ||
+              !sameDay(item.createdAt, messages[index + 1]?.createdAt) ? (
+                <ChatDayLabel date={item.createdAt} />
+              ) : null}
+            </>
+          )}
+          ListFooterComponent={
+            !hasNextPage ? (
+              <Text className="text-secondary-text text-center p-4">
+                No hay más mensajes
+              </Text>
+            ) : null
+          }
+          ListEmptyComponent={
+            isError ? (
+              <Error>Ocurrió un error</Error>
+            ) : isLoading ? (
+              <Loader />
+            ) : (
+              <Text className="text-secondary-text text-center p-4">
+                No hay mensajes aún, envía el primer mensaje
+              </Text>
+            )
+          }
+          onEndReached={() => {
+            fetchNextPage();
+          }}
+          inverted
+          onEndReachedThreshold={0.4}
+          refreshControl={
+            <RefreshControl refreshing={isLoading} onRefresh={refetch} />
+          }
+        />
+        <View className="bg-white p-2">
+          <View className="flex-row items-center gap-2">
+            <TextInput
+              placeholder="Mensaje..."
+              className="border border-stroke rounded-2xl px-4 py-2 text-main-text flex-grow text-lg"
+              multiline
+              numberOfLines={4}
+              value={messageText}
+              onChangeText={setMessageText}
+            />
+            <Pressable
+              className="p-3 bg-tertiary rounded-full"
+              onPress={handleSendMessage}
+            >
+              <SendIcon className="text-white" size={20} />
+            </Pressable>
+          </View>
+        </View>
+      </MainView>
+    </AvoidingKeyboard>
   );
 }
