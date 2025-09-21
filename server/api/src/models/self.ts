@@ -14,15 +14,16 @@ import type { DatabaseClient } from "../types/dbClient";
 import {
   getUserMissionsByUserId,
   getNotificationsByUserId,
-  getChatsByUserId,
   getMediaById,
   getRoleById,
   getSchoolById,
   getUserById,
   getCategoryById,
   getMediasByListingId,
+  getMessageById,
 } from "../utils/helpersDb";
 import {
+  parseChatFromDb,
   parseListingBaseFromDb,
   parseListingFromBase,
   parseMediaFromDb,
@@ -301,7 +302,13 @@ export class SelfModel {
     }
   };
 
-  static getSelfNotifications = async ({ userId }: { userId: string }) => {
+  static getSelfNotifications = async ({
+    userId,
+    page,
+  }: {
+    userId: string;
+    page: number | undefined;
+  }) => {
     // Crear conexión a la base de datos
     let client: DatabaseClient;
     try {
@@ -311,9 +318,13 @@ export class SelfModel {
     }
     try {
       // Obtener notificaciones del usuario
-      const notifications = await getNotificationsByUserId({ client, userId });
+      const { notifications, pagination } = await getNotificationsByUserId({
+        client,
+        userId,
+        page,
+      });
 
-      return { notifications };
+      return { notifications, pagination };
     } finally {
       client.release();
     }
@@ -362,7 +373,13 @@ export class SelfModel {
     }
   };
 
-  static getSelfChats = async ({ userId }: { userId: string }) => {
+  static getSelfChats = async ({
+    userId,
+    page,
+  }: {
+    userId: string;
+    page: number | undefined;
+  }) => {
     // Crear conexión a la base de datos
     let client: DatabaseClient;
     try {
@@ -372,8 +389,29 @@ export class SelfModel {
     }
     try {
       // Obtener chats del usuario
-      const chats = await getChatsByUserId({ client, userId });
-      return { chats };
+      const chatsDb = await client.query(queries.chatsByUserId, [
+        userId,
+        PAGE_SIZE,
+        PAGE_SIZE * ((page ?? 1) - 1),
+      ]);
+      const chatsBase = chatsDb.map(parseChatFromDb);
+      const chats = await Promise.all(
+        chatsBase.map(async (chat) => {
+          return {
+            ...chat,
+            lastMessage: await getMessageById({
+              client,
+              messageId: chat.lastMessageId,
+            }),
+            user: await getUserById({ client, userId: chat.userId }),
+          };
+        }),
+      );
+      const pagination = parsePagination({
+        currentPage: page ?? 1,
+        totalRecords: safeNumber(chatsDb[0]?.total_records) || 0,
+      });
+      return { chats, pagination };
     } finally {
       client.release();
     }

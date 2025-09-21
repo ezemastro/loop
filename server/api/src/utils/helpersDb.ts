@@ -1,10 +1,9 @@
-import { ERROR_MESSAGES } from "../config";
+import { ERROR_MESSAGES, PAGE_SIZE } from "../config";
 import { InternalServerError } from "../services/errors";
 import { queries } from "../services/queries";
 import type { DatabaseClient } from "../types/dbClient";
 import {
   parseCategoryBaseFromDb,
-  parseChatFromDb,
   parseListingBaseFromDb,
   parseListingFromBase,
   parseMediaFromDb,
@@ -13,6 +12,7 @@ import {
   parseMissionTemplateFromDb,
   parseNotificationBaseFromDb,
   parseNotificationFromBase,
+  parsePagination,
   parsePublicUserFromBase,
   parseRoleFromDb,
   parseSchoolFromBase,
@@ -21,6 +21,7 @@ import {
   parseUserMissionBaseFromDb,
   parseUserMissionFromBase,
 } from "./parseDb";
+import { safeNumber } from "./safeNumber";
 
 export const getListingById = async ({
   client,
@@ -371,25 +372,35 @@ export const getUserMissionsByUserId = async ({
 export const getNotificationsByUserId = async ({
   client,
   userId,
+  page,
 }: {
   client: DatabaseClient;
   userId: UUID;
-}): Promise<Notification[]> => {
+  page: number | undefined;
+}): Promise<{ notifications: Notification[]; pagination: Pagination }> => {
   // Obtener notificaciones del usuario
-  let notificationsDb: DB_Notifications[];
+  let notificationsDb: (DB_Notifications & DB_Pagination)[];
   try {
     notificationsDb = await client.query(queries.notificationsByUserId, [
       userId,
+      PAGE_SIZE,
+      PAGE_SIZE * ((page ?? 1) - 1),
     ]);
   } catch {
     throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
   }
   if (notificationsDb.length === 0) {
-    return [];
+    return {
+      notifications: [],
+      pagination: parsePagination({
+        currentPage: page ?? 1,
+        totalRecords: safeNumber(notificationsDb[0]?.total_records) ?? 0,
+      }),
+    };
   }
   // Parsear notificaciones de DB a Base
   const notificationsBase = notificationsDb.map(parseNotificationBaseFromDb);
-  return await Promise.all(
+  const notifications = await Promise.all(
     notificationsBase.map(async (notification) => {
       const buyer =
         notification.type === "loop"
@@ -435,6 +446,11 @@ export const getNotificationsByUserId = async ({
       });
     }),
   );
+  const pagination = parsePagination({
+    currentPage: page ?? 1,
+    totalRecords: safeNumber(notificationsDb[0]?.total_records) ?? 0,
+  });
+  return { notifications, pagination };
 };
 export const getUserMissionById = async ({
   client,
@@ -471,28 +487,6 @@ export const getMissionTemplateById = async ({
   if (!templateDb)
     throw new InternalServerError(ERROR_MESSAGES.MISSION_TEMPLATE_NOT_FOUND);
   return parseMissionTemplateFromDb(templateDb);
-};
-export const getChatsByUserId = async ({
-  client,
-  userId,
-}: {
-  client: DatabaseClient;
-  userId: UUID;
-}): Promise<UserMessage[]> => {
-  const chatsDb = await client.query(queries.chatsByUserId, [userId]);
-  const chats = chatsDb.map(parseChatFromDb);
-  return await Promise.all(
-    chats.map(async (chat) => {
-      return {
-        ...chat,
-        lastMessage: await getMessageById({
-          client,
-          messageId: chat.lastMessageId,
-        }),
-        user: await getUserById({ client, userId: chat.userId }),
-      };
-    }),
-  );
 };
 export const getMessageById = async ({
   client,
