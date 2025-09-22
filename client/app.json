@@ -1,42 +1,59 @@
 {
   "expo": {
-    "name": "native",
-    "slug": "native",
+    "name": "Loop",
+    "slug": "LoopApp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "native",
-    "userInterfaceStyle": "automatic",
+    "icon": "./assets/loop.png",
+    "scheme": "loop",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/splash-icon.png",
+      "image": "./assets/loop.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#F0F0F0"
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/loop.png",
+        "backgroundColor": "#F0F0F0"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.xnative",
+      "package": "com.reditinere.loop",
       "softwareKeyboardLayoutMode": "adjustResize"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/loop.png"
     },
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      ["expo-build-properties", {
+        "android": {
+          "usesCleartextTraffic": true
+        }
+      }]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e15a4c19-7d82-4e86-b049-24d3b4d55f44"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/e15a4c19-7d82-4e86-b049-24d3b4d55f44"
     }
   }
 }
