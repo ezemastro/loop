@@ -170,7 +170,7 @@ export class SelfController {
       .json(successResponse({ data: { unreadNotificationsCount } }));
   };
 
-  static postReadAllSelfNotification = async (
+  static readAllNotifications = async (
     req: Request,
     res: Response,
     next: NextFunction,

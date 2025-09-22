@@ -15,7 +15,7 @@ selfRouter.get(
 );
 selfRouter.post(
   "/notifications/read-all",
-  SelfController.postReadAllSelfNotification,
+  SelfController.readAllNotifications,
 );
 selfRouter.get("/messages", SelfController.getSelfChats);
 selfRouter.get("/messages/unread", SelfController.getSelfChatsUnread);
