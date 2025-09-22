@@ -7,8 +7,8 @@ export default function User({ user }: { user: PublicUser }) {
         source={{ uri: user.profileMedia?.url }}
         className="size-16 rounded-full bg-background"
       />
-      <View className="flex-1 justify-center items-center text-main-text">
-        <Text className="text-xl">
+      <View className="flex-1 justify-center items-center">
+        <Text className="text-xl text-main-text">
           {user.firstName} {user.lastName}
         </Text>
         <View className="flex-row gap-1">
