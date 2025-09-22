@@ -21,14 +21,16 @@ import MessageItem from "../MessageItem";
 import { sameDay } from "@/utils/sameDay";
 import ChatDayLabel from "../ChatDayLabel";
 import ChatHourLabel from "../ChatHourLabel";
-import { SendIcon } from "../Icons";
+import { ArrowDownIcon, ArrowUpIcon, SendIcon } from "../Icons";
 import { useSendMessage } from "@/hooks/useSendMessage";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient } from "@tanstack/react-query";
 import Error from "../Error";
 import Loader from "../Loader";
 import AvoidingKeyboard from "../AvoidingKeyboard";
+import MyPendingList from "../MyPendingList";
+import { useMessageRead } from "@/hooks/useMessageRead";
 
 export default function Chat() {
   const queryClient = useQueryClient();
@@ -38,15 +40,29 @@ export default function Chat() {
     ? unparsedUserId[0]
     : unparsedUserId;
   const { data: userData } = useUser({ userId: userId });
-  const { data, isLoading, isError, fetchNextPage, refetch, hasNextPage } =
-    useMessages({
-      userId: userId,
-    });
+  const {
+    data,
+    isLoading,
+    isError,
+    fetchNextPage,
+    refetch,
+    hasNextPage,
+    isSuccess,
+  } = useMessages({
+    userId: userId,
+  });
   const { mutate: sendMessage } = useSendMessage({ userId: userId });
+  const { mutate: markMessagesAsRead } = useMessageRead({ userId: userId });
   const [messageText, setMessageText] = useState("");
 
   const user = userData?.user;
   const messages = data?.pages.flatMap((page) => page!.data!.messages) ?? [];
+
+  useEffect(() => {
+    if (isSuccess) {
+      markMessagesAsRead();
+    }
+  }, [isSuccess, markMessagesAsRead]);
 
   const handleSendMessage = () => {
     const parsedMessage = messageText.trim();
@@ -78,6 +94,7 @@ export default function Chat() {
             userId: userId,
             targetId: optimisticMessage.id,
           });
+          queryClient.invalidateQueries({ queryKey: ["chats"] });
         },
         onError: () => {
           queryClient.invalidateQueries({ queryKey: ["messages", userId] });
@@ -86,6 +103,76 @@ export default function Chat() {
     );
     setMessageText("");
   };
+
+  const pendingSections = [
+    {
+      key: "to-receive",
+      title: "Debes recibir",
+      component: () => (
+        <MyPendingList
+          type="to-receive"
+          filterUserId={userId}
+          resultsCount={(count) =>
+            pendingCount["to-receive"] !== count
+              ? setPendingCount({ ...pendingCount, ["to-receive"]: count })
+              : null
+          }
+        />
+      ),
+    },
+    {
+      key: "to-deliver",
+      title: "Debes entregar",
+      component: () => (
+        <MyPendingList
+          type="to-deliver"
+          filterUserId={userId}
+          resultsCount={(count) =>
+            pendingCount["to-deliver"] !== count
+              ? setPendingCount({ ...pendingCount, ["to-deliver"]: count })
+              : null
+          }
+        />
+      ),
+    },
+    {
+      key: "to-accept",
+      title: "Debes aceptar",
+      component: () => (
+        <MyPendingList
+          type="to-accept"
+          filterUserId={userId}
+          resultsCount={(count) =>
+            pendingCount["to-accept"] !== count
+              ? setPendingCount({ ...pendingCount, ["to-accept"]: count })
+              : null
+          }
+        />
+      ),
+    },
+    {
+      key: "waiting-acceptance",
+      title: "Debe aceptarte",
+      component: () => (
+        <MyPendingList
+          type="waiting-acceptance"
+          filterUserId={userId}
+          resultsCount={(count) =>
+            pendingCount["waiting-acceptance"] !== count
+              ? setPendingCount({
+                  ...pendingCount,
+                  ["waiting-acceptance"]: count,
+                })
+              : null
+          }
+        />
+      ),
+    },
+  ];
+  const [pendingCount, setPendingCount] = useState(
+    Object.fromEntries(pendingSections.map((section) => [section.key, 0])),
+  );
+  const [isPendingListVisible, setIsPendingListVisible] = useState(false);
 
   return (
     <AvoidingKeyboard>
@@ -105,9 +192,51 @@ export default function Chat() {
             <Text className="text-secondary-text">{user?.school.name}</Text>
           </View>
         </View>
+        <View
+          className={
+            "mt-2 " +
+            (!Object.values(pendingCount).some((v) => !!v) ? "hidden" : "")
+          }
+        >
+          <Pressable
+            className="flex-row items-center px-3"
+            onPress={() => setIsPendingListVisible(!isPendingListVisible)}
+          >
+            <Text className="text-center text-main-text flex-grow">
+              Loops pendientes{" "}
+              <Text>
+                ({Object.values(pendingCount).reduce((a, b) => a + b, 0)})
+              </Text>
+            </Text>
+            {isPendingListVisible ? (
+              <ArrowUpIcon className="text-main-text" />
+            ) : (
+              <ArrowDownIcon className="text-main-text" />
+            )}
+          </Pressable>
+        </View>
+        <FlatList
+          data={pendingSections}
+          className={
+            "flex-grow bg-background shadow-2xl z-10 mt-2 " +
+            (isPendingListVisible ? "" : "hidden")
+          }
+          contentContainerClassName="gap-2"
+          renderItem={({ item }) => (
+            <View
+              className={"px-4 " + (!pendingCount[item.key] ? "hidden" : "")}
+            >
+              <Text className="text-secondary-text text-lg font-bold">
+                {item.title}
+              </Text>
+              {item.component()}
+            </View>
+          )}
+        />
         <FlatList
           data={messages}
-          contentContainerClassName="bg-white flex-grow gap-1"
+          className="mt-3 bg-white"
+          contentContainerClassName="flex-grow gap-1"
           renderItem={({ item, index }) => (
             <>
               {!messages[index - 1] ||
@@ -122,28 +251,30 @@ export default function Chat() {
             </>
           )}
           ListFooterComponent={
-            !hasNextPage ? (
+            messages.length && !hasNextPage ? (
               <Text className="text-secondary-text text-center p-4">
                 No hay más mensajes
               </Text>
             ) : null
           }
-          ListEmptyComponent={
-            isError ? (
-              <Error>Ocurrió un error</Error>
-            ) : isLoading ? (
-              <Loader />
-            ) : (
-              <Text className="text-secondary-text text-center p-4">
-                No hay mensajes aún, envía el primer mensaje
-              </Text>
-            )
+          ListHeaderComponent={
+            !messages.length ? (
+              isError ? (
+                <Error>Ocurrió un error</Error>
+              ) : isLoading ? (
+                <Loader />
+              ) : (
+                <Text className="text-secondary-text text-center p-4">
+                  No hay mensajes aún, envía el primer mensaje
+                </Text>
+              )
+            ) : null
           }
           onEndReached={() => {
             fetchNextPage();
           }}
           inverted
-          onEndReachedThreshold={0.4}
+          onEndReachedThreshold={0.1}
           refreshControl={
             <RefreshControl refreshing={isLoading} onRefresh={refetch} />
           }
