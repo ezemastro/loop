@@ -32,7 +32,7 @@ export const useMessages = (params: Params) => {
       return lastPage?.pagination?.nextPage || null;
     },
     initialPageParam: 1,
-    staleTime: 1000 * 5,
+    refetchInterval: 1000 * 5,
   });
 };
 
