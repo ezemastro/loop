@@ -5,3 +5,4 @@ export const messagesRouter = Router();
 
 messagesRouter.get("/:userId", MessagesController.getMessagesFromUser);
 messagesRouter.post("/:userId", MessagesController.sendMessageToUser);
+messagesRouter.post("/:userId/read", MessagesController.readAllMessages);
