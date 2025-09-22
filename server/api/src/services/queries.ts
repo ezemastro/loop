@@ -97,9 +97,14 @@ export const queries = {
 
   allCategories: q<DB_Categories>("categories.all", `SELECT * FROM categories`),
 
-  markNotificationsAsRead: q<DB_Notifications>(
+  markNotificationsAsRead: q(
     "notifications.markAsRead",
     `UPDATE notifications SET is_read = TRUE WHERE user_id = $1`,
+  ),
+
+  markMessagesAsRead: q(
+    "messages.markAsRead",
+    `UPDATE messages SET is_read = TRUE WHERE recipient_id = $1 AND sender_id = $2`,
   ),
 
   chatsByUserId: q<
@@ -170,9 +175,10 @@ export const queries = {
     OFFSET $5;`,
   ),
 
-  searchUsers: q<DB_Users & DB_Pagination>(
-    "users.search",
-    `SELECT 
+  searchUsers: ({ sort, order }: { sort: string; order: string }) =>
+    q<DB_Users & DB_Pagination>(
+      "users.search",
+      `SELECT 
       *,
       COUNT(*) OVER() as total_records
     FROM users
@@ -186,35 +192,11 @@ export const queries = {
         ($2::text IS NULL OR $2::text = '' OR role_id::text = $2::text)
     AND
         ($3::text IS NULL OR $3::text = '' OR school_id::text = $3::text)
-    ORDER BY
-    CASE 
-        WHEN $5 = 'asc' THEN
-          CASE 
-              WHEN $4 = 'id' THEN id::text
-              WHEN $4 = 'first_name' THEN first_name
-              WHEN $4 = 'last_name' THEN last_name
-              WHEN $4 = 'email' THEN email
-              WHEN $4 = 'school_id' THEN school_id::text
-              WHEN $4 = 'role_id' THEN role_id::text
-              WHEN $4 = 'created_at' THEN created_at::text
-              ELSE created_at::text
-          END
-    END ASC,
-    CASE 
-        WHEN $5 = 'desc' THEN
-          CASE 
-              WHEN $4 = 'id' THEN id::text
-              WHEN $4 = 'first_name' THEN first_name
-              WHEN $4 = 'last_name' THEN last_name
-              WHEN $4 = 'email' THEN email
-              WHEN $4 = 'school_id' THEN school_id::text
-              WHEN $4 = 'role_id' THEN role_id::text
-              WHEN $4 = 'created_at' THEN created_at::text
-              ELSE created_at::text
-          END
-    END DESC
-    LIMIT $6 OFFSET $7;`,
-  ),
+    AND
+        ($4::text IS NULL OR $4::text = '' OR id::text != $4::text)
+    ORDER BY ${sort} ${order}
+    LIMIT $5 OFFSET $6;`,
+    ),
 
   searchSchools: q<DB_Schools & DB_Pagination>(
     "schools.search",

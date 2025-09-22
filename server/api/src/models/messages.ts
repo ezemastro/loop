@@ -104,4 +104,26 @@ export class MessagesModel {
       client.release();
     }
   }
+  static async markMessagesAsRead({
+    userId,
+    senderId,
+  }: {
+    userId: UUID;
+    senderId: UUID;
+  }) {
+    // Obtener cliente de base de datos
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      // Marcar mensajes como leídos
+      await client.query(queries.markMessagesAsRead, [userId, senderId]);
+      return;
+    } finally {
+      client.release();
+    }
+  }
 }

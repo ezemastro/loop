@@ -304,6 +304,7 @@ const getUsersRequestQuery = paginatedQuery.extend({
   searchTerm: z.string().max(100).optional(),
   roleId: z.uuid().optional(),
   schoolId: z.uuid().optional(),
+  userId: z.uuid().optional(),
 });
 export const validateGetUsersRequest = (data: unknown) =>
   getUsersRequestQuery.parseAsync(data);
