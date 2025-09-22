@@ -56,13 +56,13 @@ export const ArrowDownIcon = ({
   className,
   ...props
 }: Partial<IconProps<string>>) => (
-  <Feather size={24} className={className} {...props} name="arrow-down" />
+  <Feather size={24} className={className} {...props} name="chevron-down" />
 );
 export const ArrowUpIcon = ({
   className,
   ...props
 }: Partial<IconProps<string>>) => (
-  <Feather size={24} className={className} {...props} name="arrow-up" />
+  <Feather size={24} className={className} {...props} name="chevron-up" />
 );
 export const CrossIcon = ({
   className,
