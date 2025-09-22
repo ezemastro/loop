@@ -2,6 +2,7 @@ import { View, TextInput, Pressable } from "react-native";
 import { SearchIcon } from "../Icons";
 import { useCallback, useRef } from "react";
 import { useFocusEffect } from "@react-navigation/native";
+import { twMerge } from "tailwind-merge";
 
 export default function SearchBarBase({
   value,
@@ -10,6 +11,7 @@ export default function SearchBarBase({
   placeholder,
   autoFocus,
   disabled,
+  className,
 }: {
   value: string;
   handleChange: (text: string) => void;
@@ -17,6 +19,7 @@ export default function SearchBarBase({
   placeholder?: string;
   autoFocus?: boolean;
   disabled?: boolean;
+  className?: string;
 }) {
   const inputRef = useRef<TextInput>(null);
   useFocusEffect(
@@ -30,7 +33,12 @@ export default function SearchBarBase({
     }, [autoFocus]),
   );
   return (
-    <View className="flex-row border border-stroke bg-background rounded-full px-2">
+    <View
+      className={twMerge(
+        "flex-row border border-stroke bg-background rounded-full px-2",
+        className,
+      )}
+    >
       <TextInput
         placeholder={placeholder || "Buscar..."}
         className="flex-1 px-2"

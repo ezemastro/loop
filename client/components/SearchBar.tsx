@@ -7,11 +7,13 @@ export default function SearchBar({
   onSubmit,
   onDebounce,
   placeholder,
+  className,
 }: {
   onChange?: (text: string) => void;
   onSubmit?: (text: string) => void;
   onDebounce?: (text: string) => void;
   placeholder?: string;
+  className?: string;
 }) {
   const [value, setValue] = useState<string>("");
 
@@ -26,6 +28,7 @@ export default function SearchBar({
   };
   return (
     <SearchBarBase
+      className={className}
       value={value}
       handleChange={handleChange}
       onSubmit={onSubmit}
