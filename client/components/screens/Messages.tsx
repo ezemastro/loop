@@ -1,90 +1,115 @@
 import { useChats } from "@/hooks/useChats";
-import { View, Text, FlatList, Image, Pressable } from "react-native";
+import { View, Text, FlatList, Pressable } from "react-native";
 import { MainView } from "../bases/MainView";
 import TextTitle from "../bases/TextTitle";
 import SearchBar from "../SearchBar";
-import { getUrl } from "@/services/getUrl";
 import CustomRefresh from "../CustomRefresh";
 import Loader from "../Loader";
 import Error from "../Error";
 import { useRouter } from "expo-router";
+import { useUsers } from "@/hooks/useUsers";
+import { useState } from "react";
+import ChatCard from "../cards/ChatCard";
+import User from "../cards/User";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Messages() {
   const router = useRouter();
-  const { data, isLoading, isError, fetchNextPage } = useChats();
+  const { user: currentUser } = useAuth();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const { data, isLoading, isError, fetchNextPage, hasNextPage } = useChats();
+  const { data: usersData, hasNextPage: userHasNextPage } = useUsers({
+    userId: currentUser?.id,
+    searchTerm: debouncedSearchTerm,
+  });
   const chats = data?.pages.flatMap((page) => page!.data!.chats) || [];
-  const lastMessageShortText = (text: string) => {
-    const singleLineText = text.replace(/[\r\n]+/g, " ");
-    return singleLineText.length > 30
-      ? singleLineText.slice(0, 30) + "..."
-      : singleLineText;
-  };
+
+  const users = usersData?.pages.flatMap((page) => page!.data!.users) || [];
+  const localFilteredUsers = users.filter(
+    (user) =>
+      `${user.firstName} ${user.lastName}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) && user.id !== currentUser?.id,
+  );
+  const localFilteredChats = chats.filter((chat) =>
+    `${chat.user.firstName} ${chat.user.lastName}`
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase()),
+  );
+  const chatsToShow = hasNextPage ? chats : localFilteredChats;
+  const usersToShow =
+    searchTerm && localFilteredChats.length < 5
+      ? userHasNextPage
+        ? users
+        : localFilteredUsers
+      : null;
+
   return (
     <MainView>
       <View className="p-4 gap-3">
         <TextTitle>Mensajes</TextTitle>
-        <SearchBar placeholder="Buscar usuarios..." />
+        <SearchBar
+          className="bg-white"
+          placeholder="Buscar usuarios..."
+          onSubmit={hasNextPage ? setDebouncedSearchTerm : undefined}
+          onDebounce={hasNextPage ? setDebouncedSearchTerm : undefined}
+          onChange={setSearchTerm}
+        />
       </View>
+
       <FlatList
-        data={chats}
-        keyExtractor={(item) => item.userId}
+        data={[
+          ...chatsToShow.map((chat) => ({
+            key: chat.userId + "-chat",
+            component: () => <ChatCard chat={chat} />,
+          })),
+          ...(usersToShow
+            ? [
+                {
+                  key: "usuarios-title",
+                  component: () => (
+                    <Text className="text-main-text text-center">Usuarios</Text>
+                  ),
+                },
+                ...usersToShow.map((user) => ({
+                  key: user.id + "-user",
+                  component: () => (
+                    <Pressable
+                      onPress={() =>
+                        router.push({
+                          pathname: "/messages/[userId]",
+                          params: { userId: user.id },
+                        })
+                      }
+                    >
+                      <User key={user.id} user={user} />
+                    </Pressable>
+                  ),
+                })),
+              ]
+            : []),
+        ]}
         onEndReached={() => fetchNextPage()}
         onEndReachedThreshold={0.2}
         refreshControl={<CustomRefresh />}
         contentContainerClassName="p-4 gap-2"
-        renderItem={({ item }) => (
-          <Pressable
-            onPress={() => {
-              router.push({
-                pathname: "/messages/[userId]",
-                params: { userId: item.userId },
-              });
-            }}
-            className="flex-row p-3 gap-4 bg-white rounded-xl shadow items-center"
-          >
-            <Image
-              source={{ uri: getUrl(item.user.profileMedia?.url || "") }}
-              className="size-16 bg-secondary-text rounded-full"
-            />
-            <View>
-              <Text className="text-secondary-text text-lg">
-                <Text
-                  className={
-                    "text-main-text" +
-                    (item.pendingMessages > 0 ? " font-bold" : "")
-                  }
-                >
-                  {item.user.firstName} {item.user.lastName}
-                </Text>
-                {" - "}
-                <Text>{item.user.school.name}</Text>
-              </Text>
-              <Text className="text-secondary-text">
-                {lastMessageShortText(item.lastMessage.text)}
-              </Text>
-            </View>
-            <View className="flex-1 items-end px-3">
-              {item.pendingMessages > 0 && (
-                <View className="bg-primary size-9 rounded-full items-center justify-center">
-                  <Text className="text-white font-bold text-center text-lg">
-                    {item.pendingMessages}
-                  </Text>
-                </View>
-              )}
-            </View>
-          </Pressable>
-        )}
+        renderItem={({ item }) => item.component()}
         ListEmptyComponent={() =>
           isLoading ? (
             <Loader />
           ) : isError ? (
             <Error>Ocurrió un error</Error>
-          ) : (
+          ) : !searchTerm ? (
             <View>
               <Text className="text-center text-secondary-text">
                 Todavía no has hablado con nadie, busca un usuario para comenzar
               </Text>
             </View>
+          ) : (
+            <Text className="text-center text-secondary-text">
+              No se encontraron usuarios
+            </Text>
           )
         }
       />
