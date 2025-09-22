@@ -4,15 +4,7 @@ import {
   useMessages,
 } from "@/hooks/useMessages";
 import { useLocalSearchParams } from "expo-router";
-import {
-  View,
-  Text,
-  Image,
-  FlatList,
-  TextInput,
-  Pressable,
-  RefreshControl,
-} from "react-native";
+import { View, Text, Image, FlatList, RefreshControl } from "react-native";
 import { MainView } from "../bases/MainView";
 import BackButton from "../BackButton";
 import { getUrl } from "@/services/getUrl";
@@ -21,16 +13,16 @@ import MessageItem from "../MessageItem";
 import { sameDay } from "@/utils/sameDay";
 import ChatDayLabel from "../ChatDayLabel";
 import ChatHourLabel from "../ChatHourLabel";
-import { ArrowDownIcon, ArrowUpIcon, SendIcon } from "../Icons";
 import { useSendMessage } from "@/hooks/useSendMessage";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient } from "@tanstack/react-query";
 import Error from "../Error";
 import Loader from "../Loader";
 import AvoidingKeyboard from "../AvoidingKeyboard";
-import MyPendingList from "../MyPendingList";
 import { useMessageRead } from "@/hooks/useMessageRead";
+import DroppablePendingWithUser from "../DroppablePendingWithUser";
+import ChatInput from "../ChatInput";
 
 export default function Chat() {
   const queryClient = useQueryClient();
@@ -53,7 +45,6 @@ export default function Chat() {
   });
   const { mutate: sendMessage } = useSendMessage({ userId: userId });
   const { mutate: markMessagesAsRead } = useMessageRead({ userId: userId });
-  const [messageText, setMessageText] = useState("");
 
   const user = userData?.user;
   const messages = data?.pages.flatMap((page) => page!.data!.messages) ?? [];
@@ -64,8 +55,8 @@ export default function Chat() {
     }
   }, [isSuccess, markMessagesAsRead]);
 
-  const handleSendMessage = () => {
-    const parsedMessage = messageText.trim();
+  const handleSendMessage = (text: string) => {
+    const parsedMessage = text.trim();
     if (!parsedMessage) return;
 
     const optimisticMessage: Message & { isOptimistic: boolean } = {
@@ -85,7 +76,7 @@ export default function Chat() {
     });
 
     sendMessage(
-      { text: messageText },
+      { text: text },
       {
         onSuccess: (data) => {
           replaceMessageInCache({
@@ -101,78 +92,7 @@ export default function Chat() {
         },
       },
     );
-    setMessageText("");
   };
-
-  const pendingSections = [
-    {
-      key: "to-receive",
-      title: "Debes recibir",
-      component: () => (
-        <MyPendingList
-          type="to-receive"
-          filterUserId={userId}
-          resultsCount={(count) =>
-            pendingCount["to-receive"] !== count
-              ? setPendingCount({ ...pendingCount, ["to-receive"]: count })
-              : null
-          }
-        />
-      ),
-    },
-    {
-      key: "to-deliver",
-      title: "Debes entregar",
-      component: () => (
-        <MyPendingList
-          type="to-deliver"
-          filterUserId={userId}
-          resultsCount={(count) =>
-            pendingCount["to-deliver"] !== count
-              ? setPendingCount({ ...pendingCount, ["to-deliver"]: count })
-              : null
-          }
-        />
-      ),
-    },
-    {
-      key: "to-accept",
-      title: "Debes aceptar",
-      component: () => (
-        <MyPendingList
-          type="to-accept"
-          filterUserId={userId}
-          resultsCount={(count) =>
-            pendingCount["to-accept"] !== count
-              ? setPendingCount({ ...pendingCount, ["to-accept"]: count })
-              : null
-          }
-        />
-      ),
-    },
-    {
-      key: "waiting-acceptance",
-      title: "Debe aceptarte",
-      component: () => (
-        <MyPendingList
-          type="waiting-acceptance"
-          filterUserId={userId}
-          resultsCount={(count) =>
-            pendingCount["waiting-acceptance"] !== count
-              ? setPendingCount({
-                  ...pendingCount,
-                  ["waiting-acceptance"]: count,
-                })
-              : null
-          }
-        />
-      ),
-    },
-  ];
-  const [pendingCount, setPendingCount] = useState(
-    Object.fromEntries(pendingSections.map((section) => [section.key, 0])),
-  );
-  const [isPendingListVisible, setIsPendingListVisible] = useState(false);
 
   return (
     <AvoidingKeyboard>
@@ -192,47 +112,7 @@ export default function Chat() {
             <Text className="text-secondary-text">{user?.school.name}</Text>
           </View>
         </View>
-        <View
-          className={
-            "mt-2 " +
-            (!Object.values(pendingCount).some((v) => !!v) ? "hidden" : "")
-          }
-        >
-          <Pressable
-            className="flex-row items-center px-3"
-            onPress={() => setIsPendingListVisible(!isPendingListVisible)}
-          >
-            <Text className="text-center text-main-text flex-grow">
-              Loops pendientes{" "}
-              <Text>
-                ({Object.values(pendingCount).reduce((a, b) => a + b, 0)})
-              </Text>
-            </Text>
-            {isPendingListVisible ? (
-              <ArrowUpIcon className="text-main-text" />
-            ) : (
-              <ArrowDownIcon className="text-main-text" />
-            )}
-          </Pressable>
-        </View>
-        <FlatList
-          data={pendingSections}
-          className={
-            "flex-grow bg-background shadow-2xl z-10 mt-2 " +
-            (isPendingListVisible ? "" : "hidden")
-          }
-          contentContainerClassName="gap-2"
-          renderItem={({ item }) => (
-            <View
-              className={"px-4 " + (!pendingCount[item.key] ? "hidden" : "")}
-            >
-              <Text className="text-secondary-text text-lg font-bold">
-                {item.title}
-              </Text>
-              {item.component()}
-            </View>
-          )}
-        />
+        <DroppablePendingWithUser userId={userId!} />
         <FlatList
           data={messages}
           className="mt-3 bg-white"
@@ -280,22 +160,7 @@ export default function Chat() {
           }
         />
         <View className="bg-white p-2">
-          <View className="flex-row items-center gap-2">
-            <TextInput
-              placeholder="Mensaje..."
-              className="border border-stroke rounded-2xl px-4 py-2 text-main-text flex-grow text-lg"
-              multiline
-              numberOfLines={4}
-              value={messageText}
-              onChangeText={setMessageText}
-            />
-            <Pressable
-              className="p-3 bg-tertiary rounded-full"
-              onPress={handleSendMessage}
-            >
-              <SendIcon className="text-white" size={20} />
-            </Pressable>
-          </View>
+          <ChatInput onSubmit={handleSendMessage} />
         </View>
       </MainView>
     </AvoidingKeyboard>

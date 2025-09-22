@@ -230,6 +230,7 @@ export default function ModifyListing({
             }}
             placeholder="Escribe un título para tu publicación"
             className="w-full border-b border-gray-300 p-2 px-3 text-lg bg-secondary-text/10 rounded-t"
+            underlineColorAndroid="transparent"
             placeholderClassName="text-secondary-text"
           />
           <Text className="mt-1 text-right text-sm text-secondary-text">
@@ -258,6 +259,7 @@ export default function ModifyListing({
             placeholder="Escribe una descripción para tu publicación"
             className="w-full border-b border-gray-300 p-2 px-3 text-lg bg-secondary-text/10 rounded-t"
             placeholderClassName="text-secondary-text"
+            underlineColorAndroid="transparent"
             multiline
             numberOfLines={5}
             textAlignVertical="top"
@@ -292,6 +294,7 @@ export default function ModifyListing({
                   ? `${formatNumber(form.category?.price?.min)} - ${formatNumber(form.category?.price?.max)}`
                   : "Introduce un precio para tu publicación"
               }
+              underlineColorAndroid="transparent"
               placeholderClassName="text-secondary-text"
               className="w-full p-2 px-3 text-lg text-credits"
             />
