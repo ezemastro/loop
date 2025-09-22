@@ -143,6 +143,7 @@ interface GetUsersRequest {
     searchTerm?: string;
     roleId?: UUID;
     schoolId?: UUID;
+    userId?: UUID;
   };
 }
 type GetUsersResponse = PaginatedApiResponse<{
@@ -334,5 +335,13 @@ interface PostMessageRequest extends AuthRequest {
 type PostMessageResponse = ApiResponse<{
   message: Message;
 }>;
+
+// POST messages/:userId/read
+interface PostMessageReadRequest extends AuthRequest {
+  params: {
+    userId: UUID;
+  };
+}
+type PostMessageReadResponse = ApiResponse;
 
 // TODO - Implementar rutas de Administrador
