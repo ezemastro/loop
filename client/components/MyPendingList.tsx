@@ -11,9 +11,13 @@ type PendingType =
 export default function MyPendingList({
   type,
   hasResults,
+  resultsCount,
+  filterUserId,
 }: {
   type: PendingType;
-  hasResults: (has: boolean) => void;
+  hasResults?: (has: boolean) => void;
+  resultsCount?: (count: number) => void;
+  filterUserId?: string;
 }) {
   const { user } = useAuth();
   const getParams = (): GetSelfListingsRequest["query"] => {
@@ -21,21 +25,25 @@ export default function MyPendingList({
       case "to-receive":
         return {
           buyerId: user?.id,
+          sellerId: filterUserId,
           listingStatus: "accepted",
         };
       case "to-deliver":
         return {
           sellerId: user?.id,
+          buyerId: filterUserId,
           listingStatus: "accepted",
         };
       case "to-accept":
         return {
           sellerId: user?.id,
+          buyerId: filterUserId,
           listingStatus: "offered",
         };
       case "waiting-acceptance":
         return {
           buyerId: user?.id,
+          sellerId: filterUserId,
           listingStatus: "offered",
         };
     }
@@ -54,9 +62,10 @@ export default function MyPendingList({
   useEffect(() => {
     if (!isSuccess || isFetching) return;
     if (hasResultsRef.current) return;
-    hasResults(listings.length > 0);
+    hasResults?.(listings.length > 0);
+    resultsCount?.(listings.length);
     hasResultsRef.current = true;
-  }, [listings.length, hasResults, isSuccess, isFetching]);
+  }, [listings.length, hasResults, isSuccess, isFetching, resultsCount]);
   useEffect(() => {
     if (isFetching) hasResultsRef.current = false;
   }, [isFetching]);
