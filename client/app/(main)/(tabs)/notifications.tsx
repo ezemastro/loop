@@ -1,9 +1,5 @@
-import { View, Text } from "react-native";
+import Notifications from "@/components/screens/Notifications";
 
 export default function NotificationsPage() {
-  return (
-    <View>
-      <Text>Notifications</Text>
-    </View>
-  );
+  return <Notifications />;
 }

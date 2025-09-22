@@ -1,9 +1,5 @@
-import { View, Text } from "react-native";
+import WishList from "@/components/screens/WishList";
 
 export default function WishlistPage() {
-  return (
-    <View>
-      <Text>Wishlist</Text>
-    </View>
-  );
+  return <WishList />;
 }
