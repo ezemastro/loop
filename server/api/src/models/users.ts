@@ -14,6 +14,8 @@ import {
   parsePublicUserFromBase,
   parseUserBaseFromDb,
 } from "../utils/parseDb";
+import { safeNumber } from "../utils/safeNumber";
+import { getOrderValue, getSortValue } from "../utils/sortOptions";
 
 export class UsersModel {
   static getUsers = async (query: GetUsersRequest["query"]) => {
@@ -24,6 +26,7 @@ export class UsersModel {
       searchTerm,
       roleId,
       schoolId,
+      userId,
     } = query || {};
     // Obtener conexión a la base de datos
     let client: DatabaseClient;
@@ -32,16 +35,20 @@ export class UsersModel {
     } catch {
       throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
     }
-    const usersSearchDb = await client.query(queries.searchUsers, [
-      searchTerm || null,
-      roleId || null,
-      schoolId || null,
-      sort,
-      order,
-      PAGE_SIZE,
-      page ? (page - 1) * PAGE_SIZE : 0,
-    ]);
-    const totalRecords = usersSearchDb[0]?.total_records || 0;
+    const dbSort = getSortValue(sort);
+    const dbOrder = getOrderValue(order);
+    const usersSearchDb = await client.query(
+      queries.searchUsers({ sort: dbSort, order: dbOrder }),
+      [
+        searchTerm || null,
+        roleId || null,
+        schoolId || null,
+        userId || null,
+        PAGE_SIZE,
+        page ? (page - 1) * PAGE_SIZE : 0,
+      ],
+    );
+    const totalRecords = safeNumber(usersSearchDb[0]?.total_records || 0);
     const users = await Promise.all(
       usersSearchDb.map(async (userSearchDb) => {
         return parsePublicUserFromBase({
@@ -64,7 +71,7 @@ export class UsersModel {
       users,
       pagination: parsePagination({
         currentPage: page,
-        totalRecords,
+        totalRecords: totalRecords || 0,
       }),
     };
   };

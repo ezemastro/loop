@@ -13,7 +13,8 @@ export class UsersController {
       ...parseQuery(req.query),
       page: safeNumber(req.query.page),
     };
-    const { page, sort, order, searchTerm, roleId, schoolId } = parsedQuery;
+    const { page, sort, order, searchTerm, roleId, schoolId, userId } =
+      parsedQuery;
     try {
       await validateGetUsersRequest({
         page,
@@ -22,6 +23,7 @@ export class UsersController {
         searchTerm,
         roleId,
         schoolId,
+        userId,
       });
     } catch {
       throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
@@ -37,6 +39,7 @@ export class UsersController {
         searchTerm,
         roleId,
         schoolId,
+        userId,
       }));
     } catch (err) {
       return next(err);
