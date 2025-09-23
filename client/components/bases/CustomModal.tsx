@@ -1,4 +1,7 @@
-import Modal from "react-native-modal";
+// import Modal from "react-native-modal";
+import { twMerge } from "tailwind-merge";
+
+import { Modal, View } from "react-native";
 
 export default function CustomModal({
   children,
@@ -13,12 +16,18 @@ export default function CustomModal({
 }) {
   return (
     <Modal
-      onBackdropPress={handleClose}
-      isVisible={isVisible}
-      className={`justify-center items-center ${className}`}
+      visible={isVisible}
+      // onBackdropPress={handleClose}
+      // isVisible={isVisible}
+      onRequestClose={handleClose}
+      backdropColor={"rgba(0, 0, 0, 0.5)"}
       statusBarTranslucent
     >
-      {children}
+      <View
+        className={twMerge(`flex-1 items-center justify-center p-4`, className)}
+      >
+        {children}
+      </View>
     </Modal>
   );
 }
