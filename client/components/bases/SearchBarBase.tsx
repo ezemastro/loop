@@ -41,7 +41,7 @@ export default function SearchBarBase({
     >
       <TextInput
         placeholder={placeholder || "Buscar..."}
-        className="flex-1 px-2"
+        className="flex-1 px-2 py-3"
         onChangeText={handleChange}
         onSubmitEditing={() => onSubmit?.(value)}
         value={value}
