@@ -1,3 +1,4 @@
+import { getUrl } from "@/services/getUrl";
 import { View, Text, Image } from "react-native";
 
 export default function School({ school }: { school: School }) {
@@ -5,7 +6,7 @@ export default function School({ school }: { school: School }) {
     <View className="p-1 flex-row bg-white rounded">
       <View>
         <Image
-          source={{ uri: school.media.url }}
+          source={{ uri: getUrl(school.media.url) }}
           className="size-16"
           style={{ resizeMode: "contain" }}
         />
