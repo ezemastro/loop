@@ -46,6 +46,7 @@ export default function MyListings() {
       <AvoidingKeyboard>
         <FlatList
           data={sections}
+          className="flex-1"
           refreshControl={<CustomRefresh />}
           contentContainerClassName="px-4 py-4"
           renderItem={({ item }) => (
