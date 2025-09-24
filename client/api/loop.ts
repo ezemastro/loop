@@ -1,3 +1,4 @@
+import { useSessionStore } from "@/stores/session";
 import axios from "axios";
 
 export const api = axios.create({
@@ -5,3 +6,12 @@ export const api = axios.create({
   withCredentials: true,
   timeout: 10000,
 });
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      useSessionStore.getState().logout();
+    }
+    return Promise.reject(error);
+  },
+);
