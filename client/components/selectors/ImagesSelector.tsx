@@ -28,6 +28,7 @@ export default function ImagesSelector({
   const pickImages = async (type: "library" | "camera") => {
     let result: ImagePicker.ImagePickerResult;
     if (type === "library") {
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
       result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         allowsMultipleSelection: true,
@@ -36,6 +37,7 @@ export default function ImagesSelector({
         orderedSelection: true,
       });
     } else if (type === "camera") {
+      await ImagePicker.requestCameraPermissionsAsync();
       result = await ImagePicker.launchCameraAsync({
         mediaTypes: ["images"],
         quality: 1,
