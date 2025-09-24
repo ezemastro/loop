@@ -136,6 +136,12 @@ export const AddUserIcon = ({
 }: Partial<IconProps<string>>) => (
   <Feather size={24} className={className} {...props} name="user-plus" />
 );
+export const GalleryIcon = ({
+  className,
+  ...props
+}: Partial<IconProps<string>>) => (
+  <Feather size={24} className={className} {...props} name="image" />
+);
 
 export const HomeIcon = (props: Partial<IconProps<string>>) => (
   <Ionicons size={24} {...props} name="home-outline" />

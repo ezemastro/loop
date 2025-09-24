@@ -164,6 +164,7 @@ export default function ModifyListing({
             c++;
             return results[c - 1]?.media!;
           });
+          setForm((prev) => ({ ...prev, images: medias }));
           const body = {
             title: form.title!,
             description: form.description,

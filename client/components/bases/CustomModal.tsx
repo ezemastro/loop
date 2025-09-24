@@ -1,3 +1,4 @@
+// import { View } from "react-native";
 // import Modal from "react-native-modal";
 import { twMerge } from "tailwind-merge";
 
@@ -20,7 +21,7 @@ export default function CustomModal({
       // onBackdropPress={handleClose}
       // isVisible={isVisible}
       onRequestClose={handleClose}
-      backdropColor={"rgba(0, 0, 0, 0.5)"}
+      backdropColor={"rgba(0, 0, 0, 0.3)"}
       statusBarTranslucent
     >
       <View
