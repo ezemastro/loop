@@ -117,6 +117,7 @@ CREATE TABLE "messages"(
     "recipient_id" UUID NOT NULL,
     "text" TEXT NOT NULL,
     "attached_listing_id" UUID,
+    "is_read" boolean DEFAULT FALSE NOT NULL,
     "created_at" TIMESTAMP(0) default NOW() NOT NULL
 );
 ALTER TABLE
