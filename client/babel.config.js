@@ -4,6 +4,6 @@ export default function (api) {
     presets: [
       ["babel-preset-expo", { jsxImportSource: "nativewind" }],
       "nativewind/babel",
-    ]
+    ],
   };
-};
+}
