@@ -19,6 +19,7 @@ import { useUploadFiles } from "@/hooks/useUploadFiles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useUpdateListing } from "@/hooks/useUpdateListing";
 import { useQueryClient } from "@tanstack/react-query";
+import CustomRefresh from "./CustomRefresh";
 
 interface Section {
   key: string;
@@ -335,6 +336,7 @@ export default function ModifyListing({
       <FlatList
         data={sections}
         keyExtractor={(item) => item.key}
+        refreshControl={<CustomRefresh />}
         contentContainerClassName="gap-2"
         contentContainerStyle={{ paddingBottom: insets.bottom }}
         renderItem={({ item }) => (
