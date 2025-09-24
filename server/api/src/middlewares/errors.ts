@@ -12,6 +12,7 @@ export const errorMiddleware = (
   res: Response,
   _next: NextFunction,
 ) => {
+  console.log(err.message);
   if (err instanceof InvalidInputError) {
     return res.status(400).json({ success: false, error: err.message });
   }
