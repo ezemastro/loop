@@ -99,8 +99,8 @@ export class ListingsController {
     next: NextFunction,
   ) => {
     const parsedBody = {
-      ...parseQuery(req.body),
-      price: safeNumber(req.body.price) as number,
+      ...req.body,
+      price: safeNumber(req.body.price) as number | undefined,
     } as PatchListingsRequest["body"];
     const { listingId } = req.params as PatchListingsRequest["params"];
     try {
