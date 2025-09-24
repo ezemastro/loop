@@ -325,7 +325,7 @@ export const validateGetListingsRequest = (data: unknown) =>
   getListingsRequestQuery.parseAsync(data);
 const postListingsRequestBody = z.object({
   title: z.string().min(2).max(100),
-  description: z.string().min(10).max(1000),
+  description: z.string().min(10).max(1000).nullable(),
   price: z.number().min(0),
   categoryId: z.uuid(),
   productStatus: z.enum(PRODUCT_STATUS),
@@ -335,7 +335,7 @@ export const validatePostListingsRequest = (data: unknown) =>
   postListingsRequestBody.parseAsync(data);
 const patchListingsRequestBody = z.object({
   title: z.string().min(2).max(100).optional(),
-  description: z.string().min(10).max(1000).optional(),
+  description: z.string().min(10).max(1000).nullable(),
   price: z.number().min(0).optional(),
   categoryId: z.uuid().optional(),
   productStatus: z.enum(PRODUCT_STATUS).optional(),
