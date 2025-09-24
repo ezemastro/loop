@@ -15,7 +15,7 @@ export default function AvoidingKeyboard({
       style={{
         paddingBottom: !visible && Platform.OS !== "ios" ? keyboardHeight : 0,
       }}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 170 : 0}
     >
       {children}
     </KeyboardAvoidingView>
