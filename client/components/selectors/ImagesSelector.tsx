@@ -70,7 +70,7 @@ export default function ImagesSelector({
         isVisible={isModalOpen}
         handleClose={() => setIsModalOpen(false)}
       >
-        <View className="bg-white rounded p-4 w-full m-4 gap-7">
+        <View className="bg-white rounded px-4 py-8 w-full m-4 gap-8">
           <Pressable
             className="absolute top-4 right-4"
             onPress={() => setIsModalOpen(false)}
@@ -86,22 +86,26 @@ export default function ImagesSelector({
                 pickImages("library");
                 setIsModalOpen(false);
               }}
-              className="items-center gap-2 max-w-32"
+              className="items-center gap-2 max-w-32 bg-white border-stroke border px-3 py-2 rounded"
             >
               <GalleryIcon className="text-main-text" size={24} />
-              <Text className="text-main-text text-center">
-                Seleccionar de mi galería
-              </Text>
+              <View className="flex-row flex-grow items-center">
+                <Text className="text-main-text text-center">
+                  Seleccionar de mi galería
+                </Text>
+              </View>
             </Pressable>
             <Pressable
               onPress={() => {
                 pickImages("camera");
                 setIsModalOpen(false);
               }}
-              className="items-center gap-2 max-w-32"
+              className="items-center gap-2 max-w-32 bg-white border-stroke border px-3 py-2 rounded"
             >
               <CameraIcon className="text-main-text" size={24} />
-              <Text className="text-main-text text-center">Tomar foto</Text>
+              <View className="flex-row flex-grow items-center">
+                <Text className="text-main-text text-center">Tomar foto</Text>
+              </View>
             </Pressable>
           </View>
         </View>
