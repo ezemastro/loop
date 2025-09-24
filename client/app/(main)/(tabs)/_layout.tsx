@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Keyboard, StatusBar } from "react-native";
+import { StatusBar } from "react-native";
 import {
   HomeIcon,
   MyListingsIcon,
@@ -10,27 +10,14 @@ import {
 import { COLORS } from "@/config";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSelf } from "@/hooks/useSelf";
-import { useEffect, useState } from "react";
+import { useHideOnKeyboard } from "@/hooks/useHideOnKeyboard";
 
 export default function TabsLayout() {
   // Agregar esto al main layout autenticado
   useSelf(); // Hook para mantener la sesión del usuario actualizada
 
   // Ocultar tab bar al mostrar el teclado
-  const [visible, setVisible] = useState(true);
-  useEffect(() => {
-    const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
-      setVisible(false);
-    });
-    const hideSubscription = Keyboard.addListener("keyboardDidHide", () => {
-      setVisible(true);
-    });
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, []);
+  const { visible } = useHideOnKeyboard();
 
   const insets = useSafeAreaInsets();
   return (
@@ -50,7 +37,7 @@ export default function TabsLayout() {
             paddingTop: 5,
             display: visible ? "flex" : "none",
           },
-          tabBarHideOnKeyboard: true,
+          tabBarHideOnKeyboard: false,
         }}
       >
         <Tabs.Screen

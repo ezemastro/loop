@@ -1,10 +1,4 @@
-import {
-  Text,
-  TextInput,
-  View,
-  FlatList,
-  KeyboardAvoidingView,
-} from "react-native";
+import { Text, TextInput, View, FlatList } from "react-native";
 import { MainView } from "../bases/MainView";
 import SchoolSelector from "../selectors/SchoolSelector";
 import RoleSelector from "../selectors/RoleSelector";
@@ -15,6 +9,7 @@ import { ERROR_NAMES } from "@/services/errors";
 import { useRegisterForm } from "@/hooks/useRegisterForm";
 import ButtonText from "../bases/ButtonText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import AvoidingKeyboard from "../AvoidingKeyboard";
 
 const TextLabel = ({ children }: { children: string }) => (
   <Text className="color-main-text text-xl">{children}</Text>
@@ -144,52 +139,50 @@ export default function Register() {
 
   return (
     <MainView>
-      <KeyboardAvoidingView behavior="padding" className="flex-1">
-        <View>
-          <FlatList
-            data={fields}
-            keyExtractor={(item) => item.key}
-            style={{
-              paddingLeft: insets.left,
-              paddingRight: insets.right,
-            }}
-            contentContainerClassName="gap-4 px-4 pb-6"
-            contentContainerStyle={{
-              paddingTop: insets.top + 25,
-            }}
-            ListHeaderComponent={
-              <Text className="text-3xl py-3 text-center font-bold color-main-text">
-                Registrarse
-              </Text>
-            }
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <View className="gap-2">
-                <TextLabel>{item.label}</TextLabel>
-                {item.render()}
-                {item.error && <Error>{item.errorMessage}</Error>}
-              </View>
-            )}
-            ListFooterComponent={
-              <>
-                {registerError?.name === ERROR_NAMES.CONFLICT && (
-                  <Error>El correo electrónico ya está en uso</Error>
+      <AvoidingKeyboard>
+        <FlatList
+          data={fields}
+          keyExtractor={(item) => item.key}
+          style={{
+            paddingLeft: insets.left,
+            paddingRight: insets.right,
+          }}
+          contentContainerClassName="gap-4 px-4 pb-6"
+          contentContainerStyle={{
+            paddingTop: insets.top + 25,
+          }}
+          ListHeaderComponent={
+            <Text className="text-3xl py-3 text-center font-bold color-main-text">
+              Registrarse
+            </Text>
+          }
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item }) => (
+            <View className="gap-2">
+              <TextLabel>{item.label}</TextLabel>
+              {item.render()}
+              {item.error && <Error>{item.errorMessage}</Error>}
+            </View>
+          )}
+          ListFooterComponent={
+            <>
+              {registerError?.name === ERROR_NAMES.CONFLICT && (
+                <Error>El correo electrónico ya está en uso</Error>
+              )}
+              {isRegisterError &&
+                registerError?.name !== ERROR_NAMES.CONFLICT && (
+                  <Error>Ocurrió un error al registrarse</Error>
                 )}
-                {isRegisterError &&
-                  registerError?.name !== ERROR_NAMES.CONFLICT && (
-                    <Error>Ocurrió un error al registrarse</Error>
-                  )}
-                <CustomButton
-                  onPress={handleSubmit}
-                  className={isRegisterError ? "my-3" : "my-6"}
-                >
-                  <ButtonText>Registrarse</ButtonText>
-                </CustomButton>
-              </>
-            }
-          />
-        </View>
-      </KeyboardAvoidingView>
+              <CustomButton
+                onPress={handleSubmit}
+                className={isRegisterError ? "my-3" : "my-6"}
+              >
+                <ButtonText>Registrarse</ButtonText>
+              </CustomButton>
+            </>
+          }
+        />
+      </AvoidingKeyboard>
     </MainView>
   );
 }

@@ -1,10 +1,4 @@
-import {
-  Text,
-  TextInput,
-  View,
-  FlatList,
-  KeyboardAvoidingView,
-} from "react-native";
+import { Text, TextInput, View, FlatList } from "react-native";
 import { MainView } from "../bases/MainView";
 import CustomButton from "../bases/CustomButton";
 import type { ReactNode } from "react";
@@ -14,6 +8,7 @@ import { useLoginForm } from "@/hooks/useLoginForm";
 import Loader from "../Loader";
 import ButtonText from "../bases/ButtonText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import AvoidingKeyboard from "../AvoidingKeyboard";
 
 const TextLabel = ({ children }: { children: string }) => (
   <Text className="color-main-text text-xl">{children}</Text>
@@ -74,7 +69,7 @@ export default function Login() {
 
   return (
     <MainView>
-      <KeyboardAvoidingView behavior="padding" className="flex-1">
+      <AvoidingKeyboard>
         <FlatList
           data={fields}
           keyExtractor={(item) => item.key}
@@ -113,7 +108,7 @@ export default function Login() {
             </>
           }
         />
-      </KeyboardAvoidingView>
+      </AvoidingKeyboard>
     </MainView>
   );
 }
