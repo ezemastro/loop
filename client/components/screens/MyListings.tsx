@@ -5,6 +5,7 @@ import TextTitle from "../bases/TextTitle";
 import { useState } from "react";
 import CustomRefresh from "../CustomRefresh";
 import AllMyPendingList from "../AllMyPendingList";
+import AvoidingKeyboard from "../AvoidingKeyboard";
 
 interface Section {
   key: string;
@@ -42,23 +43,25 @@ export default function MyListings() {
   ];
   return (
     <MainView>
-      <FlatList
-        data={sections}
-        refreshControl={<CustomRefresh />}
-        contentContainerClassName="px-4 py-4"
-        renderItem={({ item }) => (
-          <View
-            className={`mb-4 ${(!item.show || item.show()) === false && "hidden"}`}
-          >
-            {item.title && (
-              <Text className="text-lg text-main-text text-center">
-                {item.title}
-              </Text>
-            )}
-            {item.component()}
-          </View>
-        )}
-      />
+      <AvoidingKeyboard>
+        <FlatList
+          data={sections}
+          refreshControl={<CustomRefresh />}
+          contentContainerClassName="px-4 py-4"
+          renderItem={({ item }) => (
+            <View
+              className={`mb-4 ${(!item.show || item.show()) === false && "hidden"}`}
+            >
+              {item.title && (
+                <Text className="text-lg text-main-text text-center">
+                  {item.title}
+                </Text>
+              )}
+              {item.component()}
+            </View>
+          )}
+        />
+      </AvoidingKeyboard>
     </MainView>
   );
 }
