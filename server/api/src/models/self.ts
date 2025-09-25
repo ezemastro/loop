@@ -21,6 +21,7 @@ import {
   getCategoryById,
   getMediasByListingId,
   getMessageById,
+  progressMission,
 } from "../utils/helpersDb";
 import {
   parseChatFromDb,
@@ -129,6 +130,7 @@ export class SelfModel {
       throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
     }
     try {
+      await client.begin();
       // Obtener usuario
       let user: UserBase & { password: string };
       try {
@@ -139,6 +141,15 @@ export class SelfModel {
         user = { ...parseUserBaseFromDb(userDb), password: userDb.password };
       } catch {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+      }
+      // Misión - Actualizar foto de perfil
+      if (profileMediaId && profileMediaId !== user.profileMediaId) {
+        // TODO - Manejar error si falla la misión
+        await progressMission({
+          client,
+          userId,
+          missionKey: "update-profile-image",
+        });
       }
       // Preparar datos para actualizar usuario
       email =
@@ -176,6 +187,7 @@ export class SelfModel {
       } catch {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
       }
+      await client.commit();
       // Devolver usuario base actualizado
       return {
         user: parsePrivateUserFromBase({
@@ -197,6 +209,9 @@ export class SelfModel {
           school: await getSchoolById({ client, schoolId: user.schoolId }),
         }),
       };
+    } catch (error) {
+      await client.rollback();
+      throw error;
     } finally {
       client.release();
     }

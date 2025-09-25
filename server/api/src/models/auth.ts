@@ -9,6 +9,7 @@ import { dbConnection } from "../services/postgresClient.js";
 import { queries } from "../services/queries.js";
 import type { DatabaseClient } from "../types/dbClient.js";
 import type { AuthLoginPayload, AuthRegisterPayload } from "../types/models.js";
+import { assignAllMissionsToUser } from "../utils/helpersDb.js";
 import {
   parseSchoolFromDb,
   parseUserBaseFromDb,
@@ -35,6 +36,7 @@ export class AuthModel {
       throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
     }
     try {
+      await client.begin();
       // Realizar la consulta para verificar si el usuario ya existe
       const query = await client.query(queries.userExists, [email]);
       if (query[0]?.user_exists) {
@@ -92,7 +94,14 @@ export class AuthModel {
         role,
         school: parseSchoolFromBase({ school, media: schoolMedia }),
       });
+      // TODO - Manejar error si falla la asignación de misiones
+      // Asignar misiones iniciales al usuario
+      await assignAllMissionsToUser({ client, userId: newUser!.id });
+      await client.commit();
       return { user };
+    } catch (error) {
+      await client.rollback();
+      throw error;
     } finally {
       // Liberar cliente aunque independientemente de si hubo error
       client.release();

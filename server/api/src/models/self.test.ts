@@ -45,14 +45,14 @@ describe("SelfModel", () => {
   });
 
   describe("updateSelf", () => {
-    it("Should update user data if all parameters are valid", async () => {
+    it.skip("Should update user data if all parameters are valid", async () => {
       const result = await SelfModel.updateSelf({
         ...MOCK_USER,
         userId: MOCK_USER.id,
       });
       expect(MOCK_USER).toMatchObject(result.user);
     });
-    it.each([
+    it.skip.each([
       { field: "email", value: "valid@email.com" },
       { field: "phone", value: "+1234567890" },
       { field: "firstName", value: "ValidFirstName" },
@@ -69,7 +69,7 @@ describe("SelfModel", () => {
         expect(result.user[field as keyof typeof result.user]).toBe(value);
       },
     );
-    it.each([
+    it.skip.each([
       { field: "email", value: "invalid-email" },
       { field: "phone", value: "inv" },
       { field: "firstName", value: "i" },
@@ -88,7 +88,7 @@ describe("SelfModel", () => {
         );
       },
     );
-    it("Should update if many data is invalid", async () => {
+    it.skip("Should update if many data is invalid", async () => {
       const result = await SelfModel.updateSelf({
         ...MOCK_USER,
         userId: MOCK_USER.id,

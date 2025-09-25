@@ -509,3 +509,103 @@ export const getMessageById = async ({
       : null,
   });
 };
+export const progressMission = async ({
+  client,
+  userId,
+  missionKey,
+}: {
+  client: DatabaseClient;
+  userId: UUID;
+  missionKey: string;
+}) => {
+  const missionTemplateDb = await client.query(queries.missionTemplateByKey, [
+    missionKey,
+  ]);
+  if (missionTemplateDb.length === 0) return;
+  const missionTemplate = parseMissionTemplateFromDb(missionTemplateDb[0]!);
+  if (missionTemplate.active === false) return;
+  const userMissionDb = await client.query(
+    queries.userMissionsByUserIdAndTemplateId,
+    [userId, missionTemplate.id],
+  );
+  if (userMissionDb.length === 0) return;
+  const userMissionBase = parseUserMissionBaseFromDb(userMissionDb[0]!);
+  if (userMissionBase.completed) return;
+  const userMission = parseUserMissionFromBase({
+    userMission: userMissionBase,
+    missionTemplate,
+  });
+  const current = userMission.progress.current + 1;
+  const completed = current >= userMission.progress.total;
+  await client.query(queries.progressMission, [
+    {
+      current,
+      total: userMission.progress.total,
+    },
+    completed,
+    userMission.id,
+  ]);
+};
+export const assignMissionToUser = async ({
+  client,
+  userId,
+  missionKey,
+}: {
+  client: DatabaseClient;
+  userId: UUID;
+  missionKey: string;
+}) => {
+  const missionTemplateDb = await client.query(queries.missionTemplateByKey, [
+    missionKey,
+  ]);
+  if (missionTemplateDb.length === 0) return;
+  const missionTemplate = parseMissionTemplateFromDb(missionTemplateDb[0]!);
+  const userMissionDb = await client.query(
+    queries.userMissionsByUserIdAndTemplateId,
+    [userId, missionTemplate.id],
+  );
+  if (userMissionDb.length > 0) return;
+  const total =
+    safeNumber(missionKey.split("-")[missionKey.split("-").length - 1]) ?? 1;
+  await client.query(queries.assignMissionToUser, [
+    userId,
+    missionTemplate.id,
+    {
+      current: 0,
+      total,
+    },
+    false,
+  ]);
+};
+export const assignAllMissionsToUser = async ({
+  client,
+  userId,
+}: {
+  client: DatabaseClient;
+  userId: UUID;
+}) => {
+  const missionTemplatesDb = await client.query(queries.allMissionTemplates);
+  if (missionTemplatesDb.length === 0) return;
+  const missionTemplates = missionTemplatesDb.map(parseMissionTemplateFromDb);
+  for (const missionTemplate of missionTemplates) {
+    const userMissionDb = await client.query(
+      queries.userMissionsByUserIdAndTemplateId,
+      [userId, missionTemplate.id],
+    );
+    if (userMissionDb.length > 0) continue;
+    await client.query(queries.assignMissionToUser, [
+      userId,
+      missionTemplate.id,
+      {
+        current: 0,
+        total:
+          safeNumber(
+            missionTemplate.key.split("-")[
+              missionTemplate.key.split("-").length - 1
+            ],
+          ) ?? 1,
+      },
+      false,
+    ]);
+  }
+};

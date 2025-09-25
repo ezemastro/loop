@@ -407,4 +407,24 @@ export const queries = {
     ORDER BY ${sort} ${order}
     LIMIT $8 OFFSET $9;`,
     ),
+  missionTemplateByKey: q<DB_MissionTemplates>(
+    "missionsTemplates.byKey",
+    `SELECT * FROM mission_templates WHERE key = $1`,
+  ),
+  userMissionsByUserIdAndTemplateId: q<DB_UserMissions>(
+    "userMissions.byUserIdAndTemplateId",
+    `SELECT * FROM user_missions WHERE user_id = $1 AND mission_template_id = $2`,
+  ),
+  progressMission: q<void>(
+    "missions.progressMission",
+    `UPDATE user_missions SET progress = $1, completed = $2, completed_at = NOW() WHERE id = $3`,
+  ),
+  assignMissionToUser: q<{ id: UUID }>(
+    "missions.assignToUser",
+    `INSERT INTO user_missions (user_id, mission_template_id, progress, completed) VALUES ($1, $2, $3, $4) RETURNING id`,
+  ),
+  allMissionTemplates: q<DB_MissionTemplates>(
+    "missionsTemplates.all",
+    `SELECT * FROM mission_templates`,
+  ),
 } as const;

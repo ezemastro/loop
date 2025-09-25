@@ -13,6 +13,7 @@ import {
   getMediaById,
   getUserById,
   getListingById,
+  progressMission,
 } from "../utils/helpersDb";
 import {
   parseCategoryBaseFromDb,
@@ -173,6 +174,22 @@ export class ListingsModel {
         media: await getMediasByListingId({ client, listingId: newListing.id }),
       });
 
+      // Progresar misiones del usuario
+      await progressMission({
+        client,
+        userId,
+        missionKey: "publish-listing-1",
+      });
+      await progressMission({
+        client,
+        userId,
+        missionKey: "publish-listing-2",
+      });
+      await progressMission({
+        client,
+        userId,
+        missionKey: "publish-listing-3",
+      });
       return { listing };
     } finally {
       await client.release();
