@@ -24,10 +24,22 @@ export default function ImagesSelector({
   const [selectedImages, setSelectedImages] =
     useState<(ImagePicker.ImagePickerAsset | Media)[]>(initialImages);
   const allowAddMore = selectedImages.length < MAX_LISTING_IMAGES;
+  const [cameraStatus, cameraRequestPermission] =
+    ImagePicker.useCameraPermissions();
+  const [mediaLibraryStatus, mediaLibraryRequestPermission] =
+    ImagePicker.useMediaLibraryPermissions();
 
   const pickImages = async (type: "library" | "camera") => {
     let result: ImagePicker.ImagePickerResult;
     if (type === "library") {
+      if (mediaLibraryStatus?.status !== ImagePicker.PermissionStatus.GRANTED) {
+        const permission = await mediaLibraryRequestPermission();
+        if (!permission.granted) {
+          // TODO - mostrar error
+          console.log("Permission to access media library was denied");
+          return;
+        }
+      }
       await ImagePicker.requestMediaLibraryPermissionsAsync();
       result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
@@ -37,6 +49,14 @@ export default function ImagesSelector({
         orderedSelection: true,
       });
     } else if (type === "camera") {
+      if (cameraStatus?.status !== ImagePicker.PermissionStatus.GRANTED) {
+        const permission = await cameraRequestPermission();
+        if (!permission.granted) {
+          // TODO - mostrar error
+          console.log("Permission to access camera was denied");
+          return;
+        }
+      }
       await ImagePicker.requestCameraPermissionsAsync();
       result = await ImagePicker.launchCameraAsync({
         mediaTypes: ["images"],
@@ -96,6 +116,10 @@ export default function ImagesSelector({
                   Seleccionar de mi galería
                 </Text>
               </View>
+              <Text className="text-secondary-text text-center">
+                {cameraStatus?.status === ImagePicker.PermissionStatus.DENIED &&
+                  "Permiso denegado"}
+              </Text>
             </Pressable>
             <Pressable
               onPress={() => {
@@ -108,6 +132,10 @@ export default function ImagesSelector({
               <View className="flex-row flex-grow items-center">
                 <Text className="text-main-text text-center">Tomar foto</Text>
               </View>
+              <Text className="text-secondary-text text-center">
+                {cameraStatus?.status === ImagePicker.PermissionStatus.DENIED &&
+                  "Permiso denegado"}
+              </Text>
             </Pressable>
           </View>
         </View>
