@@ -21,6 +21,7 @@ import { useUpdateListing } from "@/hooks/useUpdateListing";
 import { useQueryClient } from "@tanstack/react-query";
 import CustomRefresh from "./CustomRefresh";
 import AvoidingKeyboard from "./AvoidingKeyboard";
+import Loader from "./Loader";
 
 interface Section {
   key: string;
@@ -76,13 +77,19 @@ export default function ModifyListing({
     isSuccess: isPublishSuccess,
     isError: isPublishListingError,
     data: listingData,
+    isPending: isPublishingListing,
   } = usePublishListing();
   const {
     mutate: updateListing,
     isSuccess: isUpdateSuccess,
     isError: isUpdateListingError,
+    isPending: isUpdatingListing,
   } = useUpdateListing();
-  const { mutate: uploadFiles, isError: isUploadFilesError } = useUploadFiles();
+  const {
+    mutate: uploadFiles,
+    isError: isUploadFilesError,
+    isPending: isUploadingFiles,
+  } = useUploadFiles();
 
   useEffect(() => {
     if (
@@ -334,52 +341,54 @@ export default function ModifyListing({
     },
   ];
   return (
-    <View>
-      <AvoidingKeyboard>
-        <FlatList
-          data={sections}
-          keyExtractor={(item) => item.key}
-          refreshControl={<CustomRefresh />}
-          contentContainerClassName="gap-2"
-          contentContainerStyle={{ paddingBottom: insets.bottom }}
-          renderItem={({ item }) => (
-            <View className="w-full gap-2">
-              {item.title && (
-                <Text className="px-4 text-2xl">{item.title}</Text>
-              )}
-              {item.isError && <Error>Por favor revisa este campo.</Error>}
-              {item.component()}
-            </View>
-          )}
-          ListFooterComponent={() => (
-            <>
-              {isUploadFilesError && (
-                <Error>Ha ocurrido un error al subir los archivos.</Error>
-              )}
-              {isPublishListingError && (
-                <Error>Ha ocurrido un error al publicar la publicación.</Error>
-              )}
-              {isUpdateListingError && (
-                <Error>
-                  Ha ocurrido un error al actualizar la publicación.
-                </Error>
-              )}
-              <CustomButton className="m-4 mb-6" onPress={handleSubmit}>
-                <ButtonText>
-                  {action === "edit" ? "Actualizar" : "Publicar"}
-                </ButtonText>
-              </CustomButton>
-            </>
-          )}
-          ListHeaderComponent={() =>
-            backButton ? (
-              <Pressable onPress={() => router.back()} className="p-4">
-                <BackIcon />
-              </Pressable>
-            ) : null
-          }
-        />
-      </AvoidingKeyboard>
-    </View>
+    <AvoidingKeyboard>
+      <FlatList
+        data={sections}
+        keyExtractor={(item) => item.key}
+        refreshControl={<CustomRefresh />}
+        className="flex-1"
+        contentContainerClassName="gap-2"
+        contentContainerStyle={{ paddingBottom: insets.bottom }}
+        renderItem={({ item }) => (
+          <View className="w-full gap-2">
+            {item.title && <Text className="px-4 text-2xl">{item.title}</Text>}
+            {item.isError && (
+              <Error textClassName="text-sm text-alert px-4">
+                Por favor revisa este campo.
+              </Error>
+            )}
+            {item.component()}
+          </View>
+        )}
+        ListFooterComponent={() => (
+          <>
+            {isUploadFilesError && (
+              <Error>Ha ocurrido un error al subir los archivos.</Error>
+            )}
+            {isPublishListingError && (
+              <Error>Ha ocurrido un error al publicar la publicación.</Error>
+            )}
+            {isUpdateListingError && (
+              <Error>Ha ocurrido un error al actualizar la publicación.</Error>
+            )}
+            {(isPublishingListing || isUpdatingListing || isUploadingFiles) && (
+              <Loader />
+            )}
+            <CustomButton className="m-4 mb-6" onPress={handleSubmit}>
+              <ButtonText>
+                {action === "edit" ? "Actualizar" : "Publicar"}
+              </ButtonText>
+            </CustomButton>
+          </>
+        )}
+        ListHeaderComponent={() =>
+          backButton ? (
+            <Pressable onPress={() => router.back()} className="p-4">
+              <BackIcon />
+            </Pressable>
+          ) : null
+        }
+      />
+    </AvoidingKeyboard>
   );
 }
