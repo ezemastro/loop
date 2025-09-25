@@ -207,13 +207,13 @@ export const MOCK_CATEGORIES_DB: DB_Categories[] = [
     name: "Fundas",
     parent_id: "40e3e17c-916d-4d65-a72c-3c54affd2df3" as UUID,
     description: "Fundas y protectores",
-    min_price_credits: 10,
-    max_price_credits: 150,
+    min_price_credits: "10",
+    max_price_credits: "150",
     created_at: "2024-01-01T00:00:00Z",
     icon: "📱",
-    stat_kg_waste: 0.1,
-    stat_kg_co2: 2.5,
-    stat_l_h2o: 180,
+    stat_kg_waste: "0.1",
+    stat_kg_co2: "2.5",
+    stat_l_h2o: "180",
   },
 ];
 export const databaseQueryMock = async (
@@ -237,6 +237,12 @@ export const databaseQueryMock = async (
   }
   if (query === queries.userById) {
     return [MOCK_USER_DB];
+  }
+  if (query === queries.allMissionTemplates) {
+    return [MOCK_MISSION_TEMPLATE_DB];
+  }
+  if (query === queries.userMissionsByUserId) {
+    return [MOCK_USER_MISSION_DB];
   }
   if (query === queries.mediaById) {
     if (
@@ -274,7 +280,7 @@ export const databaseQueryMock = async (
   if (query === queries.categoriesByParentId) {
     return MOCK_CATEGORIES_DB.filter((cat) => cat.parent_id === params[0]);
   }
-  if (query === queries.mediasByListingId) {
+  if (query === queries.mediaById) {
     return [MOCK_RANDOM_MEDIA];
   }
   if (query === queries.listingById) {
@@ -329,7 +335,7 @@ export const MOCK_MISSION_TEMPLATE_DB: DB_MissionTemplates = {
   created_at: new Date().toISOString(),
   active: true,
   key: "test_mission",
-  reward_credits: 100,
+  reward_credits: "100",
 };
 export const MOCK_USER_MISSION_DB: DB_UserMissions = {
   id: randomUUID(),
