@@ -96,7 +96,16 @@ export default function ListingButtons({
       if (user?.id === listing.seller.id) {
         return (
           <>
-            <CustomButton onPress={() => {}} className="flex-grow">
+            <CustomButton
+              onPress={() =>
+                listing.buyer?.id &&
+                router.push({
+                  pathname: "/(main)/(tabs)/messages/[userId]",
+                  params: { userId: listing.buyer?.id },
+                })
+              }
+              className="flex-grow"
+            >
               <ButtonText>Mensaje</ButtonText>
             </CustomButton>
             <CustomButton className="bg-alert/20">
