@@ -56,7 +56,7 @@ export const queries = {
 
   missionTemplateById: q<DB_MissionTemplates>(
     "missions.templateById",
-    `SELECT * FROM template_missions WHERE id = $1`,
+    `SELECT * FROM mission_templates WHERE id = $1`,
   ),
 
   notificationsByUserId: q<DB_Notifications & DB_Pagination>(

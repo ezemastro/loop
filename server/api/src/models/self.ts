@@ -309,6 +309,7 @@ export class SelfModel {
       // Obtener misiones del usuario
       const missions = await getUserMissionsByUserId({ client, userId });
       // Devolver filtrando las inactivas
+      console.log(missions);
       return {
         missions: missions.filter((mission) => mission.missionTemplate.active),
       };

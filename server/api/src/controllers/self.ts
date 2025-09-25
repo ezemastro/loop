@@ -116,7 +116,7 @@ export class SelfController {
     } catch (err) {
       return next(err);
     }
-    res.status(200).json(successResponse({ data: { missions } }));
+    res.status(200).json(successResponse({ data: { userMissions: missions } }));
   };
 
   static getSelfNotifications = async (

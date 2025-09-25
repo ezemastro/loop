@@ -537,6 +537,20 @@ export const progressMission = async ({
   });
   const current = userMission.progress.current + 1;
   const completed = current >= userMission.progress.total;
+  if (completed && !userMission.completed) {
+    // TODO - Enviar notificación de misión completada
+    // Actualizar créditos del usuario
+    const userDb = await client.query(queries.userById, [userId]);
+    if (userDb.length === 0) return;
+    const userBase = parseUserBaseFromDb(userDb[0]!);
+    const newCredits =
+      (userBase.credits.balance ?? 0) + missionTemplate.rewardCredits;
+    await client.query(queries.updateUserBalance, [
+      newCredits,
+      userBase.credits.locked,
+      userId,
+    ]);
+  }
   await client.query(queries.progressMission, [
     {
       current,
