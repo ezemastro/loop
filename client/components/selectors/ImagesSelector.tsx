@@ -8,6 +8,7 @@ import { CameraIcon, CrossIcon, GalleryIcon } from "../Icons";
 import { twMerge } from "tailwind-merge";
 import { getUrl } from "@/services/getUrl";
 import CustomModal from "../bases/CustomModal";
+import ImageSourceSelectorModal from "../modals/ImageSourceSelectorModal";
 
 const width = Dimensions.get("window").width;
 
@@ -88,58 +89,17 @@ export default function ImagesSelector({
   const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <>
-      <CustomModal
-        isVisible={isModalOpen}
-        handleClose={() => setIsModalOpen(false)}
-      >
-        <View className="bg-white rounded px-4 py-8 w-full m-4 gap-8">
-          <Pressable
-            className="absolute top-4 right-4"
-            onPress={() => setIsModalOpen(false)}
-          >
-            <CrossIcon />
-          </Pressable>
-          <Text className="text-xl font-semibold text-center text-main-text mx-8">
-            Selecciona una opción
-          </Text>
-          <View className="flex-row justify-evenly gap-6">
-            <Pressable
-              onPress={() => {
-                pickImages("library");
-                setIsModalOpen(false);
-              }}
-              className="items-center gap-2 max-w-32 bg-white border-stroke border px-3 py-2 rounded"
-            >
-              <GalleryIcon className="text-main-text" size={24} />
-              <View className="flex-row flex-grow items-center">
-                <Text className="text-main-text text-center">
-                  Seleccionar de mi galería
-                </Text>
-              </View>
-              <Text className="text-secondary-text text-center">
-                {cameraStatus?.status === ImagePicker.PermissionStatus.DENIED &&
-                  "Permiso denegado"}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                pickImages("camera");
-                setIsModalOpen(false);
-              }}
-              className="items-center gap-2 max-w-32 bg-white border-stroke border px-3 py-2 rounded"
-            >
-              <CameraIcon className="text-main-text" size={24} />
-              <View className="flex-row flex-grow items-center">
-                <Text className="text-main-text text-center">Tomar foto</Text>
-              </View>
-              <Text className="text-secondary-text text-center">
-                {cameraStatus?.status === ImagePicker.PermissionStatus.DENIED &&
-                  "Permiso denegado"}
-              </Text>
-            </Pressable>
-          </View>
-        </View>
-      </CustomModal>
+      <ImageSourceSelectorModal
+        isModalOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        pickImages={pickImages}
+        isCameraPermissionDenied={
+          cameraStatus?.status === ImagePicker.PermissionStatus.DENIED
+        }
+        isGalleryPermissionDenied={
+          mediaLibraryStatus?.status === ImagePicker.PermissionStatus.DENIED
+        }
+      />
       <View className={twMerge("w-full gap-4", className)}>
         <Carousel
           data={
