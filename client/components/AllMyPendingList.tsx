@@ -29,7 +29,7 @@ export default function AllMyPendingList({
     },
     {
       key: "pending-to-deliver",
-      title: "Deber entregar",
+      title: "Debes entregar",
       show: () => haveResults["pending-to-deliver"],
       component: () => (
         <MyPendingList
@@ -42,7 +42,7 @@ export default function AllMyPendingList({
     },
     {
       key: "pending-to-receive",
-      title: "Deber recibir",
+      title: "Debes recibir",
       show: () => haveResults["pending-to-receive"],
       component: () => (
         <MyPendingList
@@ -55,7 +55,7 @@ export default function AllMyPendingList({
     },
     {
       key: "pending-waiting-acceptance",
-      title: "Esperando aceptación",
+      title: "Esperando ser aceptado",
       show: () => haveResults["pending-waiting-acceptance"],
       component: () => (
         <MyPendingList
