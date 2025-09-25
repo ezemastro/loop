@@ -8,16 +8,19 @@ export default function CreditsBadge({
   containerClassName,
   numberClassName,
   iconSize,
+  vertical = false,
 }: {
   credits: number;
   containerClassName?: string;
   numberClassName?: string;
   iconSize?: number;
+  vertical?: boolean;
 }) {
   return (
     <View
       className={twMerge(
-        `flex-row items-center justify-center gap-2 px-2.5 py-0.5 rounded-full`,
+        `items-center justify-center gap-2 px-2.5 py-0.5 rounded-full` +
+          (vertical ? " flex-col" : " flex-row"),
         containerClassName,
       )}
     >
