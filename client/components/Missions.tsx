@@ -6,20 +6,22 @@ import Loader from "./Loader";
 import Error from "./Error";
 
 export default function Missions({
+  setHasMissions,
   hasMissions,
 }: {
-  hasMissions?: (has: boolean) => void;
+  setHasMissions?: (has: boolean) => void;
+  hasMissions?: boolean;
 }) {
   const { data, isLoading, error } = useMissions();
   const missions = data?.userMissions;
   useEffect(() => {
-    if (hasMissions) {
-      hasMissions(!!missions && missions.length > 0);
+    if (missions !== hasMissions) {
+      setHasMissions?.(!!missions && missions.length > 0);
     }
-  }, [missions, hasMissions]);
+  }, [missions, hasMissions, setHasMissions]);
 
   return (
-    <View>
+    <View className="gap-4">
       {missions?.map((mission) => (
         <Mission key={mission.id} mission={mission} />
       ))}

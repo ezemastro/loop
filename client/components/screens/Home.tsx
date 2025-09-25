@@ -26,7 +26,9 @@ export default function Home() {
       key: "mission",
       title: "Misiones",
       show: hasMissions,
-      component: () => <Missions hasMissions={(has) => setHasMissions(has)} />,
+      component: () => (
+        <Missions hasMissions={hasMissions} setHasMissions={setHasMissions} />
+      ),
     },
     {
       key: "pending",
