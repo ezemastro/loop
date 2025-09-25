@@ -23,6 +23,7 @@ import AvoidingKeyboard from "../AvoidingKeyboard";
 import { useMessageRead } from "@/hooks/useMessageRead";
 import DroppablePendingWithUser from "../DroppablePendingWithUser";
 import ChatInput from "../ChatInput";
+import { minutesDifference } from "@/utils/minutesDifference";
 
 export default function Chat() {
   const queryClient = useQueryClient();
@@ -120,7 +121,11 @@ export default function Chat() {
           renderItem={({ item, index }) => (
             <>
               {!messages[index - 1] ||
-              item.senderId !== messages[index - 1]?.senderId ? (
+              item.senderId !== messages[index - 1]?.senderId ||
+              minutesDifference(
+                item.createdAt,
+                messages[index - 1]?.createdAt,
+              ) > 5 ? (
                 <ChatHourLabel date={item.createdAt} senderId={item.senderId} />
               ) : null}
               <MessageItem message={item} />
