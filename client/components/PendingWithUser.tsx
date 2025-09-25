@@ -91,27 +91,27 @@ export default function PendingWithUser({
   ];
 
   return (
-    <FlatList
-      data={pendingSections}
-      className={
-        "flex-grow bg-background z-10 mt-2 " + (isVisible ? "" : "hidden")
-      }
-      contentContainerClassName="gap-2"
-      renderItem={({ item }) => (
-        <View
-          className={
-            "px-4 " +
-            (!pendingCount[item.key as keyof typeof pendingCount]
-              ? "hidden"
-              : "")
-          }
-        >
-          <Text className="text-secondary-text text-lg font-bold">
-            {item.title}
-          </Text>
-          {item.component()}
-        </View>
-      )}
-    />
+    <View className={isVisible ? "h-60" : "h-0"}>
+      <FlatList
+        data={pendingSections}
+        className="mt-2"
+        contentContainerClassName="gap-2"
+        renderItem={({ item }) => (
+          <View
+            className={
+              "px-4 " +
+              (!pendingCount[item.key as keyof typeof pendingCount]
+                ? "hidden"
+                : "")
+            }
+          >
+            <Text className="text-secondary-text text-lg font-bold">
+              {item.title}
+            </Text>
+            {item.component()}
+          </View>
+        )}
+      />
+    </View>
   );
 }
