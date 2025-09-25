@@ -1,3 +1,4 @@
+import { formatNumber } from "@/utils/formatNumber";
 import { View, Text } from "react-native";
 import { twMerge } from "tailwind-merge";
 
@@ -20,7 +21,9 @@ export default function Stat({
       )}
     >
       {icon}
-      <Text className="text-2xl text-main-text font-bold mt-2">{value}</Text>
+      <Text className="text-2xl text-main-text font-bold mt-2">
+        {formatNumber(value)}
+      </Text>
       <View className="items-center justify-center flex-grow">
         <Text className="text-main-text/90 text-sm text-center font-normal">
           {label}

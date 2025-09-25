@@ -17,6 +17,7 @@ import BackButton from "../BackButton";
 import { MainView } from "../bases/MainView";
 import CustomRefresh from "../CustomRefresh";
 import ListingStatusInfo from "../ListingStatusInfo";
+import Stats from "../Stats";
 
 export default function Listing() {
   const router = useRouter();
@@ -49,7 +50,7 @@ export default function Listing() {
                   </View>
                 )
               ) : (
-                <AskButton />
+                <AskButton userId={listing.seller.id} />
               )}
             </View>
           ),
@@ -94,11 +95,20 @@ export default function Listing() {
           key: "seller",
           component: () => (
             <View className="p-4 gap-3">
-              <Pressable className="shadow">
+              <Pressable
+                className="shadow"
+                onPress={() =>
+                  router.push({
+                    pathname: "/(main)/user/[userId]",
+                    params: { userId: listing.seller.id },
+                  })
+                }
+              >
                 <UserBadge
                   user={listing.seller}
-                  textClassName="!text-main-text"
-                  containerClassName="bg-white px-3 py-2 rounded-full self-start"
+                  textClassName="text-main-text text-lg"
+                  imageClassName="size-12"
+                  containerClassName="bg-white px-3 py-2 gap-4 rounded-full self-start"
                 />
               </Pressable>
             </View>
@@ -112,6 +122,17 @@ export default function Listing() {
             </View>
           ),
         },
+        {
+          key: "stats",
+          component: () => (
+            <View className="gap-3 p-4">
+              <Text className="text-2xl font-semibold text-main-text">
+                Con este loop ahorras:
+              </Text>
+              <Stats listing={listing} />
+            </View>
+          ),
+        },
       ]
     : null;
   // TODO - Agregar deseados del vendedor
@@ -122,7 +143,7 @@ export default function Listing() {
       <FlatList
         data={sections}
         refreshControl={<CustomRefresh />}
-        contentContainerClassName="flex-1"
+        className="flex-grow"
         renderItem={({ item }) => item.component()}
         ListEmptyComponent={
           isLoading ? (
