@@ -100,7 +100,7 @@ export default function Chat() {
         <View className="flex-row items-center p-4">
           <BackButton />
         </View>
-        <View className="flex-row items-center gap-4 px-4">
+        <View className="flex-row items-center gap-4 px-4 pb-2">
           <Image
             source={{ uri: getUrl(user?.profileMedia?.url ?? "") }}
             className="size-20 rounded-full bg-secondary-text"
