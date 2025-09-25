@@ -94,8 +94,7 @@ export default function PendingWithUser({
     <FlatList
       data={pendingSections}
       className={
-        "flex-grow bg-background shadow-2xl z-10 mt-2 " +
-        (isVisible ? "" : "hidden")
+        "flex-grow bg-background z-10 mt-2 " + (isVisible ? "" : "hidden")
       }
       contentContainerClassName="gap-2"
       renderItem={({ item }) => (

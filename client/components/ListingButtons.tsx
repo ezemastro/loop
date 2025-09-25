@@ -62,7 +62,7 @@ export default function ListingButtons({
         return null;
       }
       return (
-        <CustomButton onPress={() => handleCreateOffer()}>
+        <CustomButton onPress={() => handleCreateOffer()} className="flex-grow">
           <ButtonText>Loopear</ButtonText>
         </CustomButton>
       );
@@ -70,6 +70,7 @@ export default function ListingButtons({
       if (user?.id === listing.seller.id) {
         return (
           <CustomButton
+            className="flex-grow"
             onPress={() => {
               router.push({
                 pathname: "/(main)/listing/[listingId]/offer",
@@ -84,7 +85,7 @@ export default function ListingButtons({
       if (user?.id === listing.buyer?.id) {
         return (
           <CustomButton
-            className="bg-alert"
+            className="bg-alert flex-grow"
             onPress={() => handleDeleteOffer()}
           >
             <ButtonText>Cancelar</ButtonText>
@@ -106,7 +107,10 @@ export default function ListingButtons({
       }
       if (user?.id === listing.buyer?.id) {
         return (
-          <CustomButton onPress={() => handleMarkReceived()}>
+          <CustomButton
+            onPress={() => handleMarkReceived()}
+            className="flex-grow"
+          >
             <ButtonText>Recibido</ButtonText>
           </CustomButton>
         );

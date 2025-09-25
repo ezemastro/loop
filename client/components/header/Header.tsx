@@ -14,7 +14,7 @@ export default function Header() {
   const isSearchScreen = pathname === "/search";
   return (
     <View
-      className="bg-secondary p-5 gap-4 shadow shadow-black z-50"
+      className="bg-secondary p-5 gap-4 shadow z-50"
       style={{
         paddingTop: insets.top,
       }}
