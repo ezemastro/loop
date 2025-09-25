@@ -645,8 +645,8 @@ export class ListingsModel {
           throw new InvalidInputError(ERROR_MESSAGES.INSUFFICIENT_CREDITS);
         }
         await client.query(queries.updateUserBalance, [
-          sellerBase.credits.balance - totalPrice,
-          sellerBase.credits.locked + totalPrice,
+          sellerBase.credits.balance + totalPrice,
+          sellerBase.credits.locked - totalPrice,
           sellerDb.id,
         ]);
         // TODO - Registrar transacción
