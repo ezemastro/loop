@@ -68,9 +68,11 @@ export default function Listing() {
                 <Text className="text-2xl font-bold text-main-text">
                   {listing.title}
                 </Text>
-                <Text className="text-md text-main-text">
-                  {listing.description}
-                </Text>
+                {listing.description && (
+                  <Text className="text-md text-main-text">
+                    {listing.description}
+                  </Text>
+                )}
               </View>
               <ProductStatusBadge
                 status={listing.productStatus}
@@ -108,7 +110,7 @@ export default function Listing() {
                   user={listing.seller}
                   textClassName="text-main-text text-lg"
                   imageClassName="size-12"
-                  containerClassName="bg-white px-3 py-2 gap-4 rounded-full self-start"
+                  containerClassName="bg-white px-4 py-2 gap-4 rounded-full self-start"
                 />
               </Pressable>
             </View>
