@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
 import { View, Text } from "react-native";
 import MyPendingList from "./MyPendingList";
+import { useEffect, useState } from "react";
 
 interface Section {
   key: string;
@@ -9,19 +9,23 @@ interface Section {
   component: () => React.ReactElement;
 }
 export default function AllMyPendingList({
-  haveResultsProp,
+  hasResults,
+  setHasResults,
 }: {
-  haveResultsProp?: (have: boolean) => void;
+  hasResults: boolean;
+  setHasResults: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
+  const [haveResults, setHaveResults] = useState<Record<string, boolean>>({});
   const sections: Section[] = [
     {
       key: "pending-to-accept",
       title: "Ofertas pendientes",
-      show: () => haveResults["pending-to-accept"],
+      show: () => !!haveResults["pending-to-accept"],
       component: () => (
         <MyPendingList
           type={"to-accept"}
-          hasResults={(has) =>
+          hasResults={!!haveResults["pending-to-accept"]}
+          setHasResults={(has) =>
             setHaveResults((prev) => ({ ...prev, ["pending-to-accept"]: has }))
           }
         />
@@ -30,11 +34,12 @@ export default function AllMyPendingList({
     {
       key: "pending-to-deliver",
       title: "Debes entregar",
-      show: () => haveResults["pending-to-deliver"],
+      show: () => !!haveResults["pending-to-deliver"],
       component: () => (
         <MyPendingList
           type={"to-deliver"}
-          hasResults={(has) =>
+          hasResults={!!haveResults["pending-to-deliver"]}
+          setHasResults={(has) =>
             setHaveResults((prev) => ({ ...prev, ["pending-to-deliver"]: has }))
           }
         />
@@ -43,11 +48,12 @@ export default function AllMyPendingList({
     {
       key: "pending-to-receive",
       title: "Debes recibir",
-      show: () => haveResults["pending-to-receive"],
+      show: () => !!haveResults["pending-to-receive"],
       component: () => (
         <MyPendingList
           type={"to-receive"}
-          hasResults={(has) =>
+          hasResults={!!haveResults["pending-to-receive"]}
+          setHasResults={(has) =>
             setHaveResults((prev) => ({ ...prev, ["pending-to-receive"]: has }))
           }
         />
@@ -56,11 +62,12 @@ export default function AllMyPendingList({
     {
       key: "pending-waiting-acceptance",
       title: "Esperando ser aceptado",
-      show: () => haveResults["pending-waiting-acceptance"],
+      show: () => !!haveResults["pending-waiting-acceptance"],
       component: () => (
         <MyPendingList
           type={"waiting-acceptance"}
-          hasResults={(has) =>
+          hasResults={!!haveResults["pending-waiting-acceptance"]}
+          setHasResults={(has) =>
             setHaveResults((prev) => ({
               ...prev,
               ["pending-waiting-acceptance"]: has,
@@ -70,12 +77,11 @@ export default function AllMyPendingList({
       ),
     },
   ];
-  const [haveResults, setHaveResults] = useState(
-    Object.fromEntries(sections.map((s) => [s.key, false])),
-  );
   useEffect(() => {
-    haveResultsProp?.(Object.values(haveResults).some(Boolean));
-  }, [haveResults, haveResultsProp]);
+    const anyResults = Object.values(haveResults).some((v) => v);
+    if (anyResults === hasResults) return;
+    setHasResults(anyResults);
+  }, [haveResults, hasResults, setHasResults]);
   return (
     <View>
       {sections.map((section) => (

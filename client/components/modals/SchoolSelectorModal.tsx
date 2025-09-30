@@ -6,19 +6,24 @@ export default function SchoolSelectorModal({
   isVisible,
   onClose,
   onSelect,
+  multiple = false,
 }: {
   isVisible: boolean;
+  multiple?: boolean;
   onClose: () => void;
-  onSelect: (school: School) => void;
+  onSelect: (school: School[]) => void;
 }) {
   return (
     <ResourceSelectorModal<School>
+      multiple={multiple}
       isVisible={isVisible}
       onClose={onClose}
-      onSelect={onSelect}
-      title="Seleccione una escuela"
+      onSelect={(schools) => onSelect(schools as School[])}
+      title="Seleccione las escuelas"
       useResource={useSchools}
-      renderItem={(school) => <School school={school} />}
+      renderItem={(school, options) => (
+        <School school={school} isSelected={options?.isSelected} />
+      )}
       getItems={(data) =>
         data?.pages.flatMap((page: any) => page.schools) || []
       }

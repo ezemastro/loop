@@ -1,7 +1,6 @@
 import { Text, TextInput, View, FlatList } from "react-native";
 import { MainView } from "../bases/MainView";
 import SchoolSelector from "../selectors/SchoolSelector";
-import RoleSelector from "../selectors/RoleSelector";
 import CustomButton from "../bases/CustomButton";
 import type { ReactNode } from "react";
 import Error from "../Error";
@@ -112,26 +111,15 @@ export default function Register() {
       ),
     },
     {
-      key: "school",
-      label: "Colegio:",
-      error: errors.school,
-      errorMessage: "Selecciona tu colegio",
+      key: "schools",
+      label: "Colegios:",
+      error: errors.schools,
+      errorMessage: "Selecciona tus colegios",
       render: () => (
         <SchoolSelector
-          value={formData.school}
-          onChange={(value) => setFormData({ ...formData, school: value })}
-        />
-      ),
-    },
-    {
-      key: "role",
-      label: "Rol:",
-      error: errors.role,
-      errorMessage: "Selecciona tu rol",
-      render: () => (
-        <RoleSelector
-          value={formData.role}
-          onChange={(value) => setFormData({ ...formData, role: value })}
+          multiple={true}
+          value={formData.schools}
+          onChange={(value) => setFormData({ ...formData, schools: value })}
         />
       ),
     },

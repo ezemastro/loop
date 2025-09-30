@@ -32,7 +32,8 @@ export default function PendingWithUser({
         <MyPendingList
           type="to-receive"
           filterUserId={userId}
-          resultsCount={(count) =>
+          resultsCount={pendingCount["to-receive"]}
+          setResultsCount={(count) =>
             pendingCount["to-receive"] !== count
               ? setPendingCount({ ...pendingCount, ["to-receive"]: count })
               : null
@@ -47,7 +48,8 @@ export default function PendingWithUser({
         <MyPendingList
           type="to-deliver"
           filterUserId={userId}
-          resultsCount={(count) =>
+          resultsCount={pendingCount["to-deliver"]}
+          setResultsCount={(count) =>
             pendingCount["to-deliver"] !== count
               ? setPendingCount({ ...pendingCount, ["to-deliver"]: count })
               : null
@@ -62,7 +64,8 @@ export default function PendingWithUser({
         <MyPendingList
           type="to-accept"
           filterUserId={userId}
-          resultsCount={(count) =>
+          resultsCount={pendingCount["to-accept"]}
+          setResultsCount={(count) =>
             pendingCount["to-accept"] !== count
               ? setPendingCount({ ...pendingCount, ["to-accept"]: count })
               : null
@@ -77,7 +80,8 @@ export default function PendingWithUser({
         <MyPendingList
           type="waiting-acceptance"
           filterUserId={userId}
-          resultsCount={(count) =>
+          resultsCount={pendingCount["waiting-acceptance"]}
+          setResultsCount={(count) =>
             pendingCount["waiting-acceptance"] !== count
               ? setPendingCount({
                   ...pendingCount,

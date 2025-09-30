@@ -36,9 +36,8 @@ export default function Home() {
       show: hasPending,
       component: () => (
         <AllMyPendingList
-          haveResultsProp={(has) =>
-            hasPending !== has ? setHasPending(has) : null
-          }
+          hasResults={hasPending}
+          setHasResults={setHasPending}
         />
       ),
     },

@@ -6,11 +6,13 @@ import Error from "../Error";
 import Loader from "../Loader";
 import TextInfo from "../bases/TextInfo";
 import TextTitle from "./TextTitle";
+import CustomButton from "./CustomButton";
+import ButtonText from "./ButtonText";
 
 type ResourceSelectorModalProps<T> = {
   isVisible: boolean;
   title: string;
-  onSelect: (item: T) => void;
+  onSelect: (item: T | T[]) => void;
   onClose: () => void;
   useResource: (params: { searchTerm: string }) => {
     data: any;
@@ -18,13 +20,15 @@ type ResourceSelectorModalProps<T> = {
     isError: boolean;
     fetchNextPage: () => void;
   };
-  renderItem: (item: T) => React.ReactNode;
+  renderItem: (item: T, options?: { isSelected?: boolean }) => React.ReactNode;
   getItems: (data: any) => T[];
   getTotal: (data: any) => number | undefined;
   filterItems: (items: T[], searchTerm: string) => T[];
+  multiple?: boolean;
 };
 
 export default function ResourceSelectorModal<T>({
+  multiple = false,
   isVisible,
   title,
   onSelect,
@@ -59,6 +63,22 @@ export default function ResourceSelectorModal<T>({
     if (totalData && items.length < totalData) setSearchTerm(text);
   };
 
+  const [selectedItems, setSelectedItems] = useState<T[]>([]);
+  const handleSelect = (item: T) => {
+    if (!multiple) {
+      onSelect(item);
+      onClose();
+      return;
+    }
+    const isSelected = selectedItems.includes(item);
+    if (isSelected) {
+      const newSelectedItems = selectedItems.filter((i) => i !== item);
+      setSelectedItems(newSelectedItems);
+    } else {
+      setSelectedItems([...selectedItems, item]);
+    }
+  };
+
   return (
     <CustomModal isVisible={isVisible} handleClose={onClose}>
       <View className="bg-background rounded p-4 py-6 w-full h-3/4 gap-5">
@@ -82,13 +102,24 @@ export default function ResourceSelectorModal<T>({
               onEndReached={() => fetchNextPage()}
               onEndReachedThreshold={0.5}
               renderItem={({ item }) => (
-                <Pressable onPress={() => onSelect(item)}>
-                  {renderItem(item)}
+                <Pressable onPress={() => handleSelect(item)}>
+                  {renderItem(item, {
+                    isSelected: selectedItems.includes(item),
+                  })}
                 </Pressable>
               )}
             />
           )}
         </View>
+        {multiple && (
+          <CustomButton
+            className="bg-tertiary rounded p-3"
+            onPress={() => onSelect(selectedItems)}
+            disabled={selectedItems.length === 0}
+          >
+            <ButtonText>Seleccionar</ButtonText>
+          </CustomButton>
+        )}
       </View>
     </CustomModal>
   );

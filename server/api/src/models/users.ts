@@ -3,17 +3,8 @@ import { InternalServerError, InvalidInputError } from "../services/errors";
 import { dbConnection } from "../services/postgresClient";
 import { queries } from "../services/queries";
 import type { DatabaseClient } from "../types/dbClient";
-import {
-  getMediaById,
-  getRoleById,
-  getSchoolById,
-  getUserById,
-} from "../utils/helpersDb";
-import {
-  parsePagination,
-  parsePublicUserFromBase,
-  parseUserBaseFromDb,
-} from "../utils/parseDb";
+import { getUserById } from "../utils/helpersDb";
+import { parsePagination } from "../utils/parseDb";
 import { safeNumber } from "../utils/safeNumber";
 import { getOrderValue, getSortValue } from "../utils/sortOptions";
 
@@ -24,7 +15,6 @@ export class UsersModel {
       sort = "created_at",
       order = "desc",
       searchTerm,
-      roleId,
       schoolId,
       userId,
     } = query || {};
@@ -41,7 +31,6 @@ export class UsersModel {
       queries.searchUsers({ sort: dbSort, order: dbOrder }),
       [
         searchTerm || null,
-        roleId || null,
         schoolId || null,
         userId || null,
         PAGE_SIZE,
@@ -51,20 +40,7 @@ export class UsersModel {
     const totalRecords = safeNumber(usersSearchDb[0]?.total_records || 0);
     const users = await Promise.all(
       usersSearchDb.map(async (userSearchDb) => {
-        return parsePublicUserFromBase({
-          profileMedia: userSearchDb.profile_media_id
-            ? await getMediaById({
-                client,
-                mediaId: userSearchDb.profile_media_id,
-              })
-            : null,
-          role: await getRoleById({ client, roleId: userSearchDb.role_id }),
-          school: await getSchoolById({
-            client,
-            schoolId: userSearchDb.school_id,
-          }),
-          user: parseUserBaseFromDb(userSearchDb),
-        });
+        return await getUserById({ client, userId: userSearchDb.id });
       }),
     );
     return {

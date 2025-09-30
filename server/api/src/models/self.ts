@@ -1,5 +1,6 @@
 import { ERROR_MESSAGES, PAGE_SIZE } from "../config";
 import { InternalServerError, UnauthorizedError } from "../services/errors";
+import { hashPassword } from "../services/hash";
 import { dbConnection } from "../services/postgresClient";
 import { queries } from "../services/queries";
 import {
@@ -14,25 +15,18 @@ import type { DatabaseClient } from "../types/dbClient";
 import {
   getUserMissionsByUserId,
   getNotificationsByUserId,
-  getMediaById,
-  getRoleById,
-  getSchoolById,
   getUserById,
   getCategoryById,
   getMediasByListingId,
   getMessageById,
   progressMission,
+  getPrivateUserById,
 } from "../utils/helpersDb";
 import {
   parseChatFromDb,
   parseListingBaseFromDb,
   parseListingFromBase,
-  parseMediaFromDb,
   parsePagination,
-  parsePrivateUserFromBase,
-  parseRoleFromDb,
-  parseSchoolFromBase,
-  parseSchoolFromDb,
   parseUserBaseFromDb,
 } from "../utils/parseDb";
 import { safeNumber } from "../utils/safeNumber";
@@ -58,48 +52,9 @@ export class SelfModel {
       if (!userDb) {
         throw new InternalServerError(ERROR_MESSAGES.USER_NOT_FOUND);
       }
-      // Obtener rol y colegio
-      let roleDb: DB_Roles | undefined;
-      let schoolDb: DB_Schools | undefined;
-      let userMediaDb: DB_Media | undefined;
-      try {
-        [[schoolDb], [roleDb], [userMediaDb]] = await Promise.all([
-          client.query(queries.schoolById, [userDb.school_id]),
-          client.query(queries.roleById, [userDb.role_id]),
-          userDb.profile_media_id
-            ? client.query(queries.mediaById, [userDb.profile_media_id])
-            : Promise.resolve([undefined]),
-        ]);
-      } catch {
-        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
-      }
-      if (!roleDb) throw new InternalServerError(ERROR_MESSAGES.ROLE_NOT_FOUND);
-      if (!schoolDb)
-        throw new InternalServerError(ERROR_MESSAGES.SCHOOL_NOT_FOUND);
-      // Obtener medios de la escuela
-      let schoolMediaDb: DB_Media | undefined;
-      try {
-        [schoolMediaDb] = await client.query(queries.mediaById, [
-          schoolDb.media_id,
-        ]);
-      } catch {
-        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
-      }
-      if (!schoolMediaDb)
-        throw new InternalServerError(ERROR_MESSAGES.MEDIA_NOT_FOUND);
-
-      // Devolver datos
-      return {
-        user: parsePrivateUserFromBase({
-          user: parseUserBaseFromDb(userDb),
-          role: parseRoleFromDb(roleDb),
-          school: parseSchoolFromBase({
-            school: parseSchoolFromDb(schoolDb),
-            media: parseMediaFromDb(schoolMediaDb),
-          }),
-          profileMedia: userMediaDb ? parseMediaFromDb(userMediaDb) : null,
-        }),
-      };
+      // Devolver usuario con todas sus escuelas
+      const user = await getPrivateUserById({ client, userId });
+      return { user };
     } finally {
       client.release();
     }
@@ -113,6 +68,7 @@ export class SelfModel {
     phone,
     profileMediaId,
     password,
+    schoolIds,
   }: {
     userId: string;
     email?: string;
@@ -121,6 +77,7 @@ export class SelfModel {
     phone?: string | null;
     profileMediaId?: string | null;
     password?: string;
+    schoolIds?: string[];
   }) => {
     // Crear conexión a la base de datos
     let client: DatabaseClient;
@@ -170,7 +127,7 @@ export class SelfModel {
           : user.profileMediaId;
       password =
         password && (await safeValidatePassword(password))
-          ? password
+          ? await hashPassword(password)
           : user.password;
 
       // Actualizar usuario
@@ -184,31 +141,23 @@ export class SelfModel {
           password,
           userId,
         ]);
+        // Si se envían schoolIds, actualizar las escuelas del usuario
+        if (schoolIds) {
+          await client.query(queries.deleteUserSchools, [userId]);
+          if (schoolIds.length > 0) {
+            await client.query(queries.insertUserSchools(schoolIds.length), [
+              userId,
+              ...schoolIds,
+            ]);
+          }
+        }
       } catch {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
       }
       await client.commit();
-      // Devolver usuario base actualizado
-      return {
-        user: parsePrivateUserFromBase({
-          user: {
-            id: userId,
-            email,
-            firstName,
-            lastName,
-            phone,
-            profileMediaId,
-            roleId: user.roleId,
-            schoolId: user.schoolId,
-            credits: user.credits,
-          },
-          profileMedia: profileMediaId
-            ? await getMediaById({ client, mediaId: profileMediaId })
-            : null,
-          role: await getRoleById({ client, roleId: user.roleId }),
-          school: await getSchoolById({ client, schoolId: user.schoolId }),
-        }),
-      };
+      // Devolver usuario actualizado
+      const updatedUser = await getPrivateUserById({ client, userId });
+      return { user: updatedUser };
     } catch (error) {
       await client.rollback();
       throw error;

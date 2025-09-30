@@ -8,8 +8,7 @@ interface FormData {
   email: string;
   password: string;
   confirmPassword: string;
-  school: School | null;
-  role: Role | null;
+  schools: School[] | null;
 }
 type FormErrors = Record<keyof FormData, boolean>;
 
@@ -25,8 +24,7 @@ export const useRegisterForm = () => {
     email: "",
     password: "",
     confirmPassword: "",
-    school: null,
-    role: null,
+    schools: null,
   });
   const [errors, setErrors] = useState<FormErrors>({
     confirmPassword: false,
@@ -34,8 +32,7 @@ export const useRegisterForm = () => {
     firstName: false,
     lastName: false,
     password: false,
-    role: false,
-    school: false,
+    schools: false,
   });
 
   const handleSubmit = () => {
@@ -46,8 +43,7 @@ export const useRegisterForm = () => {
       firstName: false,
       lastName: false,
       password: false,
-      role: false,
-      school: false,
+      schools: false,
     };
     validationResult.error?.issues.forEach((issue) => {
       errors[issue.path[0] as keyof FormData] = true;
@@ -65,8 +61,7 @@ export const useRegisterForm = () => {
       lastName: formData.lastName,
       email: formData.email,
       password: formData.password,
-      schoolId: formData.school!.id,
-      roleId: formData.role!.id,
+      schoolIds: formData.schools!.map((school) => school.id),
     });
   };
   return {

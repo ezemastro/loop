@@ -11,13 +11,9 @@ export default function User({ user }: { user: PublicUser }) {
         <Text className="text-xl text-main-text">
           {user.firstName} {user.lastName}
         </Text>
-        <View className="flex-row gap-1">
-          <Text className="text-secondary-text ">{user.school.name}</Text>
-          <Text className="text-secondary-text">-</Text>
-          <Text className="text-secondary-text font-light">
-            {user.role.name}
-          </Text>
-        </View>
+        <Text className="text-secondary-text ">
+          {user.schools.map((s) => s.name).join(", ")}
+        </Text>
       </View>
     </View>
   );

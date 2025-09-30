@@ -13,15 +13,13 @@ export class UsersController {
       ...parseQuery(req.query),
       page: safeNumber(req.query.page),
     };
-    const { page, sort, order, searchTerm, roleId, schoolId, userId } =
-      parsedQuery;
+    const { page, sort, order, searchTerm, schoolId, userId } = parsedQuery;
     try {
       await validateGetUsersRequest({
         page,
         sort,
         order,
         searchTerm,
-        roleId,
         schoolId,
         userId,
       });
@@ -37,7 +35,6 @@ export class UsersController {
         sort,
         order,
         searchTerm,
-        roleId,
         schoolId,
         userId,
       }));

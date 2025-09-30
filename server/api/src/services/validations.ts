@@ -57,28 +57,19 @@ const schoolSchema = z.object({
 });
 export const validateSchool = (data: unknown) => schoolSchema.parseAsync(data);
 
-const roleSchema = z.object({
-  id: z.uuid(),
-  name: z.string().min(2).max(50),
-});
-export const validateRole = (data: unknown) => roleSchema.parseAsync(data);
-
 const privateUserSchema = z.object({
   id: z.uuid(),
   firstName: firstNameSchema,
   lastName: lastNameSchema,
   email: emailSchema,
   phone: phoneSchema.nullable(),
-  roleId: z.uuid(),
-  role: roleSchema,
-  schoolId: z.uuid(),
-  school: schoolSchema,
   profileMediaId: z.uuid().nullable(),
   profileMedia: mediaSchema.nullable(),
   credits: z.object({
     balance: z.number().nonnegative(),
     locked: z.number().nonnegative(),
   }),
+  schools: z.array(schoolSchema),
 });
 export const validatePrivateUser = (data: unknown) =>
   privateUserSchema.parseAsync(data);
@@ -88,12 +79,9 @@ const publicUserSchema = z.object({
   firstName: firstNameSchema,
   lastName: lastNameSchema,
   email: emailSchema,
-  roleId: z.uuid(),
-  role: roleSchema,
-  schoolId: z.uuid(),
-  school: schoolSchema,
   profileMediaId: z.uuid().nullable(),
   profileMedia: mediaSchema.nullable(),
+  schools: z.array(schoolSchema),
 });
 export const validatePublicUser = (data: unknown) =>
   publicUserSchema.parseAsync(data);
@@ -262,8 +250,7 @@ const registerSchema = z.object({
   password: passwordSchema,
   firstName: firstNameSchema,
   lastName: lastNameSchema,
-  schoolId: z.uuid(),
-  roleId: z.uuid(),
+  schoolIds: z.array(z.uuid()).min(1),
   email: emailSchema,
 });
 export const validateRegister = (data: unknown) =>
@@ -282,6 +269,7 @@ const updateSelfSchema = z.object({
   phone: phoneSchema.optional(),
   profileMediaId: z.uuid().nullable().optional(),
   password: passwordSchema.optional(),
+  schoolIds: z.array(z.uuid()).min(1).optional(),
 });
 export const validateUpdateSelf = (data: unknown) =>
   updateSelfSchema.parseAsync(data);
@@ -302,7 +290,6 @@ export const validateGetRolesRequest = (data: unknown) =>
   getRolesRequestQuery.parseAsync(data);
 const getUsersRequestQuery = paginatedQuery.extend({
   searchTerm: z.string().max(100).optional(),
-  roleId: z.uuid().optional(),
   schoolId: z.uuid().optional(),
   userId: z.uuid().optional(),
 });

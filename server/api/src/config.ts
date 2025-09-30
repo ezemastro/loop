@@ -66,3 +66,5 @@ export const COOKIE_NAMES = {
   TOKEN: "token",
 };
 export const PAGE_SIZE = 10;
+
+export const VALID_EMAIL_DOMAINS = ["northfield.edu.ar", "gmail.com"];

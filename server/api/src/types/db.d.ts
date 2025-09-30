@@ -18,10 +18,6 @@ interface DB_Schools {
   media_id: UUID;
   meta: JsonObject | null;
 }
-interface DB_Roles {
-  id: UUID;
-  name: string;
-}
 interface DB_Users {
   id: UUID;
   email: string;
@@ -29,13 +25,16 @@ interface DB_Users {
   first_name: string;
   last_name: string;
   phone: string | null;
-  school_id: UUID;
-  role_id: UUID;
   profile_media_id: UUID | null;
   credits_balance: DbNumber;
   credits_locked: DbNumber;
   created_at: ISODateString;
   updated_at: ISODateString | null;
+}
+interface DB_UserSchools {
+  id: UUID;
+  user_id: UUID;
+  school_id: UUID;
 }
 interface DB_Categories {
   id: UUID;

@@ -43,9 +43,11 @@ export default function Listing({
         </View>
         <View className="flex-row items-center gap-2">
           <ProductStatusBadge status={listing.productStatus} />
-          <Text className="text-main-text text-sm">
-            {listing.seller.school.name}
-          </Text>
+          {listing.seller.schools.map((school) => (
+            <Text className="text-main-text text-sm" key={school.id}>
+              {school.name}
+            </Text>
+          ))}
         </View>
         <UserBadge user={listing.seller} />
       </View>

@@ -6,9 +6,11 @@ import School from "../cards/School";
 export default function SchoolSelector({
   onChange,
   value,
+  multiple = false,
 }: {
-  onChange?: (school: School) => void;
-  value: School | null;
+  onChange?: (schools: School[]) => void;
+  value: School[] | null;
+  multiple?: boolean;
 }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -18,8 +20,8 @@ export default function SchoolSelector({
   const closeModal = () => {
     setIsModalVisible(false);
   };
-  const handleSelect = (school: School) => {
-    onChange?.(school);
+  const handleSelect = (schools: School[]) => {
+    onChange?.(schools);
     closeModal();
   };
 
@@ -30,7 +32,11 @@ export default function SchoolSelector({
         className="bg-white rounded border border-stroke"
       >
         {value ? (
-          <School school={value} />
+          <>
+            {value.map((school) => (
+              <School key={school.id} school={school} />
+            ))}
+          </>
         ) : (
           <View className="h-16 justify-center items-center">
             <Text className="text-secondary-text text-lg">
@@ -43,6 +49,7 @@ export default function SchoolSelector({
         isVisible={isModalVisible}
         onSelect={handleSelect}
         onClose={closeModal}
+        multiple={multiple}
       />
     </View>
   );

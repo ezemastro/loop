@@ -10,9 +10,13 @@ const registerFormSchema = z.object({
   email: z.email(),
   password: z.string().min(6).max(100),
   confirmPassword: z.string().min(6).max(100),
-  school: z.object({
-    id: z.uuid(),
-  }),
+  schools: z
+    .array(
+      z.object({
+        id: z.uuid(),
+      }),
+    )
+    .min(1),
   role: z.object({
     id: z.uuid(),
   }),

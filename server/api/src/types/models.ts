@@ -5,8 +5,7 @@ export interface AuthRegisterPayload {
   firstName: string;
   lastName: string;
   password: string;
-  schoolId: string;
-  roleId: string;
+  schoolIds: string[];
   email: string;
 }
 export interface AuthLoginPayload {

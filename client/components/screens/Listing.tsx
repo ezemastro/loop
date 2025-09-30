@@ -78,9 +78,11 @@ export default function Listing() {
                 status={listing.productStatus}
                 containerClassName="self-start"
               />
-              <Text className="text-secondary-text">
-                {listing.seller.school.name}
-              </Text>
+              {listing.seller.schools.map((school) => (
+                <Text className="text-secondary-text" key={school.id}>
+                  {school.name}
+                </Text>
+              ))}
             </View>
           ),
         },

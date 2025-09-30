@@ -110,7 +110,9 @@ export default function Chat() {
             <Text className="text-2xl text-main-text">
               {user?.firstName} {user?.lastName}
             </Text>
-            <Text className="text-secondary-text">{user?.school.name}</Text>
+            <Text className="text-secondary-text">
+              {user?.schools.map((school) => school.name).join(", ")}
+            </Text>
           </View>
         </View>
         <DroppablePendingWithUser userId={userId!} />

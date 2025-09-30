@@ -15,15 +15,14 @@ export class AuthController {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     // Registrar el usuario
-    const { password, firstName, lastName, schoolId, roleId, email } = req.body;
+    const { password, firstName, lastName, schoolIds, email } = req.body;
     let user: User;
     try {
       ({ user } = await AuthModel.registerUser({
         firstName,
         lastName,
         password,
-        schoolId,
-        roleId,
+        schoolIds,
         email,
       }));
     } catch (err) {

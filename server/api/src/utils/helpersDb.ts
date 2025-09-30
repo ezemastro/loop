@@ -13,8 +13,8 @@ import {
   parseNotificationBaseFromDb,
   parseNotificationFromBase,
   parsePagination,
+  parsePrivateUserFromBase,
   parsePublicUserFromBase,
-  parseRoleFromDb,
   parseSchoolFromBase,
   parseSchoolFromDb,
   parseUserBaseFromDb,
@@ -23,6 +23,43 @@ import {
 } from "./parseDb";
 import { safeNumber } from "./safeNumber";
 
+export const getPrivateUserById = async ({
+  client,
+  userId,
+}: {
+  client: DatabaseClient;
+  userId: UUID;
+}): Promise<PrivateUser> => {
+  const [userDb] = await client.query(queries.userById, [userId]);
+  if (!userDb) throw new InternalServerError(ERROR_MESSAGES.USER_NOT_FOUND);
+  const userBase = parseUserBaseFromDb(userDb);
+  // Obtener todas las escuelas del usuario
+  const userSchoolsDb = await client.query(queries.userSchoolsByUserId, [
+    userId,
+  ]);
+  const schools = await Promise.all(
+    userSchoolsDb.map(async (us: { school_id: UUID }) => {
+      const schoolDb = await client.query(queries.schoolById, [us.school_id]);
+      if (!schoolDb[0]) {
+        throw new InternalServerError(ERROR_MESSAGES.SCHOOL_NOT_FOUND);
+      }
+      const schoolBase = parseSchoolFromDb(schoolDb[0]);
+      const schoolMedia = await getMediaById({
+        client,
+        mediaId: schoolBase.mediaId,
+      });
+      return parseSchoolFromBase({ school: schoolBase, media: schoolMedia });
+    }),
+  );
+  const user = parsePrivateUserFromBase({
+    user: userBase,
+    profileMedia: userBase.profileMediaId
+      ? await getMediaById({ client, mediaId: userBase.profileMediaId })
+      : null,
+    schools,
+  });
+  return user;
+};
 export const getListingById = async ({
   client,
   listingId,
@@ -59,16 +96,30 @@ export const getUserById = async ({
   const [userDb] = await client.query(queries.userById, [userId]);
   if (!userDb) throw new InternalServerError(ERROR_MESSAGES.USER_NOT_FOUND);
   const userBase = parseUserBaseFromDb(userDb);
+  // Obtener todas las escuelas del usuario
+  const userSchoolsDb = await client.query(queries.userSchoolsByUserId, [
+    userId,
+  ]);
+  const schools = await Promise.all(
+    userSchoolsDb.map(async (us: { school_id: UUID }) => {
+      const schoolDb = await client.query(queries.schoolById, [us.school_id]);
+      if (!schoolDb[0]) {
+        throw new InternalServerError(ERROR_MESSAGES.SCHOOL_NOT_FOUND);
+      }
+      const schoolBase = parseSchoolFromDb(schoolDb[0]);
+      const schoolMedia = await getMediaById({
+        client,
+        mediaId: schoolBase.mediaId,
+      });
+      return parseSchoolFromBase({ school: schoolBase, media: schoolMedia });
+    }),
+  );
   const user = parsePublicUserFromBase({
     user: userBase,
     profileMedia: userBase.profileMediaId
-      ? await getMediaById({
-          client,
-          mediaId: userBase.profileMediaId,
-        })
+      ? await getMediaById({ client, mediaId: userBase.profileMediaId })
       : null,
-    school: await getSchoolById({ client, schoolId: userBase.schoolId }),
-    role: await getRoleById({ client, roleId: userBase.roleId }),
+    schools,
   });
   return user;
 };
@@ -104,17 +155,6 @@ export const getSchoolById = async ({
     media: schoolMedia,
   });
   return school;
-};
-export const getRoleById = async ({
-  client,
-  roleId,
-}: {
-  client: DatabaseClient;
-  roleId: UUID;
-}) => {
-  const [roleDb] = await client.query(queries.roleById, [roleId]);
-  if (!roleDb) throw new InternalServerError(ERROR_MESSAGES.ROLE_NOT_FOUND);
-  return parseRoleFromDb(roleDb);
 };
 export const getMediasByListingId = async ({
   client,

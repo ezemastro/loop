@@ -1,7 +1,7 @@
 import { useMyListings } from "@/hooks/useMyListings";
 import ListingViewList from "./bases/ListingViewList";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 type PendingType =
   | "to-receive"
@@ -11,12 +11,16 @@ type PendingType =
 export default function MyPendingList({
   type,
   hasResults,
+  setHasResults,
+  setResultsCount,
   resultsCount,
   filterUserId,
 }: {
   type: PendingType;
-  hasResults?: (has: boolean) => void;
-  resultsCount?: (count: number) => void;
+  hasResults?: boolean;
+  setHasResults?: (has: boolean) => void;
+  setResultsCount?: (count: number) => void;
+  resultsCount?: number;
   filterUserId?: string;
 }) {
   const { user } = useAuth();
@@ -48,27 +52,17 @@ export default function MyPendingList({
         };
     }
   };
-  const {
-    data,
-    isError,
-    isLoading,
-    fetchNextPage,
-    hasNextPage,
-    isSuccess,
-    isFetching,
-  } = useMyListings(getParams());
+  const { data, isError, isLoading, fetchNextPage, hasNextPage } =
+    useMyListings(getParams());
   const listings = data?.pages.flatMap((page) => page!.data!.listings) || [];
-  const hasResultsRef = useRef(false);
   useEffect(() => {
-    if (!isSuccess || isFetching) return;
-    if (hasResultsRef.current) return;
-    hasResults?.(listings.length > 0);
-    resultsCount?.(listings.length);
-    hasResultsRef.current = true;
-  }, [listings.length, hasResults, isSuccess, isFetching, resultsCount]);
+    if ((listings.length !== 0) === hasResults) return;
+    setHasResults?.(listings.length !== 0);
+  }, [listings.length, hasResults, setHasResults]);
   useEffect(() => {
-    if (isFetching) hasResultsRef.current = false;
-  }, [isFetching]);
+    if (listings.length === resultsCount) return;
+    setResultsCount?.(listings.length);
+  }, [listings.length, setResultsCount, resultsCount]);
   return (
     <ListingViewList
       fetchNextPage={fetchNextPage}

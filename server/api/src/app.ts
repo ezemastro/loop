@@ -4,7 +4,6 @@ import cookieParser from "cookie-parser";
 import { tokenMiddleware } from "./middlewares/parseToken.js";
 import { authRouter } from "./routes/auth.js";
 import { selfRouter } from "./routes/self.js";
-import { rolesRouter } from "./routes/roles.js";
 import { usersRouter } from "./routes/users.js";
 import { schoolsRouter } from "./routes/schools.js";
 import { categoriesRouter } from "./routes/categories.js";
@@ -24,7 +23,6 @@ if (NODE_ENV === "development") {
 
 app.use("/auth", authRouter);
 app.use("/me", tokenMiddleware, selfRouter);
-app.use("/roles", rolesRouter);
 app.use("/users", usersRouter);
 app.use("/categories", categoriesRouter);
 app.use("/schools", schoolsRouter);

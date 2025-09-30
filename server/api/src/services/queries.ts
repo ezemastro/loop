@@ -7,6 +7,19 @@ const q = <T>(key: string, text: string): NamedQuery<T> => ({
 });
 
 export const queries = {
+  deleteUserSchools: q<void>(
+    "user_schools.delete",
+    `DELETE FROM user_schools WHERE user_id = $1`,
+  ),
+
+  insertUserSchools: (schoolCount: number) =>
+    q<void>(
+      "user_schools.insertMany",
+      `INSERT INTO user_schools (user_id, school_id) VALUES ${Array(schoolCount)
+        .fill(0)
+        .map((_, i) => `($1, $${i + 2})`)
+        .join(", ")}`,
+    ),
   userExists: q<{ user_exists: boolean }>(
     "user.exists",
     `SELECT EXISTS(
@@ -16,8 +29,8 @@ export const queries = {
 
   insertUser: q<{ id: UUID }>(
     "user.insert",
-    `INSERT INTO users (email, first_name, last_name, password, school_id, role_id)
-       VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO users (email, first_name, last_name, password)
+       VALUES ($1, $2, $3, $4)
        RETURNING id`,
   ),
 
@@ -26,14 +39,17 @@ export const queries = {
     `SELECT * FROM schools WHERE id = $1`,
   ),
 
-  roleById: q<DB_Roles>("role.byId", `SELECT * FROM roles WHERE id = $1`),
-
   userByEmail: q<DB_Users>(
     "user.byEmail",
     `SELECT * FROM users WHERE email = $1`,
   ),
 
   userById: q<DB_Users>("user.byId", `SELECT * FROM users WHERE id = $1`),
+
+  userSchoolsByUserId: q<DB_UserSchools>(
+    "user.schoolsByUserId",
+    `SELECT * FROM user_schools WHERE user_id = $1`,
+  ),
 
   mediaById: q<DB_Media>("media.byId", `SELECT * FROM media WHERE id = $1`),
 
@@ -150,52 +166,25 @@ export const queries = {
     `SELECT * FROM messages WHERE id = $1`,
   ),
 
-  searchRoles: q<DB_Roles & DB_Pagination>(
-    "roles.search",
-    `SELECT 
-        *,
-        COUNT(*) OVER() as total_records
-    FROM roles
-    WHERE 
-        -- Búsqueda por nombre (parcial, case-insensitive)
-        ($1::text IS NULL OR name ILIKE '%' || $1 || '%')
-    ORDER BY
-        -- Ordenamiento dinámico usando expresiones CASE
-        CASE 
-            WHEN $2 = 'name' AND $3 = 'asc' THEN name
-            ELSE NULL
-        END ASC,
-        CASE 
-            WHEN $2 = 'name' AND $3 = 'desc' THEN name
-            ELSE NULL
-        END DESC,
-        -- Orden por defecto
-        name DESC
-    LIMIT $4
-    OFFSET $5;`,
-  ),
-
   searchUsers: ({ sort, order }: { sort: string; order: string }) =>
     q<DB_Users & DB_Pagination>(
       "users.search",
       `SELECT 
-      *,
+      u.*,
       COUNT(*) OVER() as total_records
-    FROM users
+    FROM users u
     WHERE 
         ($1::text IS NULL OR $1::text = '' OR 
-        LOWER(first_name) LIKE LOWER(CONCAT('%', COALESCE($1::text, ''), '%')) OR 
-        LOWER(last_name) LIKE LOWER(CONCAT('%', COALESCE($1::text, ''), '%')) OR
-        LOWER(CONCAT(first_name, ' ', last_name)) LIKE LOWER(CONCAT('%', COALESCE($1::text, ''), '%')) OR
-        LOWER(CONCAT(last_name, ' ', first_name)) LIKE LOWER(CONCAT('%', COALESCE($1::text, ''), '%')))
+        LOWER(u.first_name) LIKE LOWER(CONCAT('%', COALESCE($1::text, ''), '%')) OR 
+        LOWER(u.last_name) LIKE LOWER(CONCAT('%', COALESCE($1::text, ''), '%')) OR
+        LOWER(CONCAT(u.first_name, ' ', u.last_name)) LIKE LOWER(CONCAT('%', COALESCE($1::text, ''), '%')) OR
+        LOWER(CONCAT(u.last_name, ' ', u.first_name)) LIKE LOWER(CONCAT('%', COALESCE($1::text, ''), '%')))
     AND
-        ($2::text IS NULL OR $2::text = '' OR role_id::text = $2::text)
+        ($2::text IS NULL OR $2::text = '' OR EXISTS (SELECT 1 FROM user_schools us WHERE us.user_id = u.id AND us.school_id::text = $2::text))
     AND
-        ($3::text IS NULL OR $3::text = '' OR school_id::text = $3::text)
-    AND
-        ($4::text IS NULL OR $4::text = '' OR id::text != $4::text)
+        ($3::text IS NULL OR $3::text = '' OR u.id::text != $3::text)
     ORDER BY ${sort} ${order}
-    LIMIT $5 OFFSET $6;`,
+    LIMIT $4 OFFSET $5;`,
     ),
 
   searchSchools: q<DB_Schools & DB_Pagination>(
@@ -219,16 +208,13 @@ export const queries = {
     LIMIT $4 OFFSET $5;`,
   ),
 
-  // TODO - Transformar en función que reciba filtros y orden
   searchListings: ({ sort, order }: { sort: string; order: string }) =>
     q<DB_Listings & DB_Pagination>(
       "listings.search",
       `SELECT
         l.*,
-        COUNT(*) OVER() as total_records,
-        u.school_id
+        COUNT(*) OVER() as total_records
     FROM listings l
-    JOIN users u ON l.seller_id = u.id
     WHERE
         NOT l.disabled = true
         AND l.listing_status = 'published'
@@ -244,8 +230,8 @@ export const queries = {
         -- productStatus
         AND ($3::product_status IS NULL OR l.product_status = $3::product_status)
 
-        -- schoolId
-        AND ($4::uuid IS NULL OR u.school_id = $4::uuid)
+        -- schoolId (filtra por escuelas del vendedor)
+        AND ($4::uuid IS NULL OR EXISTS (SELECT 1 FROM user_schools us WHERE us.user_id = l.seller_id AND us.school_id = $4::uuid))
 
         -- sellerId (vendedor)
         AND ($5::uuid IS NULL OR l.seller_id = $5::uuid)
@@ -387,7 +373,11 @@ export const queries = {
             LOWER(description) LIKE LOWER(CONCAT('%', $1::text, '%')))
             
         -- listingStatus
-        AND ($2::listing_status IS NULL OR listing_status = $2::listing_status)
+        AND (
+          ($2::listing_status IS NULL AND listing_status != 'received')
+          OR
+          ($2::listing_status IS NOT NULL AND listing_status = $2::listing_status)
+        )
 
         -- categoryId
         AND ($3::uuid IS NULL OR category_id = $3::uuid)

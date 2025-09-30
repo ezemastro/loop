@@ -1,9 +1,20 @@
 import { getUrl } from "@/services/getUrl";
 import { View, Text, Image } from "react-native";
 
-export default function School({ school }: { school: School }) {
+export default function School({
+  school,
+  isSelected,
+}: {
+  school: School;
+  isSelected?: boolean;
+}) {
   return (
-    <View className="p-1 flex-row bg-white rounded">
+    <View
+      className={
+        "p-1 flex-row bg-white rounded border " +
+        (isSelected ? "border-tertiary" : "border-transparent")
+      }
+    >
       <View>
         <Image
           source={{ uri: getUrl(school.media.url) }}

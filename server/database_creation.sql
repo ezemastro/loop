@@ -4,10 +4,6 @@ CREATE TABLE "schools"(
     "media_id" UUID NOT NULL,
     "meta" jsonb NULL
 );
-CREATE TABLE "roles"(
-    "id" UUID default gen_random_uuid() primary key,
-    "name" TEXT NOT null unique
-);
 CREATE TABLE "users"(
     "id" UUID default gen_random_uuid() primary key,
     "password" TEXT not null,
@@ -15,13 +11,16 @@ CREATE TABLE "users"(
     "last_name" TEXT NOT NULL,
     "email" TEXT not NULL,
     "phone" TEXT,
-    "school_id" UUID NOT NULL,
-    "role_id" UUID NOT NULL,
     "profile_media_id" UUID,
     "credits_balance" BIGINT default 0 NOT NULL,
     "credits_locked" BIGINT default 0 NOT NULL,
     "created_at" TIMESTAMP(0) default NOW() NOT NULL,
     "updated_at" TIMESTAMP(0)
+);
+CREATE TABLE "user_schools"(
+    "id" UUID default gen_random_uuid() primary key,
+    "user_id" UUID NOT NULL,
+    "school_id" UUID NOT NULL
 );
 CREATE TABLE "categories"(
     "id" UUID default gen_random_uuid() primary key,
@@ -147,9 +146,9 @@ ALTER TABLE
 ALTER TABLE
     listings ADD CONSTRAINT "listings_buyer_id_foreign" FOREIGN KEY("buyer_id") REFERENCES "users"("id");
 ALTER TABLE
-    users ADD CONSTRAINT "users_school_id_foreign" FOREIGN KEY("school_id") REFERENCES "schools"("id");
+    user_schools ADD CONSTRAINT "user_schools_user_id_foreign" FOREIGN KEY("user_id") REFERENCES "users"("id");
 ALTER TABLE
-    users ADD CONSTRAINT "users_role_foreign" FOREIGN KEY("role_id") REFERENCES "roles"("id");
+    user_schools ADD CONSTRAINT "user_schools_school_id_foreign" FOREIGN KEY("school_id") REFERENCES "schools"("id");
 ALTER TABLE
     users ADD CONSTRAINT "users_profile_media_id_foreign" FOREIGN KEY("profile_media_id") REFERENCES "media"("id");
 ALTER TABLE

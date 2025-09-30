@@ -14,21 +14,20 @@ interface Section {
   component: () => React.ReactElement;
 }
 export default function MyListings() {
-  const [haveResults, setHaveResults] = useState(false);
+  const [hasResults, setHasResults] = useState(false);
   const sections: Section[] = [
     {
       key: "pending-title",
-      show: () => haveResults,
+      show: () => hasResults,
       component: () => <TextTitle>Publicaciones pendientes</TextTitle>,
     },
     {
       key: "pending-list",
-      show: () => haveResults,
+      show: () => hasResults,
       component: () => (
         <AllMyPendingList
-          haveResultsProp={(have) =>
-            haveResults !== have ? setHaveResults(have) : null
-          }
+          hasResults={hasResults}
+          setHasResults={setHasResults}
         />
       ),
     },

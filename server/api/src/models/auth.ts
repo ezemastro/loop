@@ -1,4 +1,8 @@
-import { ERROR_MESSAGES, INITIAL_CREDITS } from "../config.js";
+import {
+  ERROR_MESSAGES,
+  INITIAL_CREDITS,
+  VALID_EMAIL_DOMAINS,
+} from "../config.js";
 import {
   ConflictError,
   InternalServerError,
@@ -14,7 +18,6 @@ import {
   parseSchoolFromDb,
   parseUserBaseFromDb,
   parseMediaFromDb,
-  parseRoleFromDb,
   parseSchoolFromBase,
   parsePrivateUserFromBase,
 } from "../utils/parseDb.js";
@@ -24,8 +27,7 @@ export class AuthModel {
     firstName,
     lastName,
     password,
-    schoolId,
-    roleId,
+    schoolIds,
     email,
   }: AuthRegisterPayload) => {
     // Iniciar conexión con la base de datos
@@ -42,38 +44,63 @@ export class AuthModel {
       if (query[0]?.user_exists) {
         throw new ConflictError(ERROR_MESSAGES.USER_ALREADY_EXISTS);
       }
-      // Obtener rol y escuela
-      const [[schoolDb], [roleDb]] = await Promise.all([
-        client.query(queries.schoolById, [schoolId]),
-        client.query(queries.roleById, [roleId]),
-      ]);
-
-      if (!schoolDb) {
-        throw new InvalidInputError(ERROR_MESSAGES.SCHOOL_NOT_FOUND);
-      }
-      if (!roleDb) {
-        throw new InvalidInputError(ERROR_MESSAGES.ROLE_NOT_FOUND);
-      }
-      const [schoolMediaDb] = await client.query(queries.mediaById, [
-        schoolDb.media_id,
-      ]);
-      if (!schoolMediaDb) {
-        throw new InternalServerError(ERROR_MESSAGES.UNEXPECTED_ERROR);
-      }
-      const school = parseSchoolFromDb(schoolDb);
-      const role = parseRoleFromDb(roleDb);
-      const schoolMedia = parseMediaFromDb(schoolMediaDb);
+      // Validar escuelas
+      const schoolsDb = await Promise.all(
+        schoolIds.map(async (schoolId: UUID) => {
+          const [schoolDb] = await client.query(queries.schoolById, [schoolId]);
+          if (!schoolDb) {
+            throw new InvalidInputError(ERROR_MESSAGES.SCHOOL_NOT_FOUND);
+          }
+          return schoolDb;
+        }),
+      );
       // Encriptar la contraseña
       const hashedPassword = await hashPassword(password);
+      // Validar email
+      const emailLower = email.toLowerCase();
+      const isValidEmail = VALID_EMAIL_DOMAINS.some((domain) =>
+        emailLower.endsWith(`@${domain}`),
+      );
+      if (!isValidEmail) {
+        throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+      }
       // Insertar el nuevo usuario en la base de datos
       const [newUser] = await client.query(queries.insertUser, [
         email,
         firstName,
         lastName,
         hashedPassword,
-        schoolId,
-        roleId,
       ]);
+      // Insertar las relaciones usuario-escuela
+      for (const schoolId of schoolIds) {
+        if (!newUser) {
+          throw new InternalServerError(ERROR_MESSAGES.UNEXPECTED_ERROR);
+        }
+        await client.query(
+          {
+            key: "user_schools.insert",
+            text: `INSERT INTO user_schools (user_id, school_id) VALUES ($1, $2)`,
+          },
+          [newUser.id, schoolId],
+        );
+      }
+      // Obtener las escuelas completas
+      const schools = await Promise.all(
+        schoolsDb.map(async (schoolDb) => {
+          const [schoolMediaDb] = await client.query(queries.mediaById, [
+            schoolDb.media_id,
+          ]);
+          if (!schoolMediaDb) {
+            throw new InternalServerError(ERROR_MESSAGES.UNEXPECTED_ERROR);
+          }
+          const schoolBase = parseSchoolFromDb(schoolDb);
+          const schoolMedia = parseMediaFromDb(schoolMediaDb);
+          return parseSchoolFromBase({
+            school: schoolBase,
+            media: schoolMedia,
+          });
+        }),
+      );
       // Devolver el usuario creado
       const user: PrivateUser = parsePrivateUserFromBase({
         user: {
@@ -83,18 +110,14 @@ export class AuthModel {
           lastName,
           phone: null,
           profileMediaId: null,
-          roleId,
-          schoolId,
           credits: {
             balance: INITIAL_CREDITS,
             locked: 0,
           },
         },
         profileMedia: null,
-        role,
-        school: parseSchoolFromBase({ school, media: schoolMedia }),
+        schools,
       });
-      // TODO - Manejar error si falla la asignación de misiones
       // Asignar misiones iniciales al usuario
       await assignAllMissionsToUser({ client, userId: newUser!.id });
       await client.commit();
@@ -131,41 +154,45 @@ export class AuthModel {
         throw new InvalidInputError(ERROR_MESSAGES.INVALID_CREDENTIALS);
       }
       // Obtener información adicional del perfil
-      let profileMedia, school, role, schoolMedia;
-      try {
-        [[profileMedia], [school], [role]] = await Promise.all([
-          client.query(queries.mediaById, [userDb.profile_media_id]),
-          client.query(queries.schoolById, [userDb.school_id]),
-          client.query(queries.roleById, [userDb.role_id]),
+      let profileMedia = null;
+      if (userDb.profile_media_id) {
+        const [profileMediaDb] = await client.query(queries.mediaById, [
+          userDb.profile_media_id,
         ]);
-        if (school) {
-          [schoolMedia] = await client.query(queries.mediaById, [
-            school.media_id,
+        if (profileMediaDb) profileMedia = parseMediaFromDb(profileMediaDb);
+      }
+      // Obtener todas las escuelas del usuario
+      const userSchoolsDb = await client.query(queries.userSchoolsByUserId, [
+        userDb.id,
+      ]);
+      const schools = await Promise.all(
+        userSchoolsDb.map(async (us: { school_id: UUID }) => {
+          const [schoolDb] = await client.query(queries.schoolById, [
+            us.school_id,
           ]);
-        }
-      } catch {
-        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
-      }
-      if (
-        !school ||
-        !role ||
-        (!profileMedia && userDb.profile_media_id) ||
-        !schoolMedia
-      ) {
-        throw new InternalServerError(ERROR_MESSAGES.UNEXPECTED_ERROR);
-      }
-      // Devolver el usuario autenticado
-      const user: PrivateUser = {
-        ...parseUserBaseFromDb(userDb),
-        profileMedia: userDb.profile_media_id
-          ? parseMediaFromDb(profileMedia!)
-          : null,
-        school: parseSchoolFromBase({
-          school: parseSchoolFromDb(school),
-          media: parseMediaFromDb(schoolMedia),
+          if (!schoolDb) {
+            throw new InternalServerError(ERROR_MESSAGES.SCHOOL_NOT_FOUND);
+          }
+          const [schoolMediaDb] = await client.query(queries.mediaById, [
+            schoolDb.media_id,
+          ]);
+          if (!schoolMediaDb) {
+            throw new InternalServerError(ERROR_MESSAGES.UNEXPECTED_ERROR);
+          }
+          const schoolBase = parseSchoolFromDb(schoolDb);
+          const schoolMedia = parseMediaFromDb(schoolMediaDb);
+          return parseSchoolFromBase({
+            school: schoolBase,
+            media: schoolMedia,
+          });
         }),
-        role: parseRoleFromDb(role),
-      };
+      );
+      // Devolver el usuario autenticado
+      const user: PrivateUser = parsePrivateUserFromBase({
+        user: parseUserBaseFromDb(userDb),
+        profileMedia,
+        schools,
+      });
       return { user };
     } finally {
       // Asegurarse de liberar el cliente en caso de error

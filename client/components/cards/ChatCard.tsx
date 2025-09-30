@@ -36,7 +36,9 @@ export default function ChatCard({ chat }: { chat: UserMessage }) {
             {chat.user.firstName} {chat.user.lastName}
           </Text>
           {" - "}
-          <Text>{chat.user.school.name}</Text>
+          <Text>
+            {chat.user.schools.map((school) => school.name).join(", ")}
+          </Text>
         </Text>
         <Text className="text-secondary-text">
           {lastMessageShortText(chat.lastMessage.text)}

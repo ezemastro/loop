@@ -14,7 +14,7 @@ import { safeNumber } from "../utils/safeNumber";
 
 export class SelfController {
   static getSelf = async (req: Request, res: Response, next: NextFunction) => {
-    let user: User;
+    let user: PrivateUser;
     try {
       ({ user } = await SelfModel.getSelf({
         userId: req.session!.userId,
@@ -35,8 +35,15 @@ export class SelfController {
     } catch {
       throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
     }
-    const { email, firstName, lastName, phone, profileMediaId, password } =
-      req.body;
+    const {
+      email,
+      firstName,
+      lastName,
+      phone,
+      profileMediaId,
+      password,
+      schoolIds,
+    } = req.body as PatchSelfRequest["body"];
 
     let user: User;
     try {
@@ -48,6 +55,7 @@ export class SelfController {
         phone,
         profileMediaId,
         password,
+        schoolIds,
       }));
     } catch (err) {
       return next(err);

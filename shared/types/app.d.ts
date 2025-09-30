@@ -22,10 +22,6 @@ interface Media {
   mediaType: MediaType;
 }
 
-interface Role {
-  id: UUID;
-  name: string;
-}
 
 interface SchoolBase {
   id: UUID;
@@ -43,15 +39,12 @@ interface UserBase {
   phone: string | null;
   firstName: string;
   lastName: string;
-  schoolId: UUID;
-  roleId: UUID;
   profileMediaId: UUID | null;
   credits: { balance: number; locked: number };
 }
 interface User extends UserBase {
   profileMedia: Media | null;
-  school: School;
-  role: Role;
+  schools: School[];
 }
 
 type PublicUser = Omit<User, "phone" | "credits">;

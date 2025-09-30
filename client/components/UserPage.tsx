@@ -55,10 +55,7 @@ export default function UserPage({
               {user.firstName} {user.lastName}
             </Text>
             <Text className="text-main-text text-xl font-light">
-              {user.school.name}
-            </Text>
-            <Text className="text-secondary-text font-light text-lg">
-              {user.role.name}
+              {user.schools.map((s) => s.name).join(", ")}
             </Text>
           </View>
         </View>
@@ -110,7 +107,8 @@ export default function UserPage({
             <MyPendingList
               type="waiting-acceptance"
               filterUserId={user.id}
-              resultsCount={(count) =>
+              resultsCount={pendingCount["waiting-acceptance"]}
+              setResultsCount={(count) =>
                 setPendingCount((prev) => ({
                   ...prev,
                   "waiting-acceptance": count,
@@ -125,7 +123,8 @@ export default function UserPage({
             <MyPendingList
               type="to-receive"
               filterUserId={user.id}
-              resultsCount={(count) =>
+              resultsCount={pendingCount["to-receive"]}
+              setResultsCount={(count) =>
                 setPendingCount((prev) => ({
                   ...prev,
                   "to-receive": count,
@@ -135,7 +134,8 @@ export default function UserPage({
             <MyPendingList
               type="to-accept"
               filterUserId={user.id}
-              resultsCount={(count) =>
+              resultsCount={pendingCount["to-accept"]}
+              setResultsCount={(count) =>
                 setPendingCount((prev) => ({
                   ...prev,
                   "to-accept": count,
@@ -150,7 +150,8 @@ export default function UserPage({
             <MyPendingList
               type="to-deliver"
               filterUserId={user.id}
-              resultsCount={(count) =>
+              resultsCount={pendingCount["to-deliver"]}
+              setResultsCount={(count) =>
                 setPendingCount((prev) => ({
                   ...prev,
                   "to-deliver": count,
@@ -164,7 +165,7 @@ export default function UserPage({
   ];
 
   return (
-    <MainView safeBottom>
+    <MainView safeBottom={canGoBack}>
       <AvoidingKeyboard>
         <FlatList
           data={sections.filter((s) => s.show !== false)}

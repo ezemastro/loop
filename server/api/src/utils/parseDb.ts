@@ -70,12 +70,6 @@ export const parseMediaToDb = ({
     uploaded_by: userId,
   };
 };
-export const parseRoleFromDb = (row: DB_Roles): Role => {
-  return {
-    id: row.id,
-    name: row.name,
-  };
-};
 export const parseUserBaseFromDb = (row: DB_Users): UserBase => {
   return {
     id: row.id,
@@ -83,8 +77,6 @@ export const parseUserBaseFromDb = (row: DB_Users): UserBase => {
     firstName: row.first_name,
     lastName: row.last_name,
     phone: row.phone,
-    schoolId: row.school_id,
-    roleId: row.role_id,
     profileMediaId: row.profile_media_id,
     credits: {
       balance: Number(row.credits_balance),
@@ -95,37 +87,32 @@ export const parseUserBaseFromDb = (row: DB_Users): UserBase => {
 export const parsePrivateUserFromBase = ({
   user,
   profileMedia,
-  school,
-  role,
+  schools,
 }: {
   user: UserBase;
   profileMedia: Media | null;
-  school: School;
-  role: Role;
+  schools: School[];
 }): PrivateUser => {
   return {
     ...user,
     profileMedia,
-    school,
-    role,
+    schools,
   };
 };
+
 export const parsePublicUserFromBase = ({
   user,
   profileMedia,
-  school,
-  role,
+  schools,
 }: {
   user: UserBase;
   profileMedia: Media | null;
-  school: School;
-  role: Role;
+  schools: School[];
 }): PublicUser => {
   return {
     ...user,
     profileMedia,
-    school,
-    role,
+    schools,
   };
 };
 export const parseUserMissionBaseFromDb = (

@@ -64,13 +64,18 @@ export class ListingsModel {
       const totalRecords = safeNumber(listingsSearchDb[0]?.total_records) ?? 0;
       const listingsBase = listingsSearchDb.map(parseListingBaseFromDb);
       const listings = await Promise.all(
-        listingsBase.map(async (listingBase) =>
-          parseListingFromBase({
+        listingsBase.map(async (listingBase) => {
+          const seller = await getUserById({
+            client,
+            userId: listingBase.sellerId,
+          });
+          const buyer = listingBase.buyerId
+            ? await getUserById({ client, userId: listingBase.buyerId })
+            : null;
+          return parseListingFromBase({
             listing: listingBase,
-            buyer: listingBase.buyerId
-              ? await getUserById({ client, userId: listingBase.buyerId })
-              : null,
-            seller: await getUserById({ client, userId: listingBase.sellerId }),
+            buyer,
+            seller,
             category: await getCategoryById({
               client,
               categoryId: listingBase.categoryId,
@@ -79,8 +84,8 @@ export class ListingsModel {
               client,
               listingId: listingBase.id,
             }),
-          }),
-        ),
+          });
+        }),
       );
       return {
         listings,

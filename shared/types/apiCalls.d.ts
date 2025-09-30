@@ -43,8 +43,7 @@ interface PostAuthRegisterRequest {
     lastName: string;
     email: string;
     password: string;
-    schoolId: UUID;
-    roleId: UUID;
+    schoolIds: UUID[];
   };
 }
 type PostAuthRegisterResponse = ApiResponse<{
@@ -70,7 +69,7 @@ type GetSelfResponse = ApiResponse<{
 
 // PATCH /me
 interface PatchSelfRequest extends AuthApiRequest {
-  body: Partial<PrivateUser>;
+  body: Partial<PrivateUser> & { password?: string; schoolIds?: UUID[] };
 }
 type PatchSelfResponse = ApiResponse<{
   user: UserBase;
@@ -141,7 +140,6 @@ type GetUserByIdResponse = ApiResponse<{
 interface GetUsersRequest {
   query?: PaginationParams & {
     searchTerm?: string;
-    roleId?: UUID;
     schoolId?: UUID;
     userId?: UUID;
   };
@@ -167,16 +165,6 @@ interface GetSchoolByIdRequest {
 }
 type GetSchoolByIdResponse = ApiResponse<{
   school: School;
-}>;
-
-// GET /roles
-interface GetRolesRequest {
-  query?: PaginationParams & {
-    searchTerm?: string;
-  };
-}
-type GetRolesResponse = PaginatedApiResponse<{
-  roles: Role[];
 }>;
 
 // GET /categories
