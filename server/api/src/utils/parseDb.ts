@@ -360,3 +360,11 @@ export const parseMessageFromBase = ({
     attachedListing: listing ? listing : null,
   };
 };
+
+export const parseAdminFromDb = (row: DB_Admin): Admin => {
+  return {
+    id: row.id,
+    email: row.email,
+    password: row.password,
+  };
+};

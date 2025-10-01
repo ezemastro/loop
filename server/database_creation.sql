@@ -119,6 +119,12 @@ CREATE TABLE "messages"(
     "is_read" boolean DEFAULT FALSE NOT NULL,
     "created_at" TIMESTAMP(0) default NOW() NOT NULL
 );
+CREATE TABLE "admins"(
+    "id" UUID default gen_random_uuid() primary key,
+    "username" TEXT NOT NULL unique,
+    "password" TEXT not null,
+    "created_at" TIMESTAMP(0) default NOW() NOT NULL
+);
 ALTER TABLE
     categories ADD CONSTRAINT "categories_parent_id_foreign" FOREIGN KEY("parent_id") REFERENCES "categories"("id");
 ALTER TABLE

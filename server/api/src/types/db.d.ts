@@ -135,3 +135,10 @@ interface DB_Messages {
 interface DB_Pagination {
   total_records: DbNumber;
 }
+
+interface DB_Admin {
+  id: UUID;
+  email: string;
+  password: string;
+  created_at: ISODateString;
+}

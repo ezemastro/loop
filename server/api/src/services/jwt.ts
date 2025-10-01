@@ -1,9 +1,9 @@
 import jwt from "jsonwebtoken";
-import { JWT_SECRET, TOKEN_EXP } from "../config";
+import { JWT_SECRET, TOKEN_EXP, ADMIN_TOKEN_EXP } from "../config";
 export const generateToken = ({ userId }: { userId: string }) => {
   const payload = { userId };
   const token = jwt.sign(payload, JWT_SECRET as string, {
-    expiresIn: (TOKEN_EXP as jwt.SignOptions["expiresIn"]) || "30d",
+    expiresIn: (TOKEN_EXP as number) || "30d",
   });
   return token;
 };
@@ -16,4 +16,11 @@ export const parseToken = (token: string) => {
   } catch {
     throw new Error("Invalid token");
   }
+};
+export const generateAdminToken = ({ id }: { id: string }) => {
+  const payload = { id };
+  const token = jwt.sign(payload, JWT_SECRET as string, {
+    expiresIn: (ADMIN_TOKEN_EXP as number) || "30m",
+  });
+  return token;
 };

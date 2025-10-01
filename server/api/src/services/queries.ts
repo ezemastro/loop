@@ -417,4 +417,8 @@ export const queries = {
     "missionsTemplates.all",
     `SELECT * FROM mission_templates`,
   ),
+  adminByEmail: q<DB_Admin>(
+    "admin.byEmail",
+    `SELECT * FROM admins WHERE email = $1`,
+  ),
 } as const;

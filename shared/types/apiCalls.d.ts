@@ -344,3 +344,22 @@ interface PostMessageReadRequest extends AuthRequest {
 type PostMessageReadResponse = ApiResponse;
 
 // TODO - Implementar rutas de Administrador
+// POST /admin/login
+interface PostAdminLoginRequest {
+  body: {
+    email: string;
+    password: string;
+  };
+}
+type PostAdminLoginResponse = ApiResponse
+
+// POST /admin/schools
+interface PostAdminSchoolsRequest {
+  body: {
+    name: string;
+    mediaId: UUID;
+  };
+}
+type PostAdminSchoolsResponse = ApiResponse<{
+  school: School;
+}>;

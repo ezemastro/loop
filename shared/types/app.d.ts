@@ -213,3 +213,9 @@ interface UserMessage extends UserMessageBase {
   lastMessage: Message;
   user: PublicUser;
 }
+
+interface Admin {
+  id: UUID;
+  email: string;
+  password: string;
+}

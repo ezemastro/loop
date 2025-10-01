@@ -10,7 +10,8 @@ export const {
   POSTGRES_PASSWORD: DB_PASSWORD,
   PORT = 3000,
   JWT_SECRET,
-  TOKEN_EXP = "30d",
+  TOKEN_EXP = 30 * 24 * 60 * 60, // 30 días
+  ADMIN_TOKEN_EXP = 30 * 60, // 30 minutos
   UPLOAD_DIR = "/uploads",
   BASE_URL = "http://localhost:3000",
 } = process.env;
@@ -62,8 +63,14 @@ export const cookieOptions = {
   secure: process.env.NODE_ENV === "production",
   maxAge: 30 * 24 * 60 * 60 * 1000, // 30 días
 };
+export const adminCookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  maxAge: 30 * 60 * 1000, // 30 minutos
+};
 export const COOKIE_NAMES = {
   TOKEN: "token",
+  ADMIN_TOKEN: "admin_token",
 };
 export const PAGE_SIZE = 10;
 
