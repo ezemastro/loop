@@ -15,11 +15,13 @@ export default function UserSelectorModal({
     <ResourceSelectorModal<User>
       isVisible={isVisible}
       onClose={onClose}
-      onSelect={onSelect}
+      onSelect={(user) => onSelect(user as User)}
       title="Seleccione un usuario"
       useResource={useUsers}
       renderItem={(user) => <User user={user} />}
-      getItems={(data) => data?.pages.flatMap((page: any) => page.users) || []}
+      getItems={(data) =>
+        data?.pages.flatMap((page: any) => page.data.users) || []
+      }
       getTotal={(data) => data?.pages[0].pagination.totalRecords}
       filterItems={(items, searchTerm) =>
         items.filter((i) =>

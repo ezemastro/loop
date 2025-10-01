@@ -63,4 +63,28 @@ export class UsersController {
     }
     res.status(200).json(successResponse({ data: { user } }));
   };
+
+  static donate = async (req: Request, res: Response, next: NextFunction) => {
+    const { userId: toUserId } = req.params;
+    const userId = req.session!.userId!;
+    const { amount } = req.body;
+    try {
+      validateId(toUserId);
+      if (typeof amount !== "number" || amount <= 0) {
+        throw new Error();
+      }
+    } catch {
+      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+    }
+    try {
+      await UsersModel.donate({
+        fromUserId: userId!,
+        toUserId: toUserId!,
+        amount,
+      });
+    } catch (err) {
+      return next(err);
+    }
+    res.status(200).json(successResponse());
+  };
 }

@@ -11,6 +11,7 @@ import ButtonText from "./bases/ButtonText";
 import CustomRefresh from "./CustomRefresh";
 import { useSessionStore } from "@/stores/session";
 import MyPendingList from "./MyPendingList";
+import DonateModal from "./modals/DonateModal";
 
 interface Section {
   key: string;
@@ -28,6 +29,7 @@ export default function UserPage({
   isCurrentUser: boolean;
   canGoBack?: boolean;
 }) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const logout = useSessionStore((state) => state.logout);
   const [pendingCount, setPendingCount] = useState<{
     "to-receive": number;
@@ -78,12 +80,19 @@ export default function UserPage({
       show: isCurrentUser,
       title: "Loopies:",
       component: () => (
-        <View className="px-2 flex-row items-center justify-center gap-4">
-          <CreditIcon className="text-main-text" size={44} />
-          <Text className="text-credits text-3xl">
-            {formatNumber((user as PrivateUser).credits.balance)}
-          </Text>
-          {/* TODO - Agregar botón para transferir */}
+        <View className="gap-4">
+          <View className="px-2 flex-row items-center justify-center gap-4">
+            <CreditIcon className="text-main-text" size={44} />
+            <Text className="text-credits text-3xl">
+              {formatNumber((user as PrivateUser).credits.balance)}
+            </Text>
+          </View>
+          <CustomButton
+            className="self-center w-1/2"
+            onPress={() => setIsModalOpen(true)}
+          >
+            <ButtonText>Donar</ButtonText>
+          </CustomButton>
         </View>
       ),
     },
@@ -167,6 +176,10 @@ export default function UserPage({
   return (
     <MainView safeBottom={canGoBack}>
       <AvoidingKeyboard>
+        <DonateModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
         <FlatList
           data={sections.filter((s) => s.show !== false)}
           className="flex-grow"

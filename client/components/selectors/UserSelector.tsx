@@ -22,7 +22,6 @@ export default function UserSelector({
     onChange?.(user);
     closeModal();
   };
-
   return (
     <View>
       <Pressable

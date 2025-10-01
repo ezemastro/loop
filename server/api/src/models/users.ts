@@ -4,7 +4,7 @@ import { dbConnection } from "../services/postgresClient";
 import { queries } from "../services/queries";
 import type { DatabaseClient } from "../types/dbClient";
 import { getUserById } from "../utils/helpersDb";
-import { parsePagination } from "../utils/parseDb";
+import { parsePagination, parseUserBaseFromDb } from "../utils/parseDb";
 import { safeNumber } from "../utils/safeNumber";
 import { getOrderValue, getSortValue } from "../utils/sortOptions";
 
@@ -68,6 +68,64 @@ export class UsersModel {
         throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
       }
       return { user };
+    } finally {
+      client.release();
+    }
+  };
+
+  static donate = async ({
+    fromUserId,
+    toUserId,
+    amount,
+  }: {
+    fromUserId: string;
+    toUserId: string;
+    amount: number;
+  }) => {
+    // Obtener conexión a la base de datos
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      // Verificar que no se está donando a uno mismo
+      if (fromUserId === toUserId) {
+        throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+      }
+      // Verificar que el usuario al que se dona existe
+      const [toUserDb] = await client.query(queries.userById, [toUserId]);
+      if (!toUserDb) {
+        throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
+      }
+      const toUser = parseUserBaseFromDb(toUserDb);
+      // Obtener el usuario que dona
+      const [fromUserDb] = await client.query(queries.userById, [fromUserId]);
+      if (!fromUserDb) {
+        throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
+      }
+      const fromUser = parseUserBaseFromDb(fromUserDb);
+      // Verificar que el usuario que dona tiene saldo suficiente
+      if (fromUser.credits.balance < amount) {
+        throw new InvalidInputError(ERROR_MESSAGES.INSUFFICIENT_CREDITS);
+      }
+      // Realizar la donación en una transacción
+      await client.begin();
+      await client.query(queries.updateUserBalance, [
+        fromUser.credits.balance - amount,
+        fromUser.credits.locked,
+        fromUserId,
+      ]);
+      await client.query(queries.updateUserBalance, [
+        toUser.credits.balance + amount,
+        toUser.credits.locked,
+        toUserId,
+      ]);
+      await client.commit();
+    } catch (err) {
+      await client.rollback();
+      throw err;
     } finally {
       client.release();
     }

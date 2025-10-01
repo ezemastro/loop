@@ -148,6 +148,17 @@ type GetUsersResponse = PaginatedApiResponse<{
   users: PrivateUser[];
 }>;
 
+// POST /users/:userId/donate
+interface PostUserDonateRequest extends AuthApiRequest {
+  params: {
+    userId: UUID;
+  };
+  body: {
+    amount: number;
+  };
+}
+type PostUserDonateResponse = ApiResponse;
+
 // GET /schools
 interface GetSchoolsRequest {
   query?: PaginationParams & {

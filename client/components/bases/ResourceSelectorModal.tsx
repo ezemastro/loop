@@ -78,7 +78,6 @@ export default function ResourceSelectorModal<T>({
       setSelectedItems([...selectedItems, item]);
     }
   };
-
   return (
     <CustomModal isVisible={isVisible} handleClose={onClose}>
       <View className="bg-background rounded p-4 py-6 w-full h-3/4 gap-5">
