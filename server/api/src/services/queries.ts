@@ -421,4 +421,8 @@ export const queries = {
     "admin.byEmail",
     `SELECT * FROM admins WHERE email = $1`,
   ),
+  createAdmin: q<DB_Admin>(
+    "admin.create",
+    `INSERT INTO admins (email, password) VALUES ($1, $2) RETURNING *`,
+  ),
 } as const;

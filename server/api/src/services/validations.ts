@@ -360,3 +360,10 @@ const adminLoginSchema = z.object({
 });
 export const validateAdminLogin = (data: unknown) =>
   adminLoginSchema.parseAsync(data);
+const adminRegisterSchema = z.object({
+  email: emailSchema,
+  password: z.string().min(8).max(100),
+  passToken: z.string().min(1).max(100),
+});
+export const validateAdminRegister = (data: unknown) =>
+  adminRegisterSchema.parseAsync(data);

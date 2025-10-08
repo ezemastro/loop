@@ -8,6 +8,7 @@ declare global {
       };
       session?: {
         userId: string;
+        isAdmin?: boolean;
       };
     }
   }

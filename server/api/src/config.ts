@@ -11,6 +11,7 @@ export const {
   PORT = 3000,
   JWT_SECRET,
   TOKEN_EXP = 30 * 24 * 60 * 60, // 30 días
+  ADMIN_PASS_TOKEN,
   ADMIN_TOKEN_EXP = 30 * 60, // 30 minutos
   UPLOAD_DIR = "/uploads",
   BASE_URL = "http://localhost:3000",

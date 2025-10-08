@@ -5,3 +5,4 @@ export const adminRouter = Router();
 
 // Admin session
 adminRouter.post("/login", AdminController.login);
+adminRouter.post("/register", AdminController.register);

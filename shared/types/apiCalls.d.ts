@@ -352,6 +352,15 @@ interface PostAdminLoginRequest {
   };
 }
 type PostAdminLoginResponse = ApiResponse
+// POST /admin/register
+interface PostAdminRegisterRequest {
+  body: {
+    email: string;
+    password: string;
+    passToken: string;
+  };
+}
+type PostAdminRegisterResponse = ApiResponse
 
 // POST /admin/schools
 interface PostAdminSchoolsRequest {
