@@ -39,5 +39,3 @@ yarn-error.*
 # pre build
 android/
 ios/
-
-google-services.json

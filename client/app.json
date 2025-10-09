@@ -23,7 +23,8 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.reditinere.loop",
-      "softwareKeyboardLayoutMode": "adjustResize"
+      "softwareKeyboardLayoutMode": "adjustResize",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -31,6 +32,7 @@
       "favicon": "./assets/loop.png"
     },
     "plugins": [
+      "expo-notifications",
       "expo-router",
       "expo-font",
       "expo-web-browser",
