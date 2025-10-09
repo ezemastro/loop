@@ -125,6 +125,13 @@ type GetSelfMessagesUnreadRequest = AuthApiRequest;
 type GetSelfMessagesUnreadResponse = ApiResponse<{
   unreadChatsCount: number;
 }>;
+// POST /me/notification-token
+interface PostSelfNotificationTokenRequest extends AuthApiRequest {
+  body: {
+    notificationToken: string;
+  };
+}
+type PostSelfNotificationTokenResponse = ApiResponse;
 
 // GET /users/:id
 interface GetUserByIdRequest {

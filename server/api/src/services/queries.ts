@@ -425,4 +425,12 @@ export const queries = {
     "admin.create",
     `INSERT INTO admins (email, password) VALUES ($1, $2) RETURNING *`,
   ),
+  createNotification: q<void>(
+    "notifications.create",
+    `INSERT INTO notifications (user_id, type, payload, is_read) VALUES ($1, $2, $3, FALSE)`,
+  ),
+  updateNotificationToken: q<void>(
+    "notifications.updateToken",
+    `UPDATE users SET notification_token = $1 WHERE id = $2`,
+  ),
 } as const;

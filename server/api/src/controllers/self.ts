@@ -5,6 +5,7 @@ import {
   validateGetSelfMessagesRequest,
   validateGetSelfNotificationsRequest,
   validateUpdateSelf,
+  validateUpdateTokenRequest,
 } from "../services/validations";
 import { InvalidInputError } from "../services/errors";
 import { ERROR_MESSAGES } from "../config";
@@ -228,5 +229,24 @@ export class SelfController {
       return next(err);
     }
     res.status(200).json(successResponse({ data: { unreadChatsCount } }));
+  };
+  static updateNotificationToken = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const { userId } = req.session!;
+    const { notificationToken } = req.body as { notificationToken: string };
+    try {
+      await validateUpdateTokenRequest(req.body);
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    try {
+      await SelfModel.updateNotificationToken({ userId, notificationToken });
+    } catch (err) {
+      return next(err);
+    }
+    res.status(204).send(successResponse());
   };
 }

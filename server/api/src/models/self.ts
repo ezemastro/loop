@@ -406,4 +406,32 @@ export class SelfModel {
       client.release();
     }
   };
+  static updateNotificationToken = async ({
+    userId,
+    notificationToken,
+  }: {
+    userId: string;
+    notificationToken: string | null;
+  }) => {
+    // Crear conexión a la base de datos
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      // Actualizar token de notificaciones push del usuario
+      try {
+        await client.query(queries.updateNotificationToken, [
+          notificationToken,
+          userId,
+        ]);
+      } catch {
+        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+      }
+    } finally {
+      client.release();
+    }
+  };
 }

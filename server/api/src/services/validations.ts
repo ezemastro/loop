@@ -352,6 +352,11 @@ export const validateGetSelfNotificationsRequest = (data: unknown) =>
 const getSelfMessagesRequestQuery = paginatedQuery;
 export const validateGetSelfMessagesRequest = (data: unknown) =>
   getSelfMessagesRequestQuery.parseAsync(data);
+const updateTokenRequestBody = z.object({
+  notificationToken: z.string().min(1).max(500),
+});
+export const validateUpdateTokenRequest = (data: unknown) =>
+  updateTokenRequestBody.parseAsync(data);
 
 // ADMIN
 const adminLoginSchema = z.object({
