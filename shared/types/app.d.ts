@@ -22,7 +22,6 @@ interface Media {
   mediaType: MediaType;
 }
 
-
 interface SchoolBase {
   id: UUID;
   name: string;
@@ -41,6 +40,7 @@ interface UserBase {
   lastName: string;
   profileMediaId: UUID | null;
   credits: { balance: number; locked: number };
+  stats: { kgWaste: number | null; kgCo2: number | null; lH2o: number | null };
 }
 interface User extends UserBase {
   profileMedia: Media | null;

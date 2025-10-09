@@ -2,7 +2,10 @@ CREATE TABLE "schools"(
     "id" UUID default gen_random_uuid() primary key,
     "name" TEXT NOT null unique,
     "media_id" UUID NOT NULL,
-    "meta" jsonb NULL
+    "meta" jsonb NULL,
+    "stat_kg_waste" FLOAT(53),
+    "stat_kg_co2" FLOAT(53),
+    "stat_l_h2o" FLOAT(53)
 );
 CREATE TABLE "users"(
     "id" UUID default gen_random_uuid() primary key,
@@ -15,7 +18,11 @@ CREATE TABLE "users"(
     "credits_balance" BIGINT default 0 NOT NULL,
     "credits_locked" BIGINT default 0 NOT NULL,
     "created_at" TIMESTAMP(0) default NOW() NOT NULL,
-    "updated_at" TIMESTAMP(0)
+    "updated_at" TIMESTAMP(0),
+    "notification_token" TEXT,
+    "stat_kg_waste" FLOAT(53),
+    "stat_kg_co2" FLOAT(53),
+    "stat_l_h2o" FLOAT(53)
 );
 CREATE TABLE "user_schools"(
     "id" UUID default gen_random_uuid() primary key,
@@ -106,7 +113,7 @@ CREATE TABLE "notifications"(
     "user_id" UUID NOT NULL,
     "type" notification_type NOT NULL,
     "payload" jsonb NOT NULL,
-    "is_read" BOOLEAN NOT NULL,
+    "is_read" BOOLEAN NOT NULL DEFAULT FALSE,
     "read_at" TIMESTAMP(0),
     "created_at" TIMESTAMP(0) default NOW() NOT NULL
 );
@@ -125,6 +132,15 @@ CREATE TABLE "admins"(
     "password" TEXT not null,
     "created_at" TIMESTAMP(0) default NOW() NOT NULL
 );
+CREATE TABLE "global_stats" (
+    "id" UUID default gen_random_uuid() primary key,
+    "stat_name" TEXT NOT NULL,
+    "stat_value" FLOAT(53) NOT NULL
+);
+INSERT INTO "global_stats" ("stat_name", "stat_value") VALUES
+    ('total_kg_waste', 0),
+    ('total_kg_co2', 0),
+    ('total_l_h2o', 0);
 ALTER TABLE
     categories ADD CONSTRAINT "categories_parent_id_foreign" FOREIGN KEY("parent_id") REFERENCES "categories"("id");
 ALTER TABLE

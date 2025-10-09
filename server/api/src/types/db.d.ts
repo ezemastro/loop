@@ -17,6 +17,9 @@ interface DB_Schools {
   name: string;
   media_id: UUID;
   meta: JsonObject | null;
+  stat_kg_waste: DbNumber | null;
+  stat_kg_co2: DbNumber | null;
+  stat_l_h2o: DbNumber | null;
 }
 interface DB_Users {
   id: UUID;
@@ -30,6 +33,10 @@ interface DB_Users {
   credits_locked: DbNumber;
   created_at: ISODateString;
   updated_at: ISODateString | null;
+  notification_token: string | null;
+  stat_kg_waste: DbNumber | null;
+  stat_kg_co2: DbNumber | null;
+  stat_l_h2o: DbNumber | null;
 }
 interface DB_UserSchools {
   id: UUID;

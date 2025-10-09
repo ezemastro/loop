@@ -82,6 +82,11 @@ export const parseUserBaseFromDb = (row: DB_Users): UserBase => {
       balance: Number(row.credits_balance),
       locked: Number(row.credits_locked),
     },
+    stats: {
+      kgWaste: row.stat_kg_waste ? Number(row.stat_kg_waste) : null,
+      kgCo2: row.stat_kg_co2 ? Number(row.stat_kg_co2) : null,
+      lH2o: row.stat_l_h2o ? Number(row.stat_l_h2o) : null,
+    },
   };
 };
 export const parsePrivateUserFromBase = ({
