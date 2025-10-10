@@ -373,3 +373,24 @@ export const parseAdminFromDb = (row: DB_Admin): Admin => {
     fullName: row.full_name,
   };
 };
+
+export const parseUserWhishFromDb = (row: DB_UsersWhishes): UserWhishBase => {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    categoryId: row.category_id,
+    comment: row.comment,
+  };
+};
+export const parseUserWhishFromBase = ({
+  userWhish,
+  category,
+}: {
+  userWhish: UserWhishBase;
+  category: Category;
+}): UserWhish => {
+  return {
+    ...userWhish,
+    category,
+  };
+};

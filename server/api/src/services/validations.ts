@@ -358,6 +358,13 @@ const updateTokenRequestBody = z.object({
 export const validateUpdateTokenRequest = (data: unknown) =>
   updateTokenRequestBody.parseAsync(data);
 
+const putSelfWhishRequest = z.object({
+  whishId: z.uuid(),
+  comment: z.string().max(300).nullable(),
+});
+export const validatePutSelfWhishRequest = (data: unknown) =>
+  putSelfWhishRequest.parseAsync(data);
+
 // ADMIN
 const adminLoginSchema = z.object({
   username: z.string().min(3).max(50),

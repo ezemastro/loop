@@ -498,4 +498,20 @@ export const queries = {
     "admin.getSchoolStats",
     `SELECT id, name, stat_kg_waste, stat_kg_co2, stat_l_h2o FROM schools ORDER BY name ASC`,
   ),
+  getUserWhishesByUserId: q<DB_UsersWhishes>(
+    "userWhishes.byUserId",
+    `SELECT * FROM users_whishes WHERE user_id = $1`,
+  ),
+  addUserWhish: q<DB_UsersWhishes>(
+    "userWhishes.add",
+    `INSERT INTO users_whishes (user_id, category_id) VALUES ($1, $2) RETURNING *`,
+  ),
+  removeUserWhish: q<void>(
+    "userWhishes.remove",
+    `DELETE FROM users_whishes WHERE user_id = $1 AND category_id = $2`,
+  ),
+  updateUserWhishComment: q<void>(
+    "userWhishes.updateComment",
+    `UPDATE users_whishes SET comment = $1 WHERE user_id = $2 AND id = $3`,
+  ),
 } as const;

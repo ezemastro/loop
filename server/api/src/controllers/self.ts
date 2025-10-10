@@ -1,9 +1,11 @@
 import { SelfModel } from "../models/self";
 import type { Response, Request, NextFunction } from "express";
 import {
+  safeValidateUUID,
   validateGetSelfListingsRequest,
   validateGetSelfMessagesRequest,
   validateGetSelfNotificationsRequest,
+  validatePutSelfWhishRequest,
   validateUpdateSelf,
   validateUpdateTokenRequest,
 } from "../services/validations";
@@ -244,6 +246,91 @@ export class SelfController {
     }
     try {
       await SelfModel.updateNotificationToken({ userId, notificationToken });
+    } catch (err) {
+      return next(err);
+    }
+    res.status(204).send(successResponse());
+  };
+
+  static addSelfWhish = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const { userId } = req.session!;
+    const { categoryId } = req.body as PostSelfWhishRequest["body"];
+    // Validar categoryId
+    try {
+      const res = await safeValidateUUID(categoryId);
+      if (res.success === false) throw new Error();
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    let userWhish: UserWhish;
+    try {
+      ({ userWhish } = await SelfModel.addSelfWhish({ userId, categoryId }));
+    } catch (err) {
+      return next(err);
+    }
+    res.status(201).send(successResponse({ data: { userWhish } }));
+  };
+
+  static deleteSelfWhish = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const { userId } = req.session!;
+    const { categoryId } = req.params as DeleteSelfWhishRequest["params"];
+    // Validar categoryId
+    try {
+      const res = await safeValidateUUID(categoryId);
+      if (res.success === false) throw new Error();
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    try {
+      await SelfModel.deleteSelfWhish({ userId, categoryId });
+    } catch (err) {
+      return next(err);
+    }
+    res.status(204).send(successResponse());
+  };
+
+  static getSelfWhishes = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const { userId } = req.session!;
+    let userWhishes: UserWhish[];
+    try {
+      ({ userWhishes } = await SelfModel.getSelfWhishes({ userId }));
+    } catch (err) {
+      return next(err);
+    }
+    res.status(200).send(successResponse({ data: { userWhishes } }));
+  };
+
+  static modifySelfWhishComment = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const { userId } = req.session!;
+    const { whishId } = req.params as PutSelfWhishRequest["params"];
+    const { comment } = req.body as PutSelfWhishRequest["body"];
+    try {
+      await validatePutSelfWhishRequest({ whishId, comment });
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    try {
+      await SelfModel.modifyWhishComment({
+        userId,
+        whishId,
+        comment,
+      });
     } catch (err) {
       return next(err);
     }

@@ -132,6 +132,39 @@ interface PostSelfNotificationTokenRequest extends AuthApiRequest {
   };
 }
 type PostSelfNotificationTokenResponse = ApiResponse;
+// POST /me/whishes
+interface PostSelfWhishRequest extends AuthApiRequest {
+  body: {
+    categoryId: UUID;
+  };
+}
+type PostSelfWhishResponse = ApiResponse<{
+  userWhish: UserWhish;
+}>;
+// DELETE /me/whishes/:categoryId
+interface DeleteSelfWhishRequest extends AuthApiRequest {
+  params: {
+    categoryId: UUID;
+  };
+}
+type DeleteSelfWhishResponse = ApiResponse;
+// GET /me/whishes
+type GetSelfWhishesRequest = AuthApiRequest;
+type GetSelfWhishesResponse = ApiResponse<{
+  userWhishes: UserWhish[];
+}>;
+// PUT /me/whishes/:whishId
+interface PutSelfWhishRequest extends AuthApiRequest {
+  params: {
+    whishId: UUID;
+  };
+  body: {
+    comment: string | null;
+  };
+}
+type PutSelfWhishResponse = ApiResponse<{
+  userWhish: UserWhish;
+}>;
 
 // GET /users/:id
 interface GetUserByIdRequest {
@@ -153,6 +186,16 @@ interface GetUsersRequest {
 }
 type GetUsersResponse = PaginatedApiResponse<{
   users: PrivateUser[];
+}>;
+
+// GET /users/:userId/whishes
+interface GetUserWhishesRequest {
+  params: {
+    userId: UUID;
+  };
+}
+type GetUserWhishesResponse = ApiResponse<{
+  userWhishes: UserWhish[];
 }>;
 
 // POST /users/:userId/donate

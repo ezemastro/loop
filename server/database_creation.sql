@@ -142,6 +142,17 @@ INSERT INTO "global_stats" ("stat_name", "stat_value") VALUES
     ('total_kg_waste', 0),
     ('total_kg_co2', 0),
     ('total_l_h2o', 0);
+CREATE TABLE "users_whishes" (
+    "id" UUID default gen_random_uuid() primary key,
+    "user_id" UUID NOT NULL,
+    "category_id" UUID NOT NULL,
+    "comment" TEXT,
+    UNIQUE("user_id", "category_id")
+);
+ALTER TABLE
+    users_whishes ADD CONSTRAINT "users_whishes_user_id_foreign" FOREIGN KEY("user_id") REFERENCES "users"("id");
+ALTER TABLE
+    users_whishes ADD CONSTRAINT "users_whishes_category_id_foreign" FOREIGN KEY("category_id") REFERENCES "categories"("id");
 ALTER TABLE
     categories ADD CONSTRAINT "categories_parent_id_foreign" FOREIGN KEY("parent_id") REFERENCES "categories"("id");
 ALTER TABLE

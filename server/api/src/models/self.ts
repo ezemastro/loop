@@ -28,6 +28,8 @@ import {
   parseListingFromBase,
   parsePagination,
   parseUserBaseFromDb,
+  parseUserWhishFromBase,
+  parseUserWhishFromDb,
 } from "../utils/parseDb";
 import { safeNumber } from "../utils/safeNumber";
 import { getOrderValue, getSortValue } from "../utils/sortOptions";
@@ -430,6 +432,127 @@ export class SelfModel {
       } catch {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
       }
+    } finally {
+      client.release();
+    }
+  };
+
+  static getSelfWhishes = async ({ userId }: { userId: UUID }) => {
+    // Crear conexión a la base de datos
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      // Obtener deseos del usuario
+      const whishesDb = await client.query(queries.getUserWhishesByUserId, [
+        userId,
+      ]);
+      const userWhishesBase = whishesDb.map(parseUserWhishFromDb);
+      const userWhishes = await Promise.all(
+        userWhishesBase.map(async (userWhishBase) => {
+          return parseUserWhishFromBase({
+            userWhish: userWhishBase,
+            category: await getCategoryById({
+              client,
+              categoryId: userWhishBase.categoryId,
+            }),
+          });
+        }),
+      );
+      return { userWhishes };
+    } finally {
+      client.release();
+    }
+  };
+
+  static addSelfWhish = async ({
+    userId,
+    categoryId,
+  }: {
+    userId: UUID;
+    categoryId: UUID;
+  }) => {
+    // Crear conexión a la base de datos
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      // Agregar deseo del usuario
+      const result = await client.query(queries.addUserWhish, [
+        userId,
+        categoryId,
+      ]);
+      const userWhishBase = parseUserWhishFromDb(result[0]!);
+      const userWhish = parseUserWhishFromBase({
+        userWhish: userWhishBase,
+        category: await getCategoryById({
+          client,
+          categoryId: userWhishBase.categoryId,
+        }),
+      });
+      return { userWhish };
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+    } finally {
+      client.release();
+    }
+  };
+
+  static deleteSelfWhish = async ({
+    userId,
+    categoryId,
+  }: {
+    userId: UUID;
+    categoryId: UUID;
+  }) => {
+    // Crear conexión a la base de datos
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      // Eliminar deseo del usuario
+      await client.query(queries.removeUserWhish, [userId, categoryId]);
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+    } finally {
+      client.release();
+    }
+  };
+
+  static modifyWhishComment = async ({
+    userId,
+    whishId,
+    comment,
+  }: {
+    userId: UUID;
+    whishId: UUID;
+    comment: string | null;
+  }) => {
+    // Crear conexión a la base de datos
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      // Actualizar comentario del deseo del usuario
+      await client.query(queries.updateUserWhishComment, [
+        comment,
+        userId,
+        whishId,
+      ]);
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
     } finally {
       client.release();
     }

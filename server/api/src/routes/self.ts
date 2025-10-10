@@ -17,3 +17,8 @@ selfRouter.post("/notifications/read-all", SelfController.readAllNotifications);
 selfRouter.get("/messages", SelfController.getSelfChats);
 selfRouter.get("/messages/unread", SelfController.getSelfChatsUnread);
 selfRouter.post("/notification-token", SelfController.updateNotificationToken);
+
+selfRouter.get("/whishes", SelfController.getSelfWhishes);
+selfRouter.post("/whishes", SelfController.addSelfWhish);
+selfRouter.delete("/whishes/:categoryId", SelfController.deleteSelfWhish);
+selfRouter.put("/whishes/:whishId", SelfController.modifySelfWhishComment);

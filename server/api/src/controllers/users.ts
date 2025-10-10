@@ -87,4 +87,24 @@ export class UsersController {
     }
     res.status(200).json(successResponse());
   };
+
+  static getUserWhishes = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const { userId } = req.params as GetUserWhishesRequest["params"];
+    try {
+      await validateId(userId);
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    let userWhishes: UserWhish[];
+    try {
+      ({ userWhishes } = await UsersModel.getUserWhishes({ userId }));
+    } catch (err) {
+      return next(err);
+    }
+    res.status(200).send(successResponse({ data: { userWhishes } }));
+  };
 }

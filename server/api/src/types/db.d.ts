@@ -156,3 +156,10 @@ interface DB_GlobalStats {
   stat_name: string;
   stat_value: DbNumber;
 }
+
+interface DB_UsersWhishes {
+  id: UUID;
+  user_id: UUID;
+  category_id: UUID;
+  comment: string | null;
+}

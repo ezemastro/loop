@@ -3,8 +3,13 @@ import { InternalServerError, InvalidInputError } from "../services/errors";
 import { dbConnection } from "../services/postgresClient";
 import { queries } from "../services/queries";
 import type { DatabaseClient } from "../types/dbClient";
-import { getUserById } from "../utils/helpersDb";
-import { parsePagination, parseUserBaseFromDb } from "../utils/parseDb";
+import { getCategoryById, getUserById } from "../utils/helpersDb";
+import {
+  parsePagination,
+  parseUserBaseFromDb,
+  parseUserWhishFromBase,
+  parseUserWhishFromDb,
+} from "../utils/parseDb";
 import { safeNumber } from "../utils/safeNumber";
 import { getOrderValue, getSortValue } from "../utils/sortOptions";
 
@@ -126,6 +131,38 @@ export class UsersModel {
     } catch (err) {
       await client.rollback();
       throw err;
+    } finally {
+      client.release();
+    }
+  };
+
+  static getUserWhishes = async ({ userId }: { userId: string }) => {
+    // Obtener conexión a la base de datos
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      const userWhishesDb = await client.query(queries.getUserWhishesByUserId, [
+        userId,
+      ]);
+      const userWhishes = await Promise.all(
+        userWhishesDb.map(async (whishDb) => {
+          const whishBase = parseUserWhishFromDb(whishDb);
+          return parseUserWhishFromBase({
+            userWhish: whishBase,
+            category: await getCategoryById({
+              client,
+              categoryId: whishDb.category_id,
+            }),
+          });
+        }),
+      );
+      return { userWhishes };
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
     } finally {
       client.release();
     }

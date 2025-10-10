@@ -219,3 +219,13 @@ interface Admin {
   username: string;
   fullName: string;
 }
+
+interface UserWhishBase {
+  id: UUID;
+  userId: UUID;
+  categoryId: UUID;
+  comment: string | null;
+}
+interface UserWhish extends UserWhishBase {
+  category: Category;
+}
