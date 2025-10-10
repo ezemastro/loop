@@ -350,24 +350,57 @@ interface PostMessageReadRequest extends AuthRequest {
 }
 type PostMessageReadResponse = ApiResponse;
 
-// TODO - Implementar rutas de Administrador
+// Administrador
 // POST /admin/login
 interface PostAdminLoginRequest {
   body: {
-    email: string;
+    username: string;
     password: string;
   };
 }
-type PostAdminLoginResponse = ApiResponse
+type PostAdminLoginResponse = ApiResponse<{
+  admin: Admin;
+}>;
+
 // POST /admin/register
 interface PostAdminRegisterRequest {
   body: {
-    email: string;
+    username: string;
+    fullName: string;
     password: string;
     passToken: string;
   };
 }
-type PostAdminRegisterResponse = ApiResponse
+type PostAdminRegisterResponse = ApiResponse<{
+  admin: Admin;
+}>;
+
+// GET /admin/users
+interface GetAdminUsersRequest {
+  query: {
+    page?: number;
+    search?: string;
+  };
+}
+type GetAdminUsersResponse = ApiResponse<{
+  users: PrivateUser[];
+  total: number;
+}>;
+
+// POST /admin/users/:userId/credits
+interface PostAdminUserCreditsRequest {
+  params: {
+    userId: UUID;
+  };
+  body: {
+    amount: number;
+    positive: boolean;
+    meta?: Record<string, unknown>;
+  };
+}
+type PostAdminUserCreditsResponse = ApiResponse<{
+  user: PrivateUser;
+}>;
 
 // POST /admin/schools
 interface PostAdminSchoolsRequest {
@@ -378,4 +411,77 @@ interface PostAdminSchoolsRequest {
 }
 type PostAdminSchoolsResponse = ApiResponse<{
   school: School;
+}>;
+
+// POST /admin/categories
+interface PostAdminCategoriesRequest {
+  body: {
+    name: string;
+    description?: string;
+    parentId?: UUID;
+    icon?: string;
+    minPriceCredits?: number;
+    maxPriceCredits?: number;
+    statKgWaste?: number;
+    statKgCo2?: number;
+    statLH2o?: number;
+  };
+}
+type PostAdminCategoriesResponse = ApiResponse<{
+  category: Category;
+}>;
+
+// PATCH /admin/categories/:categoryId
+interface PatchAdminCategoryRequest {
+  params: {
+    categoryId: UUID;
+  };
+  body: {
+    name?: string;
+    description?: string;
+    parentId?: UUID | null;
+    icon?: string;
+    minPriceCredits?: number;
+    maxPriceCredits?: number;
+    statKgWaste?: number;
+    statKgCo2?: number;
+    statLH2o?: number;
+  };
+}
+type PatchAdminCategoryResponse = ApiResponse<{
+  category: Category;
+}>;
+
+// POST /admin/notifications
+interface PostAdminNotificationRequest {
+  body: {
+    userId: UUID;
+    type: NotificationType;
+    payload: Record<string, unknown>;
+  };
+}
+type PostAdminNotificationResponse = ApiResponse<{
+  notification: Notification;
+}>;
+
+// GET /admin/stats
+interface GetAdminStatsRequest {
+  query?: Record<string, never>;
+}
+type GetAdminStatsResponse = ApiResponse<{
+  stats: Record<string, number>;
+}>;
+
+// GET /admin/schools/stats
+interface GetAdminSchoolStatsRequest {
+  query?: Record<string, never>;
+}
+type GetAdminSchoolStatsResponse = ApiResponse<{
+  schools: Array<{
+    id: number;
+    name: string;
+    statKgWaste: number;
+    statKgCo2: number;
+    statLH2o: number;
+  }>;
 }>;

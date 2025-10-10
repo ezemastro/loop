@@ -216,6 +216,6 @@ interface UserMessage extends UserMessageBase {
 
 interface Admin {
   id: UUID;
-  email: string;
-  password: string;
+  username: string;
+  fullName: string;
 }
