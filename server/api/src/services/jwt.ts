@@ -12,6 +12,7 @@ export const parseToken = (token: string) => {
     const decoded = jwt.verify(token, JWT_SECRET as string) as {
       userId: string;
       isAdmin?: boolean;
+      adminId?: string;
     };
     return decoded;
   } catch {
@@ -19,7 +20,7 @@ export const parseToken = (token: string) => {
   }
 };
 export const generateAdminToken = ({ id }: { id: string }) => {
-  const payload = { userId: id, isAdmin: true };
+  const payload = { adminId: id, isAdmin: true };
   const token = jwt.sign(payload, JWT_SECRET as string, {
     expiresIn: (ADMIN_TOKEN_EXP as number) || "30m",
   });

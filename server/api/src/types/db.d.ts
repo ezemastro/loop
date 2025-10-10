@@ -145,7 +145,14 @@ interface DB_Pagination {
 
 interface DB_Admin {
   id: UUID;
-  email: string;
+  username: string;
+  full_name: string;
   password: string;
   created_at: ISODateString;
+}
+
+interface DB_GlobalStats {
+  id: UUID;
+  stat_name: string;
+  stat_value: DbNumber;
 }

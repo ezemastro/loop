@@ -129,6 +129,7 @@ CREATE TABLE "messages"(
 CREATE TABLE "admins"(
     "id" UUID default gen_random_uuid() primary key,
     "username" TEXT NOT NULL unique,
+    "full_name" TEXT NOT NULL,
     "password" TEXT not null,
     "created_at" TIMESTAMP(0) default NOW() NOT NULL
 );

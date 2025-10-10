@@ -417,20 +417,85 @@ export const queries = {
     "missionsTemplates.all",
     `SELECT * FROM mission_templates`,
   ),
-  adminByEmail: q<DB_Admin>(
-    "admin.byEmail",
-    `SELECT * FROM admins WHERE email = $1`,
+  adminByUsername: q<DB_Admin & { password: string }>(
+    "admin.byUsername",
+    `SELECT * FROM admins WHERE username = $1`,
   ),
   createAdmin: q<DB_Admin>(
     "admin.create",
-    `INSERT INTO admins (email, password) VALUES ($1, $2) RETURNING *`,
+    `INSERT INTO admins (username, full_name, password) VALUES ($1, $2, $3) RETURNING *`,
   ),
-  createNotification: q<void>(
+  createNotification: q<DB_Notifications>(
     "notifications.create",
-    `INSERT INTO notifications (user_id, type, payload, is_read) VALUES ($1, $2, $3, FALSE)`,
+    `INSERT INTO notifications (user_id, type, payload, is_read) VALUES ($1, $2, $3, FALSE) RETURNING *`,
   ),
   updateNotificationToken: q<void>(
     "notifications.updateToken",
     `UPDATE users SET notification_token = $1 WHERE id = $2`,
+  ),
+  // Admin queries
+  adminSearchUsers: q<DB_Users & DB_Pagination>(
+    "admin.searchUsers",
+    `SELECT 
+      u.*,
+      COUNT(*) OVER() as total_records
+    FROM users u
+    WHERE LOWER(u.first_name || ' ' || u.last_name || ' ' || u.email) LIKE LOWER($1)
+    ORDER BY u.created_at DESC
+    LIMIT $2 OFFSET $3`,
+  ),
+  adminSearchUsersCount: q<{ total: number }>(
+    "admin.searchUsersCount",
+    `SELECT COUNT(*) as total
+    FROM users u
+    WHERE LOWER(u.first_name || ' ' || u.last_name || ' ' || u.email) LIKE LOWER($1)`,
+  ),
+  getAllUsersAdmin: q<DB_Users & DB_Pagination>(
+    "admin.getAllUsers",
+    `SELECT 
+      u.*,
+      COUNT(*) OVER() as total_records
+    FROM users u
+    ORDER BY u.created_at DESC
+    LIMIT $1 OFFSET $2`,
+  ),
+  getAllUsersAdminCount: q<{ total: number }>(
+    "admin.getAllUsersCount",
+    `SELECT COUNT(*) as total FROM users`,
+  ),
+  createWalletTransaction: q<DB_WalletTransactions>(
+    "admin.createWalletTransaction",
+    `INSERT INTO wallet_transactions (user_id, type, positive, amount, reference_id, meta)
+    VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+  ),
+  increaseUserBalance: q<void>(
+    "admin.increaseUserBalance",
+    `UPDATE users SET credits_balance = credits_balance + $1 WHERE id = $2`,
+  ),
+  decreaseUserBalance: q<void>(
+    "admin.decreaseUserBalance",
+    `UPDATE users SET credits_balance = credits_balance - $1 WHERE id = $2`,
+  ),
+  createSchool: q<DB_Schools>(
+    "admin.createSchool",
+    `INSERT INTO schools (name, media_id) VALUES ($1, $2) RETURNING *`,
+  ),
+  createCategory: q<DB_Categories>(
+    "admin.createCategory",
+    `INSERT INTO categories (name, description, parent_id, icon, min_price_credits, max_price_credits, stat_kg_waste, stat_kg_co2, stat_l_h2o)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+  ),
+  updateCategory: q<DB_Categories>(
+    "admin.updateCategory",
+    `UPDATE categories SET name = $1, description = $2, parent_id = $3, icon = $4, min_price_credits = $5, max_price_credits = $6, stat_kg_waste = $7, stat_kg_co2 = $8, stat_l_h2o = $9
+    WHERE id = $10 RETURNING *`,
+  ),
+  getGlobalStats: q<DB_GlobalStats>(
+    "admin.getGlobalStats",
+    `SELECT * FROM global_stats`,
+  ),
+  getSchoolStats: q<DB_Schools>(
+    "admin.getSchoolStats",
+    `SELECT id, name, stat_kg_waste, stat_kg_co2, stat_l_h2o FROM schools ORDER BY name ASC`,
   ),
 } as const;

@@ -9,6 +9,7 @@ import { schoolsRouter } from "./routes/schools.js";
 import { categoriesRouter } from "./routes/categories.js";
 import { listingsRouter } from "./routes/listings.js";
 import { messagesRouter } from "./routes/messages.js";
+import { adminRouter } from "./routes/admin.js";
 import morgan from "morgan";
 import { errorMiddleware } from "./middlewares/errors.js";
 import { uploadsRouter } from "./routes/uploads.js";
@@ -29,6 +30,7 @@ app.use("/schools", schoolsRouter);
 app.use("/listings", listingsRouter);
 app.use("/messages", tokenMiddleware, messagesRouter);
 app.use("/uploads", uploadsRouter);
+app.use("/admin", adminRouter);
 
 app.use(errorMiddleware);
 

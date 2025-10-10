@@ -33,3 +33,13 @@ export const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   fileFilter,
 });
+
+// Función para eliminar un archivo
+export const deleteFile = (filename: string) => {
+  const filePath = path.join(UPLOAD_DIR, filename);
+  fs.unlink(filePath, (err) => {
+    if (err) {
+      console.error(`Error al eliminar el archivo ${filename}:`, err);
+    }
+  });
+};

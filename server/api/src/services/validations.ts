@@ -360,13 +360,14 @@ export const validateUpdateTokenRequest = (data: unknown) =>
 
 // ADMIN
 const adminLoginSchema = z.object({
-  email: emailSchema,
+  username: z.string().min(3).max(50),
   password: z.string().min(8).max(100),
 });
 export const validateAdminLogin = (data: unknown) =>
   adminLoginSchema.parseAsync(data);
 const adminRegisterSchema = z.object({
-  email: emailSchema,
+  username: z.string().min(3).max(50),
+  fullName: z.string().min(2).max(100),
   password: z.string().min(8).max(100),
   passToken: z.string().min(1).max(100),
 });
