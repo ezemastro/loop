@@ -31,6 +31,7 @@ export const sendLoopNotification = async ({
   listingId,
   toListingStatus,
   toOfferedCredits,
+  type,
 }: {
   client: DatabaseClient;
   userId: string;
@@ -38,12 +39,14 @@ export const sendLoopNotification = async ({
   listingId: LoopNotificationPayloadBase["listingId"];
   toListingStatus: LoopNotificationPayloadBase["toListingStatus"];
   toOfferedCredits: LoopNotificationPayloadBase["toOfferedCredits"];
+  type: LoopNotificationPayloadBase["type"];
 }) => {
   const payload: LoopNotificationPayloadBase = {
     buyerId,
     listingId,
     toListingStatus,
     toOfferedCredits,
+    type,
   };
   await client.query(queries.createNotification, [
     userId,
