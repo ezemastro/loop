@@ -286,6 +286,11 @@ export const queries = {
     WHERE id = $1;`,
   ),
 
+  updateListingOfferedCreditsById: q<void>(
+    "listing.updateOfferedCredits",
+    `UPDATE listings SET offered_credits = $1 WHERE id = $2;`,
+  ),
+
   updateUserBalance: q<void>(
     "user.updateBalance",
     `UPDATE users SET credits_balance = $1, credits_locked = $2 WHERE id = $3;`,
