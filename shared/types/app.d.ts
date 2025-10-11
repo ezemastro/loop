@@ -148,6 +148,14 @@ interface LoopNotificationPayloadBase {
   buyerId: UUID | null;
   toListingStatus: ListingStatus;
   toOfferedCredits: number | null;
+  type:
+    | "new_offer"
+    | "offer_accepted"
+    | "offer_rejected"
+    | "offer_deleted"
+    | "listing_sold"
+    | "listing_received"
+    | "listing_cancelled";
 }
 interface LoopNotificationPayload extends LoopNotificationPayloadBase {
   listing: Listing;
