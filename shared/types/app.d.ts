@@ -41,14 +41,15 @@ interface UserBase {
   profileMediaId: UUID | null;
   credits: { balance: number; locked: number };
   stats: { kgWaste: number | null; kgCo2: number | null; lH2o: number | null };
+  notificationToken: string | null;
 }
 interface User extends UserBase {
   profileMedia: Media | null;
   schools: School[];
 }
 
-type PublicUser = Omit<User, "phone" | "credits">;
-type PrivateUser = User;
+type PublicUser = Omit<User, "phone" | "credits" | "notificationToken">;
+type PrivateUser = Omit<User, "notificationToken">;
 
 interface CategoryBase {
   id: UUID;

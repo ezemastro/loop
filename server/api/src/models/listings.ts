@@ -415,6 +415,14 @@ export class ListingsModel {
       if (user.credits.balance < offeredCredits) {
         throw new InvalidInputError(ERROR_MESSAGES.INSUFFICIENT_CREDITS);
       }
+      // Obtener información del vendedor
+      const [sellerDb] = await client.query(queries.userById, [
+        listingBase.sellerId,
+      ]);
+      if (!sellerDb) {
+        throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
+      }
+      const sellerBase = parseUserBaseFromDb(sellerDb);
       // Almacenar la oferta
       await client.query(queries.newOffer, [offeredCredits, userId, listingId]);
       const listing = parseListingFromBase({
@@ -444,6 +452,7 @@ export class ListingsModel {
       // Enviar notificación al vendedor
       await sendLoopNotification({
         userId: listingBase.sellerId,
+        notificationToken: sellerBase.notificationToken,
         listingId: listingBase.id,
         client,
         toListingStatus: "offered",
@@ -510,6 +519,16 @@ export class ListingsModel {
         buyer.credits.locked - (oldListing.offeredCredits || 0),
         buyer.id,
       ]);
+      // Obtener información del vendedor
+      let sellerBase: UserBase;
+      try {
+        const [sellerDb] = await client.query(queries.userById, [
+          oldListing.sellerId,
+        ]);
+        sellerBase = parseUserBaseFromDb(sellerDb!);
+      } catch {
+        throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
+      }
 
       const listing = parseListingFromBase({
         listing: {
@@ -532,6 +551,7 @@ export class ListingsModel {
       // Enviar notificación al vendedor
       await sendLoopNotification({
         userId: listing.seller.id,
+        notificationToken: sellerBase.notificationToken,
         listingId: listing.id,
         client,
         toListingStatus: "published",
@@ -583,9 +603,21 @@ export class ListingsModel {
       }
       await client.query(queries.deleteOffer, [listingId]);
 
+      // Obtener información del comprador
+      let buyerBase: UserBase;
+      try {
+        const [buyerDb] = await client.query(queries.userById, [
+          oldListing.buyerId,
+        ]);
+        buyerBase = parseUserBaseFromDb(buyerDb!);
+      } catch {
+        throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
+      }
+
       // Enviar notificación al comprador
       await sendLoopNotification({
         userId: oldListing.buyerId!,
+        notificationToken: buyerBase.notificationToken,
         listingId: oldListing.id,
         client,
         toListingStatus: "published",
@@ -717,6 +749,16 @@ export class ListingsModel {
       if (newSellerLocked > sellerBase.credits.balance) {
         throw new InvalidInputError(ERROR_MESSAGES.INSUFFICIENT_CREDITS);
       }
+      // Obtener vendedor
+      let buyerBase: UserBase;
+      try {
+        const [buyerDb] = await client.query(queries.userById, [
+          oldListing.buyerId!,
+        ]);
+        buyerBase = parseUserBaseFromDb(buyerDb!);
+      } catch {
+        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+      }
       // Almacenar en la base de datos
       try {
         // Actualizar los precios ofrecidos
@@ -750,10 +792,6 @@ export class ListingsModel {
         }
         // Actualizar los créditos del comprador
         if (newBuyerLocked > 0) {
-          const [buyerDb] = await client.query(queries.userById, [
-            oldListing.buyerId!,
-          ]);
-          const buyerBase = parseUserBaseFromDb(buyerDb!);
           await client.query(queries.updateUserBalance, [
             buyerBase.credits.balance +
               oldListing.offeredCredits! -
@@ -772,6 +810,7 @@ export class ListingsModel {
       // TODO - Enviar notificación al comprador
       await sendLoopNotification({
         userId: oldListing.buyerId!,
+        notificationToken: buyerBase.notificationToken,
         listingId: oldListing.id,
         client,
         toListingStatus: "accepted",
@@ -784,12 +823,14 @@ export class ListingsModel {
         tradingListingIds.map((id) => {
           return sendLoopNotification({
             userId: oldListing.buyerId!,
+            notificationToken: buyerBase.notificationToken,
             listingId: id,
             client,
             toListingStatus: "accepted",
             toOfferedCredits: null,
             buyerId: userId,
             type: "listing_sold",
+            disablePush: true,
           });
         }),
       );
@@ -854,30 +895,33 @@ export class ListingsModel {
       } catch {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
       }
-      // Transferir los créditos al vendedor
+      // Obtener información del vendedor
+      let sellerBase: UserBase;
       try {
-        // Obtener vendedor
         const [sellerDb] = await client.query(queries.userById, [
           listingBase.sellerId,
         ]);
-        if (!sellerDb) {
-          throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
-        }
-        const seller = parseUserBaseFromDb(sellerDb);
+        sellerBase = parseUserBaseFromDb(sellerDb!);
+      } catch {
+        throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
+      }
+      // Transferir los créditos al vendedor
+      try {
         // Transferir créditos
         await client.query(queries.updateUserBalance, [
-          seller.credits.balance + (listingBase.offeredCredits ?? 0),
-          seller.credits.locked,
-          seller.id,
+          sellerBase.credits.balance + (listingBase.offeredCredits ?? 0),
+          sellerBase.credits.locked,
+          sellerBase.id,
         ]);
       } catch {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
       }
       // Marcar la publicación como recibida
       await client.query(queries.markListingAsReceived, [listingId]);
-      // Enviar notificación al comprador
+      // Enviar notificación al vendedor
       await sendLoopNotification({
-        userId: listingBase.buyerId!,
+        userId: listingBase.sellerId!,
+        notificationToken: sellerBase.notificationToken,
         listingId: listingBase.id,
         client,
         toListingStatus: "received",
@@ -955,14 +999,17 @@ export class ListingsModel {
       } catch {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
       }
-      // Transferir los créditos al vendedor
+      let buyerBase: UserBase;
       try {
-        // Obtener comprador
         const [buyerDb] = await client.query(queries.userById, [
           listingBase.buyerId,
         ]);
-        const buyerBase = parseUserBaseFromDb(buyerDb!);
-
+        buyerBase = parseUserBaseFromDb(buyerDb!);
+      } catch {
+        throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
+      }
+      // Transferir los créditos al vendedor
+      try {
         // Transferir créditos al comprador
         await client.query(queries.updateUserBalance, [
           buyerBase.credits.balance + listingBase.price,
@@ -982,6 +1029,7 @@ export class ListingsModel {
       // Enviar notificación al comprador
       await sendLoopNotification({
         userId: listingBase.buyerId!,
+        notificationToken: buyerBase.notificationToken,
         listingId: listingBase.id,
         client,
         toListingStatus: "published",

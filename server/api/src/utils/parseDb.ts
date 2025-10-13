@@ -87,6 +87,7 @@ export const parseUserBaseFromDb = (row: DB_Users): UserBase => {
       kgCo2: row.stat_kg_co2 ? Number(row.stat_kg_co2) : null,
       lH2o: row.stat_l_h2o ? Number(row.stat_l_h2o) : null,
     },
+    notificationToken: row.notification_token,
   };
 };
 export const parsePrivateUserFromBase = ({
@@ -99,7 +100,14 @@ export const parsePrivateUserFromBase = ({
   schools: School[];
 }): PrivateUser => {
   return {
-    ...user,
+    id: user.id,
+    email: user.email,
+    phone: user.phone,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    credits: user.credits,
+    stats: user.stats,
+    profileMediaId: user.profileMediaId,
     profileMedia,
     schools,
   };
@@ -115,7 +123,12 @@ export const parsePublicUserFromBase = ({
   schools: School[];
 }): PublicUser => {
   return {
-    ...user,
+    id: user.id,
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    profileMediaId: user.profileMediaId,
+    stats: user.stats,
     profileMedia,
     schools,
   };

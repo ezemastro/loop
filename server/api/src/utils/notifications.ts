@@ -1,17 +1,24 @@
+import { NOTIFICATION_TEXTS } from "../config";
+import { sendPushNotification } from "../services/expoNotifications";
 import { queries } from "../services/queries";
 import type { DatabaseClient } from "../types/dbClient";
 
-const sendNotification = async () => {
-  // Lógica para enviar la notificación (por ejemplo, a través de un servicio de terceros)
-};
+const sendNotification = sendPushNotification;
+
+interface NotificationBase {
+  client: DatabaseClient;
+  userId: UUID;
+  notificationToken: string | null;
+  disablePush?: boolean;
+}
 
 export const sendMissionNotification = async ({
   client,
   userId,
   missionId,
-}: {
-  client: DatabaseClient;
-  userId: string;
+  notificationToken,
+  disablePush,
+}: NotificationBase & {
   missionId: MissionNotificationPayloadBase["userMissionId"];
 }) => {
   const payload: MissionNotificationPayloadBase = {
@@ -22,7 +29,12 @@ export const sendMissionNotification = async ({
     "mission" as NotificationType,
     payload,
   ]);
-  await sendNotification();
+  if (!notificationToken || disablePush) return;
+  await sendNotification({
+    notificationToken,
+    title: NOTIFICATION_TEXTS.MISSION_NOTIFICATION.COMPLETED.title,
+    body: NOTIFICATION_TEXTS.MISSION_NOTIFICATION.COMPLETED.body,
+  });
 };
 export const sendLoopNotification = async ({
   client,
@@ -32,9 +44,9 @@ export const sendLoopNotification = async ({
   toListingStatus,
   toOfferedCredits,
   type,
-}: {
-  client: DatabaseClient;
-  userId: string;
+  notificationToken,
+  disablePush,
+}: NotificationBase & {
   buyerId: LoopNotificationPayloadBase["buyerId"];
   listingId: LoopNotificationPayloadBase["listingId"];
   toListingStatus: LoopNotificationPayloadBase["toListingStatus"];
@@ -53,7 +65,12 @@ export const sendLoopNotification = async ({
     "loop" as NotificationType,
     payload,
   ]);
-  await sendNotification();
+  if (!notificationToken || disablePush) return;
+  await sendNotification({
+    notificationToken,
+    title: NOTIFICATION_TEXTS.LOOP_NOTIFICATION[type].title,
+    body: NOTIFICATION_TEXTS.LOOP_NOTIFICATION[type].body,
+  });
 };
 export const sendDonationNotification = async ({
   client,
@@ -61,9 +78,9 @@ export const sendDonationNotification = async ({
   amount,
   donorUserId,
   message,
-}: {
-  client: DatabaseClient;
-  userId: string;
+  notificationToken,
+  disablePush,
+}: NotificationBase & {
   amount: DonationNotificationPayloadBase["amount"];
   donorUserId: DonationNotificationPayloadBase["donorUserId"];
   message: DonationNotificationPayloadBase["message"];
@@ -78,7 +95,12 @@ export const sendDonationNotification = async ({
     "donation" as NotificationType,
     payload,
   ]);
-  await sendNotification();
+  if (!notificationToken || disablePush) return;
+  await sendNotification({
+    notificationToken,
+    title: NOTIFICATION_TEXTS.DONATION_NOTIFICATION.RECEIVED.title,
+    body: NOTIFICATION_TEXTS.DONATION_NOTIFICATION.RECEIVED.body,
+  });
 };
 export const sendAdminNotification = async ({
   client,
@@ -88,9 +110,9 @@ export const sendAdminNotification = async ({
   message,
   referenceId,
   target,
-}: {
-  client: DatabaseClient;
-  userId: string;
+  notificationToken,
+  disablePush,
+}: NotificationBase & {
   action: AdminNotificationPayloadBase["action"];
   amount: AdminNotificationPayloadBase["amount"];
   message: AdminNotificationPayloadBase["message"];
@@ -109,7 +131,12 @@ export const sendAdminNotification = async ({
     "admin" as NotificationType,
     payload,
   ]);
-  await sendNotification();
+  if (!notificationToken || disablePush) return;
+  await sendNotification({
+    notificationToken,
+    title: "Notificación del equipo de Loop",
+    body: message || "Tienes una nueva notificación del equipo de Loop",
+  });
 };
 // export const sendMessageNotification = async ({
 //   userId,

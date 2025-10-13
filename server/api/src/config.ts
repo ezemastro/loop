@@ -76,3 +76,50 @@ export const COOKIE_NAMES = {
 export const PAGE_SIZE = 10;
 
 export const VALID_EMAIL_DOMAINS = ["northfield.edu.ar", "gmail.com"];
+
+export const NOTIFICATION_TEXTS = {
+  MISSION_NOTIFICATION: {
+    COMPLETED: {
+      body: "¡Has completado una misión y ganado créditos!",
+      title: "Misión completada",
+    },
+  },
+  LOOP_NOTIFICATION: {
+    listing_cancelled: {
+      body: "Una publicación que esperabas recibir fue cancelada",
+      title: "Publicación cancelada",
+    },
+    listing_received: {
+      body: "Haz completado correctamente un loop",
+      title: "Loop completado",
+    },
+    new_offer: {
+      body: "Has recibido una nueva oferta en tu publicación",
+      title: "Nueva oferta",
+    },
+    offer_accepted: {
+      body: "Tu oferta ha sido aceptada",
+      title: "Oferta aceptada",
+    },
+    offer_rejected: {
+      body: "Tu oferta ha sido rechazada",
+      title: "Oferta rechazada",
+    },
+    offer_deleted: {
+      body: "Una oferta que habías recibido fue eliminada",
+      title: "Oferta eliminada",
+    },
+  } as Record<LoopNotificationPayload["type"], { body: string; title: string }>,
+  DONATION_NOTIFICATION: {
+    RECEIVED: {
+      body: "Has recibido una donación de loopies",
+      title: "Donación recibida",
+    },
+  },
+  // ADMIN_NOTIFICATION: {
+  //   ""
+  // } as Record<
+  //   AdminNotificationPayload["action"],
+  //   { body: string; title: string }
+  // >,
+};
