@@ -10,7 +10,6 @@ import { categoriesRouter } from "./routes/categories.js";
 import { listingsRouter } from "./routes/listings.js";
 import { messagesRouter } from "./routes/messages.js";
 import { adminRouter } from "./routes/admin.js";
-import morgan from "morgan";
 import { errorMiddleware } from "./middlewares/errors.js";
 import { uploadsRouter } from "./routes/uploads.js";
 
@@ -19,7 +18,10 @@ export const app = express();
 app.use(express.json());
 app.use(cookieParser());
 if (NODE_ENV === "development") {
-  app.use(morgan("dev"));
+  import("morgan").then((module) => {
+    const morgan = module.default;
+    app.use(morgan("dev"));
+  });
 }
 
 app.use("/auth", authRouter);
