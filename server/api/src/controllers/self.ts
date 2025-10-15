@@ -48,7 +48,7 @@ export class SelfController {
       schoolIds,
     } = req.body as PatchSelfRequest["body"];
 
-    let user: User;
+    let user: PrivateUser;
     try {
       ({ user } = await SelfModel.updateSelf({
         userId,

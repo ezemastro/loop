@@ -196,7 +196,7 @@ export class ListingsController {
       ({ listing } = await ListingsModel.newOffer({
         listingId,
         userId: req.session!.userId,
-        price,
+        offeredCredits: price,
       }));
     } catch (err) {
       return next(err);

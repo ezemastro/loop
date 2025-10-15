@@ -114,6 +114,8 @@ export class AuthModel {
             balance: INITIAL_CREDITS,
             locked: 0,
           },
+          stats: { kgWaste: 0, kgCo2: 0, lH2o: 0 },
+          notificationToken: null,
         },
         profileMedia: null,
         schools,

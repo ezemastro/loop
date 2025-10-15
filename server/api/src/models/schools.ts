@@ -9,6 +9,7 @@ import {
   parseSchoolFromBase,
   parseSchoolFromDb,
 } from "../utils/parseDb";
+import { safeNumber } from "../utils/safeNumber";
 
 export class SchoolsModel {
   static getSchools = async (query: GetSchoolsRequest["query"]) => {
@@ -52,7 +53,7 @@ export class SchoolsModel {
         schools,
         pagination: parsePagination({
           currentPage: page,
-          totalRecords,
+          totalRecords: safeNumber(totalRecords) || 0,
         }),
       };
     } finally {

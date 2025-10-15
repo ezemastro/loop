@@ -16,7 +16,7 @@ export class AuthController {
     }
     // Registrar el usuario
     const { password, firstName, lastName, schoolIds, email } = req.body;
-    let user: User;
+    let user: PrivateUser;
     try {
       ({ user } = await AuthModel.registerUser({
         firstName,
@@ -50,7 +50,7 @@ export class AuthController {
     }
     // Iniciar sesión
     const { email, password } = req.body;
-    let user: User;
+    let user: PrivateUser;
     try {
       ({ user } = await AuthModel.loginUser({ email, password }));
     } catch {
