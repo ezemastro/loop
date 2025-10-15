@@ -21,7 +21,7 @@ COPY shared/types/*.d.ts ./src/types/
 RUN npm run build:docker
 
 # ===== Producción: solo JS compilado =====
-FROM node:20 AS production
+FROM node:22-alpine AS production
 WORKDIR /app
 
 COPY server/api/package*.json ./

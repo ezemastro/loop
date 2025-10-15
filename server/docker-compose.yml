@@ -14,7 +14,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: api.Dockerfile
+      dockerfile: ../api.Dockerfile
       target: ${NODE_ENV:-development}
     container_name: api
     ports:
