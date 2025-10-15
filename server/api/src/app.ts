@@ -38,5 +38,5 @@ app.use(errorMiddleware);
 
 // Iniciar el servidor
 export const server = app.listen(PORT, () => {
-  console.log(`Servidor escuchando en http://localhost:${PORT}`);
+  console.log(`Servidor corriendo. Entorno: ${NODE_ENV} en el puerto ${PORT}`);
 });
