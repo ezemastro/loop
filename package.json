@@ -20,6 +20,11 @@
   "type": "module",
   "main": "",
   "scripts": {
-    "build:server": "docker build -f api.Dockerfile -t ezemastro/loop:$npm_package_version -t ezemastro/loop:latest ."
+    "build:server": "docker build -f api.Dockerfile -t ezemastro/loop:$npm_package_version -t ezemastro/loop:latest .",
+    "docker:build:patch": "node scripts/docker-build.js patch",
+    "docker:build:minor": "node scripts/docker-build.js minor",
+    "docker:build:major": "node scripts/docker-build.js major",
+    "docker:push": "node scripts/docker-push.js",
+    "start": "docker compose -f docker-compose.prod.yml up"
   }
 }
