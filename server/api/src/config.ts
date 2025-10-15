@@ -1,7 +1,11 @@
-import dotenv from "dotenv";
-dotenv.config({
-  path: [".env", "../.env", "*/.env"],
-});
+if (process.env.NODE_ENV !== "production") {
+  import("dotenv").then((module) => {
+    const dotenv = module.default;
+    dotenv.config({
+      path: [".env", "../.env", "*/.env"],
+    });
+  });
+}
 
 export const {
   NODE_ENV,
