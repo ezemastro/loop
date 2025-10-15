@@ -41,6 +41,11 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
+
+    "baseUrl": "./",
+    "paths": {
+      "*": ["*"]
+    }
   },
   "include": ["src/**/*.ts", "../../shared/types/**/*.ts"],
   "exclude": ["node_modules"]
