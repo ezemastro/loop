@@ -9,10 +9,12 @@ export class UploadModel {
     filename,
     mimetype,
     userId,
+    isAdmin,
   }: {
     filename: string;
     mimetype: string;
     userId: UUID;
+    isAdmin: boolean;
   }) => {
     let client: DatabaseClient;
     try {
@@ -25,7 +27,7 @@ export class UploadModel {
         filename,
         mimetype,
         "image",
-        userId,
+        !isAdmin ? userId : null,
       ]);
       const id = result[0]?.id;
       if (!id) {

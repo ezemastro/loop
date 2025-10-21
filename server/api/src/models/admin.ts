@@ -75,6 +75,9 @@ export class AdminModel {
         throw new InvalidInputError(ERROR_MESSAGES.USER_ALREADY_EXISTS);
       }
       // Verificar el token de registro
+      console.log({ ADMIN_PASS_TOKEN });
+      console.log({ passToken });
+      console.log(passToken === ADMIN_PASS_TOKEN);
       if (passToken !== ADMIN_PASS_TOKEN) {
         throw new InvalidInputError(ERROR_MESSAGES.INVALID_CREDENTIALS);
       }
