@@ -24,6 +24,10 @@ if (NODE_ENV === "development") {
   });
 }
 
+app.get("/status", (req, res) => {
+  res.status(200).send(`Server is running. Environment: ${NODE_ENV}`);
+});
+
 app.use("/auth", authRouter);
 app.use("/me", tokenMiddleware, selfRouter);
 app.use("/users", usersRouter);
