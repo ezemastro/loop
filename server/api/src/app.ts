@@ -12,6 +12,7 @@ import { messagesRouter } from "./routes/messages.js";
 import { adminRouter } from "./routes/admin.js";
 import { errorMiddleware } from "./middlewares/errors.js";
 import { uploadsRouter } from "./routes/uploads.js";
+import { safeNumber } from "./utils/safeNumber.js";
 
 export const app = express();
 
@@ -41,6 +42,6 @@ app.use("/admin", adminRouter);
 app.use(errorMiddleware);
 
 // Iniciar el servidor
-export const server = app.listen(PORT, () => {
+export const server = app.listen(safeNumber(PORT) || 3000, "0.0.0.0", () => {
   console.log(`Servidor corriendo. Entorno: ${NODE_ENV} en el puerto ${PORT}`);
 });
