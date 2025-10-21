@@ -69,10 +69,12 @@ export const cookieOptions: CookieOptions = {
   maxAge: 30 * 24 * 60 * 60 * 1000, // 30 días
   sameSite: "none",
 };
-export const adminCookieOptions = {
+export const adminCookieOptions: CookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
+  // secure: process.env.NODE_ENV === "production",
+  secure: false,
   maxAge: 30 * 60 * 1000, // 30 minutos
+  sameSite: "none",
 };
 export const COOKIE_NAMES = {
   TOKEN: "token",
