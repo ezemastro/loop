@@ -46,7 +46,7 @@ try {
   console.log(`🐳 Construyendo imagen Docker con versión ${newVersion}...`);
   
   // Ejecutar el docker build como lo tenías antes
-  execSync(`docker build -t ezemastro/loop:${newVersion} -t ezemastro/loop:latest .`, { stdio: 'inherit' });
+  execSync(`docker build -f api.Dockerfile -t ezemastro/loop:${newVersion} -t ezemastro/loop:latest .`, { stdio: 'inherit' });
   
   console.log(`✅ Docker build completado para versión ${newVersion}`);
   
