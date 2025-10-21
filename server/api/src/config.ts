@@ -1,12 +1,11 @@
+import type { CookieOptions } from "node_modules/@types/express";
+
 if (process.env.NODE_ENV !== "production") {
-  import("dotenv").then((module) => {
-    const dotenv = module.default;
-    dotenv.config({
-      path: [".env", "../.env", "*/.env"],
-    });
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  require("dotenv").config({
+    path: [".env", "../.env", "*/.env"],
   });
 }
-
 export const {
   NODE_ENV,
   POSTGRES_USER: DB_USER,
@@ -63,10 +62,12 @@ export const ERROR_MESSAGES = {
     "Estado de publicación inválido para eliminar",
 };
 
-export const cookieOptions = {
+export const cookieOptions: CookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
+  // secure: process.env.NODE_ENV === "production",
+  secure: false,
   maxAge: 30 * 24 * 60 * 60 * 1000, // 30 días
+  sameSite: "none",
 };
 export const adminCookieOptions = {
   httpOnly: true,
