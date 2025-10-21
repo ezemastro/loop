@@ -30,5 +30,23 @@ services:
       - ./uploads:/uploads
     depends_on:
       - db
+
+  caddy:
+    image: caddy:latest
+    container_name: caddy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+
+
 volumes:
   postgres-data:
+  caddy_data:
+  caddy_config:
