@@ -31,6 +31,7 @@ export class AdminController {
     // Generar un token JWT
     const token = generateAdminToken({ id: admin.id });
     res.cookie(COOKIE_NAMES.ADMIN_TOKEN, token, adminCookieOptions);
+    console.log(adminCookieOptions);
     return res.status(200).json(successResponse({ data: { admin } }));
   };
 
