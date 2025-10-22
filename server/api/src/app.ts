@@ -13,11 +13,18 @@ import { adminRouter } from "./routes/admin.js";
 import { errorMiddleware } from "./middlewares/errors.js";
 import { uploadsRouter } from "./routes/uploads.js";
 import { safeNumber } from "./utils/safeNumber.js";
+import cors from "cors";
 
 export const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(
+  cors({
+    credentials: true,
+    origin: "*",
+  }),
+);
 if (NODE_ENV === "development") {
   import("morgan").then((module) => {
     const morgan = module.default;
