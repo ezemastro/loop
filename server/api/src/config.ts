@@ -128,3 +128,10 @@ export const NOTIFICATION_TEXTS = {
   //   { body: string; title: string }
   // >,
 };
+
+export const MISSION_KEYS = {
+  PUBLISH_LISTING_1: "publish-listing-1",
+  PUBLISH_LISTING_2: "publish-listing-2",
+  PUBLISH_LISTING_3: "publish-listing-3",
+  UPDATE_PROFILE_IMAGE: "update-profile-image",
+};
