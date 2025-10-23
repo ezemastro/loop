@@ -7,7 +7,7 @@ interface JsonObject {
 type JsonArray = Array<JsonValue>;
 
 type ListingStatus = "published" | "offered" | "accepted" | "received";
-type ProductStatus = "new" | "used" | "damaged" | "repaired";
+type ProductStatus = "new" | "like_new" | "very_good" | "good" | "fair";
 type MediaType = "image" | "video" | "audio" | string;
 type TransactionType = "loop" | "mission" | "admin" | "donation";
 type NotificationType = "mission" | "loop" | "donation" | "admin";
