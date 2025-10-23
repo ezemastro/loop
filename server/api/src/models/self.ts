@@ -1,4 +1,4 @@
-import { ERROR_MESSAGES, PAGE_SIZE } from "../config";
+import { ERROR_MESSAGES, MISSION_KEYS, PAGE_SIZE } from "../config";
 import { InternalServerError, UnauthorizedError } from "../services/errors";
 import { hashPassword } from "../services/hash";
 import { dbConnection } from "../services/postgresClient";
@@ -107,7 +107,7 @@ export class SelfModel {
         await progressMission({
           client,
           userId,
-          missionKey: "update-profile-image",
+          missionKey: MISSION_KEYS.UPDATE_PROFILE_IMAGE,
         });
       }
       // Preparar datos para actualizar usuario
