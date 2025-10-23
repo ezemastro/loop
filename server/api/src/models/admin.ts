@@ -17,6 +17,9 @@ import {
   parseMissionTemplateFromDb,
 } from "../utils/parseDb";
 import { comparePasswords, hashPassword } from "../services/hash";
+import { assignMissionToAllUsers } from "../utils/helpersDb";
+import { getOrderValue } from "src/utils/sortOptions";
+import { safeNumber } from "src/utils/safeNumber";
 
 export class AdminModel {
   static async login({
@@ -123,30 +126,19 @@ export class AdminModel {
     }
     try {
       const offset = (page - 1) * PAGE_SIZE;
-      let usersDb;
-      let totalDb;
 
-      if (search) {
-        usersDb = await client.query(queries.adminSearchUsers, [
-          `%${search}%`,
-          PAGE_SIZE,
-          offset,
-        ]);
-        totalDb = await client.query(queries.adminSearchUsersCount, [
-          `%${search}%`,
-        ]);
-      } else {
-        usersDb = await client.query(queries.getAllUsersAdmin, [
-          PAGE_SIZE,
-          offset,
-        ]);
-        totalDb = await client.query(queries.getAllUsersAdminCount);
-      }
+      const usersDb = await client.query(
+        queries.searchUsers({
+          order: getOrderValue("DESC"),
+          sort: "created_at",
+        }),
+        [search, null, null, PAGE_SIZE, offset],
+      );
 
       const users = usersDb.map((row) => {
         return parseUserBaseFromDb(row as DB_Users);
       });
-      const total = Number(totalDb[0]?.total || 0);
+      const total = safeNumber(usersDb[0]?.total_records);
 
       return { users, total };
     } finally {
@@ -537,9 +529,15 @@ export class AdminModel {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
       }
 
-      await client.commit();
-
       const missionTemplate = parseMissionTemplateFromDb(missionTemplateDb[0]);
+
+      // Asignar la misión a todos los usuarios existentes
+      await assignMissionToAllUsers({
+        client,
+        missionTemplateId: missionTemplate.id,
+      });
+
+      await client.commit();
 
       return { missionTemplate };
     } catch (error) {

@@ -461,8 +461,7 @@ export const queries = {
       u.*,
       COUNT(*) OVER() as total_records
     FROM users u
-    ORDER BY u.created_at DESC
-    LIMIT $1 OFFSET $2`,
+    ORDER BY u.created_at DESC`,
   ),
   getAllUsersAdminCount: q<{ total: number }>(
     "admin.getAllUsersCount",

@@ -663,3 +663,51 @@ export const assignAllMissionsToUser = async ({
     ]);
   }
 };
+
+export const assignMissionToAllUsers = async ({
+  client,
+  missionTemplateId,
+}: {
+  client: DatabaseClient;
+  missionTemplateId: UUID;
+}) => {
+  // Obtener la mission template
+  const missionTemplateDb = await client.query(queries.missionTemplateById, [
+    missionTemplateId,
+  ]);
+  if (missionTemplateDb.length === 0) {
+    throw new InternalServerError(ERROR_MESSAGES.MISSION_TEMPLATE_NOT_FOUND);
+  }
+  const missionTemplate = parseMissionTemplateFromDb(missionTemplateDb[0]!);
+
+  // Obtener todos los usuarios
+  const usersDb = await client.query(queries.getAllUsersAdmin);
+  if (usersDb.length === 0) return;
+
+  // Calcular el total desde el key
+  const total =
+    safeNumber(
+      missionTemplate.key.split("-")[missionTemplate.key.split("-").length - 1],
+    ) ?? 1;
+
+  // Asignar la misión a cada usuario que no la tenga ya
+  for (const userDb of usersDb) {
+    const userId = userDb.id;
+    const userMissionDb = await client.query(
+      queries.userMissionsByUserIdAndTemplateId,
+      [userId, missionTemplate.id],
+    );
+    // Si el usuario ya tiene la misión, continuar
+    if (userMissionDb.length > 0) continue;
+    // Asignar la misión al usuario
+    await client.query(queries.assignMissionToUser, [
+      userId,
+      missionTemplate.id,
+      {
+        current: 0,
+        total,
+      },
+      false,
+    ]);
+  }
+};
