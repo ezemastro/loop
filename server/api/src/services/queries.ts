@@ -519,4 +519,24 @@ export const queries = {
     "userWhishes.updateComment",
     `UPDATE users_whishes SET comment = $1 WHERE user_id = $2 AND id = $3`,
   ),
+  increaseUserStats: q<void>(
+    "user.increaseStats",
+    `UPDATE users SET stat_kg_waste = stat_kg_waste + $1, stat_kg_co2 = stat_kg_co2 + $2, stat_l_h2o = stat_l_h2o + $3 WHERE id = $4`,
+  ),
+  increaseSchoolStats: q<void>(
+    "school.increaseStats",
+    `UPDATE schools SET stat_kg_waste = stat_kg_waste + $1, stat_kg_co2 = stat_kg_co2 + $2, stat_l_h2o = stat_l_h2o + $3 WHERE id = $4`,
+  ),
+  increaseGlobalStats: q<void>(
+    "global.increaseStats",
+    `UPDATE global_stats 
+    SET stat_value = stat_value + 
+      CASE 
+        WHEN stat_name = 'total_kg_waste' THEN $1
+        WHEN stat_name = 'total_kg_co2' THEN $2
+        WHEN stat_name = 'total_l_h2o' THEN $3
+        ELSE 0
+      END
+    WHERE stat_name IN ('total_kg_waste', 'total_kg_co2', 'total_l_h2o')`,
+  ),
 } as const;
