@@ -51,7 +51,7 @@ CREATE TABLE "media"(
     "created_at" TIMESTAMP(0) default NOW() NOT NULL
 );
 create type listing_status as enum ('published', 'offered', 'accepted', 'received');
-create type product_status as enum ('new', 'used', 'damaged', 'repaired');
+create type product_status as enum ('new', 'like_new', 'very_good', 'good', 'fair');
 CREATE TABLE "listings"(
     "id" UUID default gen_random_uuid() primary key,
     "seller_id" UUID NOT NULL,

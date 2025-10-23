@@ -18,7 +18,13 @@ const TRANSACTION_TYPES: TransactionType[] = [
   "donation",
   "admin",
 ];
-const PRODUCT_STATUS: ProductStatus[] = ["damaged", "new", "repaired", "used"];
+const PRODUCT_STATUS: ProductStatus[] = [
+  "fair",
+  "good",
+  "very_good",
+  "like_new",
+  "new",
+];
 
 const firstNameSchema = z.string().min(2).max(100);
 const lastNameSchema = z.string().min(2).max(100);
@@ -380,3 +386,22 @@ const adminRegisterSchema = z.object({
 });
 export const validateAdminRegister = (data: unknown) =>
   adminRegisterSchema.parseAsync(data);
+
+const createMissionTemplateSchema = z.object({
+  key: z.string().min(1).max(100),
+  title: z.string().min(1).max(200),
+  description: z.string().max(1000).optional(),
+  rewardCredits: z.number().int().positive(),
+  active: z.boolean(),
+});
+export const validateCreateMissionTemplate = (data: unknown) =>
+  createMissionTemplateSchema.parseAsync(data);
+
+const updateMissionTemplateSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  description: z.string().max(1000).optional(),
+  rewardCredits: z.number().int().positive().optional(),
+  active: z.boolean().optional(),
+});
+export const validateUpdateMissionTemplate = (data: unknown) =>
+  updateMissionTemplateSchema.parseAsync(data);

@@ -1,7 +1,11 @@
 import { dbConnection } from "../services/postgresClient";
 import type { DatabaseClient } from "../types/dbClient";
 import { ADMIN_PASS_TOKEN, ERROR_MESSAGES, PAGE_SIZE } from "../config";
-import { InternalServerError, InvalidInputError } from "../services/errors";
+import {
+  ConflictError,
+  InternalServerError,
+  InvalidInputError,
+} from "../services/errors";
 import { queries } from "../services/queries";
 import {
   parseAdminFromDb,
@@ -10,6 +14,7 @@ import {
   parseCategoryBaseFromDb,
   parseNotificationBaseFromDb,
   parseMediaFromDb,
+  parseMissionTemplateFromDb,
 } from "../utils/parseDb";
 import { comparePasswords, hashPassword } from "../services/hash";
 
@@ -75,9 +80,6 @@ export class AdminModel {
         throw new InvalidInputError(ERROR_MESSAGES.USER_ALREADY_EXISTS);
       }
       // Verificar el token de registro
-      console.log({ ADMIN_PASS_TOKEN });
-      console.log({ passToken });
-      console.log(passToken === ADMIN_PASS_TOKEN);
       if (passToken !== ADMIN_PASS_TOKEN) {
         throw new InvalidInputError(ERROR_MESSAGES.INVALID_CREDENTIALS);
       }
@@ -490,6 +492,119 @@ export class AdminModel {
       }));
 
       return { schools };
+    } finally {
+      client.release();
+    }
+  }
+
+  // Gestión de mission templates
+  static async createMissionTemplate({
+    key,
+    title,
+    description,
+    rewardCredits,
+    active,
+  }: {
+    key: string;
+    title: string;
+    description?: string;
+    rewardCredits: number;
+    active: boolean;
+  }) {
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      await client.begin();
+
+      // Verificar que el key no exista
+      const existingMission = await client.query(queries.missionTemplateByKey, [
+        key,
+      ]);
+      if (existingMission[0]) {
+        throw new ConflictError(ERROR_MESSAGES.MISSION_KEY_ALREADY_EXISTS);
+      }
+
+      const missionTemplateDb = await client.query(
+        queries.createMissionTemplate,
+        [key, title, description || null, rewardCredits, active],
+      );
+
+      if (!missionTemplateDb[0]) {
+        throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+      }
+
+      await client.commit();
+
+      const missionTemplate = parseMissionTemplateFromDb(missionTemplateDb[0]);
+
+      return { missionTemplate };
+    } catch (error) {
+      await client.rollback();
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  static async updateMissionTemplate({
+    missionTemplateId,
+    title,
+    description,
+    rewardCredits,
+    active,
+  }: {
+    missionTemplateId: UUID;
+    title?: string;
+    description?: string;
+    rewardCredits?: number;
+    active?: boolean;
+  }) {
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      await client.begin();
+
+      // Verificar que la misión existe
+      const missionDb = await client.query(queries.missionTemplateById, [
+        missionTemplateId,
+      ]);
+      if (!missionDb[0]) {
+        throw new InvalidInputError(ERROR_MESSAGES.MISSION_NOT_FOUND);
+      }
+
+      const updatedMissionDb = await client.query(
+        queries.updateMissionTemplate,
+        [
+          title !== undefined ? title : missionDb[0].title,
+          description !== undefined ? description : missionDb[0].description,
+          rewardCredits !== undefined
+            ? rewardCredits
+            : missionDb[0].reward_credits,
+          active !== undefined ? active : missionDb[0].active,
+          missionTemplateId,
+        ],
+      );
+
+      if (!updatedMissionDb[0]) {
+        throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+      }
+
+      await client.commit();
+
+      const missionTemplate = parseMissionTemplateFromDb(updatedMissionDb[0]);
+
+      return { missionTemplate };
+    } catch (error) {
+      await client.rollback();
+      throw error;
     } finally {
       client.release();
     }

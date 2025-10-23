@@ -503,6 +503,16 @@ export const queries = {
     "admin.getSchoolStats",
     `SELECT id, name, stat_kg_waste, stat_kg_co2, stat_l_h2o FROM schools ORDER BY name ASC`,
   ),
+  createMissionTemplate: q<DB_MissionTemplates>(
+    "admin.createMissionTemplate",
+    `INSERT INTO mission_templates (key, title, description, reward_credits, active)
+    VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+  ),
+  updateMissionTemplate: q<DB_MissionTemplates>(
+    "admin.updateMissionTemplate",
+    `UPDATE mission_templates SET title = $1, description = $2, reward_credits = $3, active = $4
+    WHERE id = $5 RETURNING *`,
+  ),
   getUserWhishesByUserId: q<DB_UsersWhishes>(
     "userWhishes.byUserId",
     `SELECT * FROM users_whishes WHERE user_id = $1`,

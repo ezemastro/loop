@@ -528,3 +528,33 @@ type GetAdminSchoolStatsResponse = ApiResponse<{
     statLH2o: number;
   }>;
 }>;
+
+// POST /admin/missions
+interface PostAdminMissionTemplateRequest {
+  body: {
+    key: string;
+    title: string;
+    description?: string;
+    rewardCredits: number;
+    active: boolean;
+  };
+}
+type PostAdminMissionTemplateResponse = ApiResponse<{
+  missionTemplate: MissionTemplate;
+}>;
+
+// PATCH /admin/missions/:missionTemplateId
+interface PatchAdminMissionTemplateRequest {
+  params: {
+    missionTemplateId: UUID;
+  };
+  body: {
+    title?: string;
+    description?: string;
+    rewardCredits?: number;
+    active?: boolean;
+  };
+}
+type PatchAdminMissionTemplateResponse = ApiResponse<{
+  missionTemplate: MissionTemplate;
+}>;

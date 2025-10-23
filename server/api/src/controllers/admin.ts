@@ -2,6 +2,8 @@ import type { Request, Response, NextFunction } from "express";
 import {
   validateAdminLogin,
   validateAdminRegister,
+  validateCreateMissionTemplate,
+  validateUpdateMissionTemplate,
 } from "../services/validations";
 import { InvalidInputError } from "../services/errors";
 import { adminCookieOptions, COOKIE_NAMES, ERROR_MESSAGES } from "../config";
@@ -31,7 +33,6 @@ export class AdminController {
     // Generar un token JWT
     const token = generateAdminToken({ id: admin.id });
     res.cookie(COOKIE_NAMES.ADMIN_TOKEN, token, adminCookieOptions);
-    console.log(adminCookieOptions);
     return res.status(200).json(successResponse({ data: { admin } }));
   };
 
@@ -61,7 +62,6 @@ export class AdminController {
     // Generar un token JWT
     const token = generateAdminToken({ id: admin.id });
     res.cookie(COOKIE_NAMES.ADMIN_TOKEN, token, adminCookieOptions);
-    console.log(adminCookieOptions);
     return res.status(201).json(successResponse({ data: { admin } }));
   };
 
@@ -232,6 +232,76 @@ export class AdminController {
     try {
       const { schools } = await AdminModel.getSchoolStats();
       return res.status(200).json(successResponse({ data: { schools } }));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // Gestión de mission templates
+  static createMissionTemplate = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const { key, title, description, rewardCredits, active } = req.body;
+    try {
+      await validateCreateMissionTemplate({
+        key,
+        title,
+        description,
+        rewardCredits,
+        active,
+      });
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    try {
+      const { missionTemplate } = await AdminModel.createMissionTemplate({
+        key,
+        title,
+        description,
+        rewardCredits,
+        active,
+      });
+      return res
+        .status(201)
+        .json(successResponse({ data: { missionTemplate } }));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  static updateMissionTemplate = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const { missionTemplateId } = req.params;
+    const { title, description, rewardCredits, active } = req.body;
+    if (!missionTemplateId) {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    try {
+      await validateUpdateMissionTemplate({
+        title,
+        description,
+        rewardCredits,
+        active,
+      });
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    try {
+      const { missionTemplate } = await AdminModel.updateMissionTemplate({
+        missionTemplateId,
+        title,
+        description,
+        rewardCredits,
+        active,
+      });
+      return res
+        .status(200)
+        .json(successResponse({ data: { missionTemplate } }));
     } catch (error) {
       next(error);
     }

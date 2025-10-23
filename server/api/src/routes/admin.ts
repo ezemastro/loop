@@ -49,3 +49,15 @@ adminRouter.get(
   adminTokenMiddleware,
   AdminController.getSchoolStats,
 );
+
+// Gestión de mission templates
+adminRouter.post(
+  "/missions",
+  adminTokenMiddleware,
+  AdminController.createMissionTemplate,
+);
+adminRouter.patch(
+  "/missions/:missionTemplateId",
+  adminTokenMiddleware,
+  AdminController.updateMissionTemplate,
+);
