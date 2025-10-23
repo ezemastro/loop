@@ -1,4 +1,4 @@
-import { ERROR_MESSAGES, PAGE_SIZE } from "../config";
+import { ERROR_MESSAGES, MISSION_KEYS, PAGE_SIZE } from "../config";
 import {
   InternalServerError,
   InvalidInputError,
@@ -184,17 +184,17 @@ export class ListingsModel {
       await progressMission({
         client,
         userId,
-        missionKey: "publish-listing-1",
+        missionKey: MISSION_KEYS.PUBLISH_LISTING_1,
       });
       await progressMission({
         client,
         userId,
-        missionKey: "publish-listing-2",
+        missionKey: MISSION_KEYS.PUBLISH_LISTING_2,
       });
       await progressMission({
         client,
         userId,
-        missionKey: "publish-listing-3",
+        missionKey: MISSION_KEYS.PUBLISH_LISTING_3,
       });
       return { listing };
     } finally {
@@ -929,6 +929,55 @@ export class ListingsModel {
         type: "listing_received",
         buyerId: listingBase.buyerId!,
       });
+      // Almacenar estadísticas
+      try {
+        const [categoryDb] = await client.query(queries.categoryById, [
+          listingBase.categoryId,
+        ]);
+        const categoryBase = parseCategoryBaseFromDb(categoryDb!);
+        // Aumentar estadísticas del vendedor
+        await client.query(queries.increaseUserStats, [
+          categoryBase.stats?.kgWaste,
+          categoryBase.stats?.kgCo2,
+          categoryBase.stats?.lH2o,
+          sellerBase.id,
+        ]);
+        // Aumentar estadísticas del comprador
+        await client.query(queries.increaseUserStats, [
+          categoryBase.stats?.kgWaste,
+          categoryBase.stats?.kgCo2,
+          categoryBase.stats?.lH2o,
+          listingBase.buyerId!,
+        ]);
+        // Aumentar estadísticas de las escuelas involucradas
+        const sellerSchoolsDb = await client.query(
+          queries.userSchoolsByUserId,
+          [sellerBase.id],
+        );
+        const buyerSchoolsDb = await client.query(queries.userSchoolsByUserId, [
+          listingBase.buyerId!,
+        ]);
+        const schoolsIds = [...sellerSchoolsDb, ...buyerSchoolsDb].map(
+          (db) => db.school_id,
+        );
+        const uniqueSchoolsIds = Array.from(new Set(schoolsIds));
+        for (const schoolId of uniqueSchoolsIds) {
+          await client.query(queries.increaseSchoolStats, [
+            categoryBase.stats?.kgWaste,
+            categoryBase.stats?.kgCo2,
+            categoryBase.stats?.lH2o,
+            schoolId,
+          ]);
+        }
+        // Aumentar estadísticas globales
+        await client.query(queries.increaseGlobalStats, [
+          categoryBase.stats?.kgWaste,
+          categoryBase.stats?.kgCo2,
+          categoryBase.stats?.lH2o,
+        ]);
+      } catch {
+        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+      }
       // Finalizar transacción
       await client.commit();
     } catch (err) {
