@@ -17,8 +17,7 @@ const TextLabel = ({ children }: { children: string }) => (
 type Field = {
   key: string;
   label: string;
-  error: boolean;
-  errorMessage: string;
+  error: string | null;
   render: () => ReactNode;
 };
 
@@ -37,7 +36,6 @@ export default function Register() {
       key: "firstName",
       label: "Nombre:",
       error: errors.firstName,
-      errorMessage: "Introduce tu nombre",
       render: () => (
         <TextInput
           className="border border-stroke rounded p-2 bg-white"
@@ -51,7 +49,6 @@ export default function Register() {
       key: "lastName",
       label: "Apellido:",
       error: errors.lastName,
-      errorMessage: "Introduce tu apellido",
       render: () => (
         <TextInput
           className="border border-stroke rounded p-2 bg-white"
@@ -65,7 +62,6 @@ export default function Register() {
       key: "email",
       label: "Correo electrónico:",
       error: errors.email,
-      errorMessage: "Introduce tu correo electrónico",
       render: () => (
         <TextInput
           className="border border-stroke rounded p-2 bg-white"
@@ -80,7 +76,6 @@ export default function Register() {
       key: "password",
       label: "Contraseña:",
       error: errors.password,
-      errorMessage: "Introduce una contraseña",
       render: () => (
         <TextInput
           className="border border-stroke rounded p-2 bg-white"
@@ -96,7 +91,6 @@ export default function Register() {
       key: "confirmPassword",
       label: "Confirmar contraseña:",
       error: errors.confirmPassword,
-      errorMessage: "Confirma tu contraseña",
       render: () => (
         <TextInput
           className="border border-stroke rounded p-2 bg-white"
@@ -114,7 +108,6 @@ export default function Register() {
       key: "schools",
       label: "Colegios:",
       error: errors.schools,
-      errorMessage: "Selecciona tus colegios",
       render: () => (
         <SchoolSelector
           multiple={true}
@@ -135,7 +128,7 @@ export default function Register() {
             paddingLeft: insets.left,
             paddingRight: insets.right,
           }}
-          contentContainerClassName="gap-4 px-4 pb-6"
+          contentContainerClassName="gap-1 px-4 pb-6"
           contentContainerStyle={{
             paddingTop: insets.top + 25,
           }}
@@ -148,8 +141,10 @@ export default function Register() {
           renderItem={({ item }) => (
             <View className="gap-2">
               <TextLabel>{item.label}</TextLabel>
-              {item.render()}
-              {item.error && <Error>{item.errorMessage}</Error>}
+              <View>
+                {item.render()}
+                <Error textClassName="text-alert">{item.error}</Error>
+              </View>
             </View>
           )}
           ListFooterComponent={

@@ -1,13 +1,23 @@
 import {
   MAX_LISTING_DESCRIPTION_LENGTH,
   MAX_LISTING_TITLE_LENGTH,
+  VALID_EMAIL_DOMAINS,
 } from "@/config";
 import { z } from "zod";
 
 const registerFormSchema = z.object({
-  firstName: z.string().min(2).max(100),
-  lastName: z.string().min(2).max(100),
-  email: z.email(),
+  firstName: z
+    .string()
+    .min(2, "El nombre es demasiado corto")
+    .max(100, "El nombre es demasiado largo"),
+  lastName: z
+    .string()
+    .min(2, "El apellido es demasiado corto")
+    .max(100, "El apellido es demasiado largo"),
+  email: z.email("El correo electrónico no es válido").refine((email) => {
+    const domain = email.split("@")[1];
+    return VALID_EMAIL_DOMAINS.includes(domain);
+  }, "El correo electrónico debe pertenecer a Reditinere"),
   password: z.string().min(6).max(100),
   confirmPassword: z.string().min(6).max(100),
   schools: z

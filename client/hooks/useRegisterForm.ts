@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useRegister } from "./useRegister";
 import { validateRegisterForm } from "@/services/validations";
+import { z } from "zod";
 
 interface FormData {
   firstName: string;
@@ -10,7 +11,15 @@ interface FormData {
   confirmPassword: string;
   schools: School[] | null;
 }
-type FormErrors = Record<keyof FormData, boolean>;
+type FormErrors = Record<keyof FormData, string | null>;
+const INITIAL_ERRORS: FormErrors = {
+  confirmPassword: null,
+  email: null,
+  firstName: null,
+  lastName: null,
+  password: null,
+  schools: null,
+};
 
 export const useRegisterForm = () => {
   const {
@@ -26,43 +35,33 @@ export const useRegisterForm = () => {
     confirmPassword: "",
     schools: null,
   });
-  const [errors, setErrors] = useState<FormErrors>({
-    confirmPassword: false,
-    email: false,
-    firstName: false,
-    lastName: false,
-    password: false,
-    schools: false,
-  });
+  const [errors, setErrors] = useState<FormErrors>(INITIAL_ERRORS);
 
   const handleSubmit = () => {
     const validationResult = validateRegisterForm(formData);
-    const errors: FormErrors = {
-      confirmPassword: false,
-      email: false,
-      firstName: false,
-      lastName: false,
-      password: false,
-      schools: false,
-    };
-    validationResult.error?.issues.forEach((issue) => {
-      errors[issue.path[0] as keyof FormData] = true;
-    });
-    if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = true;
+    if (validationResult.success) {
+      setErrors(INITIAL_ERRORS);
+      register({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        schoolIds: formData.schools!.map((school) => school.id),
+      });
+    } else {
+      const formattedErrors = z.formatError(validationResult.error);
+      setErrors({
+        firstName: formattedErrors.firstName?._errors[0] || null,
+        lastName: formattedErrors.lastName?._errors[0] || null,
+        email: formattedErrors.email?._errors[0] || null,
+        password: formattedErrors.password?._errors[0] || null,
+        confirmPassword:
+          formData.password !== formData.confirmPassword
+            ? "Las contraseñas no coinciden"
+            : null,
+        schools: formattedErrors.schools?._errors[0] || null,
+      });
     }
-    if (Object.values(errors).some((error) => error)) {
-      return setErrors(errors);
-    }
-    setErrors(errors);
-
-    register({
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      email: formData.email,
-      password: formData.password,
-      schoolIds: formData.schools!.map((school) => school.id),
-    });
   };
   return {
     formData,
