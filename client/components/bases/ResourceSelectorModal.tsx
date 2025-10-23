@@ -8,6 +8,7 @@ import TextInfo from "../bases/TextInfo";
 import TextTitle from "./TextTitle";
 import CustomButton from "./CustomButton";
 import ButtonText from "./ButtonText";
+import CloseModalButton from "../CloseModalButton";
 
 type ResourceSelectorModalProps<T> = {
   isVisible: boolean;
@@ -81,6 +82,7 @@ export default function ResourceSelectorModal<T>({
   return (
     <CustomModal isVisible={isVisible} handleClose={onClose}>
       <View className="bg-background rounded p-4 py-6 w-full h-3/4 gap-5">
+        <CloseModalButton onClose={onClose} />
         <TextTitle>{title}</TextTitle>
         <SearchBar
           onChange={handleChangeSearch}
