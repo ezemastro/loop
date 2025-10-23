@@ -14,6 +14,7 @@ import { errorMiddleware } from "./middlewares/errors.js";
 import { uploadsRouter } from "./routes/uploads.js";
 import { safeNumber } from "./utils/safeNumber.js";
 import cors from "cors";
+import { trimBody } from "./middlewares/trimBody.js";
 
 export const app = express();
 
@@ -36,15 +37,15 @@ app.get("/status", (req, res) => {
   res.status(200).send(`Server is running. Environment: ${NODE_ENV}`);
 });
 
-app.use("/auth", authRouter);
-app.use("/me", tokenMiddleware, selfRouter);
-app.use("/users", usersRouter);
-app.use("/categories", categoriesRouter);
-app.use("/schools", schoolsRouter);
-app.use("/listings", listingsRouter);
-app.use("/messages", tokenMiddleware, messagesRouter);
-app.use("/uploads", uploadsRouter);
-app.use("/admin", adminRouter);
+app.use("/auth", trimBody, authRouter);
+app.use("/me", trimBody, tokenMiddleware, selfRouter);
+app.use("/users", trimBody, usersRouter);
+app.use("/categories", trimBody, categoriesRouter);
+app.use("/schools", trimBody, schoolsRouter);
+app.use("/listings", trimBody, listingsRouter);
+app.use("/messages", trimBody, tokenMiddleware, messagesRouter);
+app.use("/uploads", trimBody, uploadsRouter);
+app.use("/admin", trimBody, adminRouter);
 
 app.use(errorMiddleware);
 
