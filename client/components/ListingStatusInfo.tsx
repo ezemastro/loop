@@ -17,7 +17,8 @@ export default function ListingStatusInfo({ listing }: { listing: Listing }) {
               </Text>
               <Text>
                 {" "}
-                ha loopeado este artículo, elige que quieres recibir a cambio.
+                quiere loopear este artículo, elige que quieres recibir a
+                cambio.
               </Text>
             </Text>
           </View>
