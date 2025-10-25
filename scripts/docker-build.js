@@ -7,7 +7,7 @@ const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 const currentVersion = packageJson.version;
 
 // Obtener el tipo de incremento desde los argumentos
-const incrementType = process.argv[2] || 'patch';
+const incrementType = process.argv[2] || null;
 
 // Parsear la versión actual
 let [major, minor, patch] = currentVersion.split('.').map(Number);
@@ -25,6 +25,9 @@ switch (incrementType) {
     break;
   case 'patch':
     patch += 1;
+    break;
+  case null:
+    // No hacer nada, mantener la versión actual
     break;
   default:
     console.log('Tipo de incremento no válido. Usa: major, minor o patch');
@@ -57,9 +60,11 @@ try {
 
 // Opcional: Hacer commit y tag (puedes comentar si no lo necesitas)
 try {
-  execSync('git add package.json', { stdio: 'inherit' });
-  execSync(`git commit -m "release: v${newVersion}"`, { stdio: 'inherit' });
-  console.log(`✅ Versión ${newVersion} commitada`);
+  if (incrementType) {
+    execSync('git add package.json', { stdio: 'inherit' });
+    execSync(`git commit -m "release: v${newVersion}"`, { stdio: 'inherit' });
+    console.log(`✅ Versión ${newVersion} commitada`);
+  }
 } catch (error) {
   console.log('ℹ️  Versión actualizada. Nota: No se pudo hacer commit automático');
 }
