@@ -24,6 +24,11 @@ export default function ListingViewList({
         ))}
         {isLoading && <Loader />}
         {isError && <Error>Error al cargar las publicaciones</Error>}
+        {!isLoading && listings.length === 0 && (
+          <Error textClassName="text-secondary-text">
+            No se han encontrado publicaciones
+          </Error>
+        )}
       </View>
       {hasNextPage && !isLoading && (
         <Pressable className="p-4 items-center" onPress={() => fetchNextPage()}>
