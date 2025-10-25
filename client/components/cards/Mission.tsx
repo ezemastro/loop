@@ -6,15 +6,17 @@ export default function Mission({ mission }: { mission: UserMission }) {
     <View className="flex-row bg-white p-2 rounded gap-2 items-center">
       <View className="flex-grow justify-between gap-2">
         <View className="items-center">
-          <Text className="text-main-text font-semibold text-lg text-center">
+          <Text className="text-main-text text-lg text-center">
             {mission.missionTemplate.title}
           </Text>
-          <Text className="text-secondary-text text-sm text-center max-w-80">
-            {mission.missionTemplate.description}
-          </Text>
+          {mission.missionTemplate.description && (
+            <Text className="text-secondary-text text-sm text-center max-w-80">
+              {mission.missionTemplate.description}
+            </Text>
+          )}
         </View>
         <View>
-          <View className="flex-grow bg-secondary-text/60 rounded-full h-5 relative items-center justify-center">
+          <View className="flex-grow bg-secondary-text/40 rounded-full h-5 relative items-center justify-center">
             <View
               className="bg-credits h-full rounded-full absolute left-0 top-0"
               style={{
@@ -27,6 +29,7 @@ export default function Mission({ mission }: { mission: UserMission }) {
           </View>
         </View>
       </View>
+      <View className="bg-stroke/40 self-stretch w-0.5 rounded-full" />
       <View>
         <CreditsBadge
           credits={mission.missionTemplate.rewardCredits}
