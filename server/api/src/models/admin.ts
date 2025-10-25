@@ -18,8 +18,11 @@ import {
 } from "../utils/parseDb";
 import { comparePasswords, hashPassword } from "../services/hash";
 import { assignMissionToAllUsers } from "../utils/helpersDb";
-import { getOrderValue } from "src/utils/sortOptions";
-import { safeNumber } from "src/utils/safeNumber";
+import {
+  DEFAULT_ORDER_OPTION,
+  DEFAULT_SORT_OPTION,
+} from "../utils/sortOptions";
+import { safeNumber } from "../utils/safeNumber";
 
 export class AdminModel {
   static async login({
@@ -129,8 +132,8 @@ export class AdminModel {
 
       const usersDb = await client.query(
         queries.searchUsers({
-          order: getOrderValue("DESC"),
-          sort: "created_at",
+          order: DEFAULT_ORDER_OPTION,
+          sort: DEFAULT_SORT_OPTION,
         }),
         [search, null, null, PAGE_SIZE, offset],
       );
