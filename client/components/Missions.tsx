@@ -21,7 +21,7 @@ export default function Missions({
   }, [missions, hasMissions, setHasMissions]);
 
   return (
-    <View className="gap-4">
+    <View className="gap-2">
       {missions?.map((mission) => (
         <Mission key={mission.id} mission={mission} />
       ))}
