@@ -26,6 +26,7 @@ export const useRegisterForm = () => {
     mutate: register,
     isError: isRegisterError,
     error: registerError,
+    isPending: isLoading,
   } = useRegister();
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
@@ -38,7 +39,15 @@ export const useRegisterForm = () => {
   const [errors, setErrors] = useState<FormErrors>(INITIAL_ERRORS);
 
   const handleSubmit = () => {
-    const validationResult = validateRegisterForm(formData);
+    const parsedFromData = {
+      firstName: formData.firstName.trim(),
+      lastName: formData.lastName.trim(),
+      email: formData.email.trim(),
+      password: formData.password.trim(),
+      confirmPassword: formData.confirmPassword.trim(),
+      schools: formData.schools,
+    };
+    const validationResult = validateRegisterForm(parsedFromData);
     if (validationResult.success) {
       setErrors(INITIAL_ERRORS);
       register({
@@ -70,5 +79,6 @@ export const useRegisterForm = () => {
     handleSubmit,
     isRegisterError,
     registerError,
+    isLoading,
   };
 };
