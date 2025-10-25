@@ -40,7 +40,7 @@ interface UserBase {
   lastName: string;
   profileMediaId: UUID | null;
   credits: { balance: number; locked: number };
-  stats: { kgWaste: number | null; kgCo2: number | null; lH2o: number | null };
+  stats: Stats;
   notificationToken: string | null;
 }
 interface User extends UserBase {
@@ -237,4 +237,10 @@ interface UserWhishBase {
 }
 interface UserWhish extends UserWhishBase {
   category: Category;
+}
+
+interface Stats {
+  kgWaste: number | null;
+  kgCo2: number | null;
+  lH2o: number | null;
 }

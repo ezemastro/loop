@@ -1,4 +1,5 @@
 import { PAGE_SIZE } from "../config";
+import { safeNumber } from "./safeNumber";
 
 const parseDateFromDb = (date: ISODateString): Date => {
   return new Date(date);
@@ -405,5 +406,19 @@ export const parseUserWhishFromBase = ({
   return {
     ...userWhish,
     category,
+  };
+};
+export const parseGlobalStatsFromDb = (rows: DB_GlobalStats[]): Stats => {
+  return {
+    kgWaste:
+      safeNumber(
+        rows.find((r) => r.stat_name === "kg_waste")?.stat_value ?? 0,
+      ) ?? null,
+    kgCo2:
+      safeNumber(rows.find((r) => r.stat_name === "kg_co2")?.stat_value ?? 0) ??
+      null,
+    lH2o:
+      safeNumber(rows.find((r) => r.stat_name === "l_h2o")?.stat_value ?? 0) ??
+      null,
   };
 };

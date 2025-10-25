@@ -15,6 +15,7 @@ import { uploadsRouter } from "./routes/uploads.js";
 import { safeNumber } from "./utils/safeNumber.js";
 import cors from "cors";
 import { trimBody } from "./middlewares/trimBody.js";
+import { statsRouter } from "./routes/stats.js";
 
 export const app = express();
 
@@ -46,6 +47,7 @@ app.use("/listings", trimBody, listingsRouter);
 app.use("/messages", trimBody, tokenMiddleware, messagesRouter);
 app.use("/uploads", trimBody, uploadsRouter);
 app.use("/admin", trimBody, adminRouter);
+app.use("/stats", trimBody, statsRouter);
 
 app.use(errorMiddleware);
 

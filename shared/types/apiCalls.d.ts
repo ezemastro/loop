@@ -393,6 +393,12 @@ interface PostMessageReadRequest extends AuthRequest {
 }
 type PostMessageReadResponse = ApiResponse;
 
+// GET /stats
+type GetGlobalStatsRequest = null;
+type GetGlobalStatsResponse = ApiResponse<{
+  globalStats: Stats;
+}>;
+
 // Administrador
 // POST /admin/login
 interface PostAdminLoginRequest {
