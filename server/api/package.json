@@ -1,6 +1,5 @@
 {
   "name": "api",
-  "version": "1.0.0",
   "description": "",
   "license": "Apache-2.0",
   "author": "",
@@ -15,7 +14,8 @@
     "test": "cross-env NODE_ENV=test jest",
     "test:debug": "cross-env NODE_ENV=test jest --detectOpenHandles --verbose",
     "test:watch": "npm run test -- --watch",
-    "docker:test": "docker compose run --rm api npm run test"
+    "docker:test": "docker compose run --rm api npm run test",
+    "check-types": "tsc --noEmit"
   },
   "dependencies": {
     "bcrypt": "6.0.0",
