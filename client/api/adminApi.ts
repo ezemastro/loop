@@ -169,6 +169,44 @@ export const adminApi = {
     );
     return response.data;
   },
+
+  // Gestión de mission templates
+  /**
+   * Crear una nueva mission template
+   */
+  createMissionTemplate: async (data: {
+    key: string;
+    title: string;
+    description?: string;
+    rewardCredits: number;
+    active: boolean;
+  }) => {
+    const response = await api.post<PostAdminMissionTemplateResponse>(
+      "/admin/missions",
+      data,
+    );
+    return response.data;
+  },
+
+  /**
+   * Actualizar una mission template existente
+   * Permite cambiar título, descripción, recompensa y estado activo/inactivo
+   */
+  updateMissionTemplate: async (
+    missionTemplateId: UUID,
+    data: {
+      title?: string;
+      description?: string;
+      rewardCredits?: number;
+      active?: boolean;
+    },
+  ) => {
+    const response = await api.patch<PatchAdminMissionTemplateResponse>(
+      `/admin/missions/${missionTemplateId}`,
+      data,
+    );
+    return response.data;
+  },
 };
 
 export default adminApi;
