@@ -10,9 +10,9 @@ export const SORT = {
 } as const;
 export const DEFAULT_SORT_OPTION = SORT.createdAt;
 export const SORT_OPTIONS = Object.keys(SORT);
-export const getSortValue = (key?: string) => {
+export const getSortValue = (key?: keyof typeof SORT) => {
   if (!key) return DEFAULT_SORT_OPTION;
-  return SORT[key as keyof typeof SORT] || DEFAULT_SORT_OPTION;
+  return SORT[key] || DEFAULT_SORT_OPTION;
 };
 export const getOrderValue = (order?: string) => {
   if (!order) return "desc";
