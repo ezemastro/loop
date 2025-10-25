@@ -77,29 +77,37 @@ export default function Login() {
           style={{
             paddingTop: insets.top,
           }}
-          contentContainerClassName="gap-4 pt-6 pb-16 flex-1 justify-center"
+          contentContainerClassName="gap-2 pt-6 pb-16 flex-1 justify-center"
           ListHeaderComponent={
             <Text className="text-3xl py-4 text-center font-bold color-main-text">
               Iniciar sesión
             </Text>
           }
           renderItem={({ item }) => (
-            <View className="gap-2">
+            <View className="gap-1">
               <TextLabel>{item.label}</TextLabel>
-              {item.render()}
-              {item.error && <Error>{item.errorMessage}</Error>}
+              <View>
+                {item.render()}
+                <Error textClassName="text-alert">
+                  {item.error ? item.errorMessage : null}
+                </Error>
+              </View>
             </View>
           )}
           ListFooterComponent={
             <>
               {!isLoginLoading &&
                 loginError?.name === ERROR_NAMES.INVALID_INPUT && (
-                  <Error>Correo electrónico o contraseña incorrectos</Error>
+                  <Error textClassName="text-alert">
+                    Correo electrónico o contraseña incorrectos
+                  </Error>
                 )}
               {isLoginError &&
                 !isLoginLoading &&
                 loginError?.name === ERROR_NAMES.INTERNAL_SERVER && (
-                  <Error>Ocurrió un error al iniciar sesión</Error>
+                  <Error textClassName="text-alert">
+                    Ocurrió un error al iniciar sesión
+                  </Error>
                 )}
               {isLoginLoading && <Loader />}
               <CustomButton onPress={handleSubmit} className="mt-6">
