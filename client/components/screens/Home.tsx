@@ -7,6 +7,7 @@ import { useRef, useState } from "react";
 import CustomRefresh from "../CustomRefresh";
 import Feed from "../Feed";
 import AllMyPendingList from "../AllMyPendingList";
+import { useGlobalStats } from "@/hooks/useGlobalStats";
 
 interface Section {
   key: string;
@@ -17,10 +18,18 @@ interface Section {
 export default function Home() {
   const [hasMissions, setHasMissions] = useState(false);
   const [hasPending, setHasPending] = useState(false);
+  const { data } = useGlobalStats();
+  const { globalStats } = data || {};
   const sections: Section[] = [
     {
       key: "stats",
-      component: () => <Stats />,
+      component: () => (
+        <Stats
+          kgCo2={globalStats?.kgCo2 || 0}
+          kgWaste={globalStats?.kgWaste || 0}
+          lH2o={globalStats?.lH2o || 0}
+        />
+      ),
     },
     {
       key: "mission",
