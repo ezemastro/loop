@@ -1,19 +1,23 @@
 import { getUrl } from "@/services/getUrl";
 import { View, Text, Image } from "react-native";
+import { twMerge } from "tailwind-merge";
 
 export default function School({
   school,
   isSelected,
+  className,
 }: {
   school: School;
   isSelected?: boolean;
+  className?: string;
 }) {
   return (
     <View
-      className={
+      className={twMerge(
         "p-1 flex-row bg-white rounded border " +
-        (isSelected ? "border-tertiary" : "border-transparent")
-      }
+          (isSelected ? "border-tertiary" : "border-transparent"),
+        className,
+      )}
     >
       <View>
         <Image
