@@ -18,3 +18,11 @@ export const { EXPO_PUBLIC_API_URL: API_URL } = process.env || {};
 export const FILE_BASE_URL = API_URL + "/uploads/";
 
 export const VALID_EMAIL_DOMAINS = ["northfield.edu.ar", "gmail.com"];
+
+export const PRODUCT_STATUSES: Record<string, ProductStatus> = {
+  FAIR: "fair",
+  GOOD: "good",
+  VERY_GOOD: "very_good",
+  LIKE_NEW: "like_new",
+  NEW: "new",
+};
