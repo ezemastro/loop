@@ -9,6 +9,7 @@ export const SORT = {
   buyer: "buyer_id",
 } as const;
 export const DEFAULT_SORT_OPTION = SORT.createdAt;
+export const DEFAULT_ORDER_OPTION = "desc";
 export const SORT_OPTIONS = Object.keys(SORT);
 export const getSortValue = (key?: keyof typeof SORT) => {
   if (!key) return DEFAULT_SORT_OPTION;
