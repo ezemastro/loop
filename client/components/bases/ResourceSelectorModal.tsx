@@ -9,6 +9,7 @@ import TextTitle from "./TextTitle";
 import CustomButton from "./CustomButton";
 import ButtonText from "./ButtonText";
 import CloseModalButton from "../CloseModalButton";
+import CustomRefresh from "../CustomRefresh";
 
 type ResourceSelectorModalProps<T> = {
   isVisible: boolean;
@@ -90,27 +91,32 @@ export default function ResourceSelectorModal<T>({
           onSubmit={handleDebouncedSearch}
         />
         <View className="flex-1 justify-center items-center">
-          {isError && <Error>Error al cargar {title.toLowerCase()}</Error>}
-          {isLoading && <Loader />}
-          {filteredItems.length === 0 && !isLoading && !isError && (
-            <TextInfo>No se encontraron resultados</TextInfo>
-          )}
-          {filteredItems.length > 0 && !isLoading && !isError && (
-            <FlatList
-              data={filteredItems}
-              className="w-full"
-              contentContainerClassName="gap-3"
-              onEndReached={() => fetchNextPage()}
-              onEndReachedThreshold={0.5}
-              renderItem={({ item }) => (
-                <Pressable onPress={() => handleSelect(item)}>
-                  {renderItem(item, {
-                    isSelected: selectedItems.includes(item),
-                  })}
-                </Pressable>
-              )}
-            />
-          )}
+          <FlatList
+            data={filteredItems}
+            className="w-full"
+            refreshControl={<CustomRefresh />}
+            contentContainerClassName="gap-3"
+            onEndReached={() => fetchNextPage()}
+            onEndReachedThreshold={0.5}
+            renderItem={({ item }) => (
+              <Pressable onPress={() => handleSelect(item)}>
+                {renderItem(item, {
+                  isSelected: selectedItems.includes(item),
+                })}
+              </Pressable>
+            )}
+            ListEmptyComponent={() => (
+              <View className="justify-center items-center mt-10">
+                {isError && (
+                  <Error>Error al cargar {title.toLowerCase()}</Error>
+                )}
+                {isLoading && <Loader />}
+                {filteredItems.length === 0 && !isLoading && !isError && (
+                  <TextInfo>No se encontraron resultados</TextInfo>
+                )}
+              </View>
+            )}
+          />
         </View>
         {multiple && (
           <CustomButton
