@@ -193,7 +193,7 @@ interface NotificationBase {
     | DonationNotificationPayloadBase
     | AdminNotificationPayloadBase;
 }
-interface Notification extends NotificationBase {
+interface AppNotification extends NotificationBase {
   payload:
     | MissionNotificationPayload
     | LoopNotificationPayload

@@ -101,7 +101,7 @@ interface GetSelfNotificationsRequest extends AuthApiRequest {
   query?: PaginationParams;
 }
 type GetSelfNotificationsResponse = PaginatedApiResponse<{
-  notifications: Notification[];
+  notifications: AppNotification[];
 }>;
 // GET /me/notifications/unread
 type GetSelfNotificationsUnreadRequest = AuthApiRequest;
@@ -540,7 +540,7 @@ interface PostAdminMissionTemplateRequest {
   body: {
     key: string;
     title: string;
-    description?: string;
+    description: string | null;
     rewardCredits: number;
     active: boolean;
   };
