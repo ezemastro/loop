@@ -8,6 +8,7 @@ interface SessionStore {
   login: (user: User) => void;
   logout: () => void;
   setUser: (user: User) => void;
+  setHasAcceptedTerms: (accepted: boolean) => void;
 }
 export const useSessionStore = create<SessionStore>()(
   persist(
@@ -17,6 +18,8 @@ export const useSessionStore = create<SessionStore>()(
       logout: () => set({ user: null, hasAcceptedTerms: false }),
       setUser: (user) => set({ user }),
       hasAcceptedTerms: false,
+      setHasAcceptedTerms: (accepted: boolean) =>
+        set({ hasAcceptedTerms: accepted }),
     }),
     {
       name: "session-storage",
