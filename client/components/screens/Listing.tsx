@@ -133,14 +133,17 @@ export default function Listing() {
               <Text className="text-2xl font-semibold text-main-text">
                 Con este loop ahorras:
               </Text>
-              <Stats listing={listing} />
+              <Stats
+                kgCo2={listing?.category.stats?.kgCo2 || 0}
+                kgWaste={listing?.category.stats?.kgWaste || 0}
+                lH2o={listing?.category.stats?.lH2o || 0}
+              />
             </View>
           ),
         },
       ]
     : null;
   // TODO - Agregar deseados del vendedor
-  // TODO - Agregar estadísticas de la publicación
   // TODO - Agregar datos del comprador si hay
   return (
     <MainView safeBottom>
