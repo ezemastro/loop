@@ -15,14 +15,7 @@ import { getOrderValue, getSortValue } from "../utils/sortOptions";
 
 export class UsersModel {
   static getUsers = async (query: GetUsersRequest["query"]) => {
-    const {
-      page = 1,
-      sort = "created_at",
-      order = "desc",
-      searchTerm,
-      schoolId,
-      userId,
-    } = query || {};
+    const { page = 1, sort, order, searchTerm, schoolId, userId } = query || {};
     // Obtener conexión a la base de datos
     let client: DatabaseClient;
     try {
