@@ -29,12 +29,15 @@ export default function SchoolSelector({
     <View>
       <Pressable
         onPress={openModal}
-        className="bg-white rounded border border-stroke"
+        className={
+          "rounded border border-stroke gap-0.5 " +
+          (value?.length && value.length > 0 ? "" : "bg-white")
+        }
       >
         {value ? (
           <>
             {value.map((school) => (
-              <School key={school.id} school={school} />
+              <School key={school.id} school={school} className="" />
             ))}
           </>
         ) : (
