@@ -12,6 +12,7 @@ import CustomRefresh from "./CustomRefresh";
 import { useSessionStore } from "@/stores/session";
 import MyPendingList from "./MyPendingList";
 import DonateModal from "./modals/DonateModal";
+import Stats from "./Stats";
 
 interface Section {
   key: string;
@@ -56,9 +57,13 @@ export default function UserPage({
             <Text className="text-2xl text-main-text">
               {user.firstName} {user.lastName}
             </Text>
-            <Text className="text-main-text text-xl font-light">
-              {user.schools.map((s) => s.name).join(", ")}
-            </Text>
+            <View>
+              {user.schools.map((s) => (
+                <Text key={s.id} className="text-main-text/80 text-lg">
+                  {s.name}
+                </Text>
+              ))}
+            </View>
           </View>
         </View>
       ),
@@ -169,6 +174,18 @@ export default function UserPage({
             />
           </View>
         </View>
+      ),
+    },
+    {
+      key: "stats",
+      show: isCurrentUser,
+      title: "Tus estadísticas:",
+      component: () => (
+        <Stats
+          kgCo2={user.stats.kgCo2 || 0}
+          kgWaste={user.stats.kgWaste || 0}
+          lH2o={user.stats.lH2o || 0}
+        />
       ),
     },
   ];
