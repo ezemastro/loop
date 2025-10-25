@@ -274,8 +274,8 @@ export const parseNotificationFromBase = ({
   donorUser?: PublicUser | undefined;
   buyer?: PublicUser | null | undefined;
   userMission?: UserMission | undefined;
-}): Notification => {
-  let newPayload: Notification["payload"];
+}): AppNotification => {
+  let newPayload: AppNotification["payload"];
   switch (notification.type) {
     case "admin": {
       const payload = notification.payload as AdminNotificationPayloadBase;

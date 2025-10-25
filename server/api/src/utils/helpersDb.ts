@@ -417,7 +417,7 @@ export const getNotificationsByUserId = async ({
   client: DatabaseClient;
   userId: UUID;
   page: number | undefined;
-}): Promise<{ notifications: Notification[]; pagination: Pagination }> => {
+}): Promise<{ notifications: AppNotification[]; pagination: Pagination }> => {
   // Obtener notificaciones del usuario
   let notificationsDb: (DB_Notifications & DB_Pagination)[];
   try {

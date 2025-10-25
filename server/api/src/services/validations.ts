@@ -390,7 +390,7 @@ export const validateAdminRegister = (data: unknown) =>
 const createMissionTemplateSchema = z.object({
   key: z.string().min(1).max(100),
   title: z.string().min(1).max(200),
-  description: z.string().max(1000).optional(),
+  description: z.string().max(1000).nullable(),
   rewardCredits: z.number().int().positive(),
   active: z.boolean(),
 });

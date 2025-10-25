@@ -145,7 +145,7 @@ export class SelfController {
     } catch {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
-    let notifications: Notification[];
+    let notifications: AppNotification[];
     let pagination: Pagination;
     // TODO - Add pagination
     try {
