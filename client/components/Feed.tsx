@@ -33,7 +33,9 @@ export default function Feed({
       {isLoading && <Loader />}
       {isError && <Error>Ha ocurrido un error</Error>}
       {!isLoading && listings.length === 0 && (
-        <Error>No se han encontrado publicaciones</Error>
+        <Error textClassName="text-secondary-text">
+          No se han encontrado publicaciones
+        </Error>
       )}
       {!hasNextPage && !isLoading && listings.length > 0 && (
         <Text className="text-center text-secondary-text mt-2">
