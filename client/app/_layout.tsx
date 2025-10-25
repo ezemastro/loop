@@ -24,7 +24,12 @@ export default function RootLayout() {
                 <Stack.Screen name="(main)"></Stack.Screen>
               </Stack.Protected>
               <Stack.Protected guard={!hasAcceptedTerms}>
-                <Stack.Screen name="terms" />
+                <Stack.Screen
+                  name="terms"
+                  options={{
+                    statusBarStyle: "dark",
+                  }}
+                />
               </Stack.Protected>
             </Stack.Protected>
           </Stack>
