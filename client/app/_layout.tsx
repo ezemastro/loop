@@ -4,11 +4,13 @@ import "../global.css";
 import { useAuth } from "@/hooks/useAuth";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { useSessionStore } from "@/stores/session";
 
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
   const { isLoggedIn } = useAuth();
+  const hasAcceptedTerms = useSessionStore((state) => state.hasAcceptedTerms);
   return (
     <QueryClientProvider client={queryClient}>
       <GestureHandlerRootView>
@@ -18,7 +20,12 @@ export default function RootLayout() {
               <Stack.Screen name="(auth)"></Stack.Screen>
             </Stack.Protected>
             <Stack.Protected guard={isLoggedIn}>
-              <Stack.Screen name="(main)"></Stack.Screen>
+              <Stack.Protected guard={hasAcceptedTerms}>
+                <Stack.Screen name="(main)"></Stack.Screen>
+              </Stack.Protected>
+              <Stack.Protected guard={!hasAcceptedTerms}>
+                <Stack.Screen name="terms" />
+              </Stack.Protected>
             </Stack.Protected>
           </Stack>
         </SafeAreaProvider>
