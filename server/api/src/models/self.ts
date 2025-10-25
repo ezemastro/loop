@@ -188,7 +188,7 @@ export class SelfModel {
     productStatus?: ProductStatus;
     listingStatus?: ListingStatus;
     page?: number;
-    sort?: string;
+    sort?: SortOptions;
     order?: "asc" | "desc";
   }) => {
     // Crear conexión a la base de datos
