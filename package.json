@@ -1,6 +1,6 @@
 {
   "name": "loop",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "",
   "keywords": [
     "school",
@@ -21,6 +21,7 @@
   "main": "",
   "scripts": {
     "build:server": "docker build -f api.Dockerfile -t ezemastro/loop:$npm_package_version -t ezemastro/loop:latest .",
+    "docker:build": "node scripts/docker-build.js",
     "docker:build:patch": "node scripts/docker-build.js patch",
     "docker:build:minor": "node scripts/docker-build.js minor",
     "docker:build:major": "node scripts/docker-build.js major",
