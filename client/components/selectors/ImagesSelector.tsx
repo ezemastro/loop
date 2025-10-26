@@ -4,10 +4,9 @@ import { useState } from "react";
 import Carousel, { Pagination } from "react-native-reanimated-carousel";
 import { useSharedValue } from "react-native-reanimated";
 import { COLORS, MAX_LISTING_IMAGES } from "@/config";
-import { CameraIcon, CrossIcon, GalleryIcon } from "../Icons";
+import { CameraIcon, CrossIcon } from "../Icons";
 import { twMerge } from "tailwind-merge";
 import { getUrl } from "@/services/getUrl";
-import CustomModal from "../bases/CustomModal";
 import ImageSourceSelectorModal from "../modals/ImageSourceSelectorModal";
 
 const width = Dimensions.get("window").width;
