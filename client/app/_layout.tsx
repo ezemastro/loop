@@ -32,6 +32,7 @@ export default function RootLayout() {
                 />
               </Stack.Protected>
             </Stack.Protected>
+            <Stack.Screen name="debug" />
           </Stack>
         </SafeAreaProvider>
       </GestureHandlerRootView>

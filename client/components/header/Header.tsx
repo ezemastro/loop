@@ -21,7 +21,9 @@ export default function Header() {
     >
       <View className="flex-row justify-between pt-3">
         <View>
-          <AppLogo />
+          <Pressable onLongPress={() => router.push("/debug")}>
+            <AppLogo />
+          </Pressable>
         </View>
         <View className="flex-row items-center gap-4">
           <CreditsBalance />
