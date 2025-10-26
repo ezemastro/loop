@@ -9,7 +9,6 @@ export const tokenMiddleware = (
 ) => {
   const token = req.cookies[COOKIE_NAMES.TOKEN];
   const adminToken = req.cookies[COOKIE_NAMES.ADMIN_TOKEN];
-  console.log({ adminToken });
   if (!token && !adminToken) {
     return res.status(401).json({ error: "Unauthorized" });
   }
@@ -21,12 +20,9 @@ export const tokenMiddleware = (
     if (adminToken) {
       decoded = { ...decoded, ...parseToken(adminToken) };
     }
-    console.log({ decoded });
-
     req.session = decoded;
     next();
-  } catch (err) {
-    console.log(err);
+  } catch {
     return res.status(401).json({ error: "Unauthorized" });
   }
 };
