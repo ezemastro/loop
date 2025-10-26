@@ -16,7 +16,6 @@ const fetchUploadFile = async ({
     type,
     name: uri.split("/").pop(),
   } as any);
-  console.log(formData);
   try {
     const response = await api.post<PostMediaResponse>("/uploads", formData, {
       headers: {

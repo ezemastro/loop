@@ -182,7 +182,6 @@ export default function ModifyListing({
             productStatus: form.productStatus!,
             price: form.price!,
           };
-          console.log(body);
           // Publicar
           if (action === "create") {
             publishListing(body);
