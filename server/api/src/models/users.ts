@@ -7,8 +7,8 @@ import { getCategoryById, getUserById } from "../utils/helpersDb";
 import {
   parsePagination,
   parseUserBaseFromDb,
-  parseUserWhishFromBase,
-  parseUserWhishFromDb,
+  parseUserWishFromBase,
+  parseUserWishFromDb,
 } from "../utils/parseDb";
 import { safeNumber } from "../utils/safeNumber";
 import { getOrderValue, getSortValue } from "../utils/sortOptions";
@@ -129,7 +129,7 @@ export class UsersModel {
     }
   };
 
-  static getUserWhishes = async ({ userId }: { userId: string }) => {
+  static getUserWishes = async ({ userId }: { userId: string }) => {
     // Obtener conexión a la base de datos
     let client: DatabaseClient;
     try {
@@ -138,22 +138,22 @@ export class UsersModel {
       throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
     }
     try {
-      const userWhishesDb = await client.query(queries.getUserWhishesByUserId, [
+      const userWishesDb = await client.query(queries.getUserWishesByUserId, [
         userId,
       ]);
-      const userWhishes = await Promise.all(
-        userWhishesDb.map(async (whishDb) => {
-          const whishBase = parseUserWhishFromDb(whishDb);
-          return parseUserWhishFromBase({
-            userWhish: whishBase,
+      const userWishes = await Promise.all(
+        userWishesDb.map(async (wishDb) => {
+          const wishBase = parseUserWishFromDb(wishDb);
+          return parseUserWishFromBase({
+            userWish: wishBase,
             category: await getCategoryById({
               client,
-              categoryId: whishDb.category_id,
+              categoryId: wishDb.category_id,
             }),
           });
         }),
       );
-      return { userWhishes };
+      return { userWishes };
     } catch {
       throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
     } finally {

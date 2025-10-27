@@ -364,12 +364,12 @@ const updateTokenRequestBody = z.object({
 export const validateUpdateTokenRequest = (data: unknown) =>
   updateTokenRequestBody.parseAsync(data);
 
-const putSelfWhishRequest = z.object({
-  whishId: z.uuid(),
+const putSelfWishRequest = z.object({
+  wishId: z.uuid(),
   comment: z.string().max(300).nullable(),
 });
-export const validatePutSelfWhishRequest = (data: unknown) =>
-  putSelfWhishRequest.parseAsync(data);
+export const validatePutSelfWishRequest = (data: unknown) =>
+  putSelfWishRequest.parseAsync(data);
 
 // ADMIN
 const adminLoginSchema = z.object({

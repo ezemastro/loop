@@ -388,7 +388,7 @@ export const parseAdminFromDb = (row: DB_Admin): Admin => {
   };
 };
 
-export const parseUserWhishFromDb = (row: DB_UsersWhishes): UserWhishBase => {
+export const parseUserWishFromDb = (row: DB_UsersWishes): UserWishBase => {
   return {
     id: row.id,
     userId: row.user_id,
@@ -396,15 +396,15 @@ export const parseUserWhishFromDb = (row: DB_UsersWhishes): UserWhishBase => {
     comment: row.comment,
   };
 };
-export const parseUserWhishFromBase = ({
-  userWhish,
+export const parseUserWishFromBase = ({
+  userWish,
   category,
 }: {
-  userWhish: UserWhishBase;
+  userWish: UserWishBase;
   category: Category;
-}): UserWhish => {
+}): UserWish => {
   return {
-    ...userWhish,
+    ...userWish,
     category,
   };
 };

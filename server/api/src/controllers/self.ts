@@ -5,7 +5,7 @@ import {
   validateGetSelfListingsRequest,
   validateGetSelfMessagesRequest,
   validateGetSelfNotificationsRequest,
-  validatePutSelfWhishRequest,
+  validatePutSelfWishRequest,
   validateUpdateSelf,
   validateUpdateTokenRequest,
 } from "../services/validations";
@@ -252,13 +252,13 @@ export class SelfController {
     res.status(204).send(successResponse());
   };
 
-  static addSelfWhish = async (
+  static addSelfWish = async (
     req: Request,
     res: Response,
     next: NextFunction,
   ) => {
     const { userId } = req.session!;
-    const { categoryId } = req.body as PostSelfWhishRequest["body"];
+    const { categoryId } = req.body as PostSelfWishRequest["body"];
     // Validar categoryId
     try {
       const res = await safeValidateUUID(categoryId);
@@ -266,22 +266,22 @@ export class SelfController {
     } catch {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
-    let userWhish: UserWhish;
+    let userWish: UserWish;
     try {
-      ({ userWhish } = await SelfModel.addSelfWhish({ userId, categoryId }));
+      ({ userWish } = await SelfModel.addSelfWish({ userId, categoryId }));
     } catch (err) {
       return next(err);
     }
-    res.status(201).send(successResponse({ data: { userWhish } }));
+    res.status(201).send(successResponse({ data: { userWish } }));
   };
 
-  static deleteSelfWhish = async (
+  static deleteSelfWish = async (
     req: Request,
     res: Response,
     next: NextFunction,
   ) => {
     const { userId } = req.session!;
-    const { categoryId } = req.params as DeleteSelfWhishRequest["params"];
+    const { categoryId } = req.params as DeleteSelfWishRequest["params"];
     // Validar categoryId
     try {
       const res = await safeValidateUUID(categoryId);
@@ -290,45 +290,45 @@ export class SelfController {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     try {
-      await SelfModel.deleteSelfWhish({ userId, categoryId });
+      await SelfModel.deleteSelfWish({ userId, categoryId });
     } catch (err) {
       return next(err);
     }
     res.status(204).send(successResponse());
   };
 
-  static getSelfWhishes = async (
+  static getSelfWishes = async (
     req: Request,
     res: Response,
     next: NextFunction,
   ) => {
     const { userId } = req.session!;
-    let userWhishes: UserWhish[];
+    let userWishes: UserWish[];
     try {
-      ({ userWhishes } = await SelfModel.getSelfWhishes({ userId }));
+      ({ userWishes } = await SelfModel.getSelfWishes({ userId }));
     } catch (err) {
       return next(err);
     }
-    res.status(200).send(successResponse({ data: { userWhishes } }));
+    res.status(200).send(successResponse({ data: { userWishes } }));
   };
 
-  static modifySelfWhishComment = async (
+  static modifySelfWishComment = async (
     req: Request,
     res: Response,
     next: NextFunction,
   ) => {
     const { userId } = req.session!;
-    const { whishId } = req.params as PutSelfWhishRequest["params"];
-    const { comment } = req.body as PutSelfWhishRequest["body"];
+    const { wishId } = req.params as PutSelfWishRequest["params"];
+    const { comment } = req.body as PutSelfWishRequest["body"];
     try {
-      await validatePutSelfWhishRequest({ whishId, comment });
+      await validatePutSelfWishRequest({ wishId, comment });
     } catch {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     try {
-      await SelfModel.modifyWhishComment({
+      await SelfModel.modifyWishComment({
         userId,
-        whishId,
+        wishId,
         comment,
       });
     } catch (err) {

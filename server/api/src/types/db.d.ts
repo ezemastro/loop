@@ -157,7 +157,7 @@ interface DB_GlobalStats {
   stat_value: DbNumber;
 }
 
-interface DB_UsersWhishes {
+interface DB_UsersWishes {
   id: UUID;
   user_id: UUID;
   category_id: UUID;

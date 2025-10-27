@@ -229,13 +229,13 @@ interface Admin {
   fullName: string;
 }
 
-interface UserWhishBase {
+interface UserWishBase {
   id: UUID;
   userId: UUID;
   categoryId: UUID;
   comment: string | null;
 }
-interface UserWhish extends UserWhishBase {
+interface UserWish extends UserWishBase {
   category: Category;
 }
 

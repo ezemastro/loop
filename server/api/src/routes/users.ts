@@ -7,4 +7,4 @@ export const usersRouter = Router();
 usersRouter.get("/", UsersController.getUsers);
 usersRouter.get("/:userId", UsersController.getUserById);
 usersRouter.post("/:userId/donate", tokenMiddleware, UsersController.donate);
-usersRouter.get("/:userId/whishes", UsersController.getUserWhishes);
+usersRouter.get("/:userId/wishes", UsersController.getUserWishes);

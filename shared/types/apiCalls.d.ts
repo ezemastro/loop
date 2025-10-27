@@ -132,38 +132,38 @@ interface PostSelfNotificationTokenRequest extends AuthApiRequest {
   };
 }
 type PostSelfNotificationTokenResponse = ApiResponse;
-// POST /me/whishes
-interface PostSelfWhishRequest extends AuthApiRequest {
+// POST /me/wishes
+interface PostSelfWishRequest extends AuthApiRequest {
   body: {
     categoryId: UUID;
   };
 }
-type PostSelfWhishResponse = ApiResponse<{
-  userWhish: UserWhish;
+type PostSelfWishResponse = ApiResponse<{
+  userWish: UserWish;
 }>;
-// DELETE /me/whishes/:categoryId
-interface DeleteSelfWhishRequest extends AuthApiRequest {
+// DELETE /me/wishes/:categoryId
+interface DeleteSelfWishRequest extends AuthApiRequest {
   params: {
     categoryId: UUID;
   };
 }
-type DeleteSelfWhishResponse = ApiResponse;
-// GET /me/whishes
-type GetSelfWhishesRequest = AuthApiRequest;
-type GetSelfWhishesResponse = ApiResponse<{
-  userWhishes: UserWhish[];
+type DeleteSelfWishResponse = ApiResponse;
+// GET /me/wishes
+type GetSelfWishesRequest = AuthApiRequest;
+type GetSelfWishesResponse = ApiResponse<{
+  userWishes: UserWish[];
 }>;
-// PUT /me/whishes/:whishId
-interface PutSelfWhishRequest extends AuthApiRequest {
+// PUT /me/wishes/:wishId
+interface PutSelfWishRequest extends AuthApiRequest {
   params: {
-    whishId: UUID;
+    wishId: UUID;
   };
   body: {
     comment: string | null;
   };
 }
-type PutSelfWhishResponse = ApiResponse<{
-  userWhish: UserWhish;
+type PutSelfWishResponse = ApiResponse<{
+  userWish: UserWish;
 }>;
 
 // POST /me/change-password
@@ -197,14 +197,14 @@ type GetUsersResponse = PaginatedApiResponse<{
   users: PrivateUser[];
 }>;
 
-// GET /users/:userId/whishes
-interface GetUserWhishesRequest {
+// GET /users/:userId/wishes
+interface GetUserWishesRequest {
   params: {
     userId: UUID;
   };
 }
-type GetUserWhishesResponse = ApiResponse<{
-  userWhishes: UserWhish[];
+type GetUserWishesResponse = ApiResponse<{
+  userWishes: UserWish[];
 }>;
 
 // POST /users/:userId/donate

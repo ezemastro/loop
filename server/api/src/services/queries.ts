@@ -517,21 +517,21 @@ export const queries = {
     `UPDATE mission_templates SET title = $1, description = $2, reward_credits = $3, active = $4
     WHERE id = $5 RETURNING *`,
   ),
-  getUserWhishesByUserId: q<DB_UsersWhishes>(
-    "userWhishes.byUserId",
-    `SELECT * FROM users_whishes WHERE user_id = $1`,
+  getUserWishesByUserId: q<DB_UsersWishes>(
+    "userWishes.byUserId",
+    `SELECT * FROM users_wishes WHERE user_id = $1`,
   ),
-  addUserWhish: q<DB_UsersWhishes>(
-    "userWhishes.add",
-    `INSERT INTO users_whishes (user_id, category_id) VALUES ($1, $2) RETURNING *`,
+  addUserWish: q<DB_UsersWishes>(
+    "userWishes.add",
+    `INSERT INTO users_wishes (user_id, category_id) VALUES ($1, $2) RETURNING *`,
   ),
-  removeUserWhish: q<void>(
-    "userWhishes.remove",
-    `DELETE FROM users_whishes WHERE user_id = $1 AND category_id = $2`,
+  removeUserWish: q<void>(
+    "userWishes.remove",
+    `DELETE FROM users_wishes WHERE user_id = $1 AND category_id = $2`,
   ),
-  updateUserWhishComment: q<void>(
-    "userWhishes.updateComment",
-    `UPDATE users_whishes SET comment = $1 WHERE user_id = $2 AND id = $3`,
+  updateUserWishComment: q<void>(
+    "userWishes.updateComment",
+    `UPDATE users_wishes SET comment = $1 WHERE user_id = $2 AND id = $3`,
   ),
   increaseUserStats: q<void>(
     "user.increaseStats",

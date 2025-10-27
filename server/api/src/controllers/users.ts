@@ -88,23 +88,23 @@ export class UsersController {
     res.status(200).json(successResponse());
   };
 
-  static getUserWhishes = async (
+  static getUserWishes = async (
     req: Request,
     res: Response,
     next: NextFunction,
   ) => {
-    const { userId } = req.params as GetUserWhishesRequest["params"];
+    const { userId } = req.params as GetUserWishesRequest["params"];
     try {
       await validateId(userId);
     } catch {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
-    let userWhishes: UserWhish[];
+    let userWishes: UserWish[];
     try {
-      ({ userWhishes } = await UsersModel.getUserWhishes({ userId }));
+      ({ userWishes } = await UsersModel.getUserWishes({ userId }));
     } catch (err) {
       return next(err);
     }
-    res.status(200).send(successResponse({ data: { userWhishes } }));
+    res.status(200).send(successResponse({ data: { userWishes } }));
   };
 }

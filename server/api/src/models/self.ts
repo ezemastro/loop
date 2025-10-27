@@ -28,8 +28,8 @@ import {
   parseListingFromBase,
   parsePagination,
   parseUserBaseFromDb,
-  parseUserWhishFromBase,
-  parseUserWhishFromDb,
+  parseUserWishFromBase,
+  parseUserWishFromDb,
 } from "../utils/parseDb";
 import { safeNumber } from "../utils/safeNumber";
 import { getOrderValue, getSortValue } from "../utils/sortOptions";
@@ -436,7 +436,7 @@ export class SelfModel {
     }
   };
 
-  static getSelfWhishes = async ({ userId }: { userId: UUID }) => {
+  static getSelfWishes = async ({ userId }: { userId: UUID }) => {
     // Crear conexión a la base de datos
     let client: DatabaseClient;
     try {
@@ -446,28 +446,28 @@ export class SelfModel {
     }
     try {
       // Obtener deseos del usuario
-      const whishesDb = await client.query(queries.getUserWhishesByUserId, [
+      const wishesDb = await client.query(queries.getUserWishesByUserId, [
         userId,
       ]);
-      const userWhishesBase = whishesDb.map(parseUserWhishFromDb);
-      const userWhishes = await Promise.all(
-        userWhishesBase.map(async (userWhishBase) => {
-          return parseUserWhishFromBase({
-            userWhish: userWhishBase,
+      const userWishesBase = wishesDb.map(parseUserWishFromDb);
+      const userWishes = await Promise.all(
+        userWishesBase.map(async (userWishBase) => {
+          return parseUserWishFromBase({
+            userWish: userWishBase,
             category: await getCategoryById({
               client,
-              categoryId: userWhishBase.categoryId,
+              categoryId: userWishBase.categoryId,
             }),
           });
         }),
       );
-      return { userWhishes };
+      return { userWishes };
     } finally {
       client.release();
     }
   };
 
-  static addSelfWhish = async ({
+  static addSelfWish = async ({
     userId,
     categoryId,
   }: {
@@ -483,19 +483,19 @@ export class SelfModel {
     }
     try {
       // Agregar deseo del usuario
-      const result = await client.query(queries.addUserWhish, [
+      const result = await client.query(queries.addUserWish, [
         userId,
         categoryId,
       ]);
-      const userWhishBase = parseUserWhishFromDb(result[0]!);
-      const userWhish = parseUserWhishFromBase({
-        userWhish: userWhishBase,
+      const userWishBase = parseUserWishFromDb(result[0]!);
+      const userWish = parseUserWishFromBase({
+        userWish: userWishBase,
         category: await getCategoryById({
           client,
-          categoryId: userWhishBase.categoryId,
+          categoryId: userWishBase.categoryId,
         }),
       });
-      return { userWhish };
+      return { userWish };
     } catch {
       throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
     } finally {
@@ -503,7 +503,7 @@ export class SelfModel {
     }
   };
 
-  static deleteSelfWhish = async ({
+  static deleteSelfWish = async ({
     userId,
     categoryId,
   }: {
@@ -519,7 +519,7 @@ export class SelfModel {
     }
     try {
       // Eliminar deseo del usuario
-      await client.query(queries.removeUserWhish, [userId, categoryId]);
+      await client.query(queries.removeUserWish, [userId, categoryId]);
     } catch {
       throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
     } finally {
@@ -527,13 +527,13 @@ export class SelfModel {
     }
   };
 
-  static modifyWhishComment = async ({
+  static modifyWishComment = async ({
     userId,
-    whishId,
+    wishId,
     comment,
   }: {
     userId: UUID;
-    whishId: UUID;
+    wishId: UUID;
     comment: string | null;
   }) => {
     // Crear conexión a la base de datos
@@ -545,10 +545,10 @@ export class SelfModel {
     }
     try {
       // Actualizar comentario del deseo del usuario
-      await client.query(queries.updateUserWhishComment, [
+      await client.query(queries.updateUserWishComment, [
         comment,
         userId,
-        whishId,
+        wishId,
       ]);
     } catch {
       throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);

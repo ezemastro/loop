@@ -19,7 +19,7 @@ selfRouter.get("/messages/unread", SelfController.getSelfChatsUnread);
 selfRouter.post("/notification-token", SelfController.updateNotificationToken);
 selfRouter.post("/change-password", SelfController.modifySelfPassword);
 
-selfRouter.get("/whishes", SelfController.getSelfWhishes);
-selfRouter.post("/whishes", SelfController.addSelfWhish);
-selfRouter.delete("/whishes/:categoryId", SelfController.deleteSelfWhish);
-selfRouter.put("/whishes/:whishId", SelfController.modifySelfWhishComment);
+selfRouter.get("/wishes", SelfController.getSelfWishes);
+selfRouter.post("/wishes", SelfController.addSelfWish);
+selfRouter.delete("/wishes/:categoryId", SelfController.deleteSelfWish);
+selfRouter.put("/wishes/:wishId", SelfController.modifySelfWishComment);
