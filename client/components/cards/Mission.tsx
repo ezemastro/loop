@@ -1,9 +1,21 @@
 import { View, Text } from "react-native";
 import CreditsBadge from "../badges/CreditsBadge";
+import { twMerge } from "tailwind-merge";
 
-export default function Mission({ mission }: { mission: UserMission }) {
+export default function Mission({
+  mission,
+  className,
+}: {
+  mission: UserMission;
+  className?: string;
+}) {
   return (
-    <View className="flex-row bg-white p-2 rounded gap-2 items-center">
+    <View
+      className={twMerge(
+        "flex-row bg-white p-2 rounded gap-2 items-center",
+        className,
+      )}
+    >
       <View className="flex-grow justify-between gap-2">
         <View className="items-center">
           <Text className="text-main-text text-lg text-center">

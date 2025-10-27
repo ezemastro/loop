@@ -43,11 +43,16 @@ export default function Listing({
         </View>
         <View className="flex-row items-center gap-2">
           <ProductStatusBadge status={listing.productStatus} />
-          {listing.seller.schools.map((school) => (
-            <Text className="text-main-text text-sm" key={school.id}>
-              {school.name}
-            </Text>
-          ))}
+          <View className="flex-row flex-grow overflow-hidden gap-0.5">
+            {listing.seller.schools.map((school) => (
+              <Image
+                key={school.id}
+                source={{ uri: getUrl(school.media.url) }}
+                className="h-6 w-6 rounded-full border border-stroke"
+                style={{ objectFit: "contain" }}
+              />
+            ))}
+          </View>
         </View>
         <UserBadge user={listing.seller} />
       </View>

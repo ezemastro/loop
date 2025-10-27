@@ -14,16 +14,24 @@ export default function Missions({
 }) {
   const { data, isLoading, error } = useMissions();
   const missions = data?.userMissions;
+  const showMissions =
+    !!missions &&
+    missions.length > 0 &&
+    missions.some((mission) => !mission.completed);
   useEffect(() => {
-    if (missions !== hasMissions) {
-      setHasMissions?.(!!missions && missions.length > 0);
+    if (showMissions !== hasMissions) {
+      setHasMissions?.(showMissions);
     }
-  }, [missions, hasMissions, setHasMissions]);
+  }, [showMissions, hasMissions, setHasMissions]);
 
   return (
     <View className="gap-2">
       {missions?.map((mission) => (
-        <Mission key={mission.id} mission={mission} />
+        <Mission
+          key={mission.id}
+          mission={mission}
+          className={mission.completed ? "opacity-60" : ""}
+        />
       ))}
       {isLoading && <Loader />}
       {error && <Error>Error al cargar misiones</Error>}
