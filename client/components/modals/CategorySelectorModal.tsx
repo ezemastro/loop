@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import Loader from "../Loader";
 import { BackIcon } from "../Icons";
 import TextTitle from "../bases/TextTitle";
+import CloseModalButton from "../CloseModalButton";
 
 export default function CategorySelectorModal({
   isVisible,
@@ -40,6 +41,7 @@ export default function CategorySelectorModal({
   return (
     <CustomModal handleClose={onClose} isVisible={isVisible}>
       <View className="bg-background rounded p-4 py-8 w-full h-3/4 gap-5">
+        <CloseModalButton onClose={onClose} />
         <TextTitle>Seleccionar categoría</TextTitle>
         <SearchBar onChange={(text) => setSearchTerm(text)} />
         <FlatList

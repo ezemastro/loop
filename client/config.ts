@@ -26,3 +26,11 @@ export const PRODUCT_STATUSES = {
   LIKE_NEW: "like_new" as ProductStatus,
   NEW: "new" as ProductStatus,
 };
+
+export const STATUS_TRANSLATIONS = {
+  [PRODUCT_STATUSES.NEW]: "Nuevo",
+  [PRODUCT_STATUSES.LIKE_NEW]: "Como nuevo",
+  [PRODUCT_STATUSES.VERY_GOOD]: "Muy bueno",
+  [PRODUCT_STATUSES.GOOD]: "Bueno",
+  [PRODUCT_STATUSES.FAIR]: "Regular",
+} as Record<ProductStatus, string>;

@@ -1,5 +1,6 @@
 import { View, Text } from "react-native";
 import React from "react";
+import { PRODUCT_STATUSES, STATUS_TRANSLATIONS } from "@/config";
 
 export default function ProductStatusBadge({
   status,
@@ -12,21 +13,17 @@ export default function ProductStatusBadge({
 }) {
   const getBackgroundColor = () => {
     switch (status) {
-      case "new":
-        return "bg-green-500";
-      case "used":
-        return "bg-yellow-500";
-      case "repaired":
+      case PRODUCT_STATUSES.NEW:
         return "bg-blue-500";
-      case "damaged":
-        return "bg-gray-500";
+      case PRODUCT_STATUSES.LIKE_NEW:
+        return "bg-teal-500";
+      case PRODUCT_STATUSES.VERY_GOOD:
+        return "bg-green-500";
+      case PRODUCT_STATUSES.GOOD:
+        return "bg-lime-500";
+      case PRODUCT_STATUSES.FAIR:
+        return "bg-yellow-500";
     }
-  };
-  const STATUS_TRANSLATIONS: Record<ProductStatus, string> = {
-    new: "Nuevo",
-    used: "Usado",
-    repaired: "Reparado",
-    damaged: "Dañado",
   };
   return (
     <View

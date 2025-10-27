@@ -1,4 +1,4 @@
-import { COLORS, PRODUCT_STATUSES } from "@/config";
+import { COLORS, PRODUCT_STATUSES, STATUS_TRANSLATIONS } from "@/config";
 import { Picker } from "@react-native-picker/picker";
 import { cssInterop } from "nativewind";
 import { View } from "react-native";
@@ -34,11 +34,26 @@ export default function ProductStatusSelector({
           value={null}
           color={COLORS.SECONDARY_TEXT}
         />
-        <Picker.Item label="Nuevo" value={PRODUCT_STATUSES.NEW} />
-        <Picker.Item label="Como nuevo" value={PRODUCT_STATUSES.LIKE_NEW} />
-        <Picker.Item label="Muy bueno" value={PRODUCT_STATUSES.VERY_GOOD} />
-        <Picker.Item label="Bueno" value={PRODUCT_STATUSES.GOOD} />
-        <Picker.Item label="Regular" value={PRODUCT_STATUSES.FAIR} />
+        <Picker.Item
+          label={STATUS_TRANSLATIONS[PRODUCT_STATUSES.NEW]}
+          value={PRODUCT_STATUSES.NEW}
+        />
+        <Picker.Item
+          label={STATUS_TRANSLATIONS[PRODUCT_STATUSES.LIKE_NEW]}
+          value={PRODUCT_STATUSES.LIKE_NEW}
+        />
+        <Picker.Item
+          label={STATUS_TRANSLATIONS[PRODUCT_STATUSES.VERY_GOOD]}
+          value={PRODUCT_STATUSES.VERY_GOOD}
+        />
+        <Picker.Item
+          label={STATUS_TRANSLATIONS[PRODUCT_STATUSES.GOOD]}
+          value={PRODUCT_STATUSES.GOOD}
+        />
+        <Picker.Item
+          label={STATUS_TRANSLATIONS[PRODUCT_STATUSES.FAIR]}
+          value={PRODUCT_STATUSES.FAIR}
+        />
       </Picker>
     </View>
   );
