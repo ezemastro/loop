@@ -24,7 +24,7 @@ export default function ListingViewList({
         ))}
         {isLoading && <Loader />}
         {isError && <Error>Error al cargar las publicaciones</Error>}
-        {!isLoading && listings.length === 0 && (
+        {!isLoading && !isError && listings.length === 0 && (
           <Error textClassName="text-secondary-text">
             No se han encontrado publicaciones
           </Error>
