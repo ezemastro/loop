@@ -34,6 +34,11 @@ export const queries = {
        RETURNING id`,
   ),
 
+  updateUserPassword: q<void>(
+    "user.updatePassword",
+    `UPDATE users SET password = $2 WHERE id = $1`,
+  ),
+
   schoolById: q<DB_Schools>(
     "school.byId",
     `SELECT * FROM schools WHERE id = $1`,

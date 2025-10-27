@@ -53,8 +53,8 @@ export class AuthController {
     let user: PrivateUser;
     try {
       ({ user } = await AuthModel.loginUser({ email, password }));
-    } catch {
-      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    } catch (err) {
+      return next(err);
     }
     // Agregar las cookies de sesión
     let token: string;

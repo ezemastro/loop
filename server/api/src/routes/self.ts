@@ -17,6 +17,7 @@ selfRouter.post("/notifications/read-all", SelfController.readAllNotifications);
 selfRouter.get("/messages", SelfController.getSelfChats);
 selfRouter.get("/messages/unread", SelfController.getSelfChatsUnread);
 selfRouter.post("/notification-token", SelfController.updateNotificationToken);
+selfRouter.post("/change-password", SelfController.modifySelfPassword);
 
 selfRouter.get("/whishes", SelfController.getSelfWhishes);
 selfRouter.post("/whishes", SelfController.addSelfWhish);

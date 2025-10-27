@@ -208,6 +208,33 @@ export class AdminModel {
       client.release();
     }
   }
+  // TODO ---------------
+  // MODIFICAR CONTRASEÑA DE USUARIO
+  // Y AGREGAR ENDPOINT EN USER PARA QUE LA PUEDA CAMBIAR ELLA MISMA
+
+  static async resetUserPassword({
+    userId,
+    newPassword,
+  }: {
+    userId: UUID;
+    newPassword: string;
+  }) {
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      // Hashear la nueva contraseña
+      const hashedPassword = await hashPassword(newPassword);
+      // Actualizar la contraseña del usuario
+
+      await client.query(queries.updateUserPassword, [hashedPassword, userId]);
+    } finally {
+      client.release();
+    }
+  }
 
   // Gestión de escuelas
   static async createSchool({

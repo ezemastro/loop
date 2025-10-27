@@ -166,6 +166,15 @@ type PutSelfWhishResponse = ApiResponse<{
   userWhish: UserWhish;
 }>;
 
+// POST /me/change-password
+interface PostSelfChangePasswordRequest extends AuthApiRequest {
+  body: {
+    oldPassword: string;
+    newPassword: string;
+  };
+}
+type PostSelfChangePasswordResponse = ApiResponse;
+
 // GET /users/:id
 interface GetUserByIdRequest {
   params: {
@@ -450,6 +459,16 @@ interface PostAdminUserCreditsRequest {
 type PostAdminUserCreditsResponse = ApiResponse<{
   user: PrivateUser;
 }>;
+// POST /admin/users/:userId/reset-password
+interface PostAdminUserResetPasswordRequest {
+  params: {
+    userId: UUID;
+  };
+  body: {
+    newPassword: string;
+  };
+}
+type PostAdminUserResetPasswordResponse = ApiResponse;
 
 // POST /admin/schools
 interface PostAdminSchoolsRequest {

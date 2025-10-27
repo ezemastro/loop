@@ -15,6 +15,11 @@ adminRouter.post(
   adminTokenMiddleware,
   AdminController.modifyUserCredits,
 );
+adminRouter.post(
+  "/users/:userId/reset-password",
+  adminTokenMiddleware,
+  AdminController.resetUserPassword,
+);
 
 // Gestión de escuelas
 adminRouter.post(

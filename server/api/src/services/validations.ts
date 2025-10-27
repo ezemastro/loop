@@ -264,7 +264,7 @@ export const validateRegister = (data: unknown) =>
 
 const loginSchema = z.object({
   email: z.email(),
-  password: z.string().min(6).max(100),
+  password: z.string().max(100),
 });
 export const validateLogin = (data: unknown) => loginSchema.parseAsync(data);
 

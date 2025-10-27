@@ -3,6 +3,7 @@ import {
   validateAdminLogin,
   validateAdminRegister,
   validateCreateMissionTemplate,
+  validateId,
   validateUpdateMissionTemplate,
 } from "../services/validations";
 import { InvalidInputError } from "../services/errors";
@@ -302,6 +303,32 @@ export class AdminController {
       return res
         .status(200)
         .json(successResponse({ data: { missionTemplate } }));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  static resetUserPassword = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const { newPassword } =
+      req.body as PostAdminUserResetPasswordRequest["body"];
+    const { userId } =
+      req.params as PostAdminUserResetPasswordRequest["params"];
+    try {
+      await validateId(userId);
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    // No hay validaciones porque es administrador
+    try {
+      await AdminModel.resetUserPassword({
+        userId,
+        newPassword,
+      });
+      return res.status(200).json(successResponse({ data: { userId } }));
     } catch (error) {
       next(error);
     }

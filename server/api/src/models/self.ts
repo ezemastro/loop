@@ -1,6 +1,6 @@
 import { ERROR_MESSAGES, MISSION_KEYS, PAGE_SIZE } from "../config";
 import { InternalServerError, UnauthorizedError } from "../services/errors";
-import { hashPassword } from "../services/hash";
+import { comparePasswords, hashPassword } from "../services/hash";
 import { dbConnection } from "../services/postgresClient";
 import { queries } from "../services/queries";
 import {
@@ -550,6 +550,53 @@ export class SelfModel {
         userId,
         whishId,
       ]);
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+    } finally {
+      client.release();
+    }
+  };
+
+  static modifyUserPassword = async ({
+    userId,
+    newPassword,
+    oldPassword,
+  }: {
+    userId: UUID;
+    newPassword: string;
+    oldPassword: string;
+  }) => {
+    // Crear conexión a la base de datos
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      // Obtener la contraseña actual del usuario
+      let userDb: DB_Users | undefined;
+      try {
+        [userDb] = await client.query(queries.userById, [userId]);
+      } catch {
+        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+      }
+      if (!userDb) {
+        throw new UnauthorizedError(ERROR_MESSAGES.USER_NOT_FOUND);
+      }
+      const currentPasswordHash = userDb.password;
+      // Comparar contraseña antigua
+      const isPasswordCorrect = await comparePasswords(
+        oldPassword,
+        currentPasswordHash,
+      );
+      if (!isPasswordCorrect) {
+        throw new UnauthorizedError(ERROR_MESSAGES.INVALID_CREDENTIALS);
+      }
+      // Hashear la nueva contraseña
+      const hashedPassword = await hashPassword(newPassword);
+      // Actualizar la contraseña del usuario
+      await client.query(queries.updateUserPassword, [hashedPassword, userId]);
     } catch {
       throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
     } finally {

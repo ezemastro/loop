@@ -336,4 +336,24 @@ export class SelfController {
     }
     res.status(204).send(successResponse());
   };
+
+  static modifySelfPassword = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const { userId } = req.session!;
+    const { oldPassword, newPassword } =
+      req.body as PostSelfChangePasswordRequest["body"];
+    try {
+      await SelfModel.modifyUserPassword({
+        userId,
+        oldPassword,
+        newPassword,
+      });
+    } catch (err) {
+      return next(err);
+    }
+    res.status(204).send(successResponse());
+  };
 }

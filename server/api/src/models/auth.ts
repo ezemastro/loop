@@ -145,7 +145,7 @@ export class AuthModel {
       // Realizar la consulta para verificar si el usuario existe
       const [userDb] = await client.query(queries.userByEmail, [email]);
       if (!userDb) {
-        throw new InvalidInputError(ERROR_MESSAGES.INVALID_CREDENTIALS);
+        throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
       }
       // Verificar la contraseña
       const isPasswordCorrect = await comparePasswords(
