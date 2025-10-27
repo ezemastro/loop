@@ -3,9 +3,9 @@ CREATE TABLE "schools"(
     "name" TEXT NOT null unique,
     "media_id" UUID NOT NULL,
     "meta" jsonb NULL,
-    "stat_kg_waste" FLOAT(53),
-    "stat_kg_co2" FLOAT(53),
-    "stat_l_h2o" FLOAT(53)
+    "stat_kg_waste" FLOAT(53) default 0 NOT NULL,
+    "stat_kg_co2" FLOAT(53) default 0 NOT NULL,
+    "stat_l_h2o" FLOAT(53) default 0 NOT NULL
 );
 CREATE TABLE "users"(
     "id" UUID default gen_random_uuid() primary key,
@@ -20,9 +20,9 @@ CREATE TABLE "users"(
     "created_at" TIMESTAMP(0) default NOW() NOT NULL,
     "updated_at" TIMESTAMP(0),
     "notification_token" TEXT,
-    "stat_kg_waste" FLOAT(53),
-    "stat_kg_co2" FLOAT(53),
-    "stat_l_h2o" FLOAT(53)
+    "stat_kg_waste" FLOAT(53) default 0 NOT NULL,
+    "stat_kg_co2" FLOAT(53) default 0 NOT NULL,
+    "stat_l_h2o" FLOAT(53) default 0 NOT NULL
 );
 CREATE TABLE "user_schools"(
     "id" UUID default gen_random_uuid() primary key,
