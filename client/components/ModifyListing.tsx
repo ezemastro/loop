@@ -1,6 +1,5 @@
 import { useEffect, useState, type JSX } from "react";
 import { View, Text, FlatList, TextInput, Pressable } from "react-native";
-import ImagesSelector from "./selectors/ImagesSelector";
 import {
   MAX_LISTING_DESCRIPTION_LENGTH,
   MAX_LISTING_TITLE_LENGTH,
@@ -22,6 +21,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import CustomRefresh from "./CustomRefresh";
 import AvoidingKeyboard from "./AvoidingKeyboard";
 import Loader from "./Loader";
+import ImagesSelector from "./selectors/ImagesSelector";
 
 interface Section {
   key: string;
