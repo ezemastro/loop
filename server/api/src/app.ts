@@ -25,6 +25,8 @@ app.use(
   cors({
     credentials: true,
     origin: "*",
+    allowedHeaders: ["Content-Type"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   }),
 );
 if (NODE_ENV === "development") {
