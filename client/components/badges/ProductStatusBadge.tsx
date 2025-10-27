@@ -1,6 +1,7 @@
 import { View, Text } from "react-native";
 import React from "react";
 import { PRODUCT_STATUSES, STATUS_TRANSLATIONS } from "@/config";
+import { twMerge } from "tailwind-merge";
 
 export default function ProductStatusBadge({
   status,
@@ -27,9 +28,12 @@ export default function ProductStatusBadge({
   };
   return (
     <View
-      className={`px-2.5 py-0.5 rounded-full ${getBackgroundColor()} ${containerClassName}`}
+      className={twMerge(
+        `px-2.5 py-0.5 rounded-full ${getBackgroundColor()}`,
+        containerClassName,
+      )}
     >
-      <Text className={`text-white font-medium ${textClassName}`}>
+      <Text className={twMerge(`text-white font-medium`, textClassName)}>
         {STATUS_TRANSLATIONS[status]}
       </Text>
     </View>
