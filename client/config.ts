@@ -14,7 +14,7 @@ export const MAX_LISTING_IMAGES = 7;
 export const MAX_LISTING_TITLE_LENGTH = 50;
 export const MAX_LISTING_DESCRIPTION_LENGTH = 150;
 
-export const { EXPO_PUBLIC_API_URL: API_URL } = process.env || {};
+export const API_URL = process.env.EXPO_PUBLIC_API_URL;
 export const FILE_BASE_URL = API_URL + "/uploads/";
 
 export const VALID_EMAIL_DOMAINS = ["northfield.edu.ar", "gmail.com"];

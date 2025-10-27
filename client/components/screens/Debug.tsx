@@ -6,7 +6,7 @@ import BackButton from "../BackButton";
 import { HomeIcon } from "../Icons";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { FILE_BASE_URL } from "@/config";
+import { API_URL, FILE_BASE_URL } from "@/config";
 
 export default function DebugPage() {
   const { user } = useAuth();
@@ -37,7 +37,8 @@ export default function DebugPage() {
           </Pressable>
         </View>
         <Text>Debug</Text>
-        <Text>API URL: {process.env.EXPO_PUBLIC_API_URL}</Text>
+        <Text>ENV API URL: {process.env.EXPO_PUBLIC_API_URL}</Text>
+        <Text>CONFIG API URL: {API_URL}</Text>
         <Text>Images URL: {FILE_BASE_URL}</Text>
         <Image
           source={{
