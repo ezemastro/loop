@@ -20,6 +20,6 @@ selfRouter.post("/notification-token", SelfController.updateNotificationToken);
 selfRouter.post("/change-password", SelfController.modifySelfPassword);
 
 selfRouter.get("/wishes", SelfController.getSelfWishes);
-selfRouter.post("/wishes", SelfController.addSelfWish);
+selfRouter.post("/wishes", SelfController.createSelfWish);
 selfRouter.delete("/wishes/:categoryId", SelfController.deleteSelfWish);
-selfRouter.put("/wishes/:wishId", SelfController.modifySelfWishComment);
+selfRouter.put("/wishes/:wishId", SelfController.modifySelfWish);

@@ -521,17 +521,21 @@ export const queries = {
     "userWishes.byUserId",
     `SELECT * FROM users_wishes WHERE user_id = $1`,
   ),
-  addUserWish: q<DB_UsersWishes>(
-    "userWishes.add",
-    `INSERT INTO users_wishes (user_id, category_id) VALUES ($1, $2) RETURNING *`,
+  userWishById: q<DB_UsersWishes>(
+    "userWishes.byId",
+    `SELECT * FROM users_wishes WHERE id = $1`,
+  ),
+  createUserWish: q<DB_UsersWishes>(
+    "userWishes.create",
+    `INSERT INTO users_wishes (user_id, category_id, comment) VALUES ($1, $2, $3) RETURNING *`,
   ),
   removeUserWish: q<void>(
     "userWishes.remove",
     `DELETE FROM users_wishes WHERE user_id = $1 AND category_id = $2`,
   ),
-  updateUserWishComment: q<void>(
-    "userWishes.updateComment",
-    `UPDATE users_wishes SET comment = $1 WHERE user_id = $2 AND id = $3`,
+  updateUserWish: q<void>(
+    "userWishes.update",
+    `UPDATE users_wishes SET comment = $1, category_id = $2 WHERE id = $3`,
   ),
   increaseUserStats: q<void>(
     "user.increaseStats",

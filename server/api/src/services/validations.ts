@@ -366,10 +366,17 @@ export const validateUpdateTokenRequest = (data: unknown) =>
 
 const putSelfWishRequest = z.object({
   wishId: z.uuid(),
-  comment: z.string().max(300).nullable(),
+  comment: z.string().max(300).nullable().optional(),
+  categoryId: z.uuid().optional(),
 });
 export const validatePutSelfWishRequest = (data: unknown) =>
   putSelfWishRequest.parseAsync(data);
+const postSelfWishRequest = z.object({
+  categoryId: z.uuid(),
+  comment: z.string().max(300).nullable().optional(),
+});
+export const validatePostSelfWishRequest = (data: unknown) =>
+  postSelfWishRequest.parseAsync(data);
 
 // ADMIN
 const adminLoginSchema = z.object({

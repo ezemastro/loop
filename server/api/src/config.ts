@@ -61,6 +61,7 @@ export const ERROR_MESSAGES = {
   INVALID_LISTING_STATUS_TO_DELETE:
     "Estado de publicación inválido para eliminar",
   MISSION_KEY_ALREADY_EXISTS: "La clave de misión ya existe",
+  WISH_NOT_FOUND: "Deseo no encontrado",
 };
 
 export const cookieOptions: CookieOptions = {

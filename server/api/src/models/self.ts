@@ -1,5 +1,9 @@
 import { ERROR_MESSAGES, MISSION_KEYS, PAGE_SIZE } from "../config";
-import { InternalServerError, UnauthorizedError } from "../services/errors";
+import {
+  InternalServerError,
+  InvalidInputError,
+  UnauthorizedError,
+} from "../services/errors";
 import { comparePasswords, hashPassword } from "../services/hash";
 import { dbConnection } from "../services/postgresClient";
 import { queries } from "../services/queries";
@@ -467,12 +471,14 @@ export class SelfModel {
     }
   };
 
-  static addSelfWish = async ({
+  static createSelfWish = async ({
     userId,
     categoryId,
+    comment,
   }: {
     userId: UUID;
     categoryId: UUID;
+    comment?: string | null;
   }) => {
     // Crear conexión a la base de datos
     let client: DatabaseClient;
@@ -483,9 +489,10 @@ export class SelfModel {
     }
     try {
       // Agregar deseo del usuario
-      const result = await client.query(queries.addUserWish, [
+      const result = await client.query(queries.createUserWish, [
         userId,
         categoryId,
+        comment,
       ]);
       const userWishBase = parseUserWishFromDb(result[0]!);
       const userWish = parseUserWishFromBase({
@@ -527,14 +534,16 @@ export class SelfModel {
     }
   };
 
-  static modifyWishComment = async ({
+  static modifyWish = async ({
     userId,
     wishId,
     comment,
+    categoryId,
   }: {
     userId: UUID;
     wishId: UUID;
-    comment: string | null;
+    comment?: string | null;
+    categoryId?: UUID;
   }) => {
     // Crear conexión a la base de datos
     let client: DatabaseClient;
@@ -544,12 +553,45 @@ export class SelfModel {
       throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
     }
     try {
+      // Obtener deseo para verificar que pertenece al usuario
+      let wishDb: DB_UsersWishes | undefined;
+      try {
+        [wishDb] = await client.query(queries.userWishById, [wishId]);
+      } catch {
+        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+      }
+      if (!wishDb) {
+        throw new InvalidInputError(ERROR_MESSAGES.WISH_NOT_FOUND);
+      }
+      const wishBase = parseUserWishFromDb(wishDb);
+      if (wishBase.userId !== userId) {
+        throw new UnauthorizedError(ERROR_MESSAGES.USER_NOT_AUTHORIZED);
+      }
+      const newWish: UserWishBase = {
+        id: wishBase.id,
+        userId: wishBase.userId,
+        categoryId: categoryId || wishBase.categoryId,
+        comment: comment !== undefined ? comment : wishBase.comment,
+      };
       // Actualizar comentario del deseo del usuario
-      await client.query(queries.updateUserWishComment, [
-        comment,
-        userId,
-        wishId,
-      ]);
+      try {
+        await client.query(queries.updateUserWish, [
+          newWish.comment,
+          newWish.categoryId,
+          wishId,
+        ]);
+      } catch {
+        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+      }
+      return {
+        userWish: parseUserWishFromBase({
+          userWish: newWish,
+          category: await getCategoryById({
+            client,
+            categoryId: newWish.categoryId,
+          }),
+        }),
+      };
     } catch {
       throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
     } finally {

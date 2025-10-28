@@ -136,6 +136,7 @@ type PostSelfNotificationTokenResponse = ApiResponse;
 interface PostSelfWishRequest extends AuthApiRequest {
   body: {
     categoryId: UUID;
+    comment?: string | null;
   };
 }
 type PostSelfWishResponse = ApiResponse<{
@@ -159,7 +160,8 @@ interface PutSelfWishRequest extends AuthApiRequest {
     wishId: UUID;
   };
   body: {
-    comment: string | null;
+    categoryId?: UUID;
+    comment?: string | null;
   };
 }
 type PutSelfWishResponse = ApiResponse<{

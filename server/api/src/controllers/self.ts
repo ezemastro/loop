@@ -5,6 +5,7 @@ import {
   validateGetSelfListingsRequest,
   validateGetSelfMessagesRequest,
   validateGetSelfNotificationsRequest,
+  validatePostSelfWishRequest,
   validatePutSelfWishRequest,
   validateUpdateSelf,
   validateUpdateTokenRequest,
@@ -252,23 +253,26 @@ export class SelfController {
     res.status(204).send(successResponse());
   };
 
-  static addSelfWish = async (
+  static createSelfWish = async (
     req: Request,
     res: Response,
     next: NextFunction,
   ) => {
     const { userId } = req.session!;
-    const { categoryId } = req.body as PostSelfWishRequest["body"];
+    const { categoryId, comment } = req.body as PostSelfWishRequest["body"];
     // Validar categoryId
     try {
-      const res = await safeValidateUUID(categoryId);
-      if (res.success === false) throw new Error();
+      await validatePostSelfWishRequest({ categoryId, comment });
     } catch {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     let userWish: UserWish;
     try {
-      ({ userWish } = await SelfModel.addSelfWish({ userId, categoryId }));
+      ({ userWish } = await SelfModel.createSelfWish({
+        userId,
+        categoryId,
+        comment,
+      }));
     } catch (err) {
       return next(err);
     }
@@ -312,24 +316,25 @@ export class SelfController {
     res.status(200).send(successResponse({ data: { userWishes } }));
   };
 
-  static modifySelfWishComment = async (
+  static modifySelfWish = async (
     req: Request,
     res: Response,
     next: NextFunction,
   ) => {
     const { userId } = req.session!;
     const { wishId } = req.params as PutSelfWishRequest["params"];
-    const { comment } = req.body as PutSelfWishRequest["body"];
+    const { comment, categoryId } = req.body as PutSelfWishRequest["body"];
     try {
-      await validatePutSelfWishRequest({ wishId, comment });
+      await validatePutSelfWishRequest({ wishId, comment, categoryId });
     } catch {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     try {
-      await SelfModel.modifyWishComment({
+      await SelfModel.modifyWish({
         userId,
         wishId,
         comment,
+        categoryId,
       });
     } catch (err) {
       return next(err);
