@@ -30,7 +30,7 @@ export default function Missions({
         <Mission
           key={mission.id}
           mission={mission}
-          className={mission.completed ? "opacity-60" : ""}
+          className={mission.completed ? "saturate-50 opacity-50" : ""}
         />
       ))}
       {isLoading && <Loader />}
