@@ -5,6 +5,7 @@ import UserBadge from "../badges/UserBadge";
 import CreditsBadge from "../badges/CreditsBadge";
 import { useRouter } from "expo-router";
 import { getUrl } from "@/services/getUrl";
+import CategoryBadge from "../CategoryBadge";
 
 export default function Listing({
   listing,
@@ -36,10 +37,7 @@ export default function Listing({
           <Text className="text-lg font-medium text-main-text">
             {listing.title}
           </Text>
-          <Text className="text-sm text-secondary-text">
-            {listing.category.parents?.map((parent) => parent.name).join("/")}/
-            {listing.category.name}
-          </Text>
+          <CategoryBadge category={listing.category} className="text-sm" />
         </View>
         <View className="flex-row items-center gap-2">
           <ProductStatusBadge status={listing.productStatus} />

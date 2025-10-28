@@ -1,13 +1,18 @@
-import { View, Text } from "react-native";
+import { Text } from "react-native";
+import { twMerge } from "tailwind-merge";
 
-export default function CategoryBadge({ category }: { category: Category }) {
+export default function CategoryBadge({
+  category,
+  className,
+}: {
+  category: Category;
+  className?: string;
+}) {
   return (
-    <View>
-      <Text className="text-secondary-text">
-        {category.parents &&
-          category.parents?.map((parent) => parent.name).join(" / ") + " / "}
-        {category.name}
-      </Text>
-    </View>
+    <Text className={twMerge("text-secondary-text", className)}>
+      {category.parents &&
+        category.parents?.map((parent) => parent.name).join(" / ") + " / "}
+      {category.name}
+    </Text>
   );
 }
