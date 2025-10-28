@@ -240,7 +240,7 @@ export default function ModifyListing({
             }}
             placeholder="Escribe un título para tu publicación"
             className="w-full border-b border-gray-300 p-2 px-3 text-lg bg-secondary-text/10 rounded-t"
-            underlineColorAndroid="transparent"
+            // underlineColorAndroid="transparent"
             placeholderClassName="text-secondary-text"
           />
           <Text className="mt-1 text-right text-sm text-secondary-text">
