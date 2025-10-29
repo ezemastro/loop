@@ -6,7 +6,7 @@ import ButtonText from "./bases/ButtonText";
 export interface FiltersValue {
   school: School | null;
   category: Category | null;
-  user: PrivateUser | null;
+  user: PublicUser | null;
   productStatus: ProductStatus | null;
 }
 
