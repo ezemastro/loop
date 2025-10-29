@@ -1,9 +1,10 @@
 import { ERROR_MESSAGES, PAGE_SIZE } from "../config";
-import { InternalServerError } from "../services/errors";
+import { InternalServerError, InvalidInputError } from "../services/errors";
 import { dbConnection } from "../services/postgresClient";
 import { queries } from "../services/queries";
 import type { DatabaseClient } from "../types/dbClient";
 import { getListingById } from "../utils/helpersDb";
+import { sendMessageNotification } from "../utils/notifications";
 import {
   parseMessageBaseFromDb,
   parseMessageFromBase,
@@ -85,7 +86,23 @@ export class MessagesModel {
         text,
         attachedListingId ?? null,
       ]);
-      // TODO - Enviar notificación
+      // Obtener nombre del remitente
+      const senderDb = await client.query(queries.userById, [senderId]);
+      if (senderDb.length === 0)
+        throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
+      const senderName = `${senderDb[0]!.first_name} ${senderDb[0]!.last_name}`;
+      // Obtener token de notificación del destinatario
+      const recipientDb = await client.query(queries.userById, [recipientId]);
+      if (recipientDb.length === 0)
+        throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
+      // Enviar notificación
+      await sendMessageNotification({
+        senderName,
+        message: text,
+        client,
+        userId: recipientId,
+        notificationToken: recipientDb[0]!.notification_token,
+      });
       // Devolver mensaje enviado
       const message = parseMessageFromBase({
         message: {

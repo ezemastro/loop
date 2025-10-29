@@ -1,4 +1,4 @@
-import { NOTIFICATION_TEXTS } from "../config";
+import { NOTIFICATION_TEXTS, NOTIFICATIONS_CATEGORIES } from "../config";
 import { sendPushNotification } from "../services/expoNotifications";
 import { queries } from "../services/queries";
 import type { DatabaseClient } from "../types/dbClient";
@@ -34,6 +34,7 @@ export const sendMissionNotification = async ({
     notificationToken,
     title: NOTIFICATION_TEXTS.MISSION_NOTIFICATION.COMPLETED.title,
     body: NOTIFICATION_TEXTS.MISSION_NOTIFICATION.COMPLETED.body,
+    categoryId: NOTIFICATIONS_CATEGORIES.MISSION,
   });
 };
 export const sendLoopNotification = async ({
@@ -70,6 +71,7 @@ export const sendLoopNotification = async ({
     notificationToken,
     title: NOTIFICATION_TEXTS.LOOP_NOTIFICATION[type].title,
     body: NOTIFICATION_TEXTS.LOOP_NOTIFICATION[type].body,
+    categoryId: NOTIFICATIONS_CATEGORIES.LOOP,
   });
 };
 export const sendDonationNotification = async ({
@@ -100,6 +102,7 @@ export const sendDonationNotification = async ({
     notificationToken,
     title: NOTIFICATION_TEXTS.DONATION_NOTIFICATION.RECEIVED.title,
     body: NOTIFICATION_TEXTS.DONATION_NOTIFICATION.RECEIVED.body,
+    categoryId: NOTIFICATIONS_CATEGORIES.DONATION,
   });
 };
 export const sendAdminNotification = async ({
@@ -136,14 +139,23 @@ export const sendAdminNotification = async ({
     notificationToken,
     title: "Notificación del equipo de Loop",
     body: message || "Tienes una nueva notificación del equipo de Loop",
+    categoryId: NOTIFICATIONS_CATEGORIES.ADMIN,
   });
 };
-// export const sendMessageNotification = async ({
-//   userId,
-//   message,
-// }: {
-//   userId: string;
-//   message: string;
-// }) => {
-//   await sendNotification();
-// };
+
+export const sendMessageNotification = async ({
+  senderName,
+  message,
+  notificationToken,
+}: NotificationBase & {
+  senderName: string;
+  message: string;
+}) => {
+  if (!notificationToken) return;
+  await sendNotification({
+    notificationToken,
+    title: "Mensaje de " + senderName,
+    body: message.slice(0, 100),
+    categoryId: NOTIFICATIONS_CATEGORIES.MESSAGE,
+  });
+};

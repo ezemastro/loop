@@ -137,3 +137,11 @@ export const MISSION_KEYS = {
   PUBLISH_LISTING_3: "publish-listing-3",
   UPDATE_PROFILE_IMAGE: "update-profile-image",
 };
+
+export const NOTIFICATIONS_CATEGORIES = {
+  MISSION: "mission",
+  LOOP: "loop",
+  DONATION: "donation",
+  ADMIN: "admin",
+  MESSAGE: "message",
+};

@@ -6,10 +6,12 @@ export const sendPushNotification = async ({
   notificationToken,
   title,
   body,
+  categoryId,
 }: {
   notificationToken: string;
   title: string;
   body: string;
+  categoryId?: string;
 }) => {
   if (!Expo.isExpoPushToken(notificationToken)) {
     console.error(
@@ -22,6 +24,7 @@ export const sendPushNotification = async ({
       to: notificationToken,
       title,
       body,
+      categoryId,
     },
   ]);
 };
