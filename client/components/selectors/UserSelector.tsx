@@ -7,8 +7,8 @@ export default function UserSelector({
   onChange,
   value,
 }: {
-  onChange?: (user: User) => void;
-  value: User | null;
+  onChange?: (user: PublicUser) => void;
+  value: PublicUser | null;
 }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -18,7 +18,7 @@ export default function UserSelector({
   const closeModal = () => {
     setIsModalVisible(false);
   };
-  const handleSelect = (user: User) => {
+  const handleSelect = (user: PublicUser) => {
     onChange?.(user);
     closeModal();
   };
