@@ -2,8 +2,9 @@ import { api } from "@/api/loop";
 import { useMutation } from "@tanstack/react-query";
 
 const fetchReadAllNotifications = async () => {
-  const response =
-    await api.get<PostSelfNotificationsReadAllResponse>("/me/notifications");
+  const response = await api.post<PostSelfNotificationsReadAllRequest>(
+    "/me/notifications/read-all",
+  );
   return response.data;
 };
 
