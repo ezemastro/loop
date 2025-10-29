@@ -4,6 +4,7 @@ import { dbConnection } from "../services/postgresClient";
 import { queries } from "../services/queries";
 import type { DatabaseClient } from "../types/dbClient";
 import { getCategoryById, getUserById } from "../utils/helpersDb";
+import { sendDonationNotification } from "../utils/notifications";
 import {
   parsePagination,
   parseUserBaseFromDb,
@@ -120,6 +121,15 @@ export class UsersModel {
         toUser.credits.locked,
         toUserId,
       ]);
+      // Enviar notificación al usuario que recibe la donación
+      await sendDonationNotification({
+        client,
+        amount,
+        donorUserId: fromUserId,
+        userId: toUserId,
+        message: null,
+        notificationToken: toUser.notificationToken,
+      });
       await client.commit();
     } catch (err) {
       await client.rollback();
