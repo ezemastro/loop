@@ -5,19 +5,24 @@ import NotificationCard from "../cards/Notification";
 import Loader from "../Loader";
 import { useReadNotifications } from "@/hooks/useReadNotifications";
 import { useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+import CustomRefresh from "../CustomRefresh";
 
 export default function Notifications() {
   const queryClient = useQueryClient();
-  const { data, isLoading, isError, fetchNextPage } = useNotifications();
+  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetching } =
+    useNotifications();
   const { mutateAsync: readAllNotifications } = useReadNotifications();
   const notifications =
     data?.pages.flatMap((page) => page.data!.notifications) || [];
 
-  if (!isLoading && notifications.length > 0) {
-    readAllNotifications().then(() => {
-      queryClient.invalidateQueries({ queryKey: ["unreadNotifications"] });
-    });
-  }
+  useEffect(() => {
+    if (!isLoading && notifications.length > 0) {
+      readAllNotifications().then(() => {
+        queryClient.invalidateQueries({ queryKey: ["unreadNotifications"] });
+      });
+    }
+  }, [isLoading, notifications.length, readAllNotifications, queryClient]);
 
   return (
     <MainView className="p-4">
@@ -25,7 +30,8 @@ export default function Notifications() {
         data={notifications}
         contentContainerClassName="gap-2"
         renderItem={({ item }) => <NotificationCard notification={item} />}
-        onEndReached={() => fetchNextPage()}
+        refreshControl={<CustomRefresh refreshing={isFetching} />}
+        onEndReached={() => hasNextPage && fetchNextPage()}
         onEndReachedThreshold={0.5}
         ListEmptyComponent={() => (
           <>
