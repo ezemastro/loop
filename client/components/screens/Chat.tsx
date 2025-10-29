@@ -41,6 +41,7 @@ export default function Chat() {
     refetch,
     hasNextPage,
     isSuccess,
+    isFetching,
   } = useMessages({
     userId: userId,
   });
@@ -55,6 +56,9 @@ export default function Chat() {
       markMessagesAsRead();
     }
   }, [isSuccess, markMessagesAsRead]);
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["unreadMessages"] });
+  }, [messages.length, queryClient]);
 
   const handleSendMessage = (text: string) => {
     const parsedMessage = text.trim();
@@ -110,9 +114,25 @@ export default function Chat() {
             <Text className="text-2xl text-main-text">
               {user?.firstName} {user?.lastName}
             </Text>
-            <Text className="text-secondary-text">
-              {user?.schools.map((school) => school.name).join(", ")}
-            </Text>
+            {(user?.schools.length ?? 0) > 3 ? (
+              <View className="flex-row gap-2">
+                {user?.schools.map((school) => (
+                  <Image
+                    key={school.id}
+                    source={{ uri: getUrl(school.media.url) }}
+                    className="size-6 mb-1"
+                  />
+                ))}
+              </View>
+            ) : (
+              <>
+                {user?.schools.map((school) => (
+                  <Text className="text-secondary-text" key={school.id}>
+                    {school.name}
+                  </Text>
+                ))}
+              </>
+            )}
           </View>
         </View>
         <DroppablePendingWithUser userId={userId!} />
@@ -163,7 +183,7 @@ export default function Chat() {
           inverted
           onEndReachedThreshold={0.1}
           refreshControl={
-            <RefreshControl refreshing={isLoading} onRefresh={refetch} />
+            <RefreshControl refreshing={isFetching} onRefresh={refetch} />
           }
         />
         <View className="bg-white p-2">
