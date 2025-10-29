@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import * as Notification from "expo-notifications";
 import { registerPushNotification } from "@/services/registerPushNotifications";
+import { useRegisterPushToken } from "@/hooks/useRegisterToken";
 
 export const useNotification = () => {
   const context = useContext(NotificationContext);
@@ -31,6 +32,7 @@ export const NotificationProvider = ({
   const [notification, setNotification] =
     useState<Notification.Notification | null>(null);
   const [error, setError] = useState<Error | null>(null);
+  const { mutateAsync: savePushToken } = useRegisterPushToken();
 
   const notificationListener = useRef<Notification.EventSubscription | null>(
     null,
@@ -39,7 +41,10 @@ export const NotificationProvider = ({
 
   useEffect(() => {
     registerPushNotification()
-      .then((token) => setExpoPushToken(token))
+      .then((token) => {
+        setExpoPushToken(token);
+        savePushToken({ notificationToken: token });
+      })
       .catch((error) => setError(error));
 
     notificationListener.current = Notification.addNotificationReceivedListener(
@@ -60,7 +65,7 @@ export const NotificationProvider = ({
         responseListener.current.remove();
       }
     };
-  }, []);
+  }, [savePushToken]);
   return (
     <NotificationContext.Provider
       value={{
