@@ -27,19 +27,25 @@ export default function ChatCard({ chat }: { chat: UserMessage }) {
         className="size-16 bg-background rounded-full"
       />
       <View>
-        <Text className="text-secondary-text text-lg">
+        <View className="flex-row items-center gap-2">
           <Text
             className={
-              "text-main-text" + (chat.pendingMessages > 0 ? " font-bold" : "")
+              "text-main-text text-lg" +
+              (chat.pendingMessages > 0 ? " font-bold" : "")
             }
           >
             {chat.user.firstName} {chat.user.lastName}
           </Text>
-          {" - "}
-          <Text>
-            {chat.user.schools.map((school) => school.name).join(", ")}
-          </Text>
-        </Text>
+          <View className="flex-row items-center">
+            {chat.user.schools.map((s) => (
+              <Image
+                key={s.id}
+                source={{ uri: getUrl(s.media.url) }}
+                className="size-6 rounded-full bg-background mx-0.5"
+              />
+            ))}
+          </View>
+        </View>
         <Text className="text-secondary-text">
           {lastMessageShortText(chat.lastMessage.text)}
         </Text>
