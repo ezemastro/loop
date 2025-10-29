@@ -1,4 +1,5 @@
 import { Text } from "react-native";
+import { twMerge } from "tailwind-merge";
 
 export default function TextTitle({
   children,
@@ -8,7 +9,7 @@ export default function TextTitle({
   className?: string;
 }) {
   return (
-    <Text className={`text-center text-2xl text-main-text ${className}`}>
+    <Text className={twMerge("text-center text-2xl text-main-text", className)}>
       {children}
     </Text>
   );
