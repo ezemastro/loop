@@ -22,11 +22,13 @@ export default function SearchBarBase({
   className?: string;
 }) {
   const inputRef = useRef<TextInput>(null);
+  // TODO - Arreglar esto, el ref es siempre null
   useFocusEffect(
     useCallback(() => {
       if (autoFocus && inputRef.current) {
         const timeout = setTimeout(() => {
           inputRef.current?.focus();
+          console.log("tiempo");
         }, 50);
         return () => clearTimeout(timeout);
       }
@@ -40,12 +42,12 @@ export default function SearchBarBase({
       )}
     >
       <TextInput
+        ref={() => console.log("red")}
         placeholder={placeholder || "Buscar..."}
         className="flex-1 px-2 py-3"
         onChangeText={handleChange}
         onSubmitEditing={() => onSubmit?.(value)}
         value={value}
-        ref={inputRef}
         editable={!disabled}
         pointerEvents={disabled ? "none" : "auto"}
       />
