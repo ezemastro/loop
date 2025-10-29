@@ -22,7 +22,6 @@ const fetchMarkReceived = async (params: Params) => {
 
 export const useListingMarkReceived = (params: Params) => {
   return useMutation({
-    mutationKey: ["listing", "received", params],
     mutationFn: () => fetchMarkReceived(params),
   });
 };
