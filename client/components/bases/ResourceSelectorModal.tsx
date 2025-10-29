@@ -11,10 +11,10 @@ import ButtonText from "./ButtonText";
 import CloseModalButton from "../CloseModalButton";
 import CustomRefresh from "../CustomRefresh";
 
-type ResourceSelectorModalProps<T> = {
+type ResourceSelectorModalProps<T, M extends boolean = false> = {
   isVisible: boolean;
   title: string;
-  onSelect: (item: T | T[]) => void;
+  onSelect: (item: M extends true ? T[] : T) => void;
   onClose: () => void;
   useResource: (params: { searchTerm: string }) => {
     data: any;
@@ -26,11 +26,11 @@ type ResourceSelectorModalProps<T> = {
   getItems: (data: any) => T[];
   getTotal: (data: any) => number | undefined;
   filterItems: (items: T[], searchTerm: string) => T[];
-  multiple?: boolean;
+  multiple?: M;
 };
 
-export default function ResourceSelectorModal<T>({
-  multiple = false,
+export default function ResourceSelectorModal<T, M extends boolean = false>({
+  multiple = false as M,
   isVisible,
   title,
   onSelect,
@@ -40,7 +40,7 @@ export default function ResourceSelectorModal<T>({
   getItems,
   getTotal,
   filterItems,
-}: ResourceSelectorModalProps<T>) {
+}: ResourceSelectorModalProps<T, M>) {
   const [searchTerm, setSearchTerm] = useState("");
   const { data, isLoading, isError, fetchNextPage } = useResource({
     searchTerm,
@@ -68,7 +68,7 @@ export default function ResourceSelectorModal<T>({
   const [selectedItems, setSelectedItems] = useState<T[]>([]);
   const handleSelect = (item: T) => {
     if (!multiple) {
-      onSelect(item);
+      onSelect(item as M extends true ? never : T);
       onClose();
       return;
     }
@@ -121,7 +121,9 @@ export default function ResourceSelectorModal<T>({
         {multiple && (
           <CustomButton
             className="bg-tertiary rounded p-3"
-            onPress={() => onSelect(selectedItems)}
+            onPress={() =>
+              onSelect(selectedItems as M extends true ? T[] : never)
+            }
             disabled={selectedItems.length === 0}
           >
             <ButtonText>Seleccionar</ButtonText>
