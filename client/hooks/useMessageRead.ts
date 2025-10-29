@@ -1,6 +1,6 @@
 import { api } from "@/api/loop";
 import { parseErrorName } from "@/services/errors";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 
 type Params = PostMessageReadRequest["params"];
@@ -21,7 +21,11 @@ const fetchMessageRead = async (params: Params) => {
 };
 
 export const useMessageRead = (params: Params) => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => fetchMessageRead(params),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["unreadMessages"] });
+    },
   });
 };
