@@ -13,6 +13,8 @@ import { useSessionStore } from "@/stores/session";
 import MyPendingList from "./MyPendingList";
 import DonateModal from "./modals/DonateModal";
 import Stats from "./Stats";
+import { usePublicWishes } from "@/hooks/usePublicWishes";
+import CategoryBadge from "./CategoryBadge";
 
 interface Section {
   key: string;
@@ -30,6 +32,8 @@ export default function UserPage({
   isCurrentUser: boolean;
   canGoBack?: boolean;
 }) {
+  const { data: wishesData } = usePublicWishes({ userId: user.id });
+  const wishes = wishesData?.userWishes || [];
   const [isModalOpen, setIsModalOpen] = useState(false);
   const logout = useSessionStore((state) => state.logout);
   const [pendingCount, setPendingCount] = useState<{
@@ -79,7 +83,30 @@ export default function UserPage({
         </View>
       ),
     },
-    // TODO - Lista de deseados
+    {
+      key: "wishes",
+      show: !isCurrentUser && wishes.length > 0,
+      component: () => (
+        <View className="gap-2">
+          <Text className="text-main-text text-2xl">Lista de deseos:</Text>
+          <View className="px-2 gap-2">
+            {wishes.map((wish) => (
+              <View key={wish.id}>
+                <CategoryBadge
+                  className="text-lg text-main-text/90"
+                  category={wish.category}
+                  colorless
+                />
+                {wish.comment && (
+                  <Text className="text-secondary-text">{wish.comment}</Text>
+                )}
+              </View>
+            ))}
+          </View>
+        </View>
+      ),
+    },
+
     {
       key: "credits",
       show: isCurrentUser,
@@ -213,7 +240,7 @@ export default function UserPage({
         />
         {isCurrentUser && (
           <View className="p-4">
-            <CustomButton onPress={() => logout()}>
+            <CustomButton onPress={() => logout()} className="bg-main-text">
               <ButtonText>Cerrar sesión</ButtonText>
             </CustomButton>
           </View>
