@@ -34,3 +34,11 @@ export const STATUS_TRANSLATIONS = {
   [PRODUCT_STATUSES.GOOD]: "Bueno",
   [PRODUCT_STATUSES.FAIR]: "Regular",
 } as Record<ProductStatus, string>;
+
+export const NOTIFICATIONS_CATEGORIES = {
+  MISSION: "mission",
+  LOOP: "loop",
+  DONATION: "donation",
+  ADMIN: "admin",
+  MESSAGE: "message",
+};
