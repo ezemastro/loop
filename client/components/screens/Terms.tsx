@@ -1,9 +1,15 @@
-import { View, Text, BackHandler } from "react-native";
+import { View, Text, BackHandler, FlatList } from "react-native";
 import CustomButton from "../bases/CustomButton";
 import ButtonText from "../bases/ButtonText";
 import { MainView } from "../bases/MainView";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSessionStore } from "@/stores/session";
+import TextTitle from "../bases/TextTitle";
+
+interface Section {
+  type: "title" | "subtitle" | "paragraph" | "list-item";
+  content: string;
+}
 
 export default function TermsPage() {
   const insets = useSafeAreaInsets();
@@ -20,6 +26,56 @@ export default function TermsPage() {
     BackHandler.exitApp();
   };
 
+  const termsSections: Section[] = [
+    {
+      type: "title",
+      content: "Deslinde de responsabilidades",
+    },
+    {
+      type: "subtitle",
+      content: "1. La Red Itinere:",
+    },
+    {
+      type: "list-item",
+      content:
+        "No garantiza el cumplimiento de los acuerdos entre usuarios ni la autenticidad de los productos ofrecidos.",
+    },
+    {
+      type: "list-item",
+      content:
+        "No se responsabiliza por pérdidas, daños materiales o personales, errores de descripción, incumplimientos, ni por el uso indebido de la plataforma.",
+    },
+    {
+      type: "list-item",
+      content:
+        "No será responsable por interrupciones temporales del servicio, errores técnicos, mantenimiento o actualizaciones.",
+    },
+    {
+      type: "list-item",
+      content:
+        "No obtiene lucro ni beneficio económico directo por las transacciones realizadas a través de LOOP.",
+    },
+    {
+      type: "subtitle",
+      content: "2. Los usuarios:",
+    },
+    {
+      type: "list-item",
+      content:
+        "Asumen plena responsabilidad por los productos ofrecidos, su estado, entrega y recepción.",
+    },
+    {
+      type: "list-item",
+      content:
+        "Se comprometen a actuar de buena fe, respetando los valores de confianza, solidaridad y cuidado ambiental que inspiran la iniciativa.",
+    },
+    {
+      type: "list-item",
+      content:
+        "Liberan a la Red Itinere de cualquier reclamo judicial o extrajudicial derivado de las transacciones efectuadas a través de LOOP.",
+    },
+  ];
+
   return (
     <View
       className="flex-1"
@@ -31,20 +87,32 @@ export default function TermsPage() {
       }}
     >
       <MainView className="p-4">
-        <View className="flex-grow">
-          <Text className="text-3xl text-main-text text-center">
-            Terms and Conditions
-          </Text>
-          <Text className="text-main-text mt-4">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
-            eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
-            ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-            aliquip ex ea commodo consequat. Duis aute irure dolor in
-            reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-            pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-            culpa qui officia deserunt mollit anim id est laborum.
-          </Text>
-        </View>
+        <FlatList
+          data={termsSections}
+          contentContainerClassName="py-2 px-2"
+          renderItem={({ item }) => (
+            <>
+              {item.type === "title" && (
+                <TextTitle className="mb-4 text-3xl">{item.content}</TextTitle>
+              )}
+              {item.type === "subtitle" && (
+                <TextTitle className="mb-3 mt-3 text-left">
+                  {item.content}
+                </TextTitle>
+              )}
+              {item.type === "paragraph" && (
+                <Text className="mb-2 text-main-text text-lg leading-6">
+                  {item.content}
+                </Text>
+              )}
+              {item.type === "list-item" && (
+                <Text className="mb-3 text-main-text text-lg leading-6">
+                  • {item.content}
+                </Text>
+              )}
+            </>
+          )}
+        />
         <View className="flex-row gap-2">
           <CustomButton onPress={handleReject} className="bg-alert">
             <ButtonText>Rechazar</ButtonText>
