@@ -2,6 +2,7 @@
   "jest.jestCommandLine": "npm run test --",
   "jest.rootPath": "server/api",
   "cSpell.words": [
+    "Itinere",
     "loopeado",
     "loopear",
     "Loopear"
