@@ -246,14 +246,16 @@ export default function Offer() {
         )}
       />
       <View>
-        {isLoading && <Loader />}
-        <View className="px-4 mb-4 flex-row gap-4">
-          <CustomButton className="flex-grow" onPress={handleSubmit}>
-            <ButtonText>Confirmar</ButtonText>
-          </CustomButton>
-          <CustomButton className="bg-alert flex-1" onPress={handleReject}>
-            <ButtonText className="text-alert">Cancelar</ButtonText>
-          </CustomButton>
+        <View className="px-4 mb-4">
+          {isLoading && <Loader />}
+          <View className="flex-row gap-4">
+            <CustomButton className="flex-grow" onPress={handleSubmit}>
+              <ButtonText>Confirmar</ButtonText>
+            </CustomButton>
+            <CustomButton className="bg-alert flex-1" onPress={handleReject}>
+              <ButtonText className="text-alert">Cancelar</ButtonText>
+            </CustomButton>
+          </View>
         </View>
       </View>
     </MainView>
