@@ -1,3 +1,5 @@
+ALTER DATABASE loop_db SET timezone TO 'America/Argentina/Buenos_Aires';
+
 CREATE TABLE "schools"(
     "id" UUID default gen_random_uuid() primary key,
     "name" TEXT NOT null unique,
@@ -193,3 +195,4 @@ ALTER TABLE
     media ADD CONSTRAINT "media_uploaded_by_foreign" FOREIGN KEY("uploaded_by") REFERENCES "users"("id");
 ALTER TABLE
     schools ADD CONSTRAINT "school_media_id_foreign" FOREIGN KEY("media_id") REFERENCES "media"("id");
+

@@ -121,26 +121,6 @@ export class ListingsModel {
       throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
     }
     try {
-      // Validar que el precio sea valido para la categoría
-      const [categoryDb] = await client.query(queries.categoryById, [
-        categoryId,
-      ]);
-      if (!categoryDb) {
-        throw new InvalidInputError(ERROR_MESSAGES.CATEGORY_NOT_FOUND);
-      }
-      const category = parseCategoryBaseFromDb(categoryDb);
-      if (
-        category.price &&
-        category.price?.max !== null &&
-        category.price?.min !== null
-      ) {
-        if (price > category.price.max || price < category.price.min) {
-          throw new InvalidInputError(
-            ERROR_MESSAGES.INVALID_PRICE_FOR_CATEGORY,
-          );
-        }
-      }
-
       const listingStatus: ListingStatus = "published";
       const [newListing] = await client.query(queries.createListing, [
         title,
@@ -807,7 +787,7 @@ export class ListingsModel {
       }
 
       // TODO - Registrar transacción
-      // TODO - Enviar notificación al comprador
+      // Enviar notificación al comprador
       await sendLoopNotification({
         userId: oldListing.buyerId!,
         notificationToken: buyerBase.notificationToken,
@@ -937,16 +917,16 @@ export class ListingsModel {
         const categoryBase = parseCategoryBaseFromDb(categoryDb!);
         // Aumentar estadísticas del vendedor
         await client.query(queries.increaseUserStats, [
-          categoryBase.stats?.kgWaste,
-          categoryBase.stats?.kgCo2,
-          categoryBase.stats?.lH2o,
+          categoryBase.stats?.kgWaste || 0,
+          categoryBase.stats?.kgCo2 || 0,
+          categoryBase.stats?.lH2o || 0,
           sellerBase.id,
         ]);
         // Aumentar estadísticas del comprador
         await client.query(queries.increaseUserStats, [
-          categoryBase.stats?.kgWaste,
-          categoryBase.stats?.kgCo2,
-          categoryBase.stats?.lH2o,
+          categoryBase.stats?.kgWaste || 0,
+          categoryBase.stats?.kgCo2 || 0,
+          categoryBase.stats?.lH2o || 0,
           listingBase.buyerId!,
         ]);
         // Aumentar estadísticas de las escuelas involucradas
@@ -963,17 +943,17 @@ export class ListingsModel {
         const uniqueSchoolsIds = Array.from(new Set(schoolsIds));
         for (const schoolId of uniqueSchoolsIds) {
           await client.query(queries.increaseSchoolStats, [
-            categoryBase.stats?.kgWaste,
-            categoryBase.stats?.kgCo2,
-            categoryBase.stats?.lH2o,
+            categoryBase.stats?.kgWaste || 0,
+            categoryBase.stats?.kgCo2 || 0,
+            categoryBase.stats?.lH2o || 0,
             schoolId,
           ]);
         }
         // Aumentar estadísticas globales
         await client.query(queries.increaseGlobalStats, [
-          categoryBase.stats?.kgWaste,
-          categoryBase.stats?.kgCo2,
-          categoryBase.stats?.lH2o,
+          categoryBase.stats?.kgWaste || 0,
+          categoryBase.stats?.kgCo2 || 0,
+          categoryBase.stats?.lH2o || 0,
         ]);
       } catch {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);

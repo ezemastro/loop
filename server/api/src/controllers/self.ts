@@ -239,7 +239,8 @@ export class SelfController {
     next: NextFunction,
   ) => {
     const { userId } = req.session!;
-    const { notificationToken } = req.body as { notificationToken: string };
+    const { notificationToken } =
+      req.body as PostSelfNotificationTokenRequest["body"];
     try {
       await validateUpdateTokenRequest(req.body);
     } catch {

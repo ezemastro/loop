@@ -280,6 +280,7 @@ export const parseNotificationFromBase = ({
     case "admin": {
       const payload = notification.payload as AdminNotificationPayloadBase;
       newPayload = {
+        ...payload,
         action: payload.action,
         amount: payload.amount,
         message: payload.message,
@@ -293,6 +294,7 @@ export const parseNotificationFromBase = ({
     case "donation": {
       const payload = notification.payload as DonationNotificationPayloadBase;
       newPayload = {
+        ...payload,
         amount: payload.amount,
         donorUserId: payload.donorUserId,
         donorUser: donorUser!,
@@ -303,18 +305,21 @@ export const parseNotificationFromBase = ({
     case "loop": {
       const payload = notification.payload as LoopNotificationPayloadBase;
       newPayload = {
+        ...payload,
         listingId: payload.listingId,
         buyerId: payload.buyerId,
         buyer: payload.buyerId ? buyer! : null,
         listing: payload.listingId ? listing! : null,
         toListingStatus: payload.toListingStatus,
         toOfferedCredits: payload.toOfferedCredits,
+        type: payload.type,
       } as LoopNotificationPayload;
       break;
     }
     case "mission": {
       const payload = notification.payload as MissionNotificationPayloadBase;
       newPayload = {
+        ...payload,
         userMissionId: payload.userMissionId,
         userMission: userMission!,
       } as MissionNotificationPayload;
