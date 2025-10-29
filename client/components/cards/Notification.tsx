@@ -1,21 +1,27 @@
 import { View, Text } from "react-native";
 import Mission from "./Mission";
 import Listing from "./Listing";
+import { DateBadge } from "../bases/DateBadge";
+import CreditsBadge from "../badges/CreditsBadge";
+import User from "./User";
 
 export default function NotificationCard({
   notification,
 }: {
   notification: AppNotification;
 }) {
+  const date = new Date(notification.createdAt);
   return (
     <View
       className={
-        "bg-white rounded " + !notification.isRead
+        "bg-white rounded-lg " +
+        (!notification.isRead
           ? "border border-main-text/50"
-          : ""
+          : "border border-stroke")
       }
     >
       <NotificationContent notification={notification} />
+      <DateBadge date={date} includeTime className="text-right py-1 px-3" />
     </View>
   );
 }
@@ -59,8 +65,8 @@ function MissionNotification({
   payload: MissionNotificationPayload;
 }) {
   return (
-    <View className="p-4">
-      <Text className="font-bold">Haz completado una misión</Text>
+    <View className="p-4 pb-2">
+      <Text className="text-main-text text-xl">Haz completado una misión</Text>
       <Mission mission={payload.userMission} />
     </View>
   );
@@ -91,8 +97,8 @@ function LoopNotification({ payload }: { payload: LoopNotificationPayload }) {
       break;
   }
   return (
-    <View className="p-4">
-      <Text className="font-bold">{label}</Text>
+    <View className="p-4 pb-2 gap-2">
+      <Text className="text-main-text text-xl">{label}</Text>
       <Listing listing={payload.listing} />
     </View>
   );
@@ -104,9 +110,14 @@ function DonationNotification({
   payload: DonationNotificationPayload;
 }) {
   return (
-    <View className="p-4">
-      <Text className="font-bold">Nueva donación recibida</Text>
-      <Text>{payload.amount || 0}</Text>
+    <View className="p-4 gap-2">
+      <Text className="text-main-text text-xl">Nueva donación recibida</Text>
+      <User user={payload.donorUser} className="border border-stroke" />
+      <CreditsBadge
+        credits={payload.amount}
+        numberClassName="text-2xl"
+        iconSize={32}
+      />
     </View>
   );
 }
@@ -115,8 +126,8 @@ function AdminNotification({ payload }: { payload: AdminNotificationPayload }) {
   switch (payload.action) {
     case "credits":
       return (
-        <View className="p-4 gap-2">
-          <Text className="text-main-text text-lg font-bold">
+        <View className="p-4 pb-2 gap-2">
+          <Text className="text-main-text text-xl">
             El equipo de Loop ha modificado tu cantidad de Loopies
           </Text>
           <Text className="text-main-text">
@@ -126,5 +137,6 @@ function AdminNotification({ payload }: { payload: AdminNotificationPayload }) {
           </Text>
         </View>
       );
+    // TODO - Agregar otro tipo de notificaciones de admin
   }
 }
