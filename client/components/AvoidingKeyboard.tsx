@@ -26,7 +26,7 @@ export default function AvoidingKeyboard({
     <View
       className={twMerge("flex-1", className)}
       style={{
-        paddingBottom: !visible ? keyboardHeight : 0,
+        paddingBottom: !visible ? (keyboardHeight || 0) + 10 : 0,
       }}
     >
       {children}
