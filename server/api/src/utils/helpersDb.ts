@@ -2,6 +2,7 @@ import { ERROR_MESSAGES, PAGE_SIZE } from "../config";
 import { InternalServerError } from "../services/errors";
 import { queries } from "../services/queries";
 import type { DatabaseClient } from "../types/dbClient";
+import { sendMissionNotification } from "./notifications";
 import {
   parseCategoryBaseFromDb,
   parseListingBaseFromDb,
@@ -578,7 +579,6 @@ export const progressMission = async ({
   const current = userMission.progress.current + 1;
   const completed = current >= userMission.progress.total;
   if (completed && !userMission.completed) {
-    // TODO - Enviar notificación de misión completada
     // Actualizar créditos del usuario
     const userDb = await client.query(queries.userById, [userId]);
     if (userDb.length === 0) return;
@@ -590,6 +590,13 @@ export const progressMission = async ({
       userBase.credits.locked,
       userId,
     ]);
+    // Enviar notificación de misión completada
+    await sendMissionNotification({
+      client,
+      userId,
+      missionId: userMission.id,
+      notificationToken: userBase.notificationToken,
+    });
   }
   await client.query(queries.progressMission, [
     {
