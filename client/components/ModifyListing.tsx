@@ -149,12 +149,6 @@ export default function ModifyListing({
     if (form.images.length === 0) {
       newErrors.images = true;
     }
-    if (form.category?.price?.max && form.price! > form.category?.price?.max) {
-      newErrors.price = true;
-    }
-    if (form.category?.price?.min && form.price! < form.category?.price?.min) {
-      newErrors.price = true;
-    }
     setErrors(newErrors);
     if (Object.values(newErrors).some((error) => error)) {
       return;
@@ -240,7 +234,7 @@ export default function ModifyListing({
             }}
             placeholder="Escribe un título para tu publicación"
             className="w-full border-b border-gray-300 p-2 px-3 text-lg bg-secondary-text/10 rounded-t"
-            // underlineColorAndroid="transparent"
+            underlineColorAndroid="#0000"
             placeholderClassName="text-secondary-text"
           />
           <Text className="mt-1 text-right text-sm text-secondary-text">
@@ -301,7 +295,7 @@ export default function ModifyListing({
               }}
               placeholder={
                 form.category?.price?.min && form.category.price.max
-                  ? `${formatNumber(form.category?.price?.min)} - ${formatNumber(form.category?.price?.max)}`
+                  ? `Recomendado: ${formatNumber(form.category?.price?.min)} - ${formatNumber(form.category?.price?.max)}`
                   : "Introduce un precio para tu publicación"
               }
               underlineColorAndroid="transparent"
@@ -313,12 +307,12 @@ export default function ModifyListing({
             {form.price &&
             form.category?.price?.max &&
             form.price > form.category?.price?.max
-              ? `Max. ${formatNumber(form.category?.price?.max)}`
+              ? `Recomendado: Max. ${formatNumber(form.category?.price?.max)}`
               : ""}
             {form.price &&
             form.category?.price?.min &&
             form.price < form.category?.price?.min
-              ? `Min. ${formatNumber(form.category?.price?.min)}`
+              ? `Recomendado: Min. ${formatNumber(form.category?.price?.min)}`
               : ""}
           </Text>
         </View>
@@ -351,12 +345,14 @@ export default function ModifyListing({
         renderItem={({ item }) => (
           <View className="w-full gap-2">
             {item.title && <Text className="px-4 text-2xl">{item.title}</Text>}
-            {item.isError && (
-              <Error textClassName="text-sm text-alert px-4">
-                Por favor revisa este campo.
-              </Error>
-            )}
-            {item.component()}
+            <View>
+              {item.isError && (
+                <Error textClassName="text-sm text-alert px-4">
+                  Por favor revisa este campo.
+                </Error>
+              )}
+              {item.component()}
+            </View>
           </View>
         )}
         ListFooterComponent={() => (
