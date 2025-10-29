@@ -6,7 +6,7 @@ export default function CustomRefresh(
     React.ReactElement<
       RefreshControlProps,
       string | React.JSXElementConstructor<any>
-    >
+    >["props"]
   >,
 ) {
   const queryClient = useQueryClient();
