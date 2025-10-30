@@ -755,11 +755,7 @@ export class ListingsModel {
         // Actualizar las publicaciones de intercambio
         await Promise.all(
           tradingListingIds.map((id) =>
-            client.query(queries.updateListingStatus, [
-              "accepted" as ListingStatus,
-              userId,
-              id,
-            ]),
+            client.query(queries.markListingAsSold, [userId, id]),
           ),
         );
         // Actualizar los créditos del vendedor
