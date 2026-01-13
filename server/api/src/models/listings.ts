@@ -767,7 +767,7 @@ export class ListingsModel {
           ]);
         }
         // Actualizar los créditos del comprador
-        if (newBuyerLocked > 0) {
+        if (newBuyerLocked >= 0) {
           await client.query(queries.updateUserBalance, [
             buyerBase.credits.balance +
               oldListing.offeredCredits! -
@@ -947,9 +947,9 @@ export class ListingsModel {
         }
         // Aumentar estadísticas globales
         await client.query(queries.increaseGlobalStats, [
-          categoryBase.stats?.kgWaste || 0,
-          categoryBase.stats?.kgCo2 || 0,
-          categoryBase.stats?.lH2o || 0,
+          safeNumber(categoryBase.stats?.kgWaste) || 0,
+          safeNumber(categoryBase.stats?.kgCo2) || 0,
+          safeNumber(categoryBase.stats?.lH2o) || 0,
         ]);
       } catch {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);

@@ -427,13 +427,21 @@ export const queries = {
     "missionsTemplates.all",
     `SELECT * FROM mission_templates`,
   ),
-  adminByUsername: q<DB_Admin & { password: string }>(
-    "admin.byUsername",
-    `SELECT * FROM admins WHERE username = $1`,
+  adminByEmail: q<DB_Admin & { password: string }>(
+    "admin.byEmail",
+    `SELECT * FROM admins WHERE email = $1`,
   ),
   createAdmin: q<DB_Admin>(
     "admin.create",
-    `INSERT INTO admins (username, full_name, password) VALUES ($1, $2, $3) RETURNING *`,
+    `INSERT INTO admins (email, full_name, password) VALUES ($1, $2, $3) RETURNING *`,
+  ),
+  addValidEmailForAdminRegistration: q<void>(
+    "admin.addValidEmail",
+    `INSERT INTO admin_valid_emails (email) VALUES ($1)`,
+  ),
+  isValidEmailForAdminRegistration: q<{ exists: boolean }>(
+    "admin.isValidEmail",
+    `SELECT EXISTS(SELECT 1 FROM admin_valid_emails WHERE email = $1) AS exists`,
   ),
   createNotification: q<DB_Notifications>(
     "notifications.create",
@@ -550,9 +558,9 @@ export const queries = {
     `UPDATE global_stats 
     SET stat_value = stat_value + 
       CASE 
-        WHEN stat_name = 'total_kg_waste' THEN $1
-        WHEN stat_name = 'total_kg_co2' THEN $2
-        WHEN stat_name = 'total_l_h2o' THEN $3
+        WHEN stat_name = 'total_kg_waste' THEN $1::float8
+        WHEN stat_name = 'total_kg_co2' THEN $2::float8
+        WHEN stat_name = 'total_l_h2o' THEN $3::float8
         ELSE 0
       END
     WHERE stat_name IN ('total_kg_waste', 'total_kg_co2', 'total_l_h2o')`,

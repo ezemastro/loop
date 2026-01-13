@@ -62,6 +62,8 @@ export const ERROR_MESSAGES = {
     "Estado de publicación inválido para eliminar",
   MISSION_KEY_ALREADY_EXISTS: "La clave de misión ya existe",
   WISH_NOT_FOUND: "Deseo no encontrado",
+  EMAIL_NOT_AUTHORIZED:
+    "El correo electrónico no está autorizado para el registro",
 };
 
 export const cookieOptions: CookieOptions = {

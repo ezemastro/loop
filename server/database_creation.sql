@@ -130,10 +130,16 @@ CREATE TABLE "messages"(
 );
 CREATE TABLE "admins"(
     "id" UUID default gen_random_uuid() primary key,
-    "username" TEXT NOT NULL unique,
+    "email" TEXT NOT NULL unique,
+    -- TODO - Reemplazar en base de datos de prod la columna username por email
     "full_name" TEXT NOT NULL,
     "password" TEXT not null,
     "created_at" TIMESTAMP(0) default NOW() NOT NULL
+);
+-- TODO - Agregar la siguiente tabla en base de datos de prod
+CREATE TABLE "admin_valid_emails"(
+    "id" UUID default gen_random_uuid() primary key,
+    "email" TEXT NOT NULL unique
 );
 CREATE TABLE "global_stats" (
     "id" UUID default gen_random_uuid() primary key,

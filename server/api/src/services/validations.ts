@@ -381,15 +381,14 @@ export const validatePostSelfWishRequest = (data: unknown) =>
 // ADMIN
 const adminLoginSchema = z.object({
   username: z.string().min(3).max(50),
-  password: z.string().min(8).max(100),
+  password: z.string().min(6).max(100),
 });
 export const validateAdminLogin = (data: unknown) =>
   adminLoginSchema.parseAsync(data);
 const adminRegisterSchema = z.object({
-  username: z.string().min(3).max(50),
+  email: z.email(),
   fullName: z.string().min(2).max(100),
-  password: z.string().min(8).max(100),
-  passToken: z.string().min(1).max(100),
+  password: z.string().min(6).max(100),
 });
 export const validateAdminRegister = (data: unknown) =>
   adminRegisterSchema.parseAsync(data);

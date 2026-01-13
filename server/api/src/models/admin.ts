@@ -1,6 +1,6 @@
 import { dbConnection } from "../services/postgresClient";
 import type { DatabaseClient } from "../types/dbClient";
-import { ADMIN_PASS_TOKEN, ERROR_MESSAGES, PAGE_SIZE } from "../config";
+import { ERROR_MESSAGES, PAGE_SIZE } from "../config";
 import {
   ConflictError,
   InternalServerError,
@@ -25,13 +25,7 @@ import {
 import { safeNumber } from "../utils/safeNumber";
 
 export class AdminModel {
-  static async login({
-    username,
-    password,
-  }: {
-    username: string;
-    password: string;
-  }) {
+  static async login({ email, password }: { email: string; password: string }) {
     // Conectarse a la base de datos
     let client: DatabaseClient;
     try {
@@ -40,7 +34,7 @@ export class AdminModel {
       throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
     }
     try {
-      const adminDb = await client.query(queries.adminByUsername, [username]);
+      const adminDb = await client.query(queries.adminByEmail, [email]);
       if (!adminDb[0]) {
         throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
       }
@@ -60,15 +54,13 @@ export class AdminModel {
   }
 
   static async register({
-    username,
+    email,
     fullName,
     password,
-    passToken,
   }: {
-    username: string;
+    email: string;
     fullName: string;
     password: string;
-    passToken: string;
   }) {
     // Conectarse a la base de datos
     let client: DatabaseClient;
@@ -79,22 +71,24 @@ export class AdminModel {
     }
     try {
       // Verificar si el admin ya existe
-      const existingAdmin = await client.query(queries.adminByUsername, [
-        username,
-      ]);
+      const existingAdmin = await client.query(queries.adminByEmail, [email]);
       if (existingAdmin[0]) {
         throw new InvalidInputError(ERROR_MESSAGES.USER_ALREADY_EXISTS);
       }
-      // Verificar el token de registro
-      if (passToken !== ADMIN_PASS_TOKEN) {
-        throw new InvalidInputError(ERROR_MESSAGES.INVALID_CREDENTIALS);
+      // Verificar si el mail de registro está autorizado
+      const isValidEmailDb = await client.query(
+        queries.isValidEmailForAdminRegistration,
+        [email],
+      );
+      if (!isValidEmailDb[0]?.exists) {
+        throw new InvalidInputError(ERROR_MESSAGES.EMAIL_NOT_AUTHORIZED);
       }
       // Hashear la contraseña
       const hashedPassword = await hashPassword(password);
       // Crear el nuevo administrador
       await client.begin();
       const newAdmin = await client.query(queries.createAdmin, [
-        username,
+        email,
         fullName,
         hashedPassword,
       ]);
@@ -108,6 +102,20 @@ export class AdminModel {
     } catch (error) {
       await client.rollback();
       throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  static async addValidEmailForRegistration({ email }: { email: string }) {
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      await client.query(queries.addValidEmailForAdminRegistration, [email]);
     } finally {
       client.release();
     }

@@ -7,6 +7,12 @@ export const adminRouter = Router();
 // Admin session (sin autenticación)
 adminRouter.post("/login", AdminController.login);
 adminRouter.post("/register", AdminController.register);
+// Agregar nuevo email autorizado para registro de admin
+adminRouter.post(
+  "/authorize-email",
+  adminTokenMiddleware,
+  AdminController.addValidEmailForRegistration,
+);
 
 // Gestión de usuarios (requiere autenticación de admin)
 adminRouter.get("/users", adminTokenMiddleware, AdminController.getUsers);

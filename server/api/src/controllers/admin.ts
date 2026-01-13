@@ -15,9 +15,9 @@ import { successResponse } from "../utils/responses";
 export class AdminController {
   static login = async (req: Request, res: Response, next: NextFunction) => {
     // Validar los datos de la solicitud
-    const { username, password } = req.body;
+    const { email, password } = req.body as PostAdminLoginRequest["body"];
     try {
-      await validateAdminLogin({ username, password });
+      await validateAdminLogin({ email, password });
     } catch {
       next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
@@ -25,7 +25,7 @@ export class AdminController {
     // Verificar las credenciales del administrador
     let admin: Admin;
     try {
-      ({ admin } = await AdminModel.login({ username, password }));
+      ({ admin } = await AdminModel.login({ email, password }));
     } catch (error) {
       next(error);
       return;
@@ -39,10 +39,10 @@ export class AdminController {
 
   static register = async (req: Request, res: Response, next: NextFunction) => {
     // Validar los datos de la solicitud
-    const { username, fullName, password, passToken } =
+    const { email, fullName, password } =
       req.body as PostAdminRegisterRequest["body"];
     try {
-      await validateAdminRegister({ username, fullName, password, passToken });
+      await validateAdminRegister({ email, fullName, password });
     } catch {
       next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
       return;
@@ -51,10 +51,9 @@ export class AdminController {
     let admin: Admin;
     try {
       ({ admin } = await AdminModel.register({
-        username,
+        email,
         fullName,
         password,
-        passToken,
       }));
     } catch (error) {
       next(error);
@@ -64,6 +63,20 @@ export class AdminController {
     const token = generateAdminToken({ id: admin.id });
     res.cookie(COOKIE_NAMES.ADMIN_TOKEN, token, adminCookieOptions);
     return res.status(201).json(successResponse({ data: { admin } }));
+  };
+
+  static addValidEmailForRegistration = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const { email } = req.body as PostAdminAuthorizeEmailRequest["body"];
+    try {
+      await AdminModel.addValidEmailForRegistration({ email });
+      return res.status(201).json(successResponse({}));
+    } catch (error) {
+      next(error);
+    }
   };
 
   // Gestión de usuarios
