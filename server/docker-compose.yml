@@ -33,5 +33,14 @@ services:
       - ./uploads:/uploads
     depends_on:
       - db
+    develop:
+      watch:
+        - action: sync
+          path: ./api/src
+          target: /app/src
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./api/package.json
 volumes:
   postgres-data:
