@@ -20,6 +20,7 @@ export class AdminController {
       await validateAdminLogin({ email, password });
     } catch {
       next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+      return;
     }
 
     // Verificar las credenciales del administrador
