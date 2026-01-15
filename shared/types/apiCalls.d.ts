@@ -26,7 +26,7 @@ interface PaginatedApiResponse<T> extends ApiResponse<T> {
 
 interface AuthApiRequest {
   cookies: {
-    auth_token: string;
+    admin_token: string;
   };
 }
 
@@ -414,7 +414,7 @@ type GetGlobalStatsResponse = ApiResponse<{
 // POST /admin/login
 interface PostAdminLoginRequest {
   body: {
-    username: string;
+    email: string;
     password: string;
   };
 }
@@ -425,15 +425,22 @@ type PostAdminLoginResponse = ApiResponse<{
 // POST /admin/register
 interface PostAdminRegisterRequest {
   body: {
-    username: string;
+    email: string;
     fullName: string;
     password: string;
-    passToken: string;
   };
 }
 type PostAdminRegisterResponse = ApiResponse<{
   admin: Admin;
 }>;
+
+// POST /admin/authorize-email
+interface PostAdminAuthorizeEmailRequest {
+  body: {
+    email: string;
+  };
+}
+type PostAdminAuthorizeEmailResponse = ApiResponse;
 
 // GET /admin/users
 interface GetAdminUsersRequest {
