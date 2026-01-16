@@ -212,6 +212,30 @@ export const adminApi = {
     );
     return response.data;
   },
+
+  /**
+   * Obtener todas las mission templates
+   */
+  getMissionTemplates: async () => {
+    const response = await api.get<{
+      success: boolean;
+      data: { missions: MissionTemplate[] };
+    }>("/admin/missions");
+    return response.data;
+  },
+
+  /**
+   * Reiniciar contraseña de un usuario
+   */
+  resetUserPassword: async (userId: UUID, newPassword: string) => {
+    const response = await api.post<PostAdminUserResetPasswordResponse>(
+      `/admin/users/${userId}/reset-password`,
+      {
+        newPassword,
+      },
+    );
+    return response.data;
+  },
 };
 
 export default adminApi;

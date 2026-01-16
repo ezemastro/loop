@@ -34,4 +34,13 @@ export const commonApi = {
     });
     return response.data;
   },
+
+  /**
+   * Obtener lista de categorías
+   * @returns Lista completa de categorías con jerarquía
+   */
+  getCategories: async () => {
+    const response = await api.get<GetCategoriesResponse>("/categories");
+    return response.data;
+  },
 };
