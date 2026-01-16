@@ -528,6 +528,29 @@ export class AdminModel {
   }
 
   // Gestión de mission templates
+  static async getMissionTemplates() {
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      const missionTemplatesDb = await client.query(
+        queries.allMissionTemplates,
+        [],
+      );
+
+      const missionTemplates = missionTemplatesDb.map((row) =>
+        parseMissionTemplateFromDb(row as DB_MissionTemplates),
+      );
+
+      return { missionTemplates };
+    } finally {
+      client.release();
+    }
+  }
+
   static async createMissionTemplate({
     key,
     title,

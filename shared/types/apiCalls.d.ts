@@ -577,6 +577,11 @@ type PostAdminMissionTemplateResponse = ApiResponse<{
   missionTemplate: MissionTemplate;
 }>;
 
+// GET /admin/missions
+type GetAdminMissionTemplatesResponse = ApiResponse<{
+  missionTemplates: MissionTemplate[]
+}>
+
 // PATCH /admin/missions/:missionTemplateId
 interface PatchAdminMissionTemplateRequest {
   params: {

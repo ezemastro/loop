@@ -62,6 +62,11 @@ adminRouter.get(
 );
 
 // Gestión de mission templates
+adminRouter.get(
+  "/missions",
+  adminTokenMiddleware,
+  AdminController.getMissionTemplates,
+);
 adminRouter.post(
   "/missions",
   adminTokenMiddleware,

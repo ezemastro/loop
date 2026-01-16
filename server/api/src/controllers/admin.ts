@@ -253,6 +253,21 @@ export class AdminController {
   };
 
   // Gestión de mission templates
+  static getMissionTemplates = async (
+    _req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const { missionTemplates } = await AdminModel.getMissionTemplates();
+      return res
+        .status(200)
+        .json(successResponse({ data: { missionTemplates } }));
+    } catch (error) {
+      next(error);
+    }
+  };
+
   static createMissionTemplate = async (
     req: Request,
     res: Response,
