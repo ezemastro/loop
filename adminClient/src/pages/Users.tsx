@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import adminApi from "@/api/adminApi";
 import UsersTable from "@/components/UsersTable";
 import ModifyCreditsModal from "@/components/ModifyCreditsModal";
 import ResetPasswordModal from "@/components/ResetPasswordModal";
+import { AxiosError } from "axios";
 
 export default function Users() {
   const [users, setUsers] = useState<PrivateUser[]>([]);
@@ -17,11 +18,7 @@ export default function Users() {
   const [selectedUserForPassword, setSelectedUserForPassword] =
     useState<PrivateUser | null>(null);
 
-  useEffect(() => {
-    loadUsers();
-  }, [page]);
-
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -34,15 +31,23 @@ export default function Users() {
         setUsers(response.data.users);
         // Calcular páginas basado en total
         const total = response.data.total;
-        setTotalPages(Math.ceil(total / 20)); // Asumiendo 20 por página
+        setTotalPages(Math.ceil(total / 20)); // 20 por página
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Error al cargar usuarios");
+    } catch (err) {
+      if (err instanceof AxiosError) {
+        setError(err.response?.data?.error || "Error al cargar usuarios");
+      } else {
+        setError("Error al cargar usuarios");
+      }
       console.error(err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, search]);
+
+  useEffect(() => {
+    loadUsers();
+  }, [page, loadUsers]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

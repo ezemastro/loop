@@ -1,5 +1,6 @@
 import { useState } from "react";
 import adminApi from "@/api/adminApi";
+import { AxiosError } from "axios";
 
 interface ModifyCreditsModalProps {
   user: PrivateUser;
@@ -42,8 +43,12 @@ export default function ModifyCreditsModal({
         handleClose();
         onSuccess();
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Error al modificar créditos");
+    } catch (err) {
+      if (err instanceof AxiosError) {
+        setError(err.response?.data?.error || "Error al modificar créditos");
+      } else {
+        setError("Error al modificar créditos");
+      }
       console.error(err);
     } finally {
       setLoading(false);

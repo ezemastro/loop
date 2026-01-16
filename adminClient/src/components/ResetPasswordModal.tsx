@@ -1,5 +1,6 @@
 import { useState } from "react";
 import adminApi from "@/api/adminApi";
+import { AxiosError } from "axios";
 
 interface ResetPasswordModalProps {
   user: PrivateUser;
@@ -42,8 +43,12 @@ export default function ResetPasswordModal({
         handleClose();
         onSuccess();
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Error al reiniciar contraseña");
+    } catch (err) {
+      if (err instanceof AxiosError) {
+        setError(err.response?.data?.error || "Error al reiniciar contraseña");
+      } else {
+        setError("Error al reiniciar contraseña");
+      }
       console.error(err);
     } finally {
       setLoading(false);

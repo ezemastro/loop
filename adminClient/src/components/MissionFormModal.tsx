@@ -1,5 +1,6 @@
 import { useState } from "react";
 import adminApi from "@/api/adminApi";
+import { AxiosError } from "axios";
 
 interface MissionFormModalProps {
   mission?: MissionTemplate | null;
@@ -65,8 +66,12 @@ export default function MissionFormModal({
 
       handleClose();
       onSuccess();
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Error al guardar misión");
+    } catch (err) {
+      if (err instanceof AxiosError) {
+        setError(err.response?.data?.error || "Error al guardar misión");
+      } else {
+        setError("Error al guardar misión");
+      }
       console.error(err);
     } finally {
       setLoading(false);

@@ -3,6 +3,7 @@ import Layout from "@/components/Layout";
 import { commonApi } from "@/api/commonApi";
 import CategoriesTable from "@/components/CategoriesTable";
 import CategoryFormModal from "@/components/CategoryFormModal";
+import { AxiosError } from "axios";
 
 export default function Categories() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -23,8 +24,12 @@ export default function Categories() {
       if (response.success && response.data) {
         setCategories(response.data.categories);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Error al cargar categorías");
+    } catch (err) {
+      if (err instanceof AxiosError) {
+        setError(err.response?.data?.error || "Error al cargar categorías");
+      } else {
+        setError("Error al cargar categorías");
+      }
       console.error(err);
     } finally {
       setLoading(false);

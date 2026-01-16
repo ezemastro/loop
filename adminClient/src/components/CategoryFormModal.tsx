@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import adminApi from "@/api/adminApi";
+import { AxiosError } from "axios";
 
 interface CategoryFormModalProps {
   category?: Category | null;
@@ -107,8 +108,12 @@ export default function CategoryFormModal({
 
       handleClose();
       onSuccess();
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Error al guardar categoría");
+    } catch (err) {
+      if (err instanceof AxiosError) {
+        setError(err.response?.data?.error || "Error al guardar categoría");
+      } else {
+        setError("Error al guardar categoría");
+      }
       console.error(err);
     } finally {
       setLoading(false);

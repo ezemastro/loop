@@ -3,6 +3,7 @@ import Layout from "@/components/Layout";
 import adminApi from "@/api/adminApi";
 import MissionsTable from "@/components/MissionsTable";
 import MissionFormModal from "@/components/MissionFormModal";
+import { AxiosError } from "axios";
 
 export default function Missions() {
   const [missions, setMissions] = useState<MissionTemplate[]>([]);
@@ -25,8 +26,12 @@ export default function Missions() {
       if (response.success && response.data) {
         setMissions(response.data.missions);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Error al cargar misiones");
+    } catch (err) {
+      if (err instanceof AxiosError) {
+        setError(err.response?.data?.error || "Error al cargar misiones");
+      } else {
+        setError("Error al cargar misiones");
+      }
       console.error(err);
     } finally {
       setLoading(false);
