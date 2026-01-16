@@ -18,6 +18,7 @@ export const {
   ADMIN_TOKEN_EXP = 30 * 60, // 30 minutos
   UPLOAD_DIR = "/uploads",
   BASE_URL = "http://localhost:3000",
+  GOOGLE_CLIENT_ID,
 } = process.env;
 export const INITIAL_CREDITS = 0;
 
@@ -64,6 +65,9 @@ export const ERROR_MESSAGES = {
   WISH_NOT_FOUND: "Deseo no encontrado",
   EMAIL_NOT_AUTHORIZED:
     "El correo electrónico no está autorizado para el registro",
+  GOOGLE_CREDENTIAL_INVALID: "El credential de Google es inválido",
+  GOOGLE_EMAIL_NOT_VERIFIED: "El email de Google no está verificado",
+  GOOGLE_ID_MISMATCH: "El ID de Google no coincide",
 };
 
 export const cookieOptions: CookieOptions = {

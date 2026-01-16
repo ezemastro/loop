@@ -385,6 +385,11 @@ const adminLoginSchema = z.object({
 });
 export const validateAdminLogin = (data: unknown) =>
   adminLoginSchema.parseAsync(data);
+const adminGoogleLoginSchema = z.object({
+  credential: z.string().min(1),
+});
+export const validateAdminGoogleLogin = (data: unknown) =>
+  adminGoogleLoginSchema.parseAsync(data);
 const adminRegisterSchema = z.object({
   email: z.email(),
   fullName: z.string().min(2).max(100),

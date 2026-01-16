@@ -388,7 +388,7 @@ export const parseMessageFromBase = ({
 export const parseAdminFromDb = (row: DB_Admin): Admin => {
   return {
     id: row.id,
-    username: row.username,
+    email: row.email,
     fullName: row.full_name,
   };
 };

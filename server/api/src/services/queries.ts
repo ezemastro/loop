@@ -433,7 +433,7 @@ export const queries = {
   ),
   createAdmin: q<DB_Admin>(
     "admin.create",
-    `INSERT INTO admins (email, full_name, password) VALUES ($1, $2, $3) RETURNING *`,
+    `INSERT INTO admins (email, full_name, password, google_id) VALUES ($1, $2, $3, $4) RETURNING *`,
   ),
   addValidEmailForAdminRegistration: q<void>(
     "admin.addValidEmail",

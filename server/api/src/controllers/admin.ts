@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import {
+  validateAdminGoogleLogin,
   validateAdminLogin,
   validateAdminRegister,
   validateCreateMissionTemplate,
@@ -64,6 +65,38 @@ export class AdminController {
     const token = generateAdminToken({ id: admin.id });
     res.cookie(COOKIE_NAMES.ADMIN_TOKEN, token, adminCookieOptions);
     return res.status(201).json(successResponse({ data: { admin } }));
+  };
+
+  static googleLogin = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      await validateAdminGoogleLogin(req.body);
+    } catch {
+      next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+      return;
+    }
+    const { credential } = req.body as PostAdminGoogleLoginRequest["body"];
+
+    if (!credential) {
+      next(new InvalidInputError(ERROR_MESSAGES.GOOGLE_CREDENTIAL_INVALID));
+      return;
+    }
+
+    let admin: Admin;
+    try {
+      // Pasar credencial al modelo para manejar login/registro
+      ({ admin } = await AdminModel.googleLogin({ credential }));
+    } catch (error) {
+      next(error);
+      return;
+    }
+    // Generar un token JWT
+    const token = generateAdminToken({ id: admin.id });
+    res.cookie(COOKIE_NAMES.ADMIN_TOKEN, token, adminCookieOptions);
+    return res.status(200).json(successResponse({ data: { admin } }));
   };
 
   static addValidEmailForRegistration = async (

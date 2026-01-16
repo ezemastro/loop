@@ -1,6 +1,6 @@
 import { dbConnection } from "../services/postgresClient";
 import type { DatabaseClient } from "../types/dbClient";
-import { ERROR_MESSAGES, PAGE_SIZE } from "../config";
+import { ERROR_MESSAGES, GOOGLE_CLIENT_ID, PAGE_SIZE } from "../config";
 import {
   ConflictError,
   InternalServerError,
@@ -23,6 +23,7 @@ import {
   DEFAULT_SORT_OPTION,
 } from "../utils/sortOptions";
 import { safeNumber } from "../utils/safeNumber";
+import { adminGoogleClient } from "../services/googleOauth";
 
 export class AdminModel {
   static async login({ email, password }: { email: string; password: string }) {
@@ -91,6 +92,7 @@ export class AdminModel {
         email,
         fullName,
         hashedPassword,
+        null,
       ]);
       if (!newAdmin[0]) {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
@@ -102,6 +104,89 @@ export class AdminModel {
     } catch (error) {
       await client.rollback();
       throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  static async googleLogin({ credential }: { credential: string }) {
+    // Conectarse a la base de datos
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      const ticket = await adminGoogleClient.verifyIdToken({
+        idToken: credential,
+        audience: GOOGLE_CLIENT_ID,
+      });
+
+      const payload = ticket.getPayload();
+
+      if (!payload) {
+        throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_CREDENTIAL_INVALID);
+      }
+
+      // Obtener información del usuario
+      const googleId = payload.sub;
+      const email = payload.email;
+      const emailVerified = payload.email_verified;
+      const fullName = payload.name;
+
+      // Verificar si el email está verificado
+      if (!emailVerified) {
+        throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_EMAIL_NOT_VERIFIED);
+      }
+
+      // Verificar si el email ya está registrado
+      let adminDb: DB_Admin | undefined;
+      try {
+        [adminDb] = await client.query(queries.adminByEmail, [email]);
+      } catch {
+        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+      }
+      if (!adminDb) {
+        // Registrar nuevo admin
+        // Verificar si el mail de registro está autorizado
+        const isValidEmailDb = await client.query(
+          queries.isValidEmailForAdminRegistration,
+          [email],
+        );
+        if (!isValidEmailDb[0]?.exists) {
+          throw new InvalidInputError(ERROR_MESSAGES.EMAIL_NOT_AUTHORIZED);
+        }
+        // Crear el nuevo administrador
+        await client.begin();
+        let admin;
+        try {
+          const newAdminDb = await client.query(queries.createAdmin, [
+            email,
+            fullName,
+            null,
+            googleId,
+          ]);
+          if (!newAdminDb[0]) {
+            // Posible error si no se devuelve como array
+            throw new Error();
+          }
+          admin = parseAdminFromDb(newAdminDb[0]);
+          await client.commit();
+        } catch {
+          await client.rollback();
+          throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+        }
+        return { admin };
+      } else {
+        // Iniciar sesión admin existente
+        // Verificar que el googleId coincida
+        if (adminDb.google_id !== googleId) {
+          throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_ID_MISMATCH);
+        }
+        const admin = parseAdminFromDb(adminDb);
+        return { admin };
+      }
     } finally {
       client.release();
     }

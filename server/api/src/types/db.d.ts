@@ -145,10 +145,11 @@ interface DB_Pagination {
 
 interface DB_Admin {
   id: UUID;
-  username: string;
+  email: string;
   full_name: string;
-  password: string;
+  password: string | null;
   created_at: ISODateString;
+  google_id: string | null;
 }
 
 interface DB_GlobalStats {

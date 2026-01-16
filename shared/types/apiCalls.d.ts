@@ -421,6 +421,15 @@ interface PostAdminLoginRequest {
 type PostAdminLoginResponse = ApiResponse<{
   admin: Admin;
 }>;
+// POST /admin/google-login
+interface PostAdminGoogleLoginRequest {
+  body: {
+    credential: string;
+  };
+}
+type PostAdminGoogleLoginResponse = ApiResponse<{
+  admin: Admin;
+}>;
 
 // POST /admin/register
 interface PostAdminRegisterRequest {
