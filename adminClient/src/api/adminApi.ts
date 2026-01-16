@@ -18,6 +18,20 @@ export const adminApi = {
   },
 
   /**
+   * Iniciar sesión con Google OAuth
+   * @param credential - Token JWT que devuelve Google Sign-In
+   */
+  googleLogin: async (credential: string) => {
+    const response = await api.post<PostAdminGoogleLoginResponse>(
+      "/admin/google-login",
+      {
+        credential,
+      },
+    );
+    return response.data;
+  },
+
+  /**
    * Registrar un nuevo administrador
    */
   register: async (email: string, fullName: string, password: string) => {

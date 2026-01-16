@@ -1,3 +1,4 @@
+import GoogleLoginButton from "@/components/GoogleLoginButton";
 import Layout from "@/components/Layout";
 import { useSessionStore } from "@/stores/session";
 import { useEffect } from "react";
@@ -31,6 +32,9 @@ export default function Home() {
           >
             Registrarse
           </Link>
+        </div>
+        <div className="p-4">
+          <GoogleLoginButton />
         </div>
       </div>
     </Layout>
