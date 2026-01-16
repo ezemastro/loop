@@ -10,6 +10,7 @@ import Users from "@/pages/Users";
 import Categories from "@/pages/Categories";
 import Missions from "@/pages/Missions";
 import Notifications from "@/pages/Notifications";
+import AuthorizeAdmin from "@/pages/AuthorizeAdmin";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -20,6 +21,7 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/categories" element={<Categories />} />
         <Route path="/missions" element={<Missions />} />
         <Route path="/notifications" element={<Notifications />} />
+        <Route path="/authorize-admin" element={<AuthorizeAdmin />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/*" element={<Home />} />
