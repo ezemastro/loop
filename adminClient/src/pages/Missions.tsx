@@ -24,7 +24,7 @@ export default function Missions() {
       setError(null);
       const response = await adminApi.getMissionTemplates();
       if (response.success && response.data) {
-        setMissions(response.data.missions);
+        setMissions(response.data.missionTemplates);
       }
     } catch (err) {
       if (err instanceof AxiosError) {
