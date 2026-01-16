@@ -1,6 +1,6 @@
 import z from "zod";
 
-const emailSchema = z.email("Formato de email inválido");
+export const emailSchema = z.email("Formato de email inválido");
 const passwordSchema = z
   .string()
   .min(6, "Contraseña debe tener al menos 6 caracteres")
