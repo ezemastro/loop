@@ -217,10 +217,8 @@ export const adminApi = {
    * Obtener todas las mission templates
    */
   getMissionTemplates: async () => {
-    const response = await api.get<{
-      success: boolean;
-      data: { missions: MissionTemplate[] };
-    }>("/admin/missions");
+    const response =
+      await api.get<GetAdminMissionTemplatesResponse>("/admin/missions");
     return response.data;
   },
 
