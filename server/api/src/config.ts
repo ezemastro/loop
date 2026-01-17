@@ -18,7 +18,9 @@ export const {
   ADMIN_TOKEN_EXP = 30 * 60, // 30 minutos
   UPLOAD_DIR = "/uploads",
   BASE_URL = "http://localhost:3000",
-  GOOGLE_CLIENT_ID,
+  ADMIN_GOOGLE_CLIENT_ID,
+  ANDROID_GOOGLE_CLIENT_ID,
+  IOS_GOOGLE_CLIENT_ID,
 } = process.env;
 export const INITIAL_CREDITS = 0;
 

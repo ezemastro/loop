@@ -1,6 +1,6 @@
 import { dbConnection } from "../services/postgresClient";
 import type { DatabaseClient } from "../types/dbClient";
-import { ERROR_MESSAGES, GOOGLE_CLIENT_ID, PAGE_SIZE } from "../config";
+import { ERROR_MESSAGES, ADMIN_GOOGLE_CLIENT_ID, PAGE_SIZE } from "../config";
 import {
   ConflictError,
   InternalServerError,
@@ -120,7 +120,7 @@ export class AdminModel {
     try {
       const ticket = await adminGoogleClient.verifyIdToken({
         idToken: credential,
-        audience: GOOGLE_CLIENT_ID,
+        audience: ADMIN_GOOGLE_CLIENT_ID,
       });
 
       const payload = ticket.getPayload();

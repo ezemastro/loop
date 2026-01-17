@@ -7,7 +7,6 @@ export const adminRouter = Router();
 // Admin session (sin autenticación)
 adminRouter.post("/login", AdminController.login);
 adminRouter.post("/register", AdminController.register);
-// TODO: Implementar el controlador AdminController.googleLogin
 adminRouter.post("/google-login", AdminController.googleLogin);
 // Agregar nuevo email autorizado para registro de admin
 adminRouter.post(
