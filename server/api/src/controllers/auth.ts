@@ -85,7 +85,8 @@ export class AuthController {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
 
-    const { credential, platform, schoolIds } = req.body;
+    const { credential, platform, schoolIds } =
+      req.body as PostAuthGoogleLoginRequest["body"];
 
     if (!credential) {
       return next(

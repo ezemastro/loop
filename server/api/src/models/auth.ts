@@ -219,7 +219,7 @@ export class AuthModel {
   }: {
     credential: string;
     platform: "android" | "ios";
-    schoolIds: UUID[];
+    schoolIds?: UUID[];
   }) => {
     // Conectarse a la base de datos
     let client: DatabaseClient;
@@ -296,6 +296,12 @@ export class AuthModel {
         await client.begin();
 
         try {
+          // Si no envió schoolIds, error pidiendo que las envíe
+          if (!schoolIds || schoolIds.length === 0) {
+            throw new InvalidInputError(
+              ERROR_MESSAGES.SCHOOL_IDS_REQUIRED_FOR_GOOGLE_SIGNUP,
+            );
+          }
           // Validar escuelas
           const schoolsDb = await Promise.all(
             schoolIds.map(async (schoolId: UUID) => {

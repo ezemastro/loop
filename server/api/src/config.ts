@@ -72,6 +72,8 @@ export const ERROR_MESSAGES = {
   GOOGLE_ID_MISMATCH: "El ID de Google no coincide",
   INCORRECT_LOGIN_METHOD:
     "El método de inicio de sesión es incorrecto para este usuario",
+  // Incluir palabra signup para saber que se trata de un usuario nuevo
+  SCHOOL_IDS_REQUIRED_FOR_GOOGLE_SIGNUP: "signup requiere schoolIds",
 };
 
 export const cookieOptions: CookieOptions = {
