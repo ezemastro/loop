@@ -9,6 +9,7 @@ import {
   ConflictError,
   InternalServerError,
   InvalidInputError,
+  StepRequired,
 } from "../services/errors.js";
 import { comparePasswords, hashPassword } from "../services/hash.js";
 import { dbConnection } from "../services/postgresClient.js";
@@ -298,7 +299,7 @@ export class AuthModel {
         try {
           // Si no envió schoolIds, error pidiendo que las envíe
           if (!schoolIds || schoolIds.length === 0) {
-            throw new InvalidInputError(
+            throw new StepRequired(
               ERROR_MESSAGES.SCHOOL_IDS_REQUIRED_FOR_GOOGLE_SIGNUP,
             );
           }

@@ -25,3 +25,10 @@ export class UnauthorizedError extends Error {
     this.name = "UnauthorizedError";
   }
 }
+
+export class StepRequired extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "StepRequired";
+  }
+}
