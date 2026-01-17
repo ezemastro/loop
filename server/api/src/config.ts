@@ -70,6 +70,8 @@ export const ERROR_MESSAGES = {
   GOOGLE_CREDENTIAL_INVALID: "El credential de Google es inválido",
   GOOGLE_EMAIL_NOT_VERIFIED: "El email de Google no está verificado",
   GOOGLE_ID_MISMATCH: "El ID de Google no coincide",
+  INCORRECT_LOGIN_METHOD:
+    "El método de inicio de sesión es incorrecto para este usuario",
 };
 
 export const cookieOptions: CookieOptions = {

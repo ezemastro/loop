@@ -398,6 +398,15 @@ const adminRegisterSchema = z.object({
 export const validateAdminRegister = (data: unknown) =>
   adminRegisterSchema.parseAsync(data);
 
+// Validación para Google Login de usuarios
+const userGoogleLoginSchema = z.object({
+  credential: z.string().min(1),
+  platform: z.enum(["android", "ios"]),
+  schoolIds: z.array(z.string().uuid()).min(1),
+});
+export const validateUserGoogleLogin = (data: unknown) =>
+  userGoogleLoginSchema.parseAsync(data);
+
 const createMissionTemplateSchema = z.object({
   key: z.string().min(1).max(100),
   title: z.string().min(1).max(200),

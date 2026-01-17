@@ -34,6 +34,23 @@ export const queries = {
        RETURNING id`,
   ),
 
+  createUserWithGoogle: q<DB_Users>(
+    "user.createWithGoogle",
+    `INSERT INTO users (email, first_name, last_name, password, google_id)
+       VALUES ($1, $2, $3, NULL, $4)
+       RETURNING *`,
+  ),
+
+  updateUserGoogleId: q<void>(
+    "user.updateGoogleId",
+    `UPDATE users SET google_id = $1 WHERE id = $2`,
+  ),
+
+  userByGoogleId: q<DB_Users>(
+    "user.byGoogleId",
+    `SELECT * FROM users WHERE google_id = $1`,
+  ),
+
   updateUserPassword: q<void>(
     "user.updatePassword",
     `UPDATE users SET password = $2 WHERE id = $1`,

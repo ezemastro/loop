@@ -11,7 +11,7 @@ CREATE TABLE "schools"(
 );
 CREATE TABLE "users"(
     "id" UUID default gen_random_uuid() primary key,
-    "password" TEXT not null,
+    "password" TEXT,
     "first_name" TEXT NOT NULL,
     "last_name" TEXT NOT NULL,
     "email" TEXT not NULL,
@@ -24,7 +24,8 @@ CREATE TABLE "users"(
     "notification_token" TEXT,
     "stat_kg_waste" FLOAT(53) default 0 NOT NULL,
     "stat_kg_co2" FLOAT(53) default 0 NOT NULL,
-    "stat_l_h2o" FLOAT(53) default 0 NOT NULL
+    "stat_l_h2o" FLOAT(53) default 0 NOT NULL,
+    "google_id" TEXT UNIQUE
 );
 CREATE TABLE "user_schools"(
     "id" UUID default gen_random_uuid() primary key,
@@ -201,4 +202,8 @@ ALTER TABLE
     media ADD CONSTRAINT "media_uploaded_by_foreign" FOREIGN KEY("uploaded_by") REFERENCES "users"("id");
 ALTER TABLE
     schools ADD CONSTRAINT "school_media_id_foreign" FOREIGN KEY("media_id") REFERENCES "media"("id");
+
+-- Índices para búsquedas rápidas con Google OAuth
+CREATE INDEX idx_users_google_id ON "users"("google_id");
+CREATE INDEX idx_admins_google_id ON "admins"("google_id");
 

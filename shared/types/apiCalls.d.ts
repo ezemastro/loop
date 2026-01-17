@@ -61,6 +61,18 @@ type PostAuthLoginResponse = ApiResponse<{
   user: PrivateUser;
 }>;
 
+// POST /auth/google-login
+interface PostAuthGoogleLoginRequest {
+  body: {
+    credential: string;
+    platform: "android" | "ios";
+    schoolIds: UUID[];
+  };
+}
+type PostAuthGoogleLoginResponse = ApiResponse<{
+  user: PrivateUser;
+}>;
+
 // GET /me
 type GetSelfRequest = AuthApiRequest;
 type GetSelfResponse = ApiResponse<{

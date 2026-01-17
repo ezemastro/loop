@@ -24,7 +24,7 @@ interface DB_Schools {
 interface DB_Users {
   id: UUID;
   email: string;
-  password: string;
+  password: string | null;
   first_name: string;
   last_name: string;
   phone: string | null;
@@ -37,6 +37,7 @@ interface DB_Users {
   stat_kg_waste: DbNumber | null;
   stat_kg_co2: DbNumber | null;
   stat_l_h2o: DbNumber | null;
+  google_id: string | null;
 }
 interface DB_UserSchools {
   id: UUID;

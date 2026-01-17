@@ -42,14 +42,16 @@ interface UserBase {
   credits: { balance: number; locked: number };
   stats: Stats;
   notificationToken: string | null;
+  googleId: string | null;
+  password: string | null;
 }
 interface User extends UserBase {
   profileMedia: Media | null;
   schools: School[];
 }
 
-type PublicUser = Omit<User, "phone" | "credits" | "notificationToken">;
-type PrivateUser = Omit<User, "notificationToken">;
+type PrivateUser = Omit<User, "notificationToken" | "password" | "googleId">;
+type PublicUser = Omit<PrivateUser, "phone" | "credits">;
 
 interface CategoryBase {
   id: UUID;

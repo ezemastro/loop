@@ -89,6 +89,8 @@ export const parseUserBaseFromDb = (row: DB_Users): UserBase => {
       lH2o: row.stat_l_h2o ? Number(row.stat_l_h2o) : null,
     },
     notificationToken: row.notification_token,
+    googleId: row.google_id,
+    password: row.password,
   };
 };
 export const parsePrivateUserFromBase = ({
@@ -96,7 +98,7 @@ export const parsePrivateUserFromBase = ({
   profileMedia,
   schools,
 }: {
-  user: UserBase;
+  user: Omit<UserBase, "password" | "googleId">;
   profileMedia: Media | null;
   schools: School[];
 }): PrivateUser => {
@@ -119,7 +121,7 @@ export const parsePublicUserFromBase = ({
   profileMedia,
   schools,
 }: {
-  user: UserBase;
+  user: Omit<UserBase, "password" | "googleId">;
   profileMedia: Media | null;
   schools: School[];
 }): PublicUser => {

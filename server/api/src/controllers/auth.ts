@@ -1,5 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
-import { validateLogin, validateRegister } from "../services/validations.js";
+import {
+  validateLogin,
+  validateRegister,
+  validateUserGoogleLogin,
+} from "../services/validations.js";
 import { InvalidInputError } from "../services/errors.js";
 import { generateToken } from "../services/jwt.js";
 import { COOKIE_NAMES, cookieOptions, ERROR_MESSAGES } from "../config.js";
@@ -56,6 +60,50 @@ export class AuthController {
     } catch (err) {
       return next(err);
     }
+    // Agregar las cookies de sesión
+    let token: string;
+    try {
+      token = generateToken({ userId: user.id });
+    } catch (err) {
+      return next(err);
+    }
+    res.cookie(COOKIE_NAMES.TOKEN, token, cookieOptions);
+
+    // Devolver la respuesta
+    return res.status(200).json(successResponse({ data: { user } }));
+  };
+
+  static googleLogin = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    // Validar los datos de la solicitud
+    try {
+      await validateUserGoogleLogin(req.body);
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+
+    const { credential, platform, schoolIds } = req.body;
+
+    if (!credential) {
+      return next(
+        new InvalidInputError(ERROR_MESSAGES.GOOGLE_CREDENTIAL_INVALID),
+      );
+    }
+
+    let user: PrivateUser;
+    try {
+      ({ user } = await AuthModel.googleLogin({
+        credential,
+        platform,
+        schoolIds,
+      }));
+    } catch (error) {
+      return next(error);
+    }
+
     // Agregar las cookies de sesión
     let token: string;
     try {
