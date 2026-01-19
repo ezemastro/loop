@@ -4,6 +4,7 @@ import {
   VALID_EMAIL_DOMAINS,
   ANDROID_GOOGLE_CLIENT_ID,
   IOS_GOOGLE_CLIENT_ID,
+  WEB_GOOGLE_CLIENT_ID,
 } from "../config.js";
 import {
   ConflictError,
@@ -25,8 +26,7 @@ import {
   parsePrivateUserFromBase,
 } from "../utils/parseDb.js";
 import {
-  androidGoogleClient,
-  iosGoogleClient,
+  webGoogleClient,
 } from "../services/googleOauth.js";
 
 export class AuthModel {
@@ -215,11 +215,9 @@ export class AuthModel {
 
   static googleLogin = async ({
     credential,
-    platform,
     schoolIds,
   }: {
     credential: string;
-    platform: "android" | "ios";
     schoolIds?: UUID[];
   }) => {
     // Conectarse a la base de datos
@@ -231,18 +229,10 @@ export class AuthModel {
     }
 
     try {
-      // Seleccionar el cliente OAuth según la plataforma
-      const googleClient =
-        platform === "android" ? androidGoogleClient : iosGoogleClient;
-      const clientId =
-        platform === "android"
-          ? ANDROID_GOOGLE_CLIENT_ID
-          : IOS_GOOGLE_CLIENT_ID;
-
       // Verificar el token de Google
-      const ticket = await googleClient.verifyIdToken({
+      const ticket = await webGoogleClient.verifyIdToken({
         idToken: credential,
-        audience: clientId,
+        audience: WEB_GOOGLE_CLIENT_ID,
       });
 
       const payload = ticket.getPayload();

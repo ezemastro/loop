@@ -21,6 +21,7 @@ export const {
   ADMIN_GOOGLE_CLIENT_ID,
   ANDROID_GOOGLE_CLIENT_ID,
   IOS_GOOGLE_CLIENT_ID,
+  WEB_GOOGLE_CLIENT_ID,
 } = process.env;
 export const INITIAL_CREDITS = 0;
 

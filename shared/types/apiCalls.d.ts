@@ -65,8 +65,7 @@ type PostAuthLoginResponse = ApiResponse<{
 interface PostAuthGoogleLoginRequest {
   body: {
     credential: string;
-    platform: "android" | "ios";
-    schoolIds: UUID[];
+    schoolIds?: UUID[];
   };
 }
 type PostAuthGoogleLoginResponse = ApiResponse<{
@@ -143,7 +142,7 @@ interface PostSelfNotificationTokenRequest extends AuthApiRequest {
     notificationToken: string;
   };
 }
-type PostSelfNotificationTokenResponse = ApiResponse;
+type PostSelfNotificationTokenResponse = ApiResponse<undefined>;
 // POST /me/wishes
 interface PostSelfWishRequest extends AuthApiRequest {
   body: {

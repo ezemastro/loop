@@ -401,7 +401,6 @@ export const validateAdminRegister = (data: unknown) =>
 // Validación para Google Login de usuarios
 const userGoogleLoginSchema = z.object({
   credential: z.string().min(1),
-  platform: z.enum(["android", "ios"]),
   schoolIds: z.array(z.uuid()).min(1).optional(),
 });
 export const validateUserGoogleLogin = (data: unknown) =>

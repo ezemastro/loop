@@ -85,7 +85,7 @@ export class AuthController {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
 
-    const { credential, platform, schoolIds } =
+    const { credential, schoolIds } =
       req.body as PostAuthGoogleLoginRequest["body"];
 
     if (!credential) {
@@ -98,7 +98,6 @@ export class AuthController {
     try {
       ({ user } = await AuthModel.googleLogin({
         credential,
-        platform,
         schoolIds,
       }));
     } catch (error) {
