@@ -5,8 +5,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useSessionStore } from "@/stores/session";
+import { configureGoogleSignIn } from "@/services/googleOauth";
 
 const queryClient = new QueryClient();
+configureGoogleSignIn();
 
 export default function RootLayout() {
   const { isLoggedIn } = useAuth();

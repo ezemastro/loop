@@ -18,12 +18,17 @@ const fetchRegisterToken = async (
     }
     return response.data.data;
   } catch (err) {
-    console.log(err);
+    console.log("Error en fetchRegisterToken:", err);
     if (err instanceof AxiosError) {
       const errName = parseErrorName({ status: err.response?.status || 500 });
+      const errorMessage =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        err.message ||
+        "Error al registrar token de notificación";
       throw {
         name: errName,
-        message: err.message,
+        message: errorMessage,
       } as ApiError;
     }
     throw err;

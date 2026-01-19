@@ -9,6 +9,7 @@ import Loader from "../Loader";
 import ButtonText from "../bases/ButtonText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AvoidingKeyboard from "../AvoidingKeyboard";
+import { GoogleSignInButton } from "@/components/buttons/GoogleSignInButton";
 
 const TextLabel = ({ children }: { children: string }) => (
   <Text className="color-main-text text-xl">{children}</Text>
@@ -79,9 +80,14 @@ export default function Login() {
           }}
           contentContainerClassName="gap-2 pt-6 pb-16 flex-1 justify-center"
           ListHeaderComponent={
-            <Text className="text-3xl py-4 text-center font-bold color-main-text">
-              Iniciar sesión
-            </Text>
+            <View className="py-6">
+              <Text className="text-3xl p-3 text-center font-bold color-main-text">
+                Iniciar sesión
+              </Text>
+              <Text className="color-main-text/80 text-center">
+                Introduce tus datos o inicia sesión con Google
+              </Text>
+            </View>
           }
           renderItem={({ item }) => (
             <View className="gap-1">
@@ -110,9 +116,13 @@ export default function Login() {
                   </Error>
                 )}
               {isLoginLoading && <Loader />}
-              <CustomButton onPress={handleSubmit} className="mt-6">
+              <CustomButton onPress={handleSubmit}>
                 <ButtonText>Iniciar sesión</ButtonText>
               </CustomButton>
+              <View className="w-full h-0.5 bg-secondary-text/30 my-6" />
+              <View>
+                <GoogleSignInButton />
+              </View>
             </>
           }
         />

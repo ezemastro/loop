@@ -41,9 +41,14 @@ export const NotificationProvider = ({
 
   useEffect(() => {
     registerPushNotification()
-      .then((token) => {
+      .then(async (token) => {
         setExpoPushToken(token);
-        savePushToken({ notificationToken: token });
+        try {
+          await savePushToken({ notificationToken: token });
+        } catch (err) {
+          // TODO - Manejar error al guardar el token
+          console.log("Error saving push token:", err);
+        }
       })
       .catch((error) => setError(error));
 

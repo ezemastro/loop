@@ -2,12 +2,23 @@ import ResourceSelectorModal from "../bases/ResourceSelectorModal";
 import { useSchools } from "@/hooks/useSchools";
 import School from "../cards/School";
 
-type SchoolSelectorModalProps<M extends boolean = false> = {
+type SchoolSelectorModalSingleProps = {
   isVisible: boolean;
-  multiple?: M;
+  multiple?: false;
   onClose: () => void;
-  onSelect: (school: M extends true ? School[] : School) => void;
+  onSelect: (school: School) => void;
 };
+
+type SchoolSelectorModalMultipleProps = {
+  isVisible: boolean;
+  multiple: true;
+  onClose: () => void;
+  onSelect: (schools: School[]) => void;
+};
+
+type SchoolSelectorModalProps =
+  | SchoolSelectorModalSingleProps
+  | SchoolSelectorModalMultipleProps;
 
 export default function SchoolSelectorModal({
   isVisible,
@@ -20,7 +31,7 @@ export default function SchoolSelectorModal({
       multiple={multiple}
       isVisible={isVisible}
       onClose={onClose}
-      onSelect={(schools) => onSelect(schools)}
+      onSelect={(schools: School | School[]) => onSelect(schools as any)}
       title="Seleccione las escuelas"
       useResource={useSchools}
       renderItem={(school, options) => (

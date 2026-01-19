@@ -9,6 +9,7 @@ import { useRegisterForm } from "@/hooks/useRegisterForm";
 import ButtonText from "../bases/ButtonText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AvoidingKeyboard from "../AvoidingKeyboard";
+import { GoogleSignInButton } from "@/components/buttons/GoogleSignInButton";
 
 const TextLabel = ({ children }: { children: string }) => (
   <Text className="color-main-text text-xl">{children}</Text>
@@ -110,8 +111,8 @@ export default function Register() {
       error: errors.schools,
       render: () => (
         <SchoolSelector
-          multiple={true}
-          value={formData.schools}
+          multiple
+          value={formData.schools ?? []}
           onChange={(value) => setFormData({ ...formData, schools: value })}
         />
       ),
@@ -158,10 +159,14 @@ export default function Register() {
                 )}
               <CustomButton
                 onPress={handleSubmit}
-                className={isRegisterError ? "my-3" : "my-6"}
+                className={isRegisterError ? "mt-2" : "mt-6"}
               >
                 <ButtonText>Registrarse</ButtonText>
               </CustomButton>
+              <View className="w-full h-0.5 bg-secondary-text/30 my-6" />
+              <View>
+                <GoogleSignInButton />
+              </View>
             </>
           }
         />

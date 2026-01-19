@@ -16,6 +16,15 @@ export const MAX_LISTING_DESCRIPTION_LENGTH = 150;
 
 export const API_URL = process.env.EXPO_PUBLIC_API_URL;
 export const FILE_BASE_URL = API_URL + "/uploads/";
+console.log("API_URL:", API_URL);
+console.log(".env working: ", process.env.EXPO_PUBLIC_ENV_WORKING);
+
+export const ANDROID_GOOGLE_CLIENT_ID =
+  process.env.EXPO_PUBLIC_ANDROID_GOOGLE_CLIENT_ID;
+export const IOS_GOOGLE_CLIENT_ID =
+  process.env.EXPO_PUBLIC_IOS_GOOGLE_CLIENT_ID;
+export const WEB_GOOGLE_CLIENT_ID =
+  process.env.EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID;
 
 export const VALID_EMAIL_DOMAINS = ["northfield.edu.ar", "gmail.com"];
 

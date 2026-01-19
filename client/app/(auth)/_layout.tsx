@@ -34,6 +34,13 @@ export default function AuthLayout() {
           tabBarIcon: ({ color }) => <AddUserIcon style={{ color }} />,
         }}
       />
+      <Tabs.Screen
+        name="schoolSelection"
+        options={{
+          href: null,
+          headerShown: false,
+        }}
+      />
     </Tabs>
   );
 }
