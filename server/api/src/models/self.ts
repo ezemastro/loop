@@ -95,7 +95,7 @@ export class SelfModel {
     try {
       await client.begin();
       // Obtener usuario
-      let user: UserBase & { password: string };
+      let user: UserBase & { password: string | null };
       try {
         const [userDb] = await client.query(queries.userById, [userId]);
         if (!userDb) {
@@ -106,7 +106,7 @@ export class SelfModel {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
       }
       // Misión - Actualizar foto de perfil
-      if (profileMediaId && profileMediaId !== user.profileMediaId) {
+      if (profileMediaId && profileMediaId !== (user.profileMediaId ?? null)) {
         // TODO - Manejar error si falla la misión
         await progressMission({
           client,
@@ -134,7 +134,7 @@ export class SelfModel {
       password =
         password && (await safeValidatePassword(password))
           ? await hashPassword(password)
-          : user.password;
+          : (user.password ?? undefined);
 
       // Actualizar usuario
       try {
@@ -627,6 +627,9 @@ export class SelfModel {
         throw new UnauthorizedError(ERROR_MESSAGES.USER_NOT_FOUND);
       }
       const currentPasswordHash = userDb.password;
+      if (!currentPasswordHash) {
+        throw new UnauthorizedError(ERROR_MESSAGES.INVALID_CREDENTIALS);
+      }
       // Comparar contraseña antigua
       const isPasswordCorrect = await comparePasswords(
         oldPassword,
