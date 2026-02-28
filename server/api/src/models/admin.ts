@@ -118,14 +118,21 @@ export class AdminModel {
       throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
     }
     try {
-      const ticket = await adminGoogleClient.verifyIdToken({
-        idToken: credential,
-        audience: ADMIN_GOOGLE_CLIENT_ID,
-      });
+      let payload;
+      try {
+        const ticket = await adminGoogleClient.verifyIdToken({
+          idToken: credential,
+          audience: ADMIN_GOOGLE_CLIENT_ID,
+        });
 
-      const payload = ticket.getPayload();
+        payload = ticket.getPayload();
 
-      if (!payload) {
+        if (!payload) {
+          throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_CREDENTIAL_INVALID);
+        }
+      } catch (error) {
+        // Capturar errores de verificación de Google (e.g., audience mismatch)
+        console.error("Error al verificar token de Google:", error);
         throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_CREDENTIAL_INVALID);
       }
 
@@ -180,9 +187,18 @@ export class AdminModel {
         return { admin };
       } else {
         // Iniciar sesión admin existente
-        // Verificar que el googleId coincida
-        if (adminDb.google_id !== googleId) {
-          throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_ID_MISMATCH);
+        // Verificar si el admin no se registró con Google
+        if (!adminDb.google_id) {
+          // Agregar googleId al admin existente
+          await client.query(queries.updateAdminGoogleId, [
+            googleId,
+            adminDb.id,
+          ]);
+        } else {
+          // Verificar que el googleId coincida
+          if (adminDb.google_id !== googleId) {
+            throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_ID_MISMATCH);
+          }
         }
         const admin = parseAdminFromDb(adminDb);
         return { admin };
