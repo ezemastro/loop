@@ -2,6 +2,7 @@ services:
   db:
     image: postgres:16
     container_name: postgres
+    restart: unless-stopped
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     environment:
@@ -14,6 +15,7 @@ services:
   api:
     image: ezemastro/loop:latest
     container_name: api
+    restart: unless-stopped
     ports:
       - "${API_PORT:-3000}:3000"
     environment:
