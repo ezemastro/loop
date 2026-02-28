@@ -234,7 +234,7 @@ export default function ModifyListing({
             }}
             placeholder="Escribe un título para tu publicación"
             className="w-full border-b border-gray-300 p-2 px-3 text-lg bg-secondary-text/10 rounded-t"
-            underlineColorAndroid="#0000"
+            underlineColorAndroid="#fff0"
             placeholderClassName="text-secondary-text"
           />
           <Text className="mt-1 text-right text-sm text-secondary-text">
@@ -263,7 +263,7 @@ export default function ModifyListing({
             placeholder="Escribe una descripción para tu publicación"
             className="w-full border-b border-gray-300 p-2 px-3 text-lg bg-secondary-text/10 rounded-t"
             placeholderClassName="text-secondary-text"
-            underlineColorAndroid="transparent"
+            underlineColorAndroid="#fff0"
             multiline
             numberOfLines={5}
             textAlignVertical="top"
