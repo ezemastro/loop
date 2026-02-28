@@ -24,7 +24,7 @@ export class UsersController {
         userId,
       });
     } catch {
-      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
 
     let users: PublicUser[];
@@ -51,9 +51,9 @@ export class UsersController {
   ) => {
     const { userId } = req.params;
     try {
-      validateId(userId);
+      await validateId(userId);
     } catch {
-      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     let user: PublicUser;
     try {
@@ -69,12 +69,12 @@ export class UsersController {
     const userId = req.session!.userId!;
     const { amount } = req.body;
     try {
-      validateId(toUserId);
+      await validateId(toUserId);
       if (typeof amount !== "number" || amount <= 0) {
         throw new Error();
       }
     } catch {
-      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     try {
       await UsersModel.donate({

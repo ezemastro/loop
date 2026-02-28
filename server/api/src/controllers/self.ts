@@ -37,7 +37,7 @@ export class SelfController {
     try {
       await validateUpdateSelf(req.body);
     } catch {
-      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     const {
       email,

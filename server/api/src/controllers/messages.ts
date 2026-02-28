@@ -23,10 +23,10 @@ export class MessagesController {
       page: safeNumber(req.query.page),
     };
     try {
-      validateId(req.params.userId);
-      validatePaginationParams(parsedQuery);
+      await validateId(req.params.userId);
+      await validatePaginationParams(parsedQuery);
     } catch {
-      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     const { userId } = req.params as GetMessagesByUserIdRequest["params"];
     const { page } = parsedQuery;
@@ -55,7 +55,7 @@ export class MessagesController {
       await validateId(req.params.userId);
       await validatePostMessageRequest(req.body);
     } catch {
-      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     const { userId } = req.params as PostMessageRequest["params"];
     const { text, attachedListingId } = req.body as PostMessageRequest["body"];
@@ -84,7 +84,7 @@ export class MessagesController {
     try {
       await validateId(senderId);
     } catch {
-      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     try {
       await MessagesModel.markMessagesAsRead({

@@ -71,7 +71,7 @@ export class ListingsController {
     try {
       await validatePostListingsRequest(parsedBody);
     } catch {
-      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     const { title, description, price, categoryId, productStatus, mediaIds } =
       parsedBody;
@@ -107,7 +107,7 @@ export class ListingsController {
       await validatePatchListingsRequest(parsedBody);
       await validateId(listingId);
     } catch {
-      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     const { title, description, price, categoryId, productStatus, mediaIds } =
       parsedBody;
@@ -139,7 +139,7 @@ export class ListingsController {
     try {
       await validateId(listingId);
     } catch {
-      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
 
     try {
@@ -161,7 +161,7 @@ export class ListingsController {
     try {
       await validateId(req.params.listingId);
     } catch {
-      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     const { listingId } = req.params as GetListingByIdRequest["params"];
 
@@ -186,7 +186,7 @@ export class ListingsController {
     try {
       await validateId(req.params.listingId);
     } catch {
-      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     const { listingId } = req.params as PostListingOfferRequest["params"];
     const { price } = parsedBody;
@@ -212,7 +212,7 @@ export class ListingsController {
     try {
       await validateId(req.params.listingId);
     } catch {
-      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     const { listingId } = req.params as DeleteListingOfferRequest["params"];
 
@@ -235,7 +235,7 @@ export class ListingsController {
     try {
       await validateId(req.params.listingId);
     } catch {
-      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     const { listingId } = req.params as PostListingOfferRejectRequest["params"];
 
@@ -261,7 +261,7 @@ export class ListingsController {
         await Promise.all(req.body.tradingListingIds.map(validateId));
       }
     } catch {
-      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     const { listingId } = req.params as PostListingOfferAcceptRequest["params"];
     const { tradingListingIds } =
@@ -287,7 +287,7 @@ export class ListingsController {
     try {
       await validateId(req.params.listingId);
     } catch {
-      throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     const { listingId } = req.params as PostListingOfferRequest["params"];
 
