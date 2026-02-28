@@ -31,7 +31,7 @@ yarn-error.*
 *.pem
 
 # local env files
-.env*.local
+# .env*.local
 
 # typescript
 *.tsbuildinfo
@@ -40,4 +40,10 @@ yarn-error.*
 android/
 ios/
 
+# Builds
+*.apk
+*.abd
+
+# Comentar las siguientes lineas para hacer la build
 google-services.json
+.env
