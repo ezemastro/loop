@@ -18,7 +18,7 @@ COPY server/api/package*.json ./
 RUN npm install
 COPY server/api/ ./
 COPY shared/types/*.d.ts ./src/types/
-RUN npm run build:docker
+RUN node node_modules/typescript/bin/tsc -p tsconfig.prod.json
 
 # ===== Producción: solo JS compilado =====
 FROM node:22-alpine AS production
