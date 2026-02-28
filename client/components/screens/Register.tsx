@@ -10,6 +10,7 @@ import ButtonText from "../bases/ButtonText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AvoidingKeyboard from "../AvoidingKeyboard";
 import { GoogleSignInButton } from "@/components/buttons/GoogleSignInButton";
+import { GOOGLE_OAUTH_READY, NODE_ENV } from "@/config";
 
 const TextLabel = ({ children }: { children: string }) => (
   <Text className="color-main-text text-xl">{children}</Text>
@@ -164,9 +165,11 @@ export default function Register() {
                 <ButtonText>Registrarse</ButtonText>
               </CustomButton>
               <View className="w-full h-0.5 bg-secondary-text/30 my-6" />
-              <View>
-                <GoogleSignInButton />
-              </View>
+              {GOOGLE_OAUTH_READY || NODE_ENV !== "production" ? (
+                <View>
+                  <GoogleSignInButton />
+                </View>
+              ) : null}
             </>
           }
         />
