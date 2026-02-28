@@ -19,6 +19,13 @@ export default function AuthLayout() {
       }}
     >
       <Tabs.Screen
+        name="index"
+        options={{
+          href: null,
+          headerShown: false,
+        }}
+      />
+      <Tabs.Screen
         name="login"
         options={{
           title: "Iniciar sesión",
