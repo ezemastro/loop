@@ -4,12 +4,12 @@
     "slug": "LoopApp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/loop.png",
+    "icon": "./assets/app_icon.png",
     "scheme": "loop",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/loop.png",
+      "image": "./assets/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#F0F0F0"
     },
@@ -22,7 +22,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/loop.png",
+        "foregroundImage": "./assets/app_icon.png",
         "backgroundColor": "#F0F0F0"
       },
       "edgeToEdgeEnabled": true,
@@ -36,7 +36,7 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/loop.png"
+      "favicon": "./assets/icon.png"
     },
     "plugins": [
       "expo-notifications",
