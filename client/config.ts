@@ -25,6 +25,8 @@ export const IOS_GOOGLE_CLIENT_ID =
   process.env.EXPO_PUBLIC_IOS_GOOGLE_CLIENT_ID;
 export const WEB_GOOGLE_CLIENT_ID =
   process.env.EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID;
+export const GOOGLE_OAUTH_READY = process.env.GOOGLE_OAUTH_READY !== "false";
+export const NODE_ENV = process.env.NODE_ENV;
 
 export const VALID_EMAIL_DOMAINS = ["northfield.edu.ar", "gmail.com"];
 

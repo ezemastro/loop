@@ -7,7 +7,12 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "environment": "development"
+      "environment": "development",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://192.168.1.2:3000",
+        "EXPO_PUBLIC_IOS_GOOGLE_CLIENT_ID": "549427422418-kk1fbkl6ijtr497trt84lkhs119nk36r.apps.googleusercontent.com",
+        "EXPO_PUBLIC_ANDROID_GOOGLE_CLIENT_ID": "549427422418-hci5jnor2pmb7rl53cu21g1gfuicffr7.apps.googleusercontent.com"
+      }
     },
     "preview": {
       "distribution": "internal",
@@ -15,7 +20,11 @@
     },
     "production": {
       "autoIncrement": true,
-      "environment": "production"
+      "environment": "production",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://loopreditinere.duckdns.org",
+        "EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID": "549427422418-7tc4fs8c4426uvvnhn62f3pgbp9b54ge.apps.googleusercontent.com"
+      }
     }
   },
   "submit": {
