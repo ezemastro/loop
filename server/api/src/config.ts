@@ -95,7 +95,13 @@ export const COOKIE_NAMES = {
 };
 export const PAGE_SIZE = 10;
 
-export const VALID_EMAIL_DOMAINS = ["northfield.edu.ar", "gmail.com"];
+// TODO - Terminar de agregar dominios válidos
+export const VALID_EMAIL_DOMAINS = [
+  "northfield.edu.ar",
+  "gmail.com",
+  "reditinere.com",
+  "colegiodelfaro.edu.ar",
+];
 
 export const NOTIFICATION_TEXTS = {
   MISSION_NOTIFICATION: {
