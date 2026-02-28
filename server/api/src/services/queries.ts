@@ -582,4 +582,8 @@ export const queries = {
       END
     WHERE stat_name IN ('total_kg_waste', 'total_kg_co2', 'total_l_h2o')`,
   ),
+  updateAdminGoogleId: q<void>(
+    "admin.updateGoogleId",
+    `UPDATE admins SET google_id = $1 WHERE id = $2`,
+  ),
 } as const;
