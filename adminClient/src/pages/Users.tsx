@@ -26,6 +26,7 @@ export default function Users() {
         page,
         search: search || undefined,
       });
+      console.log(response);
 
       if (response.success && response.data) {
         setUsers(response.data.users);
