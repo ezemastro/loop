@@ -9,6 +9,10 @@ module.exports = defineConfig([
   {
     ignores: ["dist/*"],
     rules: {
+      "import/namespace": "off",
+      "import/no-deprecated": "off",
+      "import/no-named-as-default": "off",
+      "import/no-unused-modules": "off",
       "prettier/prettier": [
         "error",
         {
