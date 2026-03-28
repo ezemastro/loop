@@ -44,7 +44,8 @@ export default function DebugPage() {
           source={{
             uri: FILE_BASE_URL + "test.png",
           }}
-          className="size-24 bg-red-300"
+          className="bg-red-300"
+          style={{ width: 96, height: 96 }}
           onError={(err) =>
             setErrors((prev) => [...prev, JSON.stringify(err.nativeEvent)])
           }

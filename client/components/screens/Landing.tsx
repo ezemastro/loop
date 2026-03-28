@@ -3,6 +3,7 @@ import CustomButton from "@/components/bases/CustomButton";
 import { GoogleSignInButton } from "@/components/buttons/GoogleSignInButton";
 import { useRouter } from "expo-router";
 import { View, Text, Image, ScrollView } from "react-native";
+
 export default function Landing() {
   const router = useRouter();
   return (
@@ -10,13 +11,15 @@ export default function Landing() {
       <View className="py-16 px-6 flex-1 h-screen-safe">
         <Image
           source={require("../../assets/reditinere_logo.png")}
-          className="w-40 h-32 mx-auto"
-          style={{ resizeMode: "contain" }}
+          className="mx-auto"
+          style={{ width: 160, height: 128 }}
+          resizeMode="contain"
         />
         <Image
           source={require("../../assets/full_logo.png")}
-          className="w-80 h-36 mx-auto"
-          style={{ resizeMode: "contain" }}
+          className="mx-auto"
+          style={{ width: 320, height: 144 }}
+          resizeMode="contain"
         />
         <Text className="text-center text-main-text font-bold text-xl mt-4 w-80 mx-auto">
           Una app donde podrás darle una segunda vida a tus útiles usados.
@@ -26,11 +29,11 @@ export default function Landing() {
           mundo más sostenible mientras encuentras tesoros ocultos en la
           comunidad!
         </Text>
-        <Text className="text-main-text w-96 mx-auto text-center my-2 mt-auto">
+        <Text className="text-main-text w-96 mx-auto text-center my-2 pt-2 mt-auto">
           Accede con un solo clic usando tu cuenta de Google
         </Text>
         <GoogleSignInButton />
-        <Text className="text-main-text w-96 mx-auto text-center my-2 mt-auto">
+        <Text className="text-main-text w-96 mx-auto text-center my-2 mt-4">
           ¿Primera vez aquí? ¡Regístrate ahora!
         </Text>
         <CustomButton onPress={() => router.push("/register")}>

@@ -108,7 +108,8 @@ export default function Chat() {
         <View className="flex-row items-center gap-4 px-4 pb-2">
           <Image
             source={{ uri: getUrl(user?.profileMedia?.url ?? "") }}
-            className="size-20 rounded-full bg-secondary-text"
+            className="rounded-full bg-secondary-text"
+            style={{ width: 80, height: 80 }}
           />
           <View>
             <Text className="text-2xl text-main-text">
@@ -120,7 +121,8 @@ export default function Chat() {
                   <Image
                     key={school.id}
                     source={{ uri: getUrl(school.media.url) }}
-                    className="size-6 mb-1"
+                    className="mb-1"
+                    style={{ width: 24, height: 24 }}
                   />
                 ))}
               </View>
