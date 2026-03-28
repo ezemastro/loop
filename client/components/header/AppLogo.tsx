@@ -5,8 +5,9 @@ export default function AppLogo() {
     <View className="flex-row items-center gap-2">
       <Image
         source={require("../../assets/icon.png")}
-        className="size-8 bg-white rounded-full object-contain"
-        style={{ resizeMode: "contain" }}
+        className="bg-white rounded-full"
+        style={{ width: 32, height: 32 }}
+        resizeMode="contain"
       />
       <Text className="text-white font-semibold tracking-wider text-xl">
         Loop

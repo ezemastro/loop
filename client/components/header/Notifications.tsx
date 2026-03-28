@@ -8,7 +8,7 @@ export default function Notifications() {
   const unreadCount = data?.unreadNotificationsCount || 0;
   return (
     <View className="">
-      <NotificationIcon size={28} className="text-white" />
+      <NotificationIcon size={28} color="white" className="text-white" />
       {unreadCount > 0 && <PendingCount count={unreadCount} />}
     </View>
   );
