@@ -20,7 +20,8 @@ export default function UserBadge({
     >
       <Image
         source={{ uri: getUrl(user.profileMedia?.url || "") }}
-        className={twMerge(`size-6 rounded-full bg-background`, imageClassName)}
+        className={twMerge(`rounded-full bg-background`, imageClassName)}
+        style={{ width: 24, height: 24 }}
       />
       <Text className={twMerge(`text-secondary-text text-sm`, textClassName)}>
         {user.firstName} {user.lastName}
