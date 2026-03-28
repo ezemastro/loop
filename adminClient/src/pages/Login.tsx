@@ -6,6 +6,7 @@ import adminApi from "@/api/adminApi";
 import { AxiosError } from "axios";
 import { useSessionStore } from "@/stores/session";
 import { useNavigate } from "react-router";
+import GoogleLoginButton from "@/components/GoogleLoginButton";
 
 interface FormErrors {
   email?: string;
@@ -58,43 +59,52 @@ export default function Login() {
     <Layout>
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
         <h1 className="text-3xl font-bold mb-6">Inicio de Sesión</h1>
-        <form onSubmit={handleLogin}>
-          <div className="mb-4">
-            <label htmlFor="email">Email:</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              className="border border-gray-300 rounded px-3 py-2 w-full"
-              required
-            />
-            {formErrors?.email && (
-              <div className="text-red-500 text-sm">{formErrors.email}</div>
+        <div className="gap-4 flex flex-col">
+          <form onSubmit={handleLogin}>
+            <div className="mb-4">
+              <label htmlFor="email">Email:</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                className="border border-gray-300 rounded px-3 py-2 w-full"
+                required
+              />
+              {formErrors?.email && (
+                <div className="text-red-500 text-sm">{formErrors.email}</div>
+              )}
+            </div>
+            <div className="mb-4">
+              <label htmlFor="password">Contraseña:</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                className="border border-gray-300 rounded px-3 py-2 w-full"
+                required
+              />
+              {formErrors?.password && (
+                <div className="text-red-500 text-sm">
+                  {formErrors.password}
+                </div>
+              )}
+            </div>
+            <button
+              type="submit"
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full"
+            >
+              Iniciar Sesión
+            </button>
+            {formErrors?.error && (
+              <div className="text-red-500 text-sm mt-3">
+                {formErrors.error}
+              </div>
             )}
-          </div>
-          <div className="mb-4">
-            <label htmlFor="password">Contraseña:</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              className="border border-gray-300 rounded px-3 py-2 w-full"
-              required
-            />
-            {formErrors?.password && (
-              <div className="text-red-500 text-sm">{formErrors.password}</div>
-            )}
-          </div>
-          <button
-            type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          >
-            Iniciar Sesión
-          </button>
-          {formErrors?.error && (
-            <div className="text-red-500 text-sm mt-3">{formErrors.error}</div>
-          )}
-        </form>
+          </form>
+          <div className="w-full h-0.5 bg-gray-300"></div>
+          {/* Continuar con Google */}
+          <GoogleLoginButton onError={(err) => console.log(err)} />
+        </div>
       </div>
     </Layout>
   );
