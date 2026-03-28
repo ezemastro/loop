@@ -1,35 +1,52 @@
-import { useHideOnKeyboard } from "@/hooks/useHideOnKeyboard";
-import { Keyboard, KeyboardAvoidingView, Platform, View } from "react-native";
-import { twMerge } from "tailwind-merge";
+import { KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import { useHeaderHeight } from "@react-navigation/elements";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function AvoidingKeyboard({
   children,
-  className,
 }: {
   children: React.ReactNode;
-  className?: string;
 }) {
-  const keyboardHeight = Keyboard.metrics()?.height;
-  const { visible } = useHideOnKeyboard();
-  if (Platform.OS === "ios") {
+  const headerHeight = useHeaderHeight();
+  const insets = useSafeAreaInsets();
+
+  // Para la web, un ScrollView simple es suficiente ya que el navegador maneja el teclado.
+  if (Platform.OS === "web") {
     return (
-      <KeyboardAvoidingView
-        behavior="padding"
-        className={twMerge("flex-1", className)}
-        keyboardVerticalOffset={170}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingBottom: insets.bottom,
+          paddingLeft: insets.left,
+          paddingRight: insets.right,
+        }}
+        keyboardShouldPersistTaps="handled"
       >
         {children}
-      </KeyboardAvoidingView>
+      </ScrollView>
     );
   }
+
+  // Para iOS y Android, usamos KeyboardAvoidingView.
   return (
-    <View
-      className={twMerge("flex-1", className)}
-      style={{
-        paddingBottom: !visible ? (keyboardHeight || 0) + 10 : 0,
-      }}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={headerHeight}
     >
-      {children}
-    </View>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingBottom: insets.bottom,
+          paddingLeft: insets.left,
+          paddingRight: insets.right,
+        }}
+        keyboardShouldPersistTaps="handled"
+      >
+        {children}
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

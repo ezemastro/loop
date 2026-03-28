@@ -15,7 +15,7 @@ export default function AskButton({ userId }: { userId: string }) {
         });
       }}
     >
-      <MessageIcon className="text-white" />
+      <MessageIcon color="#fff" />
       <ButtonText className="font-light">Preguntar</ButtonText>
     </CustomButton>
   );

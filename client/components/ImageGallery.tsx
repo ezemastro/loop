@@ -36,8 +36,9 @@ export default function ImageGallery({ images }: { images: Media[] }) {
           <View>
             <Image
               source={{ uri: getUrl(item.url) }}
-              className="h-full w-full rounded"
-              style={{ resizeMode: "contain" }}
+              className="rounded"
+              style={{ width: "100%", height: 240 }}
+              resizeMode="contain"
             />
           </View>
         )}

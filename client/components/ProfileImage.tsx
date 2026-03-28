@@ -96,7 +96,8 @@ export default function ProfileImage({
         {hasImage ? (
           <Image
             source={{ uri: getUrl(user.profileMedia!.url) }}
-            className="size-32 rounded-full"
+            className="rounded-full"
+            style={{ width: 128, height: 128 }}
           />
         ) : (
           <View className="size-32 items-center justify-center rounded-full bg-stroke">
