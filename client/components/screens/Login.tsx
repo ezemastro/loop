@@ -32,7 +32,7 @@ export default function Login() {
     errors,
     handleSubmit,
     isLoginError,
-    loginError,
+    loginErrorMessage,
     isLoginLoading,
   } = useLoginForm();
   const fields: Field[] = [
@@ -103,19 +103,11 @@ export default function Login() {
           )}
           ListFooterComponent={
             <>
-              {!isLoginLoading &&
-                loginError?.name === ERROR_NAMES.INVALID_INPUT && (
-                  <Error textClassName="text-alert">
-                    Correo electrónico o contraseña incorrectos
-                  </Error>
-                )}
-              {isLoginError &&
-                !isLoginLoading &&
-                loginError?.name === ERROR_NAMES.INTERNAL_SERVER && (
-                  <Error textClassName="text-alert">
-                    Ocurrió un error al iniciar sesión
-                  </Error>
-                )}
+              {isLoginError && !isLoginLoading && !!loginErrorMessage && (
+                <Error textClassName="text-alert" className="my-2">
+                  {loginErrorMessage}
+                </Error>
+              )}
               {isLoginLoading && <Loader />}
               <CustomButton onPress={handleSubmit}>
                 <ButtonText>Iniciar sesión</ButtonText>
