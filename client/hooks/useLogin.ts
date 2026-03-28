@@ -18,7 +18,7 @@ const fetchLogin = async (body: PostAuthLoginRequest["body"]) => {
       const errName = parseErrorName({ status: err.response?.status || 500 });
       throw {
         name: errName,
-        message: err.message,
+        message: err.response?.data.error,
       } as ApiError;
     }
     throw err;
@@ -31,7 +31,7 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: fetchLogin,
     onSuccess: (result) => {
-      login(result!.user);
+      login(result!.user, result!.token);
     },
   });
 };
