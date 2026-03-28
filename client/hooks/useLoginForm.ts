@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useLogin } from "./useLogin";
 import { validateLoginForm } from "@/services/validations";
+import { ERROR_NAMES } from "@/services/errors";
+import { ERROR_MESSAGES } from "react-native-reanimated/lib/typescript/common";
 
 interface FormData {
   email: string;
@@ -10,10 +12,11 @@ type FormErrors = Record<keyof FormData, boolean>;
 
 export const useLoginForm = () => {
   const {
-    mutate: login,
+    mutateAsync: login,
     isError: isLoginError,
     error: loginError,
     isPending: isLoginLoading,
+    data: loginData,
   } = useLogin();
   const [formData, setFormData] = useState<FormData>({
     email: "",
@@ -43,13 +46,19 @@ export const useLoginForm = () => {
       password: formData.password,
     });
   };
+  console.log(loginData);
+  const loginErrorMessage =
+    loginError?.message === "Credenciales inválidas"
+      ? "Correo electrónico o contraseña incorrectos"
+      : loginError?.message;
   return {
     formData,
     setFormData,
     errors,
     handleSubmit,
     isLoginError,
-    loginError,
+    loginErrorMessage,
     isLoginLoading,
+    loginData,
   };
 };

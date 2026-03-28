@@ -33,7 +33,7 @@ export const useRegister = () => {
   return useMutation({
     mutationFn: fetchRegister,
     onSuccess: (result) => {
-      login(result!.user);
+      login(result!.user, result!.token);
     },
   });
 };

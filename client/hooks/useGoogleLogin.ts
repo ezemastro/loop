@@ -39,7 +39,7 @@ export const useGoogleLogin = () => {
   return useMutation({
     mutationFn: fetchGoogleLogin,
     onSuccess: (result) => {
-      login(result!.user);
+      login(result!.user, result!.token);
     },
   });
 };
