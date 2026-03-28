@@ -28,8 +28,8 @@ export default function Listing({
       <View>
         <Image
           source={{ uri: getUrl(listing.media[0].url) }}
-          className="h-28 w-24"
-          style={{ objectFit: "contain" }}
+          style={{ width: 96, height: 112 }}
+          resizeMode="contain"
         />
       </View>
       <View className="flex-1 gap-2">
@@ -46,8 +46,9 @@ export default function Listing({
               <Image
                 key={school.id}
                 source={{ uri: getUrl(school.media.url) }}
-                className="h-6 w-6 rounded-full border border-stroke"
-                style={{ objectFit: "contain" }}
+                className="rounded-full border border-stroke"
+                style={{ width: 24, height: 24 }}
+                resizeMode="contain"
               />
             ))}
           </View>

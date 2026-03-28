@@ -13,7 +13,8 @@ export default function User({
     <View className={twMerge("p-2 flex-row bg-white rounded", className)}>
       <Image
         source={{ uri: getUrl(user.profileMedia?.url ?? "") }}
-        className="size-16 rounded-full bg-background"
+        className="rounded-full bg-background"
+        style={{ width: 64, height: 64 }}
       />
       <View className="flex-1 justify-center items-center">
         <Text className="text-xl text-main-text">
@@ -24,7 +25,8 @@ export default function User({
             <Image
               key={s.id}
               source={{ uri: getUrl(s.media.url) }}
-              className="size-8 rounded-full bg-background mx-1"
+              className="rounded-full bg-background mx-1"
+              style={{ width: 32, height: 32 }}
             />
           ))}
         </View>

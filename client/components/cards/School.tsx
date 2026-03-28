@@ -22,8 +22,8 @@ export default function School({
       <View>
         <Image
           source={{ uri: getUrl(school.media.url) }}
-          className="size-16"
-          style={{ resizeMode: "contain" }}
+          style={{ width: 64, height: 64 }}
+          resizeMode="contain"
         />
       </View>
       <View className="flex-1 justify-center items-center">
