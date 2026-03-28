@@ -24,7 +24,8 @@ export default function ChatCard({ chat }: { chat: UserMessage }) {
     >
       <Image
         source={{ uri: getUrl(chat.user.profileMedia?.url || "") }}
-        className="size-16 bg-background rounded-full"
+        className="bg-background rounded-full"
+        style={{ width: 64, height: 64 }}
       />
       <View>
         <View className="flex-row items-center gap-2">
@@ -41,7 +42,8 @@ export default function ChatCard({ chat }: { chat: UserMessage }) {
               <Image
                 key={s.id}
                 source={{ uri: getUrl(s.media.url) }}
-                className="size-6 rounded-full bg-background mx-0.5"
+                className="rounded-full bg-background mx-0.5"
+                style={{ width: 24, height: 24 }}
               />
             ))}
           </View>
