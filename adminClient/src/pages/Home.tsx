@@ -18,7 +18,7 @@ export default function Home() {
     <Layout>
       {/* Login and register buttons */}
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-        <h1 className="text-3xl font-bold mb-6">Loop Admin Client</h1>
+        <h1 className="text-3xl font-bold mb-6">Administración de Loop</h1>
         <div className="space-x-4">
           <Link
             to="/login"
@@ -28,7 +28,7 @@ export default function Home() {
           </Link>
           <Link
             to="/register"
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-600"
           >
             Registrarse
           </Link>
