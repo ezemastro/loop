@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   TouchableOpacity,
   Text,
@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   View,
   Alert,
+  Platform,
 } from "react-native";
 import {
   GoogleSignin,
@@ -29,10 +30,25 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
 }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const isMountedRef = useRef(true);
   const googleLoginMutation = useGoogleLogin();
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const handleGoogleSignIn = async () => {
     try {
+      if (Platform.OS === "web") {
+        const webError =
+          "Google Sign-In nativo no esta disponible en web en esta configuracion.";
+        onError?.(webError);
+        Alert.alert("No disponible", webError);
+        return;
+      }
+
       setIsLoading(true);
 
       // Verificar disponibilidad de Google Play Services (Android)
@@ -114,7 +130,9 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
       onError?.(errorMessage);
       Alert.alert("Error", errorMessage);
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 
