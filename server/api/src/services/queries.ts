@@ -53,7 +53,7 @@ export const queries = {
 
   updateUserPassword: q<void>(
     "user.updatePassword",
-    `UPDATE users SET password = $2 WHERE id = $1`,
+    `UPDATE users SET password = $1 WHERE id = $2`,
   ),
 
   schoolById: q<DB_Schools>(

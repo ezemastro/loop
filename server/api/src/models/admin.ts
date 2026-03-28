@@ -15,9 +15,14 @@ import {
   parseNotificationBaseFromDb,
   parseMediaFromDb,
   parseMissionTemplateFromDb,
+  parsePrivateUserFromBase,
 } from "../utils/parseDb";
 import { comparePasswords, hashPassword } from "../services/hash";
-import { assignMissionToAllUsers } from "../utils/helpersDb";
+import {
+  assignMissionToAllUsers,
+  getMediaById,
+  getUserSchools,
+} from "../utils/helpersDb";
 import {
   DEFAULT_ORDER_OPTION,
   DEFAULT_SORT_OPTION,
@@ -247,9 +252,20 @@ export class AdminModel {
         [search, null, null, PAGE_SIZE, offset],
       );
 
-      const users = usersDb.map((row) => {
-        return parseUserBaseFromDb(row as DB_Users);
-      });
+      const users = await Promise.all(
+        usersDb.map(async (row) => {
+          return parsePrivateUserFromBase({
+            user: parseUserBaseFromDb(row),
+            schools: await getUserSchools({ client, userId: row.id }),
+            profileMedia: row.profile_media_id
+              ? await getMediaById({
+                  client,
+                  mediaId: row.profile_media_id,
+                })
+              : null,
+          });
+        }),
+      );
       const total = safeNumber(usersDb[0]?.total_records);
 
       return { users, total };

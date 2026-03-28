@@ -1,5 +1,5 @@
 import express from "express";
-import { NODE_ENV, PORT } from "./config.js";
+import { FRONTEND_URL, NODE_ENV, PORT } from "./config.js";
 import cookieParser from "cookie-parser";
 import { tokenMiddleware } from "./middlewares/parseToken.js";
 import { authRouter } from "./routes/auth.js";
@@ -24,8 +24,13 @@ app.use(cookieParser());
 app.use(
   cors({
     credentials: true,
-    origin: ["http://localhost:5173"],
-    allowedHeaders: ["Content-Type"],
+    origin:
+      NODE_ENV === "development"
+        ? ["http://localhost:5173", "http://localhost:8081"]
+        : FRONTEND_URL
+          ? [FRONTEND_URL]
+          : [],
+    allowedHeaders: ["Content-Type", "Authorization"],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   }),
 );

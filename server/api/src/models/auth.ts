@@ -2,8 +2,6 @@ import {
   ERROR_MESSAGES,
   INITIAL_CREDITS,
   VALID_EMAIL_DOMAINS,
-  ANDROID_GOOGLE_CLIENT_ID,
-  IOS_GOOGLE_CLIENT_ID,
   WEB_GOOGLE_CLIENT_ID,
 } from "../config.js";
 import {
@@ -25,9 +23,7 @@ import {
   parseSchoolFromBase,
   parsePrivateUserFromBase,
 } from "../utils/parseDb.js";
-import {
-  webGoogleClient,
-} from "../services/googleOauth.js";
+import { webGoogleClient } from "../services/googleOauth.js";
 
 export class AuthModel {
   static registerUser = async ({
@@ -164,6 +160,7 @@ export class AuthModel {
         userDb.password,
       );
       if (!isPasswordCorrect) {
+        console.log(password);
         throw new InvalidInputError(ERROR_MESSAGES.INVALID_CREDENTIALS);
       }
       // Obtener información adicional del perfil

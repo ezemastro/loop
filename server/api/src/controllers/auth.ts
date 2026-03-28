@@ -4,7 +4,7 @@ import {
   validateRegister,
   validateUserGoogleLogin,
 } from "../services/validations.js";
-import { InvalidInputError } from "../services/errors.js";
+import { InternalServerError, InvalidInputError } from "../services/errors.js";
 import { generateToken } from "../services/jwt.js";
 import { COOKIE_NAMES, cookieOptions, ERROR_MESSAGES } from "../config.js";
 import { successResponse } from "../utils/responses.js";
@@ -36,13 +36,15 @@ export class AuthController {
     let token: string;
     try {
       token = generateToken({ userId: user.id });
-    } catch (err) {
-      return next(err);
+    } catch {
+      return next(
+        new InternalServerError(ERROR_MESSAGES.TOKEN_GENERATION_FAILED),
+      );
     }
     res.cookie(COOKIE_NAMES.TOKEN, token, cookieOptions);
 
     // Devolver la respuesta
-    return res.status(201).json(successResponse({ data: { user } }));
+    return res.status(201).json(successResponse({ data: { user, token } }));
   };
 
   static login = async (req: Request, res: Response, next: NextFunction) => {
@@ -64,13 +66,15 @@ export class AuthController {
     let token: string;
     try {
       token = generateToken({ userId: user.id });
-    } catch (err) {
-      return next(err);
+    } catch {
+      return next(
+        new InternalServerError(ERROR_MESSAGES.TOKEN_GENERATION_FAILED),
+      );
     }
     res.cookie(COOKIE_NAMES.TOKEN, token, cookieOptions);
 
     // Devolver la respuesta
-    return res.status(200).json(successResponse({ data: { user } }));
+    return res.status(200).json(successResponse({ data: { user, token } }));
   };
 
   static googleLogin = async (
@@ -114,6 +118,6 @@ export class AuthController {
     res.cookie(COOKIE_NAMES.TOKEN, token, cookieOptions);
 
     // Devolver la respuesta
-    return res.status(200).json(successResponse({ data: { user } }));
+    return res.status(200).json(successResponse({ data: { user, token } }));
   };
 }

@@ -8,6 +8,7 @@ if (process.env.NODE_ENV !== "production") {
 }
 export const {
   NODE_ENV,
+  FRONTEND_URL,
   POSTGRES_USER: DB_USER,
   POSTGRES_DB: DB_NAME,
   POSTGRES_PASSWORD: DB_PASSWORD,
@@ -75,6 +76,7 @@ export const ERROR_MESSAGES = {
     "El método de inicio de sesión es incorrecto para este usuario",
   // Incluir palabra signup para saber que se trata de un usuario nuevo
   SCHOOL_IDS_REQUIRED_FOR_GOOGLE_SIGNUP: "signup requiere schoolIds",
+  TOKEN_GENERATION_FAILED: "Error al generar el token de autenticación",
 };
 
 export const cookieOptions: CookieOptions = {

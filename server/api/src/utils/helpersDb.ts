@@ -718,3 +718,31 @@ export const assignMissionToAllUsers = async ({
     ]);
   }
 };
+
+export const getUserSchools = async ({
+  client,
+  userId,
+}: {
+  client: DatabaseClient;
+  userId: UUID;
+}): Promise<School[]> => {
+  const userSchoolsDb = await client.query(queries.userSchoolsByUserId, [
+    userId,
+  ]);
+  if (userSchoolsDb.length === 0) return [];
+  const schools = await Promise.all(
+    userSchoolsDb.map(async (us: { school_id: UUID }) => {
+      const schoolDb = await client.query(queries.schoolById, [us.school_id]);
+      if (!schoolDb[0]) {
+        throw new InternalServerError(ERROR_MESSAGES.SCHOOL_NOT_FOUND);
+      }
+      const schoolBase = parseSchoolFromDb(schoolDb[0]);
+      const schoolMedia = await getMediaById({
+        client,
+        mediaId: schoolBase.mediaId,
+      });
+      return parseSchoolFromBase({ school: schoolBase, media: schoolMedia });
+    }),
+  );
+  return schools;
+};
