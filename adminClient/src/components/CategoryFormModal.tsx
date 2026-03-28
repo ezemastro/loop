@@ -8,6 +8,7 @@ interface CategoryFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  parentCategoryId?: string;
 }
 
 export default function CategoryFormModal({
@@ -16,6 +17,7 @@ export default function CategoryFormModal({
   isOpen,
   onClose,
   onSuccess,
+  parentCategoryId,
 }: CategoryFormModalProps) {
   const [formData, setFormData] = useState({
     name: "",
@@ -48,7 +50,7 @@ export default function CategoryFormModal({
       setFormData({
         name: "",
         description: "",
-        parentId: "",
+        parentId: parentCategoryId || "",
         icon: "",
         minPriceCredits: "",
         maxPriceCredits: "",
@@ -57,7 +59,7 @@ export default function CategoryFormModal({
         statLH2o: "",
       });
     }
-  }, [category]);
+  }, [category, parentCategoryId]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -125,6 +127,23 @@ export default function CategoryFormModal({
     onClose();
   };
 
+  // Aplanar todas las categorías y subcategorías con información de nivel
+  const flattenCategories = (
+    cats: Category[],
+  ): Array<Category & { level: number }> => {
+    const result: Array<Category & { level: number }> = [];
+    const flatten = (cat: Category, level: number = 0) => {
+      result.push({ ...cat, level });
+      if (cat.children && cat.children.length > 0) {
+        cat.children.forEach((child) => flatten(child, level + 1));
+      }
+    };
+    cats.forEach((cat) => flatten(cat, 0));
+    return result;
+  };
+
+  const allCategories = flattenCategories(categories);
+
   if (!isOpen) return null;
 
   return (
@@ -182,10 +201,12 @@ export default function CategoryFormModal({
                 className="border border-gray-300 rounded px-3 py-2 w-full"
               >
                 <option value="">Ninguna</option>
-                {categories
+                {allCategories
                   .filter((c) => c.id !== category?.id)
                   .map((c) => (
                     <option key={c.id} value={c.id}>
+                      {"\u00A0\u00A0".repeat(c.level)}
+                      {c.level > 0 ? "└ " : ""}
                       {c.name}
                     </option>
                   ))}
