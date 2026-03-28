@@ -11,6 +11,9 @@ export default function Categories() {
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [parentCategoryId, setParentCategoryId] = useState<
+    string | undefined
+  >();
 
   useEffect(() => {
     loadCategories();
@@ -38,12 +41,20 @@ export default function Categories() {
 
   const handleEdit = (category: Category) => {
     setEditingCategory(category);
+    setParentCategoryId(undefined);
+    setShowModal(true);
+  };
+
+  const handleAddSubcategory = (parentCategory: Category) => {
+    setEditingCategory(null);
+    setParentCategoryId(parentCategory.id);
     setShowModal(true);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingCategory(null);
+    setParentCategoryId(undefined);
   };
 
   return (
@@ -54,6 +65,7 @@ export default function Categories() {
           <button
             onClick={() => {
               setEditingCategory(null);
+              setParentCategoryId(undefined);
               setShowModal(true);
             }}
             className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition"
@@ -72,6 +84,7 @@ export default function Categories() {
           categories={categories}
           loading={loading}
           onEdit={handleEdit}
+          onAddSubcategory={handleAddSubcategory}
         />
 
         <CategoryFormModal
@@ -80,6 +93,7 @@ export default function Categories() {
           isOpen={showModal}
           onClose={handleCloseModal}
           onSuccess={loadCategories}
+          parentCategoryId={parentCategoryId}
         />
       </div>
     </Layout>
