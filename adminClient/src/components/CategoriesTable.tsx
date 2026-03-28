@@ -4,12 +4,14 @@ interface CategoriesTableProps {
   categories: Category[];
   loading: boolean;
   onEdit: (category: Category) => void;
+  onAddSubcategory: (parentCategory: Category) => void;
 }
 
 export default function CategoriesTable({
   categories,
   loading,
   onEdit,
+  onAddSubcategory,
 }: CategoriesTableProps) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
@@ -73,12 +75,21 @@ export default function CategoriesTable({
             : ""}
         </td>
         <td className="px-4 py-3">
-          <button
-            onClick={() => onEdit(category)}
-            className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm"
-          >
-            Editar
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onEdit(category)}
+              className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm"
+            >
+              Editar
+            </button>
+            <button
+              onClick={() => onAddSubcategory(category)}
+              className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-sm font-bold"
+              title="Agregar subcategoría"
+            >
+              +
+            </button>
+          </div>
         </td>
       </tr>,
     );
