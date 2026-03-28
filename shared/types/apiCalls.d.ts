@@ -48,6 +48,7 @@ interface PostAuthRegisterRequest {
 }
 type PostAuthRegisterResponse = ApiResponse<{
   user: PrivateUser;
+  token: string;
 }>;
 
 // POST /auth/login
@@ -59,6 +60,7 @@ interface PostAuthLoginRequest {
 }
 type PostAuthLoginResponse = ApiResponse<{
   user: PrivateUser;
+  token: string;
 }>;
 
 // POST /auth/google-login
@@ -70,6 +72,7 @@ interface PostAuthGoogleLoginRequest {
 }
 type PostAuthGoogleLoginResponse = ApiResponse<{
   user: PrivateUser;
+  token: string;
 }>;
 
 // GET /me
