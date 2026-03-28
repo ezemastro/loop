@@ -110,7 +110,9 @@ export default function ImagesSelector({
           autoPlayInterval={3000}
           enabled={selectedImages.length > 0}
           renderItem={({ item, index }) => (
-            <View className="h-full w-full px-4">
+            <View
+              style={{ height: "100%", width: "100%", paddingHorizontal: 16 }}
+            >
               {allowAddMore && index === selectedImages.length ? (
                 <Pressable
                   className="h-full w-full items-center justify-center rounded bg-secondary-text/20"
@@ -132,8 +134,9 @@ export default function ImagesSelector({
                             ? getUrl(item.url)
                             : "",
                     }}
-                    className="h-full w-full rounded"
-                    style={{ resizeMode: "contain" }}
+                    className="rounded"
+                    style={{ width: "100%", height: "100%" }}
+                    resizeMode="contain"
                   />
                   <Pressable
                     className="absolute top-4 right-6"
