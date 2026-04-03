@@ -1,6 +1,6 @@
 import { useListing } from "@/hooks/useListing";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { View, FlatList, Pressable, Text } from "react-native";
+import { FlatList, Pressable, Text, View } from "react-native";
 import ImageGallery from "../ImageGallery";
 import AskButton from "../AskButton";
 import CategoryBadge from "../CategoryBadge";
@@ -18,6 +18,7 @@ import { MainView } from "../bases/MainView";
 import CustomRefresh from "../CustomRefresh";
 import ListingStatusInfo from "../ListingStatusInfo";
 import Stats from "../Stats";
+import ReportButton from "../ReportButton";
 
 export default function Listing() {
   const router = useRouter();
@@ -29,6 +30,7 @@ export default function Listing() {
   const handleMutation = () => {
     refetch();
   };
+
   const { user } = useAuth();
   const isOwner = listing?.seller.id === user?.id;
 
@@ -39,19 +41,28 @@ export default function Listing() {
           component: () => (
             <View className="flex-row justify-between items-center p-4">
               <BackButton />
-              {isOwner ? (
-                listing.listingStatus === "published" && (
-                  <View className="flex-row gap-2">
-                    <DeleteListingButton
-                      listingId={listing.id}
-                      onDelete={() => router.back()}
-                    />
-                    <EditListingButton listingId={listing.id} />
-                  </View>
-                )
-              ) : (
-                <AskButton userId={listing.seller.id} />
-              )}
+              <View className="flex-row gap-2 items-center">
+                {isOwner ? (
+                  listing.listingStatus === "published" && (
+                    <View className="flex-row gap-2">
+                      <DeleteListingButton
+                        listingId={listing.id}
+                        onDelete={() => router.back()}
+                      />
+                      <EditListingButton listingId={listing.id} />
+                    </View>
+                  )
+                ) : (
+                  <>
+                    <AskButton userId={listing.seller.id} />
+                  </>
+                )}
+                <ReportButton
+                  listing={listing}
+                  className="px-3 py-2 rounded-full"
+                  label="Denunciar"
+                />
+              </View>
             </View>
           ),
         },
