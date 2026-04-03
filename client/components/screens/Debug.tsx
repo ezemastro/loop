@@ -46,9 +46,10 @@ export default function DebugPage() {
           }}
           className="bg-red-300"
           style={{ width: 96, height: 96 }}
-          onError={(err) =>
-            setErrors((prev) => [...prev, JSON.stringify(err.nativeEvent)])
-          }
+          onError={(err) => {
+            const nativeEvent = err.nativeEvent;
+            setErrors((prev) => [...prev, JSON.stringify(nativeEvent)]);
+          }}
         />
         <Text>User: {user ? JSON.stringify(user) : "No user logged in"}</Text>
         <Text>Debug Fetch Result: {debugFetchResult}</Text>
