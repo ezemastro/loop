@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import * as Notification from "expo-notifications";
 import { registerPushNotification } from "@/services/registerPushNotifications";
 import { useRegisterPushToken } from "@/hooks/useRegisterToken";
+import { useSessionStore } from "@/stores/session";
 
 export const useNotification = () => {
   const context = useContext(NotificationContext);
@@ -28,6 +29,8 @@ export const NotificationProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
+  const authToken = useSessionStore((state) => state.authToken);
+  const isLoggedIn = useSessionStore((state) => !!state.user);
   const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
   const [notification, setNotification] =
     useState<Notification.Notification | null>(null);
@@ -40,6 +43,10 @@ export const NotificationProvider = ({
   const responseListener = useRef<Notification.EventSubscription | null>(null);
 
   useEffect(() => {
+    if (!isLoggedIn || !authToken) {
+      return;
+    }
+
     registerPushNotification()
       .then(async (token) => {
         setExpoPushToken(token);
@@ -70,7 +77,7 @@ export const NotificationProvider = ({
         responseListener.current.remove();
       }
     };
-  }, [savePushToken]);
+  }, [savePushToken, isLoggedIn, authToken]);
   return (
     <NotificationContext.Provider
       value={{
