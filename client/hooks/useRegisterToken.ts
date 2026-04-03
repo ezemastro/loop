@@ -13,7 +13,11 @@ const fetchRegisterToken = async (
       body,
     );
 
-    if (!response.data.success) {
+    if (response.status === 204) {
+      return undefined;
+    }
+
+    if (response.data && !response.data.success) {
       throw new Error(response.data.error || "Error desconocido");
     }
     return response.data.data;
