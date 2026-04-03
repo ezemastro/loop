@@ -1,0 +1,53 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const supportEmail = import.meta.env.PUBLIC_SUPPORT_EMAIL ?? 'soporte@loop.app';
+const supportMailTo = `mailto:${supportEmail}?subject=${encodeURIComponent('Consulta sobre privacidad de Loop')}&body=${encodeURIComponent('Hola equipo de soporte,')}`;
+---
+
+<Layout
+  title="Política de privacidad | Loop"
+  description="Resumen del tratamiento de datos y privacidad de Loop."
+>
+  <main class="mx-auto w-full max-w-5xl px-6 py-12 lg:px-8 lg:py-16">
+    <div class="flex flex-wrap gap-3">
+      <a href="/" class="text-sm font-semibold text-[color:var(--app-primary)]">Volver al inicio</a>
+      <a href={supportMailTo} class="rounded-full border border-[color:var(--app-stroke)] bg-white px-4 py-2 text-sm font-semibold text-[color:var(--app-text)] shadow-sm transition hover:-translate-y-0.5">Contacto por mail</a>
+    </div>
+
+    <header class="mt-6 max-w-3xl space-y-4">
+      <div class="inline-flex rounded-full bg-[color:var(--app-primary)]/12 px-4 py-1 text-xs font-semibold text-[color:var(--app-primary)]">Privacidad y datos</div>
+      <h1 class="text-4xl font-semibold tracking-tight text-[color:var(--app-text)] md:text-5xl">Política de privacidad</h1>
+      <p class="text-lg leading-8 text-[color:var(--app-muted)]">
+        LOOP recopila solo la información necesaria para operar el intercambio circular, moderar la comunidad y dar soporte a las familias.
+      </p>
+    </header>
+
+    <section class="mt-10 grid gap-4 md:grid-cols-2">
+      <article class="rounded-[1.75rem] border border-[color:var(--app-stroke)] bg-white p-6 shadow-sm">
+        <h2 class="text-xl font-semibold text-[color:var(--app-text)]">Información que recopilamos</h2>
+        <p class="mt-3 text-[color:var(--app-muted)]">Datos de perfil, colegio, publicaciones, chats y datos técnicos mínimos para que la app funcione.</p>
+      </article>
+
+      <article class="rounded-[1.75rem] border border-[color:var(--app-stroke)] bg-white p-6 shadow-sm">
+        <h2 class="text-xl font-semibold text-[color:var(--app-text)]">Uso de la información</h2>
+        <p class="mt-3 text-[color:var(--app-muted)]">Operación del servicio, soporte, prevención de fraude, moderación y mejora de la experiencia de intercambio.</p>
+      </article>
+
+      <article class="rounded-[1.75rem] border border-[color:var(--app-stroke)] bg-white p-6 shadow-sm">
+        <h2 class="text-xl font-semibold text-[color:var(--app-text)]">Conservación y seguridad</h2>
+        <p class="mt-3 text-[color:var(--app-muted)]">Aplicamos medidas razonables para proteger los datos y conservarlos solo el tiempo necesario para prestar el servicio.</p>
+      </article>
+
+      <article class="rounded-[1.75rem] border border-[color:var(--app-stroke)] bg-white p-6 shadow-sm">
+        <h2 class="text-xl font-semibold text-[color:var(--app-text)]">Derechos del usuario</h2>
+        <p class="mt-3 text-[color:var(--app-muted)]">Puedes pedir acceso, rectificación o eliminación. El borrado de cuenta está disponible en su propia ruta.</p>
+      </article>
+    </section>
+
+    <section class="mt-4 rounded-[1.75rem] border border-[color:var(--app-stroke)] bg-white p-6 shadow-sm">
+      <h2 class="text-xl font-semibold text-[color:var(--app-text)]">Contacto</h2>
+      <p class="mt-3 text-[color:var(--app-muted)]">Para consultas de privacidad, soporte o solicitudes vinculadas a la cuenta, usa el canal oficial de LOOP.</p>
+    </section>
+  </main>
+</Layout>

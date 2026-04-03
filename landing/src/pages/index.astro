@@ -1,0 +1,257 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const appStoreUrl = import.meta.env.PUBLIC_APP_STORE_URL ?? 'https://apps.apple.com/';
+const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL ?? 'https://play.google.com/store';
+const supportEmail = import.meta.env.PUBLIC_SUPPORT_EMAIL ?? 'soporte@loop.app';
+const supportMailTo = `mailto:${supportEmail}?subject=${encodeURIComponent('Consulta sobre Loop')}&body=${encodeURIComponent('Hola equipo de soporte,')}`;
+
+const categories = [
+	{ title: 'Deportivo', items: 'Zapatillas, botines, canilleras', accent: 'bg-[color:var(--app-primary)]/12 text-[color:var(--app-primary)]' },
+	{ title: 'Utiles escolares', items: 'Cartucheras, mochilas, compases', accent: 'bg-[color:var(--app-secondary)]/12 text-[color:var(--app-secondary)]' },
+	{ title: 'Libros', items: 'Lecturas, manuales, apoyo', accent: 'bg-[color:var(--app-tertiary)]/12 text-[color:var(--app-tertiary)]' },
+	{ title: 'Uniformes', items: 'Pantalones, buzos, chombas', accent: 'bg-slate-600/10 text-slate-700' },
+	{ title: 'Electrónica', items: 'Tablets, notebooks, calculadoras', accent: 'bg-violet-600/12 text-violet-700' },
+	{ title: 'Otros', items: 'Botellas, viandas, paraguas', accent: 'bg-amber-600/12 text-amber-700' },
+];
+
+const impactRows = [
+	['Productos nuevos', 'Menos consumo', 'Menos residuos'],
+	['Familias', 'Ahorro económico', 'Más comunidad'],
+	['Ambiente', 'Huella de carbono', 'Huella hídrica'],
+];
+---
+
+<Layout
+	title="Loop | Intercambio circular de materiales escolares"
+	description="Landing oficial de Loop, plataforma de intercambio circular para familias de la Red Itinere."
+>
+	<main class="relative overflow-hidden">
+		<div class="pointer-events-none absolute inset-0 -z-10 opacity-80">
+			<div class="absolute left-[-8rem] top-[-8rem] h-72 w-72 rounded-full bg-[color:var(--app-primary)]/20 blur-3xl"></div>
+			<div class="absolute right-[-6rem] top-[10rem] h-72 w-72 rounded-full bg-[color:var(--app-tertiary)]/15 blur-3xl"></div>
+			<div class="absolute bottom-[-6rem] left-[20%] h-80 w-80 rounded-full bg-[color:var(--app-secondary)]/15 blur-3xl"></div>
+		</div>
+
+		<header class="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-6 lg:px-8">
+			<a href="/" class="inline-flex items-center gap-3">
+				<span class="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)] ring-1 ring-[color:var(--app-stroke)]">
+					<span class="text-lg font-bold text-[color:var(--app-primary)]">L</span>
+				</span>
+				<span class="flex flex-col leading-tight">
+					<span class="text-lg font-semibold tracking-tight text-[color:var(--app-text)]">Loop</span>
+					<span class="text-xs text-[color:var(--app-muted)]">Intercambio circular</span>
+				</span>
+			</a>
+			<nav class="hidden items-center gap-3 text-sm md:flex">
+				<a href={supportMailTo} class="rounded-full border border-[color:var(--app-stroke)] bg-white px-4 py-2 text-[color:var(--app-text)] shadow-sm transition hover:-translate-y-0.5">Contacto</a>
+				<a href="/politica-privacidad" class="rounded-full border border-[color:var(--app-stroke)] bg-white px-4 py-2 text-[color:var(--app-text)] shadow-sm transition hover:-translate-y-0.5">Privacidad</a>
+				<a href="/borrar-cuenta" class="rounded-full border border-[color:var(--app-alert)]/25 bg-white px-4 py-2 text-[color:var(--app-alert)] shadow-sm transition hover:-translate-y-0.5">Borrar cuenta</a>
+			</nav>
+		</header>
+
+		<section class="mx-auto grid w-full max-w-7xl gap-10 px-6 pb-12 pt-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8 lg:pt-12">
+			<div class="space-y-8">
+				<div class="inline-flex items-center gap-2 rounded-full border border-[color:var(--app-stroke)] bg-white px-4 py-2 text-xs font-medium text-[color:var(--app-muted)] shadow-sm">
+					<span class="h-2 w-2 rounded-full bg-[color:var(--app-primary)]"></span>
+					Disponible en App Store y Google Play
+				</div>
+
+				<div class="space-y-4">
+					<h1 class="max-w-2xl text-5xl font-semibold leading-[1.02] tracking-tight text-[color:var(--app-text)] md:text-6xl">
+						Intercambio circular de materiales escolares para la comunidad Itinere.
+					</h1>
+					<p class="max-w-2xl text-lg leading-8 text-[color:var(--app-muted)] md:text-xl">
+						LOOP conecta familias para ofrecer, buscar y loopear productos escolares con una lógica simple: menos consumo, menos residuos y más comunidad.
+					</p>
+				</div>
+
+				<div class="flex flex-wrap gap-3">
+					<a href={appStoreUrl} target="_blank" rel="noopener noreferrer" class="rounded-2xl bg-[color:var(--app-primary)] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(255,89,0,0.22)] transition hover:-translate-y-0.5">Descargar en App Store</a>
+					<a href={playStoreUrl} target="_blank" rel="noopener noreferrer" class="rounded-2xl bg-[color:var(--app-secondary)] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(76,159,56,0.18)] transition hover:-translate-y-0.5">Descargar en Google Play</a>
+					<a href={supportMailTo} class="rounded-2xl border border-[color:var(--app-stroke)] bg-white px-6 py-3.5 text-sm font-semibold text-[color:var(--app-text)] shadow-sm transition hover:-translate-y-0.5">Contacto por mail</a>
+					<a href="/borrar-cuenta" class="rounded-2xl border border-[color:var(--app-alert)]/25 bg-white px-6 py-3.5 text-sm font-semibold text-[color:var(--app-alert)] shadow-sm transition hover:-translate-y-0.5">Borrado de cuenta</a>
+				</div>
+
+				<div class="grid gap-4 sm:grid-cols-3">
+					<div class="rounded-3xl border border-[color:var(--app-stroke)] bg-white p-5 shadow-sm">
+						<p class="text-sm text-[color:var(--app-muted)]">Unidad de cambio</p>
+						<p class="mt-2 text-2xl font-semibold text-[color:var(--app-primary)]">LOOPIS</p>
+					</div>
+					<div class="rounded-3xl border border-[color:var(--app-stroke)] bg-white p-5 shadow-sm">
+						<p class="text-sm text-[color:var(--app-muted)]">Estado del producto</p>
+						<p class="mt-2 text-2xl font-semibold text-[color:var(--app-secondary)]">Usado / nuevo</p>
+					</div>
+					<div class="rounded-3xl border border-[color:var(--app-stroke)] bg-white p-5 shadow-sm">
+						<p class="text-sm text-[color:var(--app-muted)]">Canje guiado</p>
+						<p class="mt-2 text-2xl font-semibold text-[color:var(--app-tertiary)]">Chat + Match</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="relative">
+				<div class="absolute -left-4 top-8 h-24 w-24 rounded-full bg-[color:var(--app-primary)]/10 blur-2xl"></div>
+				<div class="absolute -right-8 bottom-8 h-28 w-28 rounded-full bg-[color:var(--app-secondary)]/10 blur-2xl"></div>
+				<div class="relative overflow-hidden rounded-[2rem] border border-[color:var(--app-stroke)] bg-white p-4 shadow-[0_20px_50px_rgba(0,0,0,0.08)]">
+					<div class="rounded-[1.6rem] bg-[linear-gradient(180deg,rgba(255,89,0,0.12),rgba(0,158,124,0.08))] p-4">
+						<div class="flex items-center justify-between">
+							<div>
+								<p class="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--app-muted)]">Banner de la app</p>
+								<p class="mt-1 text-lg font-semibold text-[color:var(--app-text)]">Espacio para imagen principal</p>
+							</div>
+							<div class="rounded-2xl bg-white px-3 py-2 text-xs font-semibold text-[color:var(--app-primary)] shadow-sm ring-1 ring-[color:var(--app-stroke)]">Loop</div>
+						</div>
+						<div class="mt-4 grid gap-4 lg:grid-cols-[0.94fr_1.06fr]">
+							<div class="rounded-[1.4rem] border border-dashed border-[color:var(--app-stroke)] bg-white p-4">
+								<p class="text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--app-muted)]">Logo</p>
+								<div class="mt-4 flex h-40 items-center justify-center rounded-[1rem] bg-[linear-gradient(135deg,rgba(255,89,0,0.08),rgba(76,159,56,0.08))]">
+									<div class="flex h-20 w-20 items-center justify-center rounded-[1.4rem] bg-white shadow-sm ring-1 ring-[color:var(--app-stroke)]">
+										<span class="text-3xl font-bold text-[color:var(--app-primary)]">L</span>
+									</div>
+								</div>
+							</div>
+							<div class="grid gap-4">
+								<div class="rounded-[1.4rem] border border-dashed border-[color:var(--app-stroke)] bg-white p-4">
+									<p class="text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--app-muted)]">Captura / Banner</p>
+									<div class="mt-4 h-24 rounded-[1rem] bg-[linear-gradient(90deg,rgba(255,89,0,0.16),rgba(0,158,124,0.12),rgba(76,159,56,0.14))]"></div>
+								</div>
+								<div class="grid grid-cols-2 gap-4">
+									<div class="rounded-[1.4rem] border border-dashed border-[color:var(--app-stroke)] bg-white p-4">
+										<p class="text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--app-muted)]">Screenshot</p>
+										<div class="mt-3 h-28 rounded-[1rem] bg-[color:var(--app-background)]"></div>
+									</div>
+									<div class="rounded-[1.4rem] border border-dashed border-[color:var(--app-stroke)] bg-white p-4">
+										<p class="text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--app-muted)]">Screenshot</p>
+										<div class="mt-3 h-28 rounded-[1rem] bg-[color:var(--app-background)]"></div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="mx-auto max-w-7xl px-6 py-8 lg:px-8">
+			<div class="grid gap-4 md:grid-cols-3">
+				<div class="rounded-[1.75rem] border border-[color:var(--app-stroke)] bg-white p-6 shadow-sm">
+					<p class="text-sm font-semibold text-[color:var(--app-primary)]">Cómo funciona</p>
+					<h2 class="mt-3 text-2xl font-semibold text-[color:var(--app-text)]">Loopear reemplaza comprar</h2>
+					<p class="mt-2 text-[color:var(--app-muted)]">Buscás lo que necesitás, abrís chat privado y cerrás el intercambio con evaluación mutua.</p>
+				</div>
+				<div class="rounded-[1.75rem] border border-[color:var(--app-stroke)] bg-white p-6 shadow-sm">
+					<p class="text-sm font-semibold text-[color:var(--app-secondary)]">Categorías</p>
+					<h2 class="mt-3 text-2xl font-semibold text-[color:var(--app-text)]">Productos escolares y más</h2>
+					<p class="mt-2 text-[color:var(--app-muted)]">Uniformes, útiles, libros, deporte, tecnología y otros artículos de uso cotidiano.</p>
+				</div>
+				<div class="rounded-[1.75rem] border border-[color:var(--app-stroke)] bg-white p-6 shadow-sm">
+					<p class="text-sm font-semibold text-[color:var(--app-tertiary)]">Impacto</p>
+					<h2 class="mt-3 text-2xl font-semibold text-[color:var(--app-text)]">Ahorro y comunidad</h2>
+					<p class="mt-2 text-[color:var(--app-muted)]">Menos consumo de nuevo, menos residuos y un circuito solidario con la comunidad educativa.</p>
+				</div>
+			</div>
+		</section>
+
+		<section class="mx-auto max-w-7xl px-6 py-8 lg:px-8">
+			<div class="grid gap-6 lg:grid-cols-[1.08fr_0.92fr]">
+				<div class="rounded-[2rem] border border-[color:var(--app-stroke)] bg-white p-7 shadow-sm">
+					<div class="flex items-center justify-between gap-4">
+						<div>
+							<p class="text-sm font-semibold text-[color:var(--app-primary)]">LOOPIS</p>
+							<h2 class="mt-2 text-3xl font-semibold text-[color:var(--app-text)]">La moneda interna de la app</h2>
+						</div>
+						<div class="rounded-2xl bg-[color:var(--app-background)] px-4 py-3 text-sm font-semibold text-[color:var(--app-muted)] ring-1 ring-[color:var(--app-stroke)]">Valor por producto, estado y huella</div>
+					</div>
+					<div class="mt-6 grid gap-4 sm:grid-cols-2">
+						<div class="rounded-2xl bg-[color:var(--app-background)] p-5">
+							<p class="text-sm text-[color:var(--app-muted)]">Calculadora automática</p>
+							<p class="mt-2 text-lg font-medium text-[color:var(--app-text)]">Tipo de producto + estado + impacto ambiental</p>
+						</div>
+						<div class="rounded-2xl bg-[color:var(--app-background)] p-5">
+							<p class="text-sm text-[color:var(--app-muted)]">Estados de uso</p>
+							<p class="mt-2 text-lg font-medium text-[color:var(--app-text)]">Usado, intermedio o casi nuevo</p>
+						</div>
+					</div>
+					<div class="mt-6 overflow-hidden rounded-3xl border border-[color:var(--app-stroke)]">
+						<div class="grid grid-cols-3 bg-[color:var(--app-background)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--app-muted)]">
+							<span>Producto</span>
+							<span>CO2e</span>
+							<span>Agua</span>
+						</div>
+						<div class="divide-y divide-[color:var(--app-stroke)] bg-white">
+							<div class="grid grid-cols-3 px-5 py-4 text-sm text-[color:var(--app-text)]"><span>Notebook</span><span>~200 kg</span><span>~20.000 L</span></div>
+							<div class="grid grid-cols-3 px-5 py-4 text-sm text-[color:var(--app-text)]"><span>Zapatillas</span><span>11,3-16,7 kg</span><span>~8.000 L</span></div>
+							<div class="grid grid-cols-3 px-5 py-4 text-sm text-[color:var(--app-text)]"><span>Libro</span><span>~1,2 kg</span><span>~10 L</span></div>
+						</div>
+					</div>
+				</div>
+
+				<div class="grid gap-4">
+					<div class="rounded-[2rem] border border-[color:var(--app-stroke)] bg-white p-7 shadow-sm">
+						<p class="text-sm font-semibold text-[color:var(--app-secondary)]">Match</p>
+						<h2 class="mt-2 text-2xl font-semibold text-[color:var(--app-text)]">Ofrezco / Busco / Loopear</h2>
+						<p class="mt-2 text-[color:var(--app-muted)]">La app guía el intercambio con filtros, chat privado, cierre de transacción y calificación mutua.</p>
+					</div>
+					<div class="rounded-[2rem] border border-[color:var(--app-stroke)] bg-white p-7 shadow-sm">
+						<p class="text-sm font-semibold text-[color:var(--app-tertiary)]">Evaluación y soporte</p>
+						<h2 class="mt-2 text-2xl font-semibold text-[color:var(--app-text)]">Confianza, reportes y control comunitario</h2>
+						<p class="mt-2 text-[color:var(--app-muted)]">Cada transacción puede calificarse y reportarse si hay problemas técnicos o en la transacción.</p>
+					</div>
+					<div class="rounded-[2rem] border border-[color:var(--app-stroke)] bg-white p-7 shadow-sm">
+						<p class="text-sm font-semibold text-[color:var(--app-primary)]">PAAS</p>
+						<h2 class="mt-2 text-2xl font-semibold text-[color:var(--app-text)]">Feria anual con remanentes solidarios</h2>
+						<p class="mt-2 text-[color:var(--app-muted)]">Los artículos no canjeados pueden participar de una feria anual para fortalecer acciones solidarias y comunitarias.</p>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="mx-auto max-w-7xl px-6 py-8 lg:px-8">
+			<div class="rounded-[2rem] border border-[color:var(--app-stroke)] bg-white p-7 shadow-sm">
+				<div class="flex flex-wrap items-end justify-between gap-4">
+					<div>
+						<p class="text-sm font-semibold text-[color:var(--app-primary)]">Categorías con impacto</p>
+						<h2 class="mt-2 text-3xl font-semibold text-[color:var(--app-text)]">Pensada para mostrar productos con contexto ambiental</h2>
+					</div>
+					<a href="/politica-privacidad" class="rounded-2xl border border-[color:var(--app-stroke)] bg-[color:var(--app-background)] px-5 py-3 text-sm font-semibold text-[color:var(--app-text)]">Ver política de privacidad</a>
+				</div>
+
+				<div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+					{categories.map((category) => (
+						<article class="rounded-[1.75rem] border border-[color:var(--app-stroke)] bg-[color:var(--app-background)] p-5">
+							<div class={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${category.accent}`}>{category.title}</div>
+							<p class="mt-4 text-lg font-semibold text-[color:var(--app-text)]">{category.items}</p>
+							<div class="mt-5 h-28 rounded-2xl border border-dashed border-white/60 bg-white/70"></div>
+						</article>
+					))}
+				</div>
+			</div>
+		</section>
+
+		<section class="mx-auto max-w-7xl px-6 py-8 lg:px-8">
+			<div class="grid gap-4 md:grid-cols-3">
+				{impactRows.map((row) => (
+					<div class="rounded-[1.75rem] border border-[color:var(--app-stroke)] bg-white p-6 shadow-sm">
+						<p class="text-sm font-semibold text-[color:var(--app-muted)]">{row[0]}</p>
+						<p class="mt-3 text-2xl font-semibold text-[color:var(--app-text)]">{row[1]}</p>
+						<p class="mt-2 text-[color:var(--app-muted)]">{row[2]}</p>
+					</div>
+				))}
+			</div>
+		</section>
+
+		<footer class="mx-auto max-w-7xl px-6 pb-10 pt-6 lg:px-8">
+			<div class="flex flex-wrap items-center justify-between gap-4 rounded-[1.75rem] border border-[color:var(--app-stroke)] bg-white px-6 py-5 shadow-sm">
+				<div>
+					<p class="font-semibold text-[color:var(--app-text)]">Loop para la Red Itinere</p>
+					<p class="text-sm text-[color:var(--app-muted)]">Intercambio circular, privacidad y borrado de cuenta disponibles.</p>
+				</div>
+				<div class="flex flex-wrap gap-3 text-sm font-semibold">
+					<a href={supportMailTo} class="rounded-full border border-[color:var(--app-stroke)] px-4 py-2 text-[color:var(--app-text)]">Contacto</a>
+					<a href="/politica-privacidad" class="rounded-full border border-[color:var(--app-stroke)] px-4 py-2 text-[color:var(--app-text)]">Política de privacidad</a>
+					<a href="/borrar-cuenta" class="rounded-full border border-[color:var(--app-alert)]/25 px-4 py-2 text-[color:var(--app-alert)]">Borrar cuenta</a>
+				</div>
+			</div>
+		</footer>
+	</main>
+</Layout>

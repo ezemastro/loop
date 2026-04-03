@@ -1,0 +1,114 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const deleteEndpoint = import.meta.env.PUBLIC_DELETE_ACCOUNT_ENDPOINT ?? 'https://api.loop.example.com/account/delete';
+const supportEmail = import.meta.env.PUBLIC_SUPPORT_EMAIL ?? 'soporte@loop.app';
+const supportMailTo = `mailto:${supportEmail}?subject=${encodeURIComponent('Ayuda con borrado de cuenta en Loop')}&body=${encodeURIComponent('Hola equipo de soporte,')}`;
+---
+
+<Layout
+  title="Borrado de cuenta | Loop"
+  description="Solicita la eliminación de tu cuenta de Loop."
+>
+  <main class="mx-auto w-full max-w-5xl px-6 py-12 lg:px-8 lg:py-16">
+    <div class="flex flex-wrap gap-3">
+      <a href="/" class="text-sm font-semibold text-[color:var(--app-primary)]">Volver al inicio</a>
+      <a href={supportMailTo} class="rounded-full border border-[color:var(--app-stroke)] bg-white px-4 py-2 text-sm font-semibold text-[color:var(--app-text)] shadow-sm transition hover:-translate-y-0.5">Contacto por mail</a>
+    </div>
+
+    <header class="mt-6 max-w-3xl space-y-4">
+      <div class="inline-flex rounded-full bg-[color:var(--app-alert)]/10 px-4 py-1 text-xs font-semibold text-[color:var(--app-alert)]">Eliminar cuenta</div>
+      <h1 class="text-4xl font-semibold tracking-tight text-[color:var(--app-text)] md:text-5xl">Solicitar borrado de cuenta</h1>
+      <p class="text-lg leading-8 text-[color:var(--app-muted)]">
+        Enviá esta solicitud para iniciar el proceso de eliminación de tu cuenta y los datos asociados al uso de LOOP.
+      </p>
+    </header>
+
+    <section class="mt-10 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+      <div class="rounded-[1.75rem] border border-[color:var(--app-stroke)] bg-white p-6 shadow-sm">
+        <h2 class="text-xl font-semibold text-[color:var(--app-text)]">Antes de continuar</h2>
+        <ul class="mt-4 space-y-3 text-[color:var(--app-muted)]">
+          <li>• La solicitud se enviará al endpoint configurado por entorno.</li>
+          <li>• El proceso puede requerir validación manual por soporte.</li>
+          <li>• Asegurate de usar el email exacto de la cuenta.</li>
+        </ul>
+        <div class="mt-6 rounded-2xl bg-[color:var(--app-background)] p-4 text-sm text-[color:var(--app-text)] ring-1 ring-[color:var(--app-stroke)]">
+          Endpoint actual: <span class="font-semibold">{deleteEndpoint}</span>
+        </div>
+      </div>
+
+      <div class="rounded-[1.75rem] border border-[color:var(--app-stroke)] bg-white p-6 shadow-sm">
+        <form id="delete-account-form" class="space-y-4">
+          <div>
+            <label for="email" class="mb-1 block text-sm font-medium text-[color:var(--app-text)]">Email asociado a la cuenta</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              class="w-full rounded-2xl border border-[color:var(--app-stroke)] bg-[color:var(--app-background)] px-4 py-3 text-[color:var(--app-text)] outline-none transition placeholder:text-[color:var(--app-muted)] focus:border-[color:var(--app-primary)]"
+              placeholder="tu@email.com"
+            />
+          </div>
+
+          <div>
+            <label for="reason" class="mb-1 block text-sm font-medium text-[color:var(--app-text)]">Motivo opcional</label>
+            <textarea
+              id="reason"
+              name="reason"
+              rows="4"
+              class="w-full rounded-2xl border border-[color:var(--app-stroke)] bg-[color:var(--app-background)] px-4 py-3 text-[color:var(--app-text)] outline-none transition placeholder:text-[color:var(--app-muted)] focus:border-[color:var(--app-primary)]"
+              placeholder="Cuéntanos por qué querés borrar la cuenta"
+            ></textarea>
+          </div>
+
+          <button
+            type="submit"
+            class="inline-flex items-center rounded-2xl bg-[color:var(--app-alert)] px-5 py-3 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(255,59,48,0.18)] transition hover:-translate-y-0.5"
+          >
+            Enviar solicitud
+          </button>
+        </form>
+
+        <p id="delete-account-status" class="mt-4 text-sm text-[color:var(--app-muted)]" aria-live="polite"></p>
+      </div>
+    </section>
+  </main>
+
+  <script is:inline define:vars={{ deleteEndpoint }}>
+    const form = document.getElementById('delete-account-form');
+    const status = document.getElementById('delete-account-status');
+
+    if (form instanceof HTMLFormElement && status instanceof HTMLElement) {
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        status.textContent = 'Enviando solicitud...';
+
+        const formData = new FormData(form);
+        const payload = {
+          email: String(formData.get('email') || '').trim(),
+          reason: String(formData.get('reason') || '').trim(),
+        };
+
+        try {
+          const response = await fetch(deleteEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+
+          if (!response.ok) {
+            throw new Error('No fue posible registrar la solicitud.');
+          }
+
+          status.textContent = 'Solicitud enviada correctamente. Te contactaremos por email.';
+          form.reset();
+        } catch (error) {
+          status.textContent = error instanceof Error
+            ? error.message
+            : 'Ocurrió un error inesperado al enviar la solicitud.';
+        }
+      });
+    }
+  </script>
+</Layout>
