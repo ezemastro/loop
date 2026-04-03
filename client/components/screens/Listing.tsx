@@ -54,14 +54,14 @@ export default function Listing() {
                   )
                 ) : (
                   <>
+                    <ReportButton
+                      listing={listing}
+                      className="px-3 py-2"
+                      label="Denunciar"
+                    />
                     <AskButton userId={listing.seller.id} />
                   </>
                 )}
-                <ReportButton
-                  listing={listing}
-                  className="px-3 py-2 rounded-full"
-                  label="Denunciar"
-                />
               </View>
             </View>
           ),
