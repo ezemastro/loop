@@ -15,6 +15,7 @@ import DonateModal from "./modals/DonateModal";
 import Stats from "./Stats";
 import { usePublicWishes } from "@/hooks/usePublicWishes";
 import CategoryBadge from "./CategoryBadge";
+import ReportButton from "./ReportButton";
 
 interface Section {
   key: string;
@@ -50,7 +51,18 @@ export default function UserPage({
   const sections: Section[] = [
     {
       key: "header",
-      component: () => <View>{canGoBack && <BackButton />}</View>,
+      component: () => (
+        <View className="flex-row items-center justify-between">
+          <View>{canGoBack && <BackButton />}</View>
+          {!isCurrentUser && (
+            <ReportButton
+              user={user}
+              className="px-3 py-2 rounded-full"
+              label="Denunciar"
+            />
+          )}
+        </View>
+      ),
     },
     {
       key: "profile",
