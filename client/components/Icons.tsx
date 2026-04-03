@@ -6,7 +6,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 
 cssInterop(Feather, {
   className: {
-    target: "color",
+    target: "style",
     nativeStyleToProp: {
       color: true,
     },
@@ -50,7 +50,6 @@ export const MessageIcon = ({
   <Feather
     size={24}
     color={color}
-    style={{ color }}
     className={className}
     {...props}
     name="message-circle"
@@ -64,7 +63,6 @@ export const NotificationIcon = ({
   <Feather
     size={24}
     color={color}
-    style={{ color }}
     className={className}
     {...props}
     name="bell"
