@@ -28,7 +28,6 @@ export default function SearchBarBase({
       if (autoFocus && inputRef.current) {
         const timeout = setTimeout(() => {
           inputRef.current?.focus();
-          console.log("tiempo");
         }, 50);
         return () => clearTimeout(timeout);
       }
@@ -42,7 +41,7 @@ export default function SearchBarBase({
       )}
     >
       <TextInput
-        ref={() => console.log("red")}
+        ref={inputRef}
         placeholder={placeholder || "Buscar..."}
         className="flex-1 px-2 py-3"
         onChangeText={handleChange}
