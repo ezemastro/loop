@@ -45,6 +45,7 @@ app.get("/status", (req, res) => {
   res.status(200).send(`Server is running. Environment: ${NODE_ENV}`);
 });
 
+// TODO: Falta ruta de borrar cuenta, ruta de cambiar contraseña, ruta de denunciar publicacion, ruta de denunciar usuario
 app.use("/auth", trimBody, authRouter);
 app.use("/me", trimBody, tokenMiddleware, selfRouter);
 app.use("/users", trimBody, usersRouter);
