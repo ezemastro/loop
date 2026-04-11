@@ -126,6 +126,7 @@ export default function Register() {
         <FlatList
           data={fields}
           keyExtractor={(item) => item.key}
+          className="flex-1"
           style={{
             paddingLeft: insets.left,
             paddingRight: insets.right,
