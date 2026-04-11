@@ -134,8 +134,9 @@ CREATE TABLE "admins"(
     "email" TEXT NOT NULL unique,
     -- TODO - Reemplazar en base de datos de prod la columna username por email
     "full_name" TEXT NOT NULL,
-    "password" TEXT not null,
-    "created_at" TIMESTAMP(0) default NOW() NOT NULL
+    "password" TEXT,
+    "created_at" TIMESTAMP(0) default NOW() NOT NULL,
+    "google_id" TEXT UNIQUE
 );
 -- TODO - Agregar la siguiente tabla en base de datos de prod
 CREATE TABLE "admin_valid_emails"(
@@ -206,4 +207,50 @@ ALTER TABLE
 -- Índices para búsquedas rápidas con Google OAuth
 CREATE INDEX idx_users_google_id ON "users"("google_id");
 CREATE INDEX idx_admins_google_id ON "admins"("google_id");
+
+INSERT INTO "mission_templates" (
+    "id",
+    "key",
+    "title",
+    "description",
+    "reward_credits",
+    "active",
+    "created_at"
+) VALUES
+    (
+        gen_random_uuid(),
+        'publish-listing-1',
+        'Publica 1 artículo',
+        'Publica tu primer artículo para completar esta misión',
+        30000,
+        true,
+        '2025-10-23 22:29:01.000'
+    ),
+    (
+        gen_random_uuid(),
+        'publish-listing-2',
+        'Publica 2 artículos',
+        NULL,
+        30000,
+        true,
+        '2025-10-25 16:46:32.000'
+    ),
+    (
+        gen_random_uuid(),
+        'publish-listing-3',
+        'Publica 3 artículos',
+        NULL,
+        30000,
+        true,
+        '2025-10-25 16:46:44.000'
+    ),
+    (
+        gen_random_uuid(),
+        'update-profile-image',
+        'Añade tu foto de perfil',
+        'Añade una foto de perfil para que se te pueda reconocer',
+        10000,
+        true,
+        '2025-10-25 16:49:46.000'
+    );
 
