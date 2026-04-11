@@ -1,17 +1,27 @@
 import type { CookieOptions } from "express";
+import path from "path";
 
-if (process.env.NODE_ENV !== "production") {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  require("dotenv").config({
-    path: [".env", "../.env", "*/.env"],
-  });
-}
+// Carga condicional de dotenv para desarrollo
+(async () => {
+  if (process.env.NODE_ENV !== "production") {
+    try {
+      // El import dinámico es aceptado por ESLint y funciona en runtime
+      const dotenv = await import("dotenv");
+      dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });
+      console.log("🌱 Variables de entorno locales cargadas.");
+    } catch {
+      // Silencioso en prod
+    }
+  }
+})();
+
 export const {
   NODE_ENV,
   FRONTEND_URL,
   POSTGRES_USER: DB_USER,
   POSTGRES_DB: DB_NAME,
   POSTGRES_PASSWORD: DB_PASSWORD,
+  PGHOST: DB_HOST = "db",
   PORT = 3000,
   JWT_SECRET,
   TOKEN_EXP = 30 * 24 * 60 * 60, // 30 días
@@ -100,10 +110,17 @@ export const PAGE_SIZE = 10;
 // TODO - Terminar de agregar dominios válidos
 export const VALID_EMAIL_DOMAINS = [
   "northfield.edu.ar",
-  "gmail.com",
+  // "gmail.com",
   "reditinere.com",
   "colegiodelfaro.edu.ar",
+  "southcreekschool.com.ar",
+  "northschools.uy",
 ];
+
+export const MAX_UPLOAD_SIZE_BYTES = 15 * 1024 * 1024; // 15MB
+export const IMAGE_MAX_WIDTH = 1280;
+export const IMAGE_MAX_HEIGHT = 1280;
+export const IMAGE_QUALITY = 72;
 
 export const NOTIFICATION_TEXTS = {
   MISSION_NOTIFICATION: {
