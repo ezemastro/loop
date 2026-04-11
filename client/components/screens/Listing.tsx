@@ -39,7 +39,7 @@ export default function Listing() {
         {
           key: "title",
           component: () => (
-            <View className="flex-row justify-between items-center p-4">
+            <View className="z-20 flex-row justify-between items-center p-4">
               <BackButton />
               <View className="flex-row gap-2 items-center">
                 {isOwner ? (
@@ -109,9 +109,9 @@ export default function Listing() {
         {
           key: "seller",
           component: () => (
-            <View className="p-4 gap-3">
+            <View className="p-4 gap-3 self-start">
               <Pressable
-                className="shadow"
+                className="shadow-sm rounded-full"
                 onPress={() =>
                   router.push({
                     pathname: "/(main)/user/[userId]",
@@ -123,7 +123,7 @@ export default function Listing() {
                   user={listing.seller}
                   textClassName="text-main-text text-lg"
                   imageClassName="size-12"
-                  containerClassName="bg-white px-4 py-2 gap-4 rounded-full self-start"
+                  containerClassName="bg-white px-4 py-2 gap-4 rounded-full"
                 />
               </Pressable>
             </View>
