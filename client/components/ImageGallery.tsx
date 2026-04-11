@@ -1,6 +1,6 @@
 import { COLORS } from "@/config";
 import { getUrl } from "@/services/getUrl";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { View, Image, Dimensions } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import Carousel, {
@@ -13,6 +13,7 @@ const width = Dimensions.get("window").width;
 export default function ImageGallery({ images }: { images: Media[] }) {
   const progress = useSharedValue(0);
   const ref = useRef<ICarouselInstance>(null);
+  const [containerWidth, setContainerWidth] = useState(width);
 
   const onPressPagination = (index: number) => {
     ref.current?.scrollTo({
@@ -22,10 +23,18 @@ export default function ImageGallery({ images }: { images: Media[] }) {
   };
 
   return (
-    <View className="w-full gap-4">
+    <View
+      className="w-full gap-4"
+      onLayout={({ nativeEvent }) => {
+        const nextWidth = nativeEvent.layout.width;
+        if (nextWidth > 0 && nextWidth !== containerWidth) {
+          setContainerWidth(nextWidth);
+        }
+      }}
+    >
       <Carousel
         data={images}
-        width={width}
+        width={containerWidth}
         height={240}
         ref={ref}
         onProgressChange={progress}
