@@ -1,5 +1,5 @@
 import { Pool, type PoolClient, type QueryResultRow } from "pg";
-import { DB_NAME, DB_PASSWORD, DB_USER } from "../config.js";
+import { DB_HOST, DB_NAME, DB_PASSWORD, DB_USER } from "../config.js";
 import type {
   DatabaseConnection,
   DatabaseClient,
@@ -10,6 +10,7 @@ const pool = new Pool({
   user: DB_USER,
   database: DB_NAME,
   password: DB_PASSWORD,
+  host: DB_HOST,
   port: 5432,
 });
 
