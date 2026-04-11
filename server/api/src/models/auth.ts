@@ -65,7 +65,7 @@ export class AuthModel {
         emailLower.endsWith(`@${domain}`),
       );
       if (!isValidEmail) {
-        throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+        throw new InvalidInputError(ERROR_MESSAGES.EMAIL_NOT_AUTHORIZED);
       }
       // Insertar el nuevo usuario en la base de datos
       const [newUser] = await client.query(queries.insertUser, [
@@ -257,7 +257,7 @@ export class AuthModel {
         emailLower.endsWith(`@${domain}`),
       );
       if (!isValidEmail) {
-        throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+        throw new InvalidInputError(ERROR_MESSAGES.EMAIL_NOT_AUTHORIZED);
       }
 
       // Verificar si el usuario ya existe
