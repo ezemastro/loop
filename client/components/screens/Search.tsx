@@ -55,11 +55,12 @@ export default function Search() {
 
   return (
     <MainView>
-      <View className="flex-row p-4 gap-4 w-full">
+      <View className="flex-row p-4 gap-4 w-full flex-shrink-0">
         <ListingSearchFilters onChange={handleFiltersChange} value={filters} />
         <ListingSearchSortOptions onDebounce={handleSortChange} />
       </View>
       <FlatList
+        className="flex-1"
         data={listings}
         ListEmptyComponent={() => (
           <>
