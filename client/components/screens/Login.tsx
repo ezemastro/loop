@@ -75,7 +75,7 @@ export default function Login() {
         <FlatList
           data={fields}
           keyExtractor={(item) => item.key}
-          className="p-4"
+          className="flex-1 p-4"
           style={{
             paddingTop: insets.top,
           }}
