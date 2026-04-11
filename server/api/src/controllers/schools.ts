@@ -43,7 +43,9 @@ export class SchoolsController {
     res: Response,
     next: NextFunction,
   ) => {
-    const { schoolId } = req.params;
+    const schoolId = Array.isArray(req.params.schoolId)
+      ? req.params.schoolId[0]
+      : req.params.schoolId;
     try {
       await validateId(schoolId);
     } catch {
