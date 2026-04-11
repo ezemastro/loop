@@ -1,4 +1,4 @@
-import { getUrl } from "@/services/getUrl";
+import { getProfileImageSource, getUrl } from "@/services/getUrl";
 import { View, Text, Image } from "react-native";
 import { twMerge } from "tailwind-merge";
 
@@ -12,7 +12,7 @@ export default function User({
   return (
     <View className={twMerge("p-2 flex-row bg-white rounded", className)}>
       <Image
-        source={{ uri: getUrl(user.profileMedia?.url ?? "") }}
+        source={getProfileImageSource(user.profileMedia?.url)}
         className="rounded-full bg-background"
         style={{ width: 64, height: 64 }}
       />
