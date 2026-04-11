@@ -1,5 +1,5 @@
 import supertest from "supertest";
-import { app, server } from "../app";
+import { app, server } from "..";
 
 console.log("setupAfterEnv");
 global.api = supertest(app);
