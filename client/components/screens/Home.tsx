@@ -66,6 +66,7 @@ export default function Home() {
   return (
     <MainView>
       <FlatList
+        className="flex-1"
         data={sections}
         refreshControl={<CustomRefresh />}
         contentContainerClassName="p-4 pt-6"
