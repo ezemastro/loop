@@ -3,6 +3,7 @@ import { View, Text, FlatList, TextInput, Pressable } from "react-native";
 import {
   MAX_LISTING_DESCRIPTION_LENGTH,
   MAX_LISTING_TITLE_LENGTH,
+  COLORS,
 } from "@/config";
 import CategorySelector from "./selectors/CategorySelector";
 import ProductStatusSelector from "./selectors/ProductStatusSelector";
@@ -22,6 +23,7 @@ import CustomRefresh from "./CustomRefresh";
 import AvoidingKeyboard from "./AvoidingKeyboard";
 import Loader from "./Loader";
 import ImagesSelector from "./selectors/ImagesSelector";
+import { MainView } from "@/components/bases/MainView";
 
 interface Section {
   key: string;
@@ -233,6 +235,7 @@ export default function ModifyListing({
               setForm((prev) => ({ ...prev, title: text }));
             }}
             placeholder="Escribe un título para tu publicación"
+            placeholderTextColor={COLORS.SECONDARY_TEXT}
             className="w-full border-b border-gray-300 p-2 px-3 text-lg bg-secondary-text/10 rounded-t"
             underlineColorAndroid="#fff0"
             placeholderClassName="text-secondary-text"
@@ -261,6 +264,7 @@ export default function ModifyListing({
               setForm((prev) => ({ ...prev, description: text }));
             }}
             placeholder="Escribe una descripción para tu publicación"
+            placeholderTextColor={COLORS.SECONDARY_TEXT}
             className="w-full border-b border-gray-300 p-2 px-3 text-lg bg-secondary-text/10 rounded-t"
             placeholderClassName="text-secondary-text"
             underlineColorAndroid="#fff0"
@@ -299,6 +303,7 @@ export default function ModifyListing({
                   : "Introduce un precio para tu publicación"
               }
               underlineColorAndroid="transparent"
+              placeholderTextColor={COLORS.SECONDARY_TEXT}
               placeholderClassName="text-secondary-text"
               className="w-full p-2 px-3 text-lg text-credits"
             />
@@ -334,56 +339,62 @@ export default function ModifyListing({
     },
   ];
   return (
-    <AvoidingKeyboard>
-      <FlatList
-        data={sections}
-        keyExtractor={(item) => item.key}
-        refreshControl={<CustomRefresh />}
-        className="flex-1"
-        contentContainerClassName="gap-2"
-        contentContainerStyle={{ paddingBottom: insets.bottom }}
-        renderItem={({ item }) => (
-          <View className="w-full gap-2">
-            {item.title && <Text className="px-4 text-2xl">{item.title}</Text>}
-            <View>
-              {item.isError && (
-                <Error textClassName="text-sm text-alert px-4">
-                  Por favor revisa este campo.
+    <MainView>
+      <AvoidingKeyboard>
+        <FlatList
+          data={sections}
+          keyExtractor={(item) => item.key}
+          refreshControl={<CustomRefresh />}
+          className="flex-1"
+          contentContainerClassName="gap-2"
+          contentContainerStyle={{ paddingBottom: insets.bottom }}
+          renderItem={({ item }) => (
+            <View className="w-full gap-2">
+              {item.title && (
+                <Text className="px-4 text-2xl">{item.title}</Text>
+              )}
+              <View>
+                {item.isError && (
+                  <Error textClassName="text-sm text-alert px-4">
+                    Por favor revisa este campo.
+                  </Error>
+                )}
+                {item.component()}
+              </View>
+            </View>
+          )}
+          ListFooterComponent={() => (
+            <>
+              {isUploadFilesError && (
+                <Error>Ha ocurrido un error al subir los archivos.</Error>
+              )}
+              {isPublishListingError && (
+                <Error>Ha ocurrido un error al publicar la publicación.</Error>
+              )}
+              {isUpdateListingError && (
+                <Error>
+                  Ha ocurrido un error al actualizar la publicación.
                 </Error>
               )}
-              {item.component()}
-            </View>
-          </View>
-        )}
-        ListFooterComponent={() => (
-          <>
-            {isUploadFilesError && (
-              <Error>Ha ocurrido un error al subir los archivos.</Error>
-            )}
-            {isPublishListingError && (
-              <Error>Ha ocurrido un error al publicar la publicación.</Error>
-            )}
-            {isUpdateListingError && (
-              <Error>Ha ocurrido un error al actualizar la publicación.</Error>
-            )}
-            {(isPublishingListing || isUpdatingListing || isUploadingFiles) && (
-              <Loader />
-            )}
-            <CustomButton className="m-4 mb-6" onPress={handleSubmit}>
-              <ButtonText>
-                {action === "edit" ? "Actualizar" : "Publicar"}
-              </ButtonText>
-            </CustomButton>
-          </>
-        )}
-        ListHeaderComponent={() =>
-          backButton ? (
-            <Pressable onPress={() => router.back()} className="p-4">
-              <BackIcon />
-            </Pressable>
-          ) : null
-        }
-      />
-    </AvoidingKeyboard>
+              {(isPublishingListing ||
+                isUpdatingListing ||
+                isUploadingFiles) && <Loader />}
+              <CustomButton className="m-4 mb-6" onPress={handleSubmit}>
+                <ButtonText>
+                  {action === "edit" ? "Actualizar" : "Publicar"}
+                </ButtonText>
+              </CustomButton>
+            </>
+          )}
+          ListHeaderComponent={() =>
+            backButton ? (
+              <Pressable onPress={() => router.back()} className="p-4">
+                <BackIcon />
+              </Pressable>
+            ) : null
+          }
+        />
+      </AvoidingKeyboard>
+    </MainView>
   );
 }
