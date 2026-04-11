@@ -1,12 +1,15 @@
-import { View, Pressable, Image } from "react-native";
+import { View, Pressable, Image, Platform } from "react-native";
 import { useState } from "react";
-import { getUrl } from "@/services/getUrl";
+import { getProfileImageSource, getUrl } from "@/services/getUrl";
 import { CameraIcon, EditIcon } from "./Icons";
 import ImageSourceSelectorModal from "./modals/ImageSourceSelectorModal";
 import * as ImagePicker from "expo-image-picker";
 import { useModifySelf } from "@/hooks/useModifySelf";
 import { useUploadFiles } from "@/hooks/useUploadFiles";
 import { useQueryClient } from "@tanstack/react-query";
+import Error from "./Error";
+import { IMAGE_FORMAT_ERROR_MESSAGE } from "@/config";
+import { useOptimizedImagePicker } from "@/hooks/useOptimizedImagePicker";
 
 export default function ProfileImage({
   user,
@@ -15,9 +18,11 @@ export default function ProfileImage({
   user: PublicUser | PrivateUser;
   isCurrentUser: boolean;
 }) {
+  const isWeb = Platform.OS === "web";
   const hasImage = !!user.profileMedia;
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const { mutate: modifyUser } = useModifySelf();
   const { mutate: uploadImages } = useUploadFiles();
 
@@ -25,27 +30,52 @@ export default function ProfileImage({
     ImagePicker.useCameraPermissions();
   const [mediaLibraryStatus, mediaLibraryRequestPermission] =
     ImagePicker.useMediaLibraryPermissions();
+  const {
+    inferMimeTypeFromUri,
+    isAllowedMimeType,
+    pickWebImages,
+    optimizeImage,
+  } = useOptimizedImagePicker();
+
   const handleSelectImage = async (type: "library" | "camera") => {
     if (!isCurrentUser) return;
-    let result: ImagePicker.ImagePickerResult;
+    setUploadError(null);
+    let result: ImagePicker.ImagePickerResult | null = null;
+    let pickedAsset: {
+      uri: string;
+      mimeType: string;
+      width: number;
+      height: number;
+    } | null = null;
+
     if (type === "library") {
-      if (mediaLibraryStatus?.status !== ImagePicker.PermissionStatus.GRANTED) {
-        const permission = await mediaLibraryRequestPermission();
-        if (!permission.granted) {
-          // TODO - mostrar error
-          console.log("Permission to access media library was denied");
-          return;
+      if (isWeb) {
+        const { assets, invalidCount } = await pickWebImages(1, false);
+        if (invalidCount > 0) {
+          setUploadError(IMAGE_FORMAT_ERROR_MESSAGE);
         }
+        pickedAsset = assets[0] || null;
+      } else {
+        if (
+          mediaLibraryStatus?.status !== ImagePicker.PermissionStatus.GRANTED
+        ) {
+          const permission = await mediaLibraryRequestPermission();
+          if (!permission.granted) {
+            // TODO - mostrar error
+            console.log("Permission to access media library was denied");
+            return;
+          }
+        }
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+        result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ["images"],
+          allowsMultipleSelection: false,
+          aspect: [1, 1],
+          allowsEditing: true,
+          quality: 1,
+          orderedSelection: true,
+        });
       }
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-      result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        allowsMultipleSelection: false,
-        aspect: [1, 1],
-        allowsEditing: true,
-        quality: 1,
-        orderedSelection: true,
-      });
     } else if (type === "camera") {
       if (cameraStatus?.status !== ImagePicker.PermissionStatus.GRANTED) {
         const permission = await cameraRequestPermission();
@@ -64,34 +94,58 @@ export default function ProfileImage({
       });
     } else return;
 
-    if (!result.canceled) {
-      if (result.assets.some((asset) => !asset.mimeType)) {
-        // TODO - mostrar error
-        console.log("Error: some assets have no mimeType");
+    if (!isWeb && result && !result.canceled) {
+      const image = result.assets[0];
+      if (!image) {
         return;
       }
-      const image = result.assets[0];
-      uploadImages([{ uri: image.uri, type: image.mimeType! }], {
-        onSuccess: (uploaded) => {
-          const uploadedImage = uploaded[0]?.media;
-          if (!uploadedImage) return;
-          modifyUser(
-            { profileMediaId: uploadedImage.id },
-            {
-              onSettled: () => {
-                queryClient.invalidateQueries({ queryKey: ["self"] });
-              },
-            },
-          );
-        },
-      });
+
+      const mimeType = image.mimeType || inferMimeTypeFromUri(image.uri);
+      if (!isAllowedMimeType(mimeType)) {
+        setUploadError(IMAGE_FORMAT_ERROR_MESSAGE);
+        return;
+      }
+
+      pickedAsset = {
+        uri: image.uri,
+        mimeType,
+        width: image.width,
+        height: image.height,
+      };
     }
+
+    if (!pickedAsset) {
+      return;
+    }
+
+    const optimizedImage = await optimizeImage(pickedAsset);
+    uploadImages([{ uri: optimizedImage.uri, type: optimizedImage.mimeType }], {
+      onSuccess: (uploaded) => {
+        const uploadedImage = uploaded[0]?.media;
+        if (!uploadedImage) return;
+        modifyUser(
+          { profileMediaId: uploadedImage.id },
+          {
+            onSettled: () => {
+              queryClient.invalidateQueries({ queryKey: ["self"] });
+            },
+          },
+        );
+      },
+    });
   };
   return (
     <>
       <Pressable
         className="relative"
-        onPress={() => isCurrentUser && setIsModalOpen(true)}
+        onPress={() => {
+          if (!isCurrentUser) return;
+          if (isWeb) {
+            handleSelectImage("library");
+            return;
+          }
+          setIsModalOpen(true);
+        }}
       >
         {hasImage ? (
           <Image
@@ -99,15 +153,16 @@ export default function ProfileImage({
             className="rounded-full"
             style={{ width: 128, height: 128 }}
           />
-        ) : (
+        ) : isCurrentUser ? (
           <View className="size-32 items-center justify-center rounded-full bg-stroke">
-            <CameraIcon
-              className={
-                isCurrentUser ? "text-primary-text" : "text-secondary-text"
-              }
-              size={32}
-            />
+            <CameraIcon className="text-primary-text" size={32} />
           </View>
+        ) : (
+          <Image
+            source={getProfileImageSource(null)}
+            className="rounded-full"
+            style={{ width: 128, height: 128 }}
+          />
         )}
         {isCurrentUser && (
           <View className="absolute -top-2 -right-6 p-2">
@@ -115,17 +170,22 @@ export default function ProfileImage({
           </View>
         )}
       </Pressable>
-      <ImageSourceSelectorModal
-        isModalOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        pickImages={handleSelectImage}
-        isCameraPermissionDenied={
-          cameraStatus?.status === ImagePicker.PermissionStatus.DENIED
-        }
-        isGalleryPermissionDenied={
-          mediaLibraryStatus?.status === ImagePicker.PermissionStatus.DENIED
-        }
-      />
+      {!isWeb && (
+        <ImageSourceSelectorModal
+          isModalOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          pickImages={handleSelectImage}
+          isCameraPermissionDenied={
+            cameraStatus?.status === ImagePicker.PermissionStatus.DENIED
+          }
+          isGalleryPermissionDenied={
+            mediaLibraryStatus?.status === ImagePicker.PermissionStatus.DENIED
+          }
+        />
+      )}
+      {uploadError && (
+        <Error textClassName="text-sm text-alert">{uploadError}</Error>
+      )}
     </>
   );
 }
