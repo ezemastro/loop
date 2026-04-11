@@ -9,7 +9,7 @@ export default function CustomButton({
     <Pressable
       {...props}
       className={twMerge(
-        `bg-tertiary p-3 rounded ${props.disabled ? "opacity-50" : "opacity-100"}`,
+        `bg-tertiary p-3 rounded max-w-6xl ${props.disabled ? "opacity-50" : "opacity-100"}`,
         props.className,
       )}
     >
