@@ -1,10 +1,11 @@
 {
   "jest.jestCommandLine": "npm run test --",
   "jest.rootPath": "server/api",
-  "cSpell.words": [
-    "Itinere",
-    "loopeado",
-    "loopear",
-    "Loopear"
+  "cSpell.words": ["Itinere", "loopeado", "loopear", "Loopear"],
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "javascript.preferences.importModuleSpecifier": "non-relative",
+  // Settigns for github commit message:
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    { "text": "Un breve resumen de los cambios en español." }
   ]
 }
