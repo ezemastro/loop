@@ -2,6 +2,7 @@ import { api } from "@/api/loop";
 import { AxiosError } from "axios";
 import { ApiError, parseErrorName } from "../services/errors";
 import { useMutation } from "@tanstack/react-query";
+import { Platform } from "react-native";
 
 const fetchUploadFile = async ({
   uri,
@@ -11,17 +12,36 @@ const fetchUploadFile = async ({
   type: string;
 }) => {
   const formData = new FormData();
-  formData.append("file", {
-    uri,
-    type,
-    name: uri.split("/").pop(),
-  } as any);
+
+  const fallbackName = `upload-${Date.now()}.jpg`;
+  const fileName = uri.split("/").pop() || fallbackName;
+
+  if (Platform.OS === "web") {
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    const fileType = type || blob.type || "image/jpeg";
+    const file = new File([blob], fileName, { type: fileType });
+    formData.append("file", file);
+  } else {
+    formData.append("file", {
+      uri,
+      type,
+      name: fileName,
+    } as any);
+  }
+
   try {
-    const response = await api.post<PostMediaResponse>("/uploads", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    const response = await api.post<PostMediaResponse>(
+      "/uploads",
+      formData,
+      Platform.OS === "web"
+        ? undefined
+        : {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          },
+    );
 
     if (!response.data.success) {
       throw new Error(response.data.error || "Error desconocido");
