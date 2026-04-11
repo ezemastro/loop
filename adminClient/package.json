@@ -1,5 +1,5 @@
 {
-  "name": "client",
+  "name": "loop-admin",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,7 +7,8 @@
     "dev": "vite --host",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "node publish.js"
   },
   "dependencies": {
     "@react-oauth/google": "0.13.4",
