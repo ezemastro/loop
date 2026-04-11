@@ -1,7 +1,7 @@
 import { View, Text, Pressable, Image } from "react-native";
 import React from "react";
 import { useRouter } from "expo-router";
-import { getUrl } from "@/services/getUrl";
+import { getProfileImageSource, getUrl } from "@/services/getUrl";
 
 export default function ChatCard({ chat }: { chat: UserMessage }) {
   const router = useRouter();
@@ -23,7 +23,7 @@ export default function ChatCard({ chat }: { chat: UserMessage }) {
       className="flex-row p-3 gap-4 bg-white rounded-xl shadow items-center"
     >
       <Image
-        source={{ uri: getUrl(chat.user.profileMedia?.url || "") }}
+        source={getProfileImageSource(chat.user.profileMedia?.url)}
         className="bg-background rounded-full"
         style={{ width: 64, height: 64 }}
       />
