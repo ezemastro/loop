@@ -47,7 +47,7 @@ export default function Messages() {
 
   return (
     <MainView>
-      <View className="p-4 gap-3">
+      <View className="p-4 gap-3 flex-shrink-0">
         <TextTitle>Mensajes</TextTitle>
         <SearchBar
           className="bg-white"
@@ -59,6 +59,7 @@ export default function Messages() {
       </View>
 
       <FlatList
+        className="flex-1"
         data={[
           ...chatsToShow.map((chat) => ({
             key: chat.userId + "-chat",
