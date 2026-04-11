@@ -21,13 +21,15 @@ export const MainView = ({
         className={twMerge("flex-1", className)}
         style={safeBottom ? { paddingBottom: insets.bottom } : {}}
       >
-        <ScrollView refreshControl={<CustomRefresh />}>{children}</ScrollView>
+        <ScrollView className="flex-1" refreshControl={<CustomRefresh />}>
+          {children}
+        </ScrollView>
       </View>
     );
   }
   return (
     <View
-      className={twMerge("flex-1", className)}
+      className={twMerge("flex-1 w-full max-w-6xl mx-auto", className)}
       style={safeBottom ? { paddingBottom: insets.bottom } : {}}
     >
       {children}
