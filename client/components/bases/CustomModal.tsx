@@ -25,9 +25,19 @@ export default function CustomModal({
       statusBarTranslucent
     >
       <View
-        className={twMerge(`flex-1 items-center justify-center p-4`, className)}
+        className={twMerge(
+          `flex-1 items-center justify-center`,
+          Platform.OS === "web" ? "bg-black/30" : "",
+        )}
       >
-        {children}
+        <View
+          className={twMerge(
+            `flex-1 items-center justify-center p-4 max-w-3xl w-full`,
+            className,
+          )}
+        >
+          {children}
+        </View>
       </View>
     </Modal>
   );
