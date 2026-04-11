@@ -21,7 +21,10 @@ export default function Header() {
     >
       <View className="flex-row justify-between pt-3">
         <View>
-          <Pressable onLongPress={() => router.push("/debug")}>
+          <Pressable
+            onPress={() => router.push("/(main)/(tabs)/home")}
+            onLongPress={() => router.push("/debug")}
+          >
             <AppLogo />
           </Pressable>
         </View>
