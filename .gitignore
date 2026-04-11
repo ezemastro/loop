@@ -1,9 +1,10 @@
 /server/.env
 /server/postgres
 /server/api/node_modules
-package-lock.json
+/server/**/package-lock.json
 node_modules
-client/package-lock.json
 server/uploads
 .env.prod
+# Comentar los siguientes dos
 .env
+google-services.json
