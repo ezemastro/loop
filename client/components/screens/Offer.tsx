@@ -235,6 +235,7 @@ export default function Offer() {
   return (
     <MainView safeBottom>
       <FlatList
+        className="flex-1"
         data={sections}
         contentContainerClassName="p-4"
         onEndReached={() => fetchNextPage()}
