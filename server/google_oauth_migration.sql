@@ -1,4 +1,4 @@
--- TODO - Ejecutar esta migración en producción e implementarla en el database_creation.sql
+-- TODO - implementarla en el database_creation.sql
 
 -- Migración para agregar soporte de Google OAuth a la tabla admins
 -- Esta migración permite que los administradores puedan iniciar sesión tanto
