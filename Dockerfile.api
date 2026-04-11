@@ -1,0 +1,67 @@
+# ===== ETAPA 0: Desarrollo (TS con hot reload) =====
+FROM node:20-slim AS development
+WORKDIR /app
+
+# Instalamos dependencias raíz y del API para monorepo
+COPY package*.json ./
+COPY server/api/package*.json ./server/api/
+RUN npm install
+WORKDIR /app/server/api
+RUN npm install --include=dev
+
+# Copiamos código del API y tipos compartidos
+WORKDIR /app
+COPY shared ./shared
+COPY server/api ./server/api
+
+WORKDIR /app/server/api
+EXPOSE 3000
+CMD ["sh", "-c", "npm install --include=dev && npm run dev"]
+
+# ===== ETAPA 1: Build (Compilación de TS a JS) =====
+FROM node:20-slim AS build
+WORKDIR /app
+
+# Copiamos archivos de configuración
+COPY package*.json ./
+COPY server/api/package*.json ./server/api/
+# Copiamos AMBOS tsconfig
+COPY server/api/tsconfig*.json ./server/api/
+
+RUN npm install
+WORKDIR /app/server/api
+RUN npm install
+
+# Copiamos shared y api
+WORKDIR /app
+COPY shared ./shared
+COPY server/api ./server/api
+
+# COMPILACIÓN usando el config de producción
+WORKDIR /app/server/api
+
+RUN npx tsc -p tsconfig.prod.json
+
+RUN find dist -name "index.js"
+
+# ===== ETAPA 2: Producción =====
+FROM node:22-alpine AS production
+WORKDIR /app
+
+# Instalamos solo dependencias de producción
+COPY server/api/package*.json ./
+RUN npm install --omit=dev
+
+# Copiamos el JS compilado
+COPY --from=build /app/server/api/dist ./dist
+
+# Si existe la ruta larga, movemos TODO su contenido a la raíz de /app/dist
+RUN if [ -d "./dist/server/api/src" ]; then \
+        cp -r ./dist/server/api/src/* ./dist/ && \
+        rm -rf ./dist/server; \
+    fi
+
+RUN mkdir -p uploads
+EXPOSE 3000
+
+CMD ["node", "dist/index.js"]
