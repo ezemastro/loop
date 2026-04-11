@@ -49,7 +49,9 @@ export class UsersController {
     res: Response,
     next: NextFunction,
   ) => {
-    const { userId } = req.params;
+    const userId = Array.isArray(req.params.userId)
+      ? req.params.userId[0]
+      : req.params.userId;
     try {
       await validateId(userId);
     } catch {
@@ -65,7 +67,9 @@ export class UsersController {
   };
 
   static donate = async (req: Request, res: Response, next: NextFunction) => {
-    const { userId: toUserId } = req.params;
+    const toUserId = Array.isArray(req.params.userId)
+      ? req.params.userId[0]
+      : req.params.userId;
     const userId = req.session!.userId!;
     const { amount } = req.body;
     try {
