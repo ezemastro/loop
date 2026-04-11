@@ -12,10 +12,15 @@ import {
   GoogleSignin,
   statusCodes,
 } from "@react-native-google-signin/google-signin";
+import * as Google from "expo-auth-session/providers/google";
+import * as WebBrowser from "expo-web-browser";
 
 import { useRouter } from "expo-router";
 import { useGoogleLogin } from "@/hooks/useGoogleLogin";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { VALID_EMAIL_DOMAINS, WEB_GOOGLE_CLIENT_ID } from "@/config";
+
+WebBrowser.maybeCompleteAuthSession();
 
 const GOOGLE_CREDENTIAL_KEY = "@google_credential";
 
@@ -23,6 +28,29 @@ interface GoogleSignInButtonProps {
   onError?: (error: string) => void;
   disabled?: boolean;
 }
+
+const ALLOWED_DOMAINS_TEXT = VALID_EMAIL_DOMAINS.map(
+  (domain) => `@${domain}`,
+).join(", ");
+
+const formatGoogleLoginError = (error: any): string => {
+  const fallbackError = "Error al iniciar sesión con Google";
+  const rawError = String(error?.message || error || "").trim();
+  const normalizedError = rawError.toLowerCase();
+
+  if (!rawError) {
+    return fallbackError;
+  }
+
+  if (
+    normalizedError.includes("correo electrónico no está autorizado") ||
+    normalizedError.includes("email no está autorizado")
+  ) {
+    return `Tu correo no pertenece a un dominio permitido. Dominios válidos: ${ALLOWED_DOMAINS_TEXT}`;
+  }
+
+  return rawError;
+};
 
 export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
   onError,
@@ -32,6 +60,11 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const isMountedRef = useRef(true);
   const googleLoginMutation = useGoogleLogin();
+  const [webRequest, _webResponse, promptWebGoogleSignIn] =
+    Google.useIdTokenAuthRequest({
+      webClientId: WEB_GOOGLE_CLIENT_ID,
+      selectAccount: true,
+    });
 
   useEffect(() => {
     return () => {
@@ -39,13 +72,63 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
     };
   }, []);
 
+  const loginWithGoogleCredential = async (credential: string) => {
+    // Guardar el credential temporalmente por si hay que completar signup.
+    await AsyncStorage.setItem(GOOGLE_CREDENTIAL_KEY, credential);
+
+    try {
+      await googleLoginMutation.mutateAsync({ credential });
+      await AsyncStorage.removeItem(GOOGLE_CREDENTIAL_KEY);
+      console.log("Login con Google completado exitosamente");
+    } catch (error: any) {
+      console.log("Error en login:", error);
+
+      const errorMessage =
+        error?.message?.toLowerCase() || error?.toString()?.toLowerCase() || "";
+
+      if (
+        errorMessage.includes("signup") ||
+        errorMessage.includes("register")
+      ) {
+        console.log("Usuario nuevo detectado, redirigiendo a school selection");
+        router.push("/(auth)/schoolSelection");
+        return;
+      }
+
+      const displayError = formatGoogleLoginError(error);
+      onError?.(displayError);
+      Alert.alert("Error", displayError);
+      await AsyncStorage.removeItem(GOOGLE_CREDENTIAL_KEY);
+      throw error;
+    }
+  };
+
   const handleGoogleSignIn = async () => {
     try {
       if (Platform.OS === "web") {
-        const webError =
-          "Google Sign-In nativo no esta disponible en web en esta configuracion.";
-        onError?.(webError);
-        Alert.alert("No disponible", webError);
+        if (!WEB_GOOGLE_CLIENT_ID) {
+          const configError =
+            "Falta EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID para iniciar sesión con Google en web.";
+          onError?.(configError);
+          Alert.alert("Configuración incompleta", configError);
+          return;
+        }
+
+        setIsLoading(true);
+
+        const result = await promptWebGoogleSignIn();
+
+        if (result.type !== "success") {
+          return;
+        }
+
+        const credential = result.params?.id_token;
+
+        if (!credential) {
+          throw new Error("No se recibió el token de Google en web");
+        }
+
+        await loginWithGoogleCredential(credential);
         return;
       }
 
@@ -64,54 +147,7 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
         throw new Error("No se recibió el token de Google");
       }
 
-      // Guardar el credential del usuario temporalmente
-      // por si necesitamos redirigir a la selección de escuelas
-      await AsyncStorage.setItem(GOOGLE_CREDENTIAL_KEY, userInfo.idToken);
-
-      // Intentar login directo (sin schoolIds inicialmente)
-      // El backend nos dirá si el usuario ya existe o necesita registrarse
-
-      googleLoginMutation.mutate(
-        {
-          credential: userInfo.idToken,
-        },
-        {
-          onError: async (error: any) => {
-            console.log("Error en login:", error);
-
-            // Verificar si el error indica que necesita hacer signup
-            const errorMessage =
-              error?.message?.toLowerCase() ||
-              error?.toString()?.toLowerCase() ||
-              "";
-
-            if (
-              errorMessage.includes("signup") ||
-              errorMessage.includes("register")
-            ) {
-              // Usuario nuevo - redirigir a selección de escuelas
-              console.log(
-                "Usuario nuevo detectado, redirigiendo a school selection",
-              );
-              router.push("/(auth)/schoolSelection");
-            } else {
-              // Otro tipo de error
-              const displayError =
-                error?.message || "Error al iniciar sesión con Google";
-              onError?.(displayError);
-              Alert.alert("Error", displayError);
-
-              // Limpiar datos guardados si hay error
-              await AsyncStorage.removeItem(GOOGLE_CREDENTIAL_KEY);
-            }
-          },
-          onSuccess: async () => {
-            // Login exitoso - limpiar datos temporales
-            await AsyncStorage.removeItem(GOOGLE_CREDENTIAL_KEY);
-            console.log("Login con Google completado exitosamente");
-          },
-        },
-      );
+      await loginWithGoogleCredential(userInfo.idToken);
     } catch (err: any) {
       let errorMessage = "Error desconocido al iniciar sesión";
 
@@ -129,6 +165,7 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
       console.error("Error en Google Sign-In:", err);
       onError?.(errorMessage);
       Alert.alert("Error", errorMessage);
+      await AsyncStorage.removeItem(GOOGLE_CREDENTIAL_KEY);
     } finally {
       if (isMountedRef.current) {
         setIsLoading(false);
@@ -137,27 +174,40 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
   };
 
   const isButtonDisabled =
-    disabled || isLoading || googleLoginMutation.isPending;
+    disabled ||
+    isLoading ||
+    googleLoginMutation.isPending ||
+    (Platform.OS === "web" && !webRequest);
+
+  const buttonText =
+    Platform.OS === "web"
+      ? "Continuar con Google (Web)"
+      : "Continuar con Google";
 
   return (
-    <TouchableOpacity
-      style={[styles.button, isButtonDisabled && styles.buttonDisabled]}
-      onPress={handleGoogleSignIn}
-      disabled={isButtonDisabled}
-      activeOpacity={0.8}
-    >
-      {isLoading || googleLoginMutation.isPending ? (
-        <ActivityIndicator color="#fff" size="small" />
-      ) : (
-        <View style={styles.buttonContent}>
-          {/* Icono de Google */}
-          <View style={styles.iconContainer}>
-            <GoogleIcon />
+    <View style={styles.container}>
+      <TouchableOpacity
+        style={[styles.button, isButtonDisabled && styles.buttonDisabled]}
+        onPress={handleGoogleSignIn}
+        disabled={isButtonDisabled}
+        activeOpacity={0.8}
+      >
+        {isLoading || googleLoginMutation.isPending ? (
+          <ActivityIndicator color="#fff" size="small" />
+        ) : (
+          <View style={styles.buttonContent}>
+            {/* Icono de Google */}
+            <View style={styles.iconContainer}>
+              <GoogleIcon />
+            </View>
+            <Text style={styles.buttonText}>{buttonText}</Text>
           </View>
-          <Text style={styles.buttonText}>Continuar con Google</Text>
-        </View>
-      )}
-    </TouchableOpacity>
+        )}
+      </TouchableOpacity>
+      <Text style={styles.hintText}>
+        Dominios permitidos: {ALLOWED_DOMAINS_TEXT}
+      </Text>
+    </View>
   );
 };
 
@@ -169,6 +219,9 @@ const GoogleIcon = () => (
 );
 
 const styles = StyleSheet.create({
+  container: {
+    gap: 8,
+  },
   button: {
     flexDirection: "row",
     alignItems: "center",
@@ -219,6 +272,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
     color: "#4285F4",
+  },
+  hintText: {
+    color: "#6B7280",
+    fontSize: 12,
+    textAlign: "center",
   },
 });
 
