@@ -27,6 +27,7 @@ export default function Notifications() {
   return (
     <MainView className="p-4">
       <FlatList
+        className="flex-1"
         data={notifications}
         contentContainerClassName="gap-2"
         renderItem={({ item }) => <NotificationCard notification={item} />}
