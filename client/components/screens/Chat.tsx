@@ -7,7 +7,7 @@ import { useLocalSearchParams } from "expo-router";
 import { View, Text, Image, FlatList, RefreshControl } from "react-native";
 import { MainView } from "../bases/MainView";
 import BackButton from "../BackButton";
-import { getUrl } from "@/services/getUrl";
+import { getProfileImageSource, getUrl } from "@/services/getUrl";
 import { useUser } from "@/hooks/useUser";
 import MessageItem from "../MessageItem";
 import { sameDay } from "@/utils/sameDay";
@@ -107,7 +107,7 @@ export default function Chat() {
         </View>
         <View className="flex-row items-center gap-4 px-4 pb-2">
           <Image
-            source={{ uri: getUrl(user?.profileMedia?.url ?? "") }}
+            source={getProfileImageSource(user?.profileMedia?.url)}
             className="rounded-full bg-secondary-text"
             style={{ width: 80, height: 80 }}
           />
@@ -140,7 +140,7 @@ export default function Chat() {
         <DroppablePendingWithUser userId={userId!} />
         <FlatList
           data={messages}
-          className="mt-3 bg-white"
+          className="flex-1 mt-3 bg-white"
           contentContainerClassName="flex-grow gap-1"
           renderItem={({ item, index }) => (
             <>
