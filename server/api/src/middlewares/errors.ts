@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
+import { ERROR_MESSAGES } from "../config";
 import {
   ConflictError,
   InternalServerError,
@@ -6,6 +7,7 @@ import {
   StepRequired,
   UnauthorizedError,
 } from "../services/errors";
+import multer from "multer";
 
 export const errorMiddleware = (
   err: Error,
@@ -13,6 +15,16 @@ export const errorMiddleware = (
   res: Response,
   _next: NextFunction,
 ) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res
+        .status(400)
+        .json({ success: false, error: ERROR_MESSAGES.FILE_TOO_LARGE });
+    }
+    return res
+      .status(400)
+      .json({ success: false, error: ERROR_MESSAGES.INVALID_INPUT });
+  }
   if (err instanceof InvalidInputError) {
     return res.status(400).json({ success: false, error: err.message });
   }
