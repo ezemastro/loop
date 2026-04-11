@@ -88,6 +88,7 @@ export default function TermsPage() {
     >
       <MainView className="p-4">
         <FlatList
+          className="flex-1"
           data={termsSections}
           contentContainerClassName="py-2 px-2"
           renderItem={({ item }) => (
