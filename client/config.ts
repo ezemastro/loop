@@ -29,7 +29,14 @@ export const REPORT_EMAIL = process.env.EXPO_PUBLIC_REPORT_EMAIL;
 export const GOOGLE_OAUTH_READY = process.env.GOOGLE_OAUTH_READY !== "false";
 export const NODE_ENV = process.env.NODE_ENV;
 
-export const VALID_EMAIL_DOMAINS = ["northfield.edu.ar", "gmail.com"];
+export const VALID_EMAIL_DOMAINS = [
+  "northfield.edu.ar",
+  // "gmail.com",
+  "reditinere.com",
+  "colegiodelfaro.edu.ar",
+  "southcreekschool.com.ar",
+  "northschools.uy",
+];
 
 export const PRODUCT_STATUSES = {
   FAIR: "fair" as ProductStatus,
