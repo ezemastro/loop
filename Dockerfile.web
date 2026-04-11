@@ -1,0 +1,36 @@
+# Etapa de compilación
+FROM node:20-slim AS build
+WORKDIR /app
+
+# 1. Copiamos los package.json
+COPY package*.json ./
+COPY client/package*.json ./client/
+
+# 2. Instalamos dependencias
+RUN npm install
+WORKDIR /app/client
+RUN npm install
+
+# 3. Copiamos el código ANTES del export
+WORKDIR /app
+COPY shared ./shared
+COPY client ./client
+
+# 4. Declaramos ARG y ENV para que Expo las vea al compilar
+ARG EXPO_PUBLIC_API_URL
+ENV EXPO_PUBLIC_API_URL=$EXPO_PUBLIC_API_URL
+
+# 5. Compilamos la web
+WORKDIR /app/client
+RUN npx expo export --platform web
+
+# Etapa de producción
+FROM node:20-slim
+WORKDIR /app
+RUN npm install -g serve
+
+# OJO: Metro exporta a la carpeta 'dist', no a 'web-build'
+COPY --from=build /app/client/dist ./dist
+
+EXPOSE 3000
+CMD ["serve", "-s", "dist", "-l", "3000"]
