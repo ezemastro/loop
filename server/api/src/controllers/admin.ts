@@ -132,7 +132,9 @@ export class AdminController {
     res: Response,
     next: NextFunction,
   ) => {
-    const { userId } = req.params;
+    const userId = Array.isArray(req.params.userId)
+      ? req.params.userId[0]
+      : req.params.userId;
     const { amount, positive, meta } = req.body;
     if (!userId) {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
@@ -205,7 +207,9 @@ export class AdminController {
     res: Response,
     next: NextFunction,
   ) => {
-    const { categoryId } = req.params;
+    const categoryId = Array.isArray(req.params.categoryId)
+      ? req.params.categoryId[0]
+      : req.params.categoryId;
     const {
       name,
       description,
@@ -339,7 +343,9 @@ export class AdminController {
     res: Response,
     next: NextFunction,
   ) => {
-    const { missionTemplateId } = req.params;
+    const missionTemplateId = Array.isArray(req.params.missionTemplateId)
+      ? req.params.missionTemplateId[0]
+      : req.params.missionTemplateId;
     const { title, description, rewardCredits, active } = req.body;
     if (!missionTemplateId) {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
