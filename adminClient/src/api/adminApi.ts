@@ -104,6 +104,20 @@ export const adminApi = {
     return response.data;
   },
 
+  /**
+   * Actualizar una escuela existente (nombre y/o logo)
+   */
+  updateSchool: async (schoolId: UUID, name?: string, mediaId?: UUID) => {
+    const response = await api.patch<PatchAdminSchoolsResponse>(
+      `/admin/schools/${schoolId}`,
+      {
+        name,
+        mediaId,
+      },
+    );
+    return response.data;
+  },
+
   // Gestión de categorías
   /**
    * Crear una nueva categoría
