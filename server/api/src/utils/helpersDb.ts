@@ -24,6 +24,21 @@ import {
 } from "./parseDb";
 import { safeNumber } from "./safeNumber";
 
+const NOTIFICATION_RECOVERABLE_ERRORS = new Set<string>([
+  ERROR_MESSAGES.LISTING_NOT_FOUND,
+  ERROR_MESSAGES.USER_NOT_FOUND,
+  ERROR_MESSAGES.CATEGORY_NOT_FOUND,
+  ERROR_MESSAGES.MEDIA_NOT_FOUND,
+  ERROR_MESSAGES.SCHOOL_NOT_FOUND,
+  ERROR_MESSAGES.MISSION_NOT_FOUND,
+  ERROR_MESSAGES.MISSION_TEMPLATE_NOT_FOUND,
+]);
+
+const isRecoverableNotificationError = (error: unknown): boolean => {
+  if (!(error instanceof InternalServerError)) return false;
+  return NOTIFICATION_RECOVERABLE_ERRORS.has(error.message);
+};
+
 export const getPrivateUserById = async ({
   client,
   userId,
@@ -441,51 +456,66 @@ export const getNotificationsByUserId = async ({
   }
   // Parsear notificaciones de DB a Base
   const notificationsBase = notificationsDb.map(parseNotificationBaseFromDb);
-  const notifications = await Promise.all(
+  const notificationsWithGaps = await Promise.all(
     notificationsBase.map(async (notification) => {
-      const buyer =
-        notification.type === "loop"
-          ? (notification.payload as LoopNotificationPayload).buyerId
+      try {
+        const buyer =
+          notification.type === "loop"
+            ? (notification.payload as LoopNotificationPayload).buyerId
+              ? await getUserById({
+                  client,
+                  userId: (notification.payload as LoopNotificationPayload)
+                    .buyerId!,
+                })
+              : null
+            : undefined;
+        const donorUser =
+          notification.type === "donation"
             ? await getUserById({
                 client,
-                userId: (notification.payload as LoopNotificationPayload)
-                  .buyerId!,
+                userId: (notification.payload as DonationNotificationPayload)
+                  .donorUserId,
               })
-            : null
-          : undefined;
-      const donorUser =
-        notification.type === "donation"
-          ? await getUserById({
-              client,
-              userId: (notification.payload as DonationNotificationPayload)
-                .donorUserId,
-            })
-          : undefined;
-      const listing =
-        notification.type === "loop"
+            : undefined;
+        const listingReferenceId =
+          notification.type === "loop"
+            ? (notification.payload as LoopNotificationPayload).listingId
+            : notification.type === "admin" &&
+                (notification.payload as AdminNotificationPayload).target ===
+                  "listing" &&
+                (notification.payload as AdminNotificationPayload).referenceId
+              ? (notification.payload as AdminNotificationPayload).referenceId
+              : null;
+        const listing = listingReferenceId
           ? await getListingById({
               client,
-              listingId: (notification.payload as LoopNotificationPayload)
-                .listingId,
+              listingId: listingReferenceId,
             })
           : undefined;
-      const userMission =
-        notification.type === "mission"
-          ? await getUserMissionById({
-              client,
-              userMissionId: (
-                notification.payload as MissionNotificationPayload
-              ).userMissionId,
-            })
-          : undefined;
-      return parseNotificationFromBase({
-        notification,
-        buyer,
-        donorUser,
-        userMission,
-        listing,
-      });
+        const userMission =
+          notification.type === "mission"
+            ? await getUserMissionById({
+                client,
+                userMissionId: (
+                  notification.payload as MissionNotificationPayload
+                ).userMissionId,
+              })
+            : undefined;
+        return parseNotificationFromBase({
+          notification,
+          buyer,
+          donorUser,
+          userMission,
+          listing,
+        });
+      } catch (error) {
+        if (isRecoverableNotificationError(error)) return null;
+        throw error;
+      }
     }),
+  );
+  const notifications = notificationsWithGaps.filter(
+    (notification): notification is AppNotification => notification !== null,
   );
   const pagination = parsePagination({
     currentPage: page ?? 1,

@@ -1,7 +1,13 @@
+import { randomUUID } from "node:crypto";
+import { queries } from "../services/queries";
 import { validateCategory } from "../services/validations";
-import { databaseQueryMock, MOCK_CATEGORIES_DB } from "../tests/utils";
+import {
+  databaseQueryMock,
+  MOCK_CATEGORIES_DB,
+  MOCK_USER_DB,
+} from "../tests/utils";
 import type { DatabaseClient } from "../types/dbClient";
-import { getCategoryById } from "./helpersDb";
+import { getCategoryById, getNotificationsByUserId } from "./helpersDb";
 
 const client = {
   query: jest.fn().mockImplementation(databaseQueryMock),
@@ -57,5 +63,80 @@ describe("Database Helpers", () => {
         }
       },
     );
+  });
+
+  describe("Notifications Helpers", () => {
+    it("should skip notifications that reference missing entities", async () => {
+      const missingListingId = randomUUID() as UUID;
+      const notificationUserId = randomUUID() as UUID;
+      const donorUserId = MOCK_USER_DB.id;
+
+      const clientWithMissingListing = {
+        query: jest.fn().mockImplementation((query, params: unknown[]) => {
+          if (query === queries.notificationsByUserId) {
+            return [
+              {
+                id: randomUUID() as UUID,
+                user_id: notificationUserId,
+                created_at: new Date().toISOString(),
+                is_read: false,
+                type: "loop",
+                payload: {
+                  buyerId: null,
+                  listingId: missingListingId,
+                  toListingStatus: "offered",
+                  toOfferedCredits: 100,
+                  type: "new_offer",
+                } as LoopNotificationPayloadBase,
+                read_at: null,
+                total_records: "2" as DbNumber,
+              },
+              {
+                id: randomUUID() as UUID,
+                user_id: notificationUserId,
+                created_at: new Date().toISOString(),
+                is_read: false,
+                type: "donation",
+                payload: {
+                  amount: 25,
+                  donorUserId,
+                  message: "Gracias",
+                } as DonationNotificationPayloadBase,
+                read_at: null,
+                total_records: "2" as DbNumber,
+              },
+            ];
+          }
+
+          if (query === queries.listingById) {
+            if (params[0] === missingListingId) return [];
+          }
+
+          if (query === queries.userById) {
+            return [MOCK_USER_DB];
+          }
+
+          if (query === queries.userSchoolsByUserId) {
+            return [];
+          }
+
+          return [];
+        }),
+        begin: jest.fn(),
+        commit: jest.fn(),
+        rollback: jest.fn(),
+        release: jest.fn(),
+      } as DatabaseClient;
+
+      const { notifications, pagination } = await getNotificationsByUserId({
+        client: clientWithMissingListing,
+        userId: notificationUserId,
+        page: 1,
+      });
+
+      expect(notifications).toHaveLength(1);
+      expect(notifications[0]!.type).toBe("donation");
+      expect(pagination.totalRecords).toBe(2);
+    });
   });
 });
