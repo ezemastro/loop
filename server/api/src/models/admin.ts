@@ -406,6 +406,67 @@ export class AdminModel {
     }
   }
 
+  static async updateSchool({
+    schoolId,
+    name,
+    mediaId,
+  }: {
+    schoolId: UUID;
+    name?: string;
+    mediaId?: UUID;
+  }) {
+    let client: DatabaseClient;
+    try {
+      client = await dbConnection.connect();
+    } catch {
+      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    }
+    try {
+      await client.begin();
+
+      // Obtener la escuela actual para validar que existe
+      const existingSchoolDb = await client.query(queries.schoolById, [
+        schoolId,
+      ]);
+      if (!existingSchoolDb[0]) {
+        throw new InvalidInputError("Escuela no encontrada");
+      }
+
+      const currentSchool = existingSchoolDb[0] as DB_Schools;
+      const finalName = name ?? currentSchool.name;
+      const finalMediaId = mediaId ?? currentSchool.media_id;
+
+      // Verificar que el media existe si se está actualizando
+      if (mediaId) {
+        const mediaDb = await client.query(queries.mediaById, [mediaId]);
+        if (!mediaDb[0]) {
+          throw new InvalidInputError("Media no encontrado");
+        }
+      }
+
+      // Actualizar la escuela
+      const updatedSchoolDb = await client.query(queries.updateSchool, [
+        finalName,
+        finalMediaId,
+        schoolId,
+      ]);
+      if (!updatedSchoolDb[0]) {
+        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+      }
+
+      await client.commit();
+
+      const schoolBase = parseSchoolFromDb(updatedSchoolDb[0] as DB_Schools);
+      const media = await getMediaById({ client, mediaId: finalMediaId });
+      return { school: { ...schoolBase, media } };
+    } catch (error) {
+      await client.rollback();
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
   // Gestión de categorías
   static async createCategory({
     name,

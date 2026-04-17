@@ -35,6 +35,12 @@ adminRouter.post(
   AdminController.createSchool,
 );
 
+adminRouter.patch(
+  "/schools/:schoolId",
+  adminTokenMiddleware,
+  AdminController.updateSchool,
+);
+
 // Gestión de categorías
 adminRouter.post(
   "/categories",

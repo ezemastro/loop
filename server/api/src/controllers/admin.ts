@@ -167,6 +167,32 @@ export class AdminController {
     }
   };
 
+  static updateSchool = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const schoolId = Array.isArray(req.params.schoolId)
+      ? req.params.schoolId[0]
+      : req.params.schoolId;
+    const { name, mediaId } = req.body;
+
+    if (!schoolId) {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+
+    try {
+      const { school } = await AdminModel.updateSchool({
+        schoolId,
+        name,
+        mediaId,
+      });
+      return res.status(200).json(successResponse({ data: { school } }));
+    } catch (error) {
+      next(error);
+    }
+  };
+
   // Gestión de categorías
   static createCategory = async (
     req: Request,
