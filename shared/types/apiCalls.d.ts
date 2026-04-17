@@ -513,6 +513,20 @@ type PostAdminSchoolsResponse = ApiResponse<{
   school: School;
 }>;
 
+// PATCH /admin/schools/:schoolId
+interface PatchAdminSchoolsRequest {
+  params: {
+    schoolId: UUID;
+  };
+  body: {
+    name?: string;
+    mediaId?: UUID;
+  };
+}
+type PatchAdminSchoolsResponse = ApiResponse<{
+  school: School;
+}>;
+
 // POST /admin/categories
 interface PostAdminCategoriesRequest {
   body: {
