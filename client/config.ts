@@ -13,6 +13,17 @@ export const COLORS = {
 export const MAX_LISTING_IMAGES = 7;
 export const MAX_LISTING_TITLE_LENGTH = 50;
 export const MAX_LISTING_DESCRIPTION_LENGTH = 150;
+export const MAX_IMAGE_SIDE_PX = 1600;
+export const IMAGE_COMPRESS_QUALITY = 0.8;
+export const ALLOWED_IMAGE_MIME_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/avif",
+] as const;
+export const WEB_IMAGE_ACCEPT_ATTR = ALLOWED_IMAGE_MIME_TYPES.join(",");
+export const IMAGE_FORMAT_ERROR_MESSAGE =
+  "Solo se permiten imágenes JPG, PNG, WEBP o AVIF.";
 
 export const API_URL = process.env.EXPO_PUBLIC_API_URL;
 export const FILE_BASE_URL = API_URL + "/uploads/";
