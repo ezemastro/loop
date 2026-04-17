@@ -4,6 +4,7 @@ import adminApi from "@/api/adminApi";
 import { commonApi } from "@/api/commonApi";
 import CreateSchoolModal from "@/components/CreateSchoolModal";
 import SchoolsTable from "@/components/SchoolsTable";
+import EditSchoolModal from "@/components/EditSchoolModal";
 import { AxiosError } from "axios";
 
 interface SchoolWithStats extends School {
@@ -19,6 +20,8 @@ export default function Schools() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
 
   useEffect(() => {
     loadSchools();
@@ -77,6 +80,11 @@ export default function Schools() {
     }
   };
 
+  const handleEditSchool = (school: School) => {
+    setSelectedSchool(school);
+    setShowEditModal(true);
+  };
+
   return (
     <Layout>
       <div className="p-8">
@@ -96,11 +104,25 @@ export default function Schools() {
           </div>
         )}
 
-        <SchoolsTable schools={schools} loading={loading} />
+        <SchoolsTable
+          schools={schools}
+          loading={loading}
+          onEdit={handleEditSchool}
+        />
 
         <CreateSchoolModal
           isOpen={showCreateModal}
           onClose={() => setShowCreateModal(false)}
+          onSuccess={loadSchools}
+        />
+
+        <EditSchoolModal
+          isOpen={showEditModal}
+          school={selectedSchool}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedSchool(null);
+          }}
           onSuccess={loadSchools}
         />
       </div>

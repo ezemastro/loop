@@ -11,9 +11,14 @@ interface SchoolWithStats extends School {
 interface SchoolsTableProps {
   schools: SchoolWithStats[];
   loading: boolean;
+  onEdit?: (school: School) => void;
 }
 
-export default function SchoolsTable({ schools, loading }: SchoolsTableProps) {
+export default function SchoolsTable({
+  schools,
+  loading,
+  onEdit,
+}: SchoolsTableProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -38,6 +43,7 @@ export default function SchoolsTable({ schools, loading }: SchoolsTableProps) {
             <th className="px-4 py-3 text-left font-semibold">
               Litros H₂O Ahorrados
             </th>
+            <th className="px-4 py-3 text-left font-semibold">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -59,6 +65,14 @@ export default function SchoolsTable({ schools, loading }: SchoolsTableProps) {
               </td>
               <td className="px-4 py-3">
                 {school.stats?.lH2o.toFixed(2) ?? "N/A"} L
+              </td>
+              <td className="px-4 py-3">
+                <button
+                  onClick={() => onEdit?.(school)}
+                  className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition"
+                >
+                  Editar
+                </button>
               </td>
             </tr>
           ))}
