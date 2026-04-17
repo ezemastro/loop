@@ -56,6 +56,17 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
   onError,
   disabled = false,
 }) => {
+  if (Platform.OS === "web" && !WEB_GOOGLE_CLIENT_ID) {
+    return null;
+  }
+
+  return <GoogleSignInButtonInner onError={onError} disabled={disabled} />;
+};
+
+const GoogleSignInButtonInner: React.FC<GoogleSignInButtonProps> = ({
+  onError,
+  disabled = false,
+}) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const isMountedRef = useRef(true);
@@ -179,11 +190,6 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
     googleLoginMutation.isPending ||
     (Platform.OS === "web" && !webRequest);
 
-  const buttonText =
-    Platform.OS === "web"
-      ? "Continuar con Google (Web)"
-      : "Continuar con Google";
-
   return (
     <View style={styles.container}>
       <TouchableOpacity
@@ -200,7 +206,7 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
             <View style={styles.iconContainer}>
               <GoogleIcon />
             </View>
-            <Text style={styles.buttonText}>{buttonText}</Text>
+            <Text style={styles.buttonText}>Continuar con Google</Text>
           </View>
         )}
       </TouchableOpacity>
