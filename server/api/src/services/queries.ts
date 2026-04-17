@@ -446,19 +446,19 @@ export const queries = {
   ),
   adminByEmail: q<DB_Admin & { password: string }>(
     "admin.byEmail",
-    `SELECT * FROM admins WHERE email = $1`,
+    `SELECT * FROM admins WHERE lower(email) = lower($1)`,
   ),
   createAdmin: q<DB_Admin>(
     "admin.create",
-    `INSERT INTO admins (email, full_name, password, google_id) VALUES ($1, $2, $3, $4) RETURNING *`,
+    `INSERT INTO admins (email, full_name, password, google_id) VALUES (lower($1), $2, $3, $4) RETURNING *`,
   ),
   addValidEmailForAdminRegistration: q<void>(
     "admin.addValidEmail",
-    `INSERT INTO admin_valid_emails (email) VALUES ($1)`,
+    `INSERT INTO admin_valid_emails (email) VALUES (lower($1))`,
   ),
   isValidEmailForAdminRegistration: q<{ exists: boolean }>(
     "admin.isValidEmail",
-    `SELECT EXISTS(SELECT 1 FROM admin_valid_emails WHERE email = $1) AS exists`,
+    `SELECT EXISTS(SELECT 1 FROM admin_valid_emails WHERE lower(email) = lower($1)) AS exists`,
   ),
   createNotification: q<DB_Notifications>(
     "notifications.create",
@@ -514,6 +514,10 @@ export const queries = {
     "admin.createSchool",
     `INSERT INTO schools (name, media_id) VALUES ($1, $2) RETURNING *`,
   ),
+    updateSchool: q<DB_Schools>(
+      "admin.updateSchool",
+      `UPDATE schools SET name = $1, media_id = $2 WHERE id = $3 RETURNING *`,
+    ),
   createCategory: q<DB_Categories>(
     "admin.createCategory",
     `INSERT INTO categories (name, description, parent_id, icon, min_price_credits, max_price_credits, stat_kg_waste, stat_kg_co2, stat_l_h2o)
