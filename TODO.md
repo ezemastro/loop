@@ -32,6 +32,9 @@
 - [ ] Cambiaqr title en web
 - [ ] probarlo en celu la web
 - [ ] Dentro de un chat osea cuando abris el chat con alguien y esta vacio aparece un texto boca abajo
+- [ ] En celu solo podes elegir la primera vez si las fotos salen de la camara o de la galeria
+- [ ] Al menos en celu al borrar una publicacion no hay navegacion por lo que parece que el boton de borrar no hace nada
+- [ ] Borrar usuario test
 
 📋 Endpoints y Métodos Faltantes
 Categories
