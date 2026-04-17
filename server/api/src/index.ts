@@ -1,5 +1,5 @@
 import express from "express";
-import { FRONTEND_URL, NODE_ENV, PORT } from "./config.js";
+import { FRONTEND_URL, NODE_ENV, PORT, ADMIN_FRONTEND_URL } from "./config.js";
 import cookieParser from "cookie-parser";
 import { tokenMiddleware } from "./middlewares/parseToken.js";
 import { authRouter } from "./routes/auth.js";
@@ -27,9 +27,7 @@ app.use(
     origin:
       NODE_ENV === "development"
         ? ["http://localhost:5173", "http://localhost:8081"]
-        : FRONTEND_URL
-          ? [FRONTEND_URL]
-          : [],
+        : [FRONTEND_URL ?? "", ADMIN_FRONTEND_URL ?? ""],
     allowedHeaders: ["Content-Type", "Authorization"],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   }),
