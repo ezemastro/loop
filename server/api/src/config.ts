@@ -33,6 +33,7 @@ export const {
   ANDROID_GOOGLE_CLIENT_ID,
   IOS_GOOGLE_CLIENT_ID,
   WEB_GOOGLE_CLIENT_ID,
+  ADMIN_FRONTEND_URL,
 } = process.env;
 export const INITIAL_CREDITS = 0;
 
