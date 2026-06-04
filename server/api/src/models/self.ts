@@ -1,7 +1,7 @@
 import { ERROR_MESSAGES, MISSION_KEYS, PAGE_SIZE } from "../config";
 import { InternalServerError, InvalidInputError, UnauthorizedError } from "../services/errors";
 import { comparePasswords, hashPassword } from "../services/hash";
-import { dbConnection } from "../services/postgresClient";
+import { withClient } from "../services/postgresClient.js";
 import { queries } from "../services/queries";
 import {
   safeValidateEmail,
@@ -11,7 +11,6 @@ import {
   safeValidatePhone,
   safeValidateUUID,
 } from "../services/validations";
-import type { DatabaseClient } from "../types/dbClient";
 import {
   getUserMissionsByUserId,
   getNotificationsByUserId,
@@ -36,30 +35,10 @@ import { getOrderValue, getSortValue } from "../utils/sortOptions";
 
 export class SelfModel {
   static getSelf = async ({ userId }: { userId: string }) => {
-    // Crear conexión a la base de datos
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      // Obtener usuario
-      let userDb: DB_Users | undefined;
-      try {
-        [userDb] = await client.query(queries.userById, [userId]);
-      } catch {
-        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
-      }
-      if (!userDb) {
-        throw new InternalServerError(ERROR_MESSAGES.USER_NOT_FOUND);
-      }
-      // Devolver usuario con todas sus escuelas
+    return withClient(async (client) => {
       const user = await getPrivateUserById({ client, userId });
       return { user };
-    } finally {
-      client.release();
-    }
+    });
   };
 
   static updateSelf = async ({
@@ -81,16 +60,7 @@ export class SelfModel {
     password?: string;
     schoolIds?: string[];
   }) => {
-    // Crear conexión a la base de datos
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      await client.begin();
-      // Obtener usuario
+    return withClient(async (client) => {
       let user: UserBase & { password: string | null };
       try {
         const [userDb] = await client.query(queries.userById, [userId]);
@@ -98,19 +68,19 @@ export class SelfModel {
           throw new UnauthorizedError(ERROR_MESSAGES.USER_NOT_FOUND);
         }
         user = { ...parseUserBaseFromDb(userDb), password: userDb.password };
-      } catch {
+      } catch (e) {
+        if (e instanceof UnauthorizedError) throw e;
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
       }
-      // Misión - Actualizar foto de perfil
+
       if (profileMediaId && profileMediaId !== (user.profileMediaId ?? null)) {
-        // TODO - Manejar error si falla la misión
         await progressMission({
           client,
           userId,
           missionKey: MISSION_KEYS.UPDATE_PROFILE_IMAGE,
         });
       }
-      // Preparar datos para actualizar usuario
+
       email = email && (await safeValidateEmail(email)).success ? email : user.email;
       firstName =
         firstName && (await safeValidateFirstName(firstName)).success ? firstName : user.firstName;
@@ -126,7 +96,6 @@ export class SelfModel {
           ? await hashPassword(password)
           : (user.password ?? undefined);
 
-      // Actualizar usuario
       try {
         await client.query(queries.updateUser, [
           email,
@@ -137,7 +106,6 @@ export class SelfModel {
           password,
           userId,
         ]);
-        // Si se envían schoolIds, actualizar las escuelas del usuario
         if (schoolIds) {
           await client.query(queries.deleteUserSchools, [userId]);
           if (schoolIds.length > 0) {
@@ -147,16 +115,10 @@ export class SelfModel {
       } catch {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
       }
-      await client.commit();
-      // Devolver usuario actualizado
+
       const updatedUser = await getPrivateUserById({ client, userId });
       return { user: updatedUser };
-    } catch (error) {
-      await client.rollback();
-      throw error;
-    } finally {
-      client.release();
-    }
+    }, { transaction: true });
   };
 
   static getSelfListings = async ({
@@ -182,15 +144,7 @@ export class SelfModel {
     sort?: SortOptions;
     order?: "asc" | "desc";
   }) => {
-    // Crear conexión a la base de datos
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      // Obtener publicaciones del usuario
+    return withClient(async (client) => {
       const sortValue = getSortValue(sort);
       const orderValue = getOrderValue(order);
       const listingsDb = await client.query(
@@ -234,29 +188,16 @@ export class SelfModel {
         totalRecords: safeNumber(listingsDb[0]?.total_records) ?? 0,
       });
       return { listings, pagination };
-    } finally {
-      client.release();
-    }
+    });
   };
 
   static getSelfMissions = async ({ userId }: { userId: string }) => {
-    // Crear conexión a la base de datos
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      // Obtener misiones del usuario
+    return withClient(async (client) => {
       const missions = await getUserMissionsByUserId({ client, userId });
-      // Devolver filtrando las inactivas
       return {
         missions: missions.filter((mission) => mission.missionTemplate.active),
       };
-    } finally {
-      client.release();
-    }
+    });
   };
 
   static getSelfNotifications = async ({
@@ -266,73 +207,32 @@ export class SelfModel {
     userId: string;
     page: number | undefined;
   }) => {
-    // Crear conexión a la base de datos
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      // Obtener notificaciones del usuario
+    return withClient(async (client) => {
       const { notifications, pagination } = await getNotificationsByUserId({
         client,
         userId,
         page,
       });
-
       return { notifications, pagination };
-    } finally {
-      client.release();
-    }
+    });
   };
 
   static getSelfUnreadNotificationsCount = async ({ userId }: { userId: UUID }) => {
-    // Crear conexión a la base de datos
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      // Obtener cuantas notificaciones no leídas tiene el usuario
+    return withClient(async (client) => {
       const result = await client.query(queries.unreadNotificationsCountByUserId, [userId]);
       const unreadNotificationsCount = result[0]?.unread_count ?? 0;
       return { unreadNotificationsCount };
-    } finally {
-      client.release();
-    }
+    });
   };
 
   static setAllSelfNotificationsRead = async ({ userId }: { userId: UUID }) => {
-    // Crear conexión a la base de datos
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      // Marcar todas las notificaciones como leídas
+    return withClient(async (client) => {
       await client.query(queries.markNotificationsAsRead, [userId]);
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
-    } finally {
-      client.release();
-    }
+    });
   };
 
   static getSelfChats = async ({ userId, page }: { userId: string; page: number | undefined }) => {
-    // Crear conexión a la base de datos
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      // Obtener chats del usuario
+    return withClient(async (client) => {
       const chatsDb = await client.query(queries.chatsByUserId, [
         userId,
         PAGE_SIZE,
@@ -356,33 +256,17 @@ export class SelfModel {
         totalRecords: safeNumber(chatsDb[0]?.total_records) || 0,
       });
       return { chats, pagination };
-    } finally {
-      client.release();
-    }
+    });
   };
 
   static getSelfUnreadChatsCount = async ({ userId }: { userId: string }) => {
-    // Crear conexión a la base de datos
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      // Obtener cuantos chats tiene con mensajes no leídos
-      let unreadChatsCount: number;
-      try {
-        const result = await client.query(queries.unreadChatsCountByUserId, [userId]);
-        unreadChatsCount = safeNumber(result[0]?.unread_count) ?? 0;
-      } catch {
-        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
-      }
+    return withClient(async (client) => {
+      const result = await client.query(queries.unreadChatsCountByUserId, [userId]);
+      const unreadChatsCount = safeNumber(result[0]?.unread_count) ?? 0;
       return { unreadChatsCount };
-    } finally {
-      client.release();
-    }
+    });
   };
+
   static updateNotificationToken = async ({
     userId,
     notificationToken,
@@ -390,35 +274,13 @@ export class SelfModel {
     userId: string;
     notificationToken: string | null;
   }) => {
-    // Crear conexión a la base de datos
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      // Actualizar token de notificaciones push del usuario
-      try {
-        await client.query(queries.updateNotificationToken, [notificationToken, userId]);
-      } catch {
-        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
-      }
-    } finally {
-      client.release();
-    }
+    return withClient(async (client) => {
+      await client.query(queries.updateNotificationToken, [notificationToken, userId]);
+    });
   };
 
   static getSelfWishes = async ({ userId }: { userId: UUID }) => {
-    // Crear conexión a la base de datos
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      // Obtener deseos del usuario
+    return withClient(async (client) => {
       const wishesDb = await client.query(queries.getUserWishesByUserId, [userId]);
       const userWishesBase = wishesDb.map(parseUserWishFromDb);
       const userWishes = await Promise.all(
@@ -433,9 +295,7 @@ export class SelfModel {
         }),
       );
       return { userWishes };
-    } finally {
-      client.release();
-    }
+    });
   };
 
   static createSelfWish = async ({
@@ -447,15 +307,7 @@ export class SelfModel {
     categoryId: UUID;
     comment?: string | null;
   }) => {
-    // Crear conexión a la base de datos
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      // Agregar deseo del usuario
+    return withClient(async (client) => {
       const result = await client.query(queries.createUserWish, [userId, categoryId, comment]);
       const userWishBase = parseUserWishFromDb(result[0]!);
       const userWish = parseUserWishFromBase({
@@ -466,29 +318,13 @@ export class SelfModel {
         }),
       });
       return { userWish };
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
-    } finally {
-      client.release();
-    }
+    });
   };
 
   static deleteSelfWish = async ({ userId, categoryId }: { userId: UUID; categoryId: UUID }) => {
-    // Crear conexión a la base de datos
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      // Eliminar deseo del usuario
+    return withClient(async (client) => {
       await client.query(queries.removeUserWish, [userId, categoryId]);
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
-    } finally {
-      client.release();
-    }
+    });
   };
 
   static modifyWish = async ({
@@ -502,15 +338,7 @@ export class SelfModel {
     comment?: string | null;
     categoryId?: UUID;
   }) => {
-    // Crear conexión a la base de datos
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      // Obtener deseo para verificar que pertenece al usuario
+    return withClient(async (client) => {
       let wishDb: DB_UsersWishes | undefined;
       try {
         [wishDb] = await client.query(queries.userWishById, [wishId]);
@@ -530,7 +358,6 @@ export class SelfModel {
         categoryId: categoryId || wishBase.categoryId,
         comment: comment !== undefined ? comment : wishBase.comment,
       };
-      // Actualizar comentario del deseo del usuario
       try {
         await client.query(queries.updateUserWish, [newWish.comment, newWish.categoryId, wishId]);
       } catch {
@@ -545,11 +372,7 @@ export class SelfModel {
           }),
         }),
       };
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
-    } finally {
-      client.release();
-    }
+    });
   };
 
   static modifyUserPassword = async ({
@@ -561,15 +384,7 @@ export class SelfModel {
     newPassword: string;
     oldPassword: string;
   }) => {
-    // Crear conexión a la base de datos
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      // Obtener la contraseña actual del usuario
+    return withClient(async (client) => {
       let userDb: DB_Users | undefined;
       try {
         [userDb] = await client.query(queries.userById, [userId]);
@@ -583,19 +398,12 @@ export class SelfModel {
       if (!currentPasswordHash) {
         throw new UnauthorizedError(ERROR_MESSAGES.INVALID_CREDENTIALS);
       }
-      // Comparar contraseña antigua
       const isPasswordCorrect = await comparePasswords(oldPassword, currentPasswordHash);
       if (!isPasswordCorrect) {
         throw new UnauthorizedError(ERROR_MESSAGES.INVALID_CREDENTIALS);
       }
-      // Hashear la nueva contraseña
       const hashedPassword = await hashPassword(newPassword);
-      // Actualizar la contraseña del usuario
       await client.query(queries.updateUserPassword, [hashedPassword, userId]);
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
-    } finally {
-      client.release();
-    }
+    });
   };
 }

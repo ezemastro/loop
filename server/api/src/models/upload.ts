@@ -1,8 +1,7 @@
 import { ERROR_MESSAGES } from "../config";
 import { InternalServerError } from "../services/errors";
-import { dbConnection } from "../services/postgresClient";
+import { withClient } from "../services/postgresClient.js";
 import { queries } from "../services/queries";
-import type { DatabaseClient } from "../types/dbClient";
 
 export class UploadModel {
   static saveFile = async ({
@@ -16,13 +15,7 @@ export class UploadModel {
     userId: UUID;
     isAdmin: boolean;
   }) => {
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
+    return withClient(async (client) => {
       const result = await client.query(queries.uploadFile, [
         filename,
         mimetype,
@@ -39,10 +32,7 @@ export class UploadModel {
         mime: mimetype,
         mediaType: "image",
       };
-
       return { media };
-    } finally {
-      client.release();
-    }
+    });
   };
 }

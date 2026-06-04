@@ -121,7 +121,6 @@ export const parsePublicUserFromBase = ({
 }): PublicUser => {
   return {
     id: user.id,
-    email: user.email,
     firstName: user.firstName,
     lastName: user.lastName,
     profileMediaId: user.profileMediaId,
@@ -184,7 +183,7 @@ export const parseListingBaseFromDb = (row: DB_Listings): ListingBase => {
     disabled: row.disabled,
     id: row.id,
     listingStatus: row.listing_status,
-    offeredCredits: Number(row.offered_credits),
+    offeredCredits: row.offered_credits !== null ? Number(row.offered_credits) : null,
     price: Number(row.price_credits),
     productStatus: row.product_status,
     sellerId: row.seller_id,

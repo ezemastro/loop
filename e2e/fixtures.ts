@@ -175,16 +175,28 @@ export const test = base.extend<LoopFixtures>({
     await use(cleanDatabase);
   },
 
-  apiAdmin: async ({ request }, use) => {
-    await use(request);
+  apiAdmin: async ({ playwright }, use) => {
+    const ctx = await playwright.request.newContext({
+      baseURL: process.env.API_URL || "http://localhost:3000",
+    });
+    await use(ctx);
+    await ctx.dispose();
   },
 
-  apiUser: async ({ request }, use) => {
-    await use(request);
+  apiUser: async ({ playwright }, use) => {
+    const ctx = await playwright.request.newContext({
+      baseURL: process.env.API_URL || "http://localhost:3000",
+    });
+    await use(ctx);
+    await ctx.dispose();
   },
 
-  apiUser2: async ({ request }, use) => {
-    await use(request);
+  apiUser2: async ({ playwright }, use) => {
+    const ctx = await playwright.request.newContext({
+      baseURL: process.env.API_URL || "http://localhost:3000",
+    });
+    await use(ctx);
+    await ctx.dispose();
   },
 
   schoolId: async ({ cleanDb }, use) => {

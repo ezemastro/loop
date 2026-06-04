@@ -56,7 +56,6 @@ const publicUserSchema = z.object({
   id: z.uuid(),
   firstName: firstNameSchema,
   lastName: lastNameSchema,
-  email: emailSchema,
   profileMediaId: z.uuid().nullable(),
   profileMedia: mediaSchema.nullable(),
   schools: z.array(schoolSchema),

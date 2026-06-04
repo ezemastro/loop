@@ -155,7 +155,7 @@ test.describe("DELETE /listings/:id", () => {
 });
 
 test.describe("POST /listings/:id/offer", () => {
-  test("makes an offer on a listing", async ({ apiUser, user2Token, categoryId }) => {
+  test("makes an offer on a listing", async ({ apiUser, userToken, user2Token, categoryId }) => {
     // User1 creates listing
     const createRes = await apiUser.post("/listings", {
       headers: { Authorization: `Bearer ${userToken}` },
@@ -183,7 +183,7 @@ test.describe("POST /listings/:id/offer", () => {
 });
 
 test.describe("POST /listings/:id/offer/accept", () => {
-  test("accepts an offer", async ({ apiUser, user2Token, categoryId }) => {
+  test("accepts an offer", async ({ apiUser, userToken, user2Token, categoryId }) => {
     const createRes = await apiUser.post("/listings", {
       headers: { Authorization: `Bearer ${userToken}` },
       data: {

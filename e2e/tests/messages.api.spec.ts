@@ -7,7 +7,7 @@ test.describe("POST /messages/:userId", () => {
       data: { text: "Hello from E2E test!" },
     });
 
-    expect(res.status()).toBe(200);
+    expect(res.status()).toBe(201);
     const body = await res.json();
     expect(body.success).toBe(true);
     expect(body.data.message.text).toBe("Hello from E2E test!");

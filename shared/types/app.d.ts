@@ -59,7 +59,7 @@ interface User extends UserBase {
 }
 
 type PrivateUser = Omit<User, "notificationToken" | "password" | "googleId">;
-type PublicUser = Omit<PrivateUser, "phone" | "credits">;
+type PublicUser = Omit<PrivateUser, "phone" | "credits" | "email">;
 
 interface CategoryBase {
   id: UUID;

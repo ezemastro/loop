@@ -60,6 +60,11 @@ export const queries = {
     "user.schoolsByUserId",
     `SELECT * FROM user_schools WHERE user_id = $1`,
   ),
+  userSchoolsByUserIds: (ids: UUID[]) =>
+    q<DB_UserSchools>(
+      "user.schoolsByUserIds",
+      `SELECT * FROM user_schools WHERE user_id = ANY($1::uuid[])`,
+    ),
 
   mediaById: q<DB_Media>("media.byId", `SELECT * FROM media WHERE id = $1`),
 
@@ -560,4 +565,34 @@ export const queries = {
     "admin.updateGoogleId",
     `UPDATE admins SET google_id = $1 WHERE id = $2`,
   ),
+  schoolsByIds: (ids: UUID[]) =>
+    q<DB_Schools>(
+      "schools.byIds",
+      `SELECT * FROM schools WHERE id = ANY($1::uuid[])`,
+    ),
+  mediaByIds: (ids: UUID[]) =>
+    q<DB_Media>(
+      "media.byIds",
+      `SELECT * FROM media WHERE id = ANY($1::uuid[])`,
+    ),
+  missionTemplatesByIds: (ids: UUID[]) =>
+    q<DB_MissionTemplates>(
+      "missionTemplates.byIds",
+      `SELECT * FROM mission_templates WHERE id = ANY($1::uuid[])`,
+    ),
+  usersByIds: (ids: UUID[]) =>
+    q<DB_Users>(
+      "users.byIds",
+      `SELECT * FROM users WHERE id = ANY($1::uuid[])`,
+    ),
+  categoriesByIds: (ids: UUID[]) =>
+    q<DB_Categories>(
+      "categories.byIds",
+      `SELECT * FROM categories WHERE id = ANY($1::uuid[])`,
+    ),
+  listingMediasByListingIds: (ids: UUID[]) =>
+    q<DB_ListingMedia>(
+      "listingMedias.byListingIds",
+      `SELECT * FROM listing_media WHERE listing_id = ANY($1::uuid[])`,
+    ),
 } as const;

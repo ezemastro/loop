@@ -1,5 +1,4 @@
-import { dbConnection } from "../services/postgresClient";
-import type { DatabaseClient } from "../types/dbClient";
+import { withClient } from "../services/postgresClient.js";
 import { ERROR_MESSAGES, ADMIN_GOOGLE_CLIENT_ID, PAGE_SIZE } from "../config";
 import { ConflictError, InternalServerError, InvalidInputError } from "../services/errors";
 import { queries } from "../services/queries";
@@ -21,28 +20,18 @@ import { adminGoogleClient } from "../services/googleOauth";
 
 export class AdminModel {
   static async login({ email, password }: { email: string; password: string }) {
-    // Conectarse a la base de datos
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
+    return withClient(async (client) => {
       const adminDb = await client.query(queries.adminByEmail, [email]);
       if (!adminDb[0]) {
         throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
       }
       const admin = parseAdminFromDb(adminDb[0]);
-      // Verificar la contraseña
       const isPasswordCorrect = await comparePasswords(password, adminDb[0].password);
       if (!isPasswordCorrect) {
         throw new InvalidInputError(ERROR_MESSAGES.INVALID_CREDENTIALS);
       }
       return { admin };
-    } finally {
-      client.release();
-    }
+    });
   }
 
   static async register({
@@ -54,132 +43,95 @@ export class AdminModel {
     fullName: string;
     password: string;
   }) {
-    // Conectarse a la base de datos
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      // Verificar si el admin ya existe
+    return withClient(async (client) => {
       const existingAdmin = await client.query(queries.adminByEmail, [email]);
       if (existingAdmin[0]) {
-        throw new InvalidInputError(ERROR_MESSAGES.USER_ALREADY_EXISTS);
+        throw new ConflictError(ERROR_MESSAGES.USER_ALREADY_EXISTS);
       }
-      // Verificar si el mail de registro está autorizado
       const isValidEmailDb = await client.query(queries.isValidEmailForAdminRegistration, [email]);
       if (!isValidEmailDb[0]?.exists) {
         throw new InvalidInputError(ERROR_MESSAGES.EMAIL_NOT_AUTHORIZED);
       }
-      // Hashear la contraseña
       const hashedPassword = await hashPassword(password);
-      // Crear el nuevo administrador
-      await client.begin();
-      const newAdmin = await client.query(queries.createAdmin, [
-        email,
-        fullName,
-        hashedPassword,
-        null,
-      ]);
+      let newAdmin;
+      try {
+        newAdmin = await client.query(queries.createAdmin, [
+          email,
+          fullName,
+          hashedPassword,
+          null,
+        ]);
+      } catch (err: unknown) {
+        if ((err as { code?: string }).code === "23505") {
+          throw new ConflictError(ERROR_MESSAGES.USER_ALREADY_EXISTS);
+        }
+        throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+      }
       if (!newAdmin[0]) {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
       }
-      await client.commit();
       return {
         admin: parseAdminFromDb(newAdmin[0]),
       };
-    } catch (error) {
-      await client.rollback();
-      throw error;
-    } finally {
-      client.release();
-    }
+    }, { transaction: true });
   }
 
   static async googleLogin({ credential }: { credential: string }) {
-    // Conectarse a la base de datos
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
+    return withClient(async (client) => {
       let payload;
       try {
         const ticket = await adminGoogleClient.verifyIdToken({
           idToken: credential,
           audience: ADMIN_GOOGLE_CLIENT_ID,
         });
-
         payload = ticket.getPayload();
-
         if (!payload) {
           throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_CREDENTIAL_INVALID);
         }
       } catch (error) {
-        // Capturar errores de verificación de Google (e.g., audience mismatch)
         console.error("Error al verificar token de Google:", error);
         throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_CREDENTIAL_INVALID);
       }
 
-      // Obtener información del usuario
       const googleId = payload.sub;
       const email = payload.email;
       const emailVerified = payload.email_verified;
       const fullName = payload.name;
 
-      // Verificar si el email está verificado
       if (!emailVerified) {
         throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_EMAIL_NOT_VERIFIED);
       }
 
-      // Verificar si el email ya está registrado
       let adminDb: DB_Admin | undefined;
       try {
         [adminDb] = await client.query(queries.adminByEmail, [email]);
       } catch {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
       }
+
       if (!adminDb) {
-        // Registrar nuevo admin
-        // Verificar si el mail de registro está autorizado
         const isValidEmailDb = await client.query(queries.isValidEmailForAdminRegistration, [
           email,
         ]);
         if (!isValidEmailDb[0]?.exists) {
           throw new InvalidInputError(ERROR_MESSAGES.EMAIL_NOT_AUTHORIZED);
         }
-        // Crear el nuevo administrador
-        await client.begin();
-        let admin;
-        try {
-          const newAdminDb = await client.query(queries.createAdmin, [
-            email,
-            fullName,
-            null,
-            googleId,
-          ]);
-          if (!newAdminDb[0]) {
-            // Posible error si no se devuelve como array
-            throw new Error();
-          }
-          admin = parseAdminFromDb(newAdminDb[0]);
-          await client.commit();
-        } catch {
-          await client.rollback();
+
+        const newAdminDb = await client.query(queries.createAdmin, [
+          email,
+          fullName,
+          null,
+          googleId,
+        ]);
+        if (!newAdminDb[0]) {
           throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
         }
+        const admin = parseAdminFromDb(newAdminDb[0]);
         return { admin };
       } else {
-        // Iniciar sesión admin existente
-        // Verificar si el admin no se registró con Google
         if (!adminDb.google_id) {
-          // Agregar googleId al admin existente
           await client.query(queries.updateAdminGoogleId, [googleId, adminDb.id]);
         } else {
-          // Verificar que el googleId coincida
           if (adminDb.google_id !== googleId) {
             throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_ID_MISMATCH);
           }
@@ -187,34 +139,17 @@ export class AdminModel {
         const admin = parseAdminFromDb(adminDb);
         return { admin };
       }
-    } finally {
-      client.release();
-    }
+    }, { transaction: true });
   }
 
   static async addValidEmailForRegistration({ email }: { email: string }) {
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
+    return withClient(async (client) => {
       await client.query(queries.addValidEmailForAdminRegistration, [email]);
-    } finally {
-      client.release();
-    }
+    });
   }
 
-  // Gestión de usuarios
   static async getUsers({ page = 1, search }: { page?: number; search?: string }) {
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
+    return withClient(async (client) => {
       const offset = (page - 1) * PAGE_SIZE;
 
       const usersDb = await client.query(
@@ -242,9 +177,7 @@ export class AdminModel {
       const total = safeNumber(usersDb[0]?.total_records);
 
       return { users, total };
-    } finally {
-      client.release();
-    }
+    });
   }
 
   static async modifyUserCredits({
@@ -258,22 +191,12 @@ export class AdminModel {
     positive: boolean;
     meta?: Record<string, unknown>;
   }) {
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      await client.begin();
-
-      // Verificar que el usuario existe
+    return withClient(async (client) => {
       const userDb = await client.query(queries.userById, [userId]);
       if (!userDb[0]) {
         throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
       }
 
-      // Crear la transacción
       await client.query(queries.createWalletTransaction, [
         userId,
         "admin",
@@ -283,85 +206,50 @@ export class AdminModel {
         meta ? JSON.stringify(meta) : null,
       ]);
 
-      // Actualizar el balance del usuario
       if (positive) {
         await client.query(queries.increaseUserBalance, [amount, userId]);
       } else {
         await client.query(queries.decreaseUserBalance, [amount, userId]);
       }
 
-      await client.commit();
-
-      // Obtener el usuario actualizado
       const updatedUserDb = await client.query(queries.userById, [userId]);
       if (!updatedUserDb[0]) {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
       }
       const userBase = parseUserBaseFromDb(updatedUserDb[0] as DB_Users);
       return { user: userBase };
-    } catch (error) {
-      await client.rollback();
-      throw error;
-    } finally {
-      client.release();
-    }
+    }, { transaction: true });
   }
-  // TODO ---------------
-  // MODIFICAR CONTRASEÑA DE USUARIO
-  // Y AGREGAR ENDPOINT EN USER PARA QUE LA PUEDA CAMBIAR ELLA MISMA
 
-  static async resetUserPassword({ userId, newPassword }: { userId: UUID; newPassword: string }) {
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      // Hashear la nueva contraseña
+  static async resetUserPassword({
+    userId,
+    newPassword,
+  }: {
+    userId: UUID;
+    newPassword: string;
+  }) {
+    return withClient(async (client) => {
       const hashedPassword = await hashPassword(newPassword);
-      // Actualizar la contraseña del usuario
-
       await client.query(queries.updateUserPassword, [hashedPassword, userId]);
-    } finally {
-      client.release();
-    }
+    });
   }
 
-  // Gestión de escuelas
   static async createSchool({ name, mediaId }: { name: string; mediaId: UUID }) {
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      await client.begin();
-
-      // Verificar que el media existe
+    return withClient(async (client) => {
       const mediaDb = await client.query(queries.mediaById, [mediaId]);
       if (!mediaDb[0]) {
         throw new InvalidInputError("Media no encontrado");
       }
 
-      // Crear la escuela
       const schoolDb = await client.query(queries.createSchool, [name, mediaId]);
       if (!schoolDb[0]) {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
       }
 
-      await client.commit();
-
       const schoolBase = parseSchoolFromDb(schoolDb[0] as DB_Schools);
       const media = parseMediaFromDb(mediaDb[0] as DB_Media);
       return { school: { ...schoolBase, media } };
-    } catch (error) {
-      await client.rollback();
-      throw error;
-    } finally {
-      client.release();
-    }
+    }, { transaction: true });
   }
 
   static async updateSchool({
@@ -373,16 +261,7 @@ export class AdminModel {
     name?: string;
     mediaId?: UUID;
   }) {
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      await client.begin();
-
-      // Obtener la escuela actual para validar que existe
+    return withClient(async (client) => {
       const existingSchoolDb = await client.query(queries.schoolById, [schoolId]);
       if (!existingSchoolDb[0]) {
         throw new InvalidInputError("Escuela no encontrada");
@@ -392,7 +271,6 @@ export class AdminModel {
       const finalName = name ?? currentSchool.name;
       const finalMediaId = mediaId ?? currentSchool.media_id;
 
-      // Verificar que el media existe si se está actualizando
       if (mediaId) {
         const mediaDb = await client.query(queries.mediaById, [mediaId]);
         if (!mediaDb[0]) {
@@ -400,7 +278,6 @@ export class AdminModel {
         }
       }
 
-      // Actualizar la escuela
       const updatedSchoolDb = await client.query(queries.updateSchool, [
         finalName,
         finalMediaId,
@@ -410,20 +287,12 @@ export class AdminModel {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
       }
 
-      await client.commit();
-
       const schoolBase = parseSchoolFromDb(updatedSchoolDb[0] as DB_Schools);
       const media = await getMediaById({ client, mediaId: finalMediaId });
       return { school: { ...schoolBase, media } };
-    } catch (error) {
-      await client.rollback();
-      throw error;
-    } finally {
-      client.release();
-    }
+    }, { transaction: true });
   }
 
-  // Gestión de categorías
   static async createCategory({
     name,
     description,
@@ -445,16 +314,7 @@ export class AdminModel {
     statKgCo2?: number;
     statLH2o?: number;
   }) {
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      await client.begin();
-
-      // Si hay parentId, verificar que existe
+    return withClient(async (client) => {
       if (parentId) {
         const parentDb = await client.query(queries.categoryById, [parentId]);
         if (!parentDb[0]) {
@@ -478,16 +338,9 @@ export class AdminModel {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
       }
 
-      await client.commit();
-
       const categoryBase = parseCategoryBaseFromDb(categoryDb[0] as DB_Categories);
       return { category: categoryBase };
-    } catch (error) {
-      await client.rollback();
-      throw error;
-    } finally {
-      client.release();
-    }
+    }, { transaction: true });
   }
 
   static async updateCategory({
@@ -513,22 +366,12 @@ export class AdminModel {
     statKgCo2?: number;
     statLH2o?: number;
   }) {
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      await client.begin();
-
-      // Verificar que la categoría existe
+    return withClient(async (client) => {
       const categoryDb = await client.query(queries.categoryById, [categoryId]);
       if (!categoryDb[0]) {
         throw new InvalidInputError("Categoría no encontrada");
       }
 
-      // Si hay parentId, verificar que existe
       if (parentId) {
         const parentDb = await client.query(queries.categoryById, [parentId]);
         if (!parentDb[0]) {
@@ -549,19 +392,11 @@ export class AdminModel {
         categoryId,
       ]);
 
-      await client.commit();
-
       const categoryBase = parseCategoryBaseFromDb(updatedCategoryDb[0] as DB_Categories);
       return { category: categoryBase };
-    } catch (error) {
-      await client.rollback();
-      throw error;
-    } finally {
-      client.release();
-    }
+    }, { transaction: true });
   }
 
-  // Gestión de notificaciones
   static async sendNotification({
     userId,
     type,
@@ -571,16 +406,7 @@ export class AdminModel {
     type: NotificationType;
     payload: Record<string, unknown>;
   }) {
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      await client.begin();
-
-      // Verificar que el usuario existe
+    return withClient(async (client) => {
       const userDb = await client.query(queries.userById, [userId]);
       if (!userDb[0]) {
         throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
@@ -592,47 +418,28 @@ export class AdminModel {
         JSON.stringify(payload),
       ]);
 
-      await client.commit();
-
       const notificationBase = parseNotificationBaseFromDb(notificationDb[0] as DB_Notifications);
       return { notification: notificationBase };
-    } catch (error) {
-      await client.rollback();
-      throw error;
-    } finally {
-      client.release();
-    }
+    }, { transaction: true });
   }
 
-  // Estadísticas
   static async getStats() {
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
+    return withClient(async (client) => {
       const statsDb = await client.query(queries.getGlobalStats);
-      const stats = statsDb.reduce((acc: Record<string, number>, row: DB_GlobalStats) => {
-        acc[row.stat_name] = Number(row.stat_value);
-        return acc;
-      }, {});
+      const stats = statsDb.reduce(
+        (acc: Record<string, number>, row: DB_GlobalStats) => {
+          acc[row.stat_name] = Number(row.stat_value);
+          return acc;
+        },
+        {},
+      );
 
       return { stats };
-    } finally {
-      client.release();
-    }
+    });
   }
 
   static async getSchoolStats() {
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
+    return withClient(async (client) => {
       const schoolsDb = await client.query(queries.getSchoolStats);
       const schools = schoolsDb.map((row: DB_Schools) => ({
         id: row.id,
@@ -643,20 +450,11 @@ export class AdminModel {
       }));
 
       return { schools };
-    } finally {
-      client.release();
-    }
+    });
   }
 
-  // Gestión de mission templates
   static async getMissionTemplates() {
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
+    return withClient(async (client) => {
       const missionTemplatesDb = await client.query(queries.allMissionTemplates, []);
 
       const missionTemplates = missionTemplatesDb.map((row) =>
@@ -664,9 +462,7 @@ export class AdminModel {
       );
 
       return { missionTemplates };
-    } finally {
-      client.release();
-    }
+    });
   }
 
   static async createMissionTemplate({
@@ -682,16 +478,7 @@ export class AdminModel {
     rewardCredits: number;
     active: boolean;
   }) {
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      await client.begin();
-
-      // Verificar que el key no exista
+    return withClient(async (client) => {
       const existingMission = await client.query(queries.missionTemplateByKey, [key]);
       if (existingMission[0]) {
         throw new ConflictError(ERROR_MESSAGES.MISSION_KEY_ALREADY_EXISTS);
@@ -711,21 +498,13 @@ export class AdminModel {
 
       const missionTemplate = parseMissionTemplateFromDb(missionTemplateDb[0]);
 
-      // Asignar la misión a todos los usuarios existentes
       await assignMissionToAllUsers({
         client,
         missionTemplateId: missionTemplate.id,
       });
 
-      await client.commit();
-
       return { missionTemplate };
-    } catch (error) {
-      await client.rollback();
-      throw error;
-    } finally {
-      client.release();
-    }
+    }, { transaction: true });
   }
 
   static async updateMissionTemplate({
@@ -741,16 +520,7 @@ export class AdminModel {
     rewardCredits?: number;
     active?: boolean;
   }) {
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      await client.begin();
-
-      // Verificar que la misión existe
+    return withClient(async (client) => {
       const missionDb = await client.query(queries.missionTemplateById, [missionTemplateId]);
       if (!missionDb[0]) {
         throw new InvalidInputError(ERROR_MESSAGES.MISSION_NOT_FOUND);
@@ -768,16 +538,9 @@ export class AdminModel {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
       }
 
-      await client.commit();
-
       const missionTemplate = parseMissionTemplateFromDb(updatedMissionDb[0]);
 
       return { missionTemplate };
-    } catch (error) {
-      await client.rollback();
-      throw error;
-    } finally {
-      client.release();
-    }
+    }, { transaction: true });
   }
 }

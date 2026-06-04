@@ -1,8 +1,7 @@
 import { ERROR_MESSAGES, PAGE_SIZE } from "../config";
-import { InternalServerError, InvalidInputError } from "../services/errors";
-import { dbConnection } from "../services/postgresClient";
+import { InvalidInputError } from "../services/errors";
+import { withClient } from "../services/postgresClient.js";
 import { queries } from "../services/queries";
-import type { DatabaseClient } from "../types/dbClient";
 import { getListingById } from "../utils/helpersDb";
 import { sendMessageNotification } from "../utils/notifications";
 import { parseMessageBaseFromDb, parseMessageFromBase, parsePagination } from "../utils/parseDb";
@@ -18,20 +17,13 @@ export class MessagesModel {
     recipientId: UUID;
     page: number | undefined;
   }) {
-    // Obtener cliente de base de datos
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      // Obtener mensajes
+    return withClient(async (client) => {
+      const _page = Math.max(1, page ?? 1);
       const messagesDb = await client.query(queries.messagesBySenderAndRecipient, [
         senderId,
         recipientId,
         PAGE_SIZE,
-        PAGE_SIZE * ((page ?? 1) - 1),
+        PAGE_SIZE * (_page - 1),
       ]);
       const messages = await Promise.all(
         messagesDb.map(async (msg) => {
@@ -51,11 +43,8 @@ export class MessagesModel {
         currentPage: page ?? 1,
         totalRecords: safeNumber(messagesDb[0]?.total_records) || 0,
       });
-      // Devolver mensajes
       return { messages, pagination };
-    } finally {
-      client.release();
-    }
+    });
   }
 
   static async sendMessageToUser({
@@ -69,37 +58,25 @@ export class MessagesModel {
     text: string;
     attachedListingId?: string | null;
   }) {
-    // Obtener cliente de base de datos
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      // Enviar mensaje
+    return withClient(async (client) => {
       const [newMessage] = await client.query(queries.newMessage, [
         senderId,
         recipientId,
         text,
         attachedListingId ?? null,
       ]);
-      // Obtener nombre del remitente
-      const senderDb = await client.query(queries.userById, [senderId]);
-      if (senderDb.length === 0) throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
-      const senderName = `${senderDb[0]!.first_name} ${senderDb[0]!.last_name}`;
-      // Obtener token de notificación del destinatario
-      const recipientDb = await client.query(queries.userById, [recipientId]);
-      if (recipientDb.length === 0) throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
-      // Enviar notificación
+      const [senderDb] = await client.query(queries.userById, [senderId]);
+      if (!senderDb) throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
+      const senderName = `${senderDb.first_name} ${senderDb.last_name}`;
+      const [recipientDb] = await client.query(queries.userById, [recipientId]);
+      if (!recipientDb) throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
       await sendMessageNotification({
         senderName,
         message: text,
         client,
         userId: recipientId,
-        notificationToken: recipientDb[0]!.notification_token,
+        notificationToken: recipientDb.notification_token,
       });
-      // Devolver mensaje enviado
       const message = parseMessageFromBase({
         message: {
           id: newMessage!.id,
@@ -113,24 +90,12 @@ export class MessagesModel {
           : null,
       });
       return { message };
-    } finally {
-      client.release();
-    }
+    });
   }
+
   static async markMessagesAsRead({ userId, senderId }: { userId: UUID; senderId: UUID }) {
-    // Obtener cliente de base de datos
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
-    }
-    try {
-      // Marcar mensajes como leídos
+    return withClient(async (client) => {
       await client.query(queries.markMessagesAsRead, [userId, senderId]);
-      return;
-    } finally {
-      client.release();
-    }
+    });
   }
 }
