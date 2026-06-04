@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import adminApi from "@/api/adminApi";
 import { AxiosError } from "axios";
 
@@ -32,6 +32,10 @@ export default function CategoryFormModal({
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
     if (category) {
@@ -61,6 +65,13 @@ export default function CategoryFormModal({
     }
   }, [category, parentCategoryId]);
 
+  useEffect(() => {
+    if (feedback) {
+      const timer = setTimeout(() => setFeedback(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [feedback]);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
@@ -71,6 +82,7 @@ export default function CategoryFormModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setFeedback(null);
 
     try {
       setLoading(true);
@@ -79,8 +91,8 @@ export default function CategoryFormModal({
         description: formData.description || undefined,
         parentId: formData.parentId || undefined,
         icon: formData.icon || undefined,
-        minPriceCredits: formData.minPriceCredits ? parseInt(formData.minPriceCredits) : undefined,
-        maxPriceCredits: formData.maxPriceCredits ? parseInt(formData.maxPriceCredits) : undefined,
+        minPriceCredits: formData.minPriceCredits ? Number(formData.minPriceCredits) : undefined,
+        maxPriceCredits: formData.maxPriceCredits ? Number(formData.maxPriceCredits) : undefined,
         statKgWaste: formData.statKgWaste ? parseFloat(formData.statKgWaste) : undefined,
         statKgCo2: formData.statKgCo2 ? parseFloat(formData.statKgCo2) : undefined,
         statLH2o: formData.statLH2o ? parseFloat(formData.statLH2o) : undefined,
@@ -89,12 +101,12 @@ export default function CategoryFormModal({
       if (category) {
         const response = await adminApi.updateCategory(category.id, data);
         if (response.success) {
-          alert("Categoría actualizada exitosamente");
+          setFeedback({ type: "success", message: "Categoría actualizada exitosamente" });
         }
       } else {
         const response = await adminApi.createCategory(data);
         if (response.success) {
-          alert("Categoría creada exitosamente");
+          setFeedback({ type: "success", message: "Categoría creada exitosamente" });
         }
       }
 
@@ -114,10 +126,10 @@ export default function CategoryFormModal({
 
   const handleClose = () => {
     setError(null);
+    setFeedback(null);
     onClose();
   };
 
-  // Aplanar todas las categorías y subcategorías con información de nivel
   const flattenCategories = (cats: Category[]): Array<Category & { level: number }> => {
     const result: Array<Category & { level: number }> = [];
     const flatten = (cat: Category, level: number = 0) => {
@@ -165,18 +177,6 @@ export default function CategoryFormModal({
                 rows={3}
               />
             </div>
-
-            {/* <div>
-              <label className="block mb-2 font-semibold">Icono:</label>
-              <input
-                type="text"
-                name="icon"
-                value={formData.icon}
-                onChange={handleChange}
-                className="border border-gray-300 rounded px-3 py-2 w-full"
-                placeholder="🎒"
-              />
-            </div> */}
 
             <div className="col-span-2">
               <label className="block mb-2 font-semibold">Categoría Padre:</label>
@@ -267,6 +267,9 @@ export default function CategoryFormModal({
             </div>
           </div>
 
+          {feedback && (
+            <div className="mt-4 p-3 bg-green-100 text-green-700 rounded">{feedback.message}</div>
+          )}
           {error && <div className="mt-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>}
 
           <div className="flex gap-2 mt-6">

@@ -1,6 +1,7 @@
 import { SelfModel } from "../models/self";
 import type { Response, Request, NextFunction } from "express";
 import {
+  safeValidateEmail,
   safeValidateUUID,
   validateGetSelfListingsRequest,
   validateGetSelfMessagesRequest,
@@ -287,6 +288,31 @@ export class SelfController {
         oldPassword,
         newPassword,
       });
+    } catch (err) {
+      return next(err);
+    }
+    res.status(204).send(successResponse());
+  };
+
+  static deleteSelf = async (req: Request, res: Response, next: NextFunction) => {
+    const { userId } = req.session!;
+    try {
+      await SelfModel.deleteSelf({ userId });
+    } catch (err) {
+      return next(err);
+    }
+    res.status(204).send(successResponse());
+  };
+
+  static deleteSelfRequest = async (req: Request, res: Response, next: NextFunction) => {
+    const { email } = req.body as PostSelfDeleteRequest["body"];
+    try {
+      await safeValidateEmail(email);
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    try {
+      await SelfModel.deleteSelfByEmail({ email });
     } catch (err) {
       return next(err);
     }

@@ -45,12 +45,7 @@ export default function Schools() {
         // Combinar datos: agregar stats a cada escuela
         const schoolsWithStats: SchoolWithStats[] = schoolsData.map((school) => {
           // Intentar match por id (pueden ser diferentes tipos)
-          const stats = statsData.find(
-            (s) =>
-              s.id === parseInt(school.id) ||
-              s.id.toString() === school.id ||
-              s.name === school.name,
-          );
+          const stats = statsData.find((s) => s.id.toString() === school.id);
 
           return {
             ...school,

@@ -1,7 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 
-const deleteEndpoint = import.meta.env.PUBLIC_DELETE_ACCOUNT_ENDPOINT ?? 'https://api.loop.example.com/account/delete';
+const deleteEndpoint = import.meta.env.PUBLIC_DELETE_ACCOUNT_ENDPOINT ?? 'https://api.loop.example.com/me/delete-request';
 const supportEmail = import.meta.env.PUBLIC_SUPPORT_EMAIL ?? 'soporte@loop.app';
 const supportMailTo = `mailto:${supportEmail}?subject=${encodeURIComponent('Ayuda con borrado de cuenta en Loop')}&body=${encodeURIComponent('Hola equipo de soporte,')}`;
 ---

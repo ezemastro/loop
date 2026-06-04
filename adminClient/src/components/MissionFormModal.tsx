@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import adminApi from "@/api/adminApi";
 import { AxiosError } from "axios";
 
@@ -16,14 +16,45 @@ export default function MissionFormModal({
   onSuccess,
 }: MissionFormModalProps) {
   const [formData, setFormData] = useState({
-    key: mission?.key || "",
-    title: mission?.title || "",
-    description: mission?.description || "",
-    rewardCredits: mission?.rewardCredits?.toString() || "",
-    active: mission?.active ?? true,
+    key: "",
+    title: "",
+    description: "",
+    rewardCredits: "",
+    active: true,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (mission) {
+      setFormData({
+        key: mission.key || "",
+        title: mission.title || "",
+        description: mission.description || "",
+        rewardCredits: mission.rewardCredits?.toString() || "",
+        active: mission.active ?? true,
+      });
+    } else {
+      setFormData({
+        key: "",
+        title: "",
+        description: "",
+        rewardCredits: "",
+        active: true,
+      });
+    }
+  }, [mission, isOpen]);
+
+  useEffect(() => {
+    if (feedback) {
+      const timer = setTimeout(() => setFeedback(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [feedback]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
@@ -38,6 +69,7 @@ export default function MissionFormModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setFeedback(null);
 
     try {
       setLoading(true);
@@ -45,19 +77,19 @@ export default function MissionFormModal({
         key: formData.key,
         title: formData.title,
         description: formData.description || undefined,
-        rewardCredits: parseInt(formData.rewardCredits),
+        rewardCredits: Number(formData.rewardCredits),
         active: formData.active,
       };
 
       if (mission) {
         const response = await adminApi.updateMissionTemplate(mission.id, data);
         if (response.success) {
-          alert("Misión actualizada exitosamente");
+          setFeedback({ type: "success", message: "Misión actualizada exitosamente" });
         }
       } else {
         const response = await adminApi.createMissionTemplate(data);
         if (response.success) {
-          alert("Misión creada exitosamente");
+          setFeedback({ type: "success", message: "Misión creada exitosamente" });
         }
       }
 
@@ -77,6 +109,7 @@ export default function MissionFormModal({
 
   const handleClose = () => {
     setError(null);
+    setFeedback(null);
     onClose();
   };
 
@@ -153,6 +186,9 @@ export default function MissionFormModal({
             </div>
           </div>
 
+          {feedback && (
+            <div className="mt-4 p-3 bg-green-100 text-green-700 rounded">{feedback.message}</div>
+          )}
           {error && <div className="mt-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>}
 
           <div className="flex gap-2 mt-6">

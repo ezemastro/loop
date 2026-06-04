@@ -565,6 +565,63 @@ export const queries = {
     "admin.updateGoogleId",
     `UPDATE admins SET google_id = $1 WHERE id = $2`,
   ),
+  deleteMessagesByUserId: q<void>(
+    "messages.deleteByUserId",
+    `DELETE FROM messages WHERE sender_id = $1 OR recipient_id = $1`,
+  ),
+  setMessagesAttachedListingNullBySellerId: q<void>(
+    "messages.setAttachedListingNullBySellerId",
+    `UPDATE messages SET attached_listing_id = NULL WHERE attached_listing_id IN (SELECT id FROM listings WHERE seller_id = $1)`,
+  ),
+  deleteNotificationsByUserId: q<void>(
+    "notifications.deleteByUserId",
+    `DELETE FROM notifications WHERE user_id = $1`,
+  ),
+  deleteUserMissionsByUserId: q<void>(
+    "userMissions.deleteByUserId",
+    `DELETE FROM user_missions WHERE user_id = $1`,
+  ),
+  deleteListingTradesByListingIds: (ids: UUID[]) =>
+    q<void>(
+      "listingTrades.deleteByListingIds",
+      `DELETE FROM listing_trades WHERE listing_id = ANY($1::uuid[]) OR trade_listing_id = ANY($1::uuid[])`,
+    ),
+  updateListingsBuyerToNullByUserId: q<void>(
+    "listings.updateBuyerToNullByUserId",
+    `UPDATE listings SET buyer_id = NULL, listing_status = 'published', offered_credits = NULL WHERE buyer_id = $1`,
+  ),
+  deleteListingsBySellerId: q<void>(
+    "listings.deleteBySellerId",
+    `DELETE FROM listings WHERE seller_id = $1`,
+  ),
+  deleteWalletTransactionsByUserId: q<void>(
+    "walletTransactions.deleteByUserId",
+    `DELETE FROM wallet_transactions WHERE user_id = $1`,
+  ),
+  deleteUserSchoolsByUserId: q<void>(
+    "userSchools.deleteByUserId",
+    `DELETE FROM user_schools WHERE user_id = $1`,
+  ),
+  deleteUserWishesByUserId: q<void>(
+    "userWishes.deleteByUserId",
+    `DELETE FROM users_wishes WHERE user_id = $1`,
+  ),
+  updateMediaUploadedByToNullByUserId: q<void>(
+    "media.updateUploadedByToNullByUserId",
+    `UPDATE media SET uploaded_by = NULL WHERE uploaded_by = $1`,
+  ),
+  deleteUserById: q<void>(
+    "user.deleteById",
+    `DELETE FROM users WHERE id = $1`,
+  ),
+  userByEmailCaseInsensitive: q<DB_Users>(
+    "user.byEmailCaseInsensitive",
+    `SELECT * FROM users WHERE LOWER(email) = LOWER($1)`,
+  ),
+  listingIdsBySellerId: q<{ id: UUID }>(
+    "listings.idsBySellerId",
+    `SELECT id FROM listings WHERE seller_id = $1`,
+  ),
   schoolsByIds: (ids: UUID[]) =>
     q<DB_Schools>(
       "schools.byIds",

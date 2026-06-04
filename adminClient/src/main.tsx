@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "@/index.css";
 import Home from "@/pages/Home";
+import Dashboard from "@/pages/Dashboard";
 import { BrowserRouter, Route, Routes } from "react-router";
 import Register from "@/pages/Register.tsx";
 import Login from "@/pages/Login";
@@ -26,6 +27,7 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/authorize-admin" element={<AuthorizeAdmin />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/login" element={<Login />} />
           <Route path="/*" element={<Home />} />
         </Routes>

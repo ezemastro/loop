@@ -24,6 +24,10 @@ export default function EditSchoolModal({
   const [uploading, setUploading] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
     setSchoolName(school?.name || "");
@@ -31,7 +35,15 @@ export default function EditSchoolModal({
     setPreviewUrl(null);
     setUploadedMediaId(null);
     setError(null);
+    setFeedback(null);
   }, [school, isOpen]);
+
+  useEffect(() => {
+    if (feedback) {
+      const timer = setTimeout(() => setFeedback(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [feedback]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -70,7 +82,7 @@ export default function EditSchoolModal({
 
       if (response.success && response.data) {
         setUploadedMediaId(response.data.media.id);
-        alert("Imagen subida exitosamente");
+        setFeedback({ type: "success", message: "Imagen subida exitosamente" });
       }
     } catch (err) {
       setError(err instanceof AxiosError ? err.response?.data?.error : "Error al subir la imagen");
@@ -83,6 +95,7 @@ export default function EditSchoolModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setFeedback(null);
 
     if (!schoolName.trim()) {
       setError("El nombre de la escuela es requerido");
@@ -96,7 +109,6 @@ export default function EditSchoolModal({
 
     try {
       setUpdating(true);
-      // Si no se cambió el logo, no enviar mediaId
       const response = await adminApi.updateSchool(
         school.id,
         schoolName,
@@ -104,7 +116,7 @@ export default function EditSchoolModal({
       );
 
       if (response.success) {
-        alert("Escuela actualizada exitosamente");
+        setFeedback({ type: "success", message: "Escuela actualizada exitosamente" });
         handleClose();
         onSuccess();
       }
@@ -124,6 +136,7 @@ export default function EditSchoolModal({
     setPreviewUrl(null);
     setUploadedMediaId(null);
     setError(null);
+    setFeedback(null);
     onClose();
   };
 
@@ -150,7 +163,6 @@ export default function EditSchoolModal({
           <div className="mb-4">
             <label className="block mb-2 font-semibold">Logo de la Escuela (Opcional):</label>
 
-            {/* Logo actual */}
             <div className="mb-3">
               <p className="text-sm text-gray-600 mb-2">Logo actual:</p>
               {school.media && (
@@ -162,7 +174,6 @@ export default function EditSchoolModal({
               )}
             </div>
 
-            {/* Nuevo logo si se selecciona */}
             {previewUrl && (
               <div className="mb-3">
                 <p className="text-sm text-gray-600 mb-2">Nuevo logo:</p>
@@ -193,6 +204,9 @@ export default function EditSchoolModal({
             </button>
           )}
 
+          {feedback && (
+            <div className="bg-green-100 text-green-700 p-3 rounded mb-4">{feedback.message}</div>
+          )}
           {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
 
           <div className="flex gap-3">

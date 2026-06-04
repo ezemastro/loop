@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import adminApi from "@/api/adminApi";
 import { AxiosError } from "axios";
 
@@ -19,10 +19,22 @@ export default function ResetPasswordModal({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (feedback) {
+      const timer = setTimeout(() => setFeedback(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [feedback]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setFeedback(null);
 
     if (newPassword.length < 6) {
       setError("La contraseña debe tener al menos 6 caracteres");
@@ -39,7 +51,7 @@ export default function ResetPasswordModal({
       const response = await adminApi.resetUserPassword(user.id, newPassword);
 
       if (response.success) {
-        alert("Contraseña reiniciada exitosamente");
+        setFeedback({ type: "success", message: "Contraseña reiniciada exitosamente" });
         handleClose();
         onSuccess();
       }
@@ -59,6 +71,7 @@ export default function ResetPasswordModal({
     setNewPassword("");
     setConfirmPassword("");
     setError(null);
+    setFeedback(null);
     onClose();
   };
 
@@ -97,6 +110,9 @@ export default function ResetPasswordModal({
             />
           </div>
 
+          {feedback && (
+            <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">{feedback.message}</div>
+          )}
           {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>}
 
           <div className="flex gap-2">

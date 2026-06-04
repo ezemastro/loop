@@ -1,4 +1,4 @@
-import { View, Text, FlatList } from "react-native";
+import { View, Text, FlatList, TextInput } from "react-native";
 import React, { useState } from "react";
 import { MainView } from "./bases/MainView";
 import AvoidingKeyboard from "./AvoidingKeyboard";
@@ -16,6 +16,11 @@ import Stats from "./Stats";
 import { usePublicWishes } from "@/hooks/usePublicWishes";
 import CategoryBadge from "./CategoryBadge";
 import ReportButton from "./ReportButton";
+import { useDeleteAccount } from "@/hooks/useDeleteAccount";
+import CustomModal from "./bases/CustomModal";
+import CloseModalButton from "./CloseModalButton";
+import TextTitle from "./bases/TextTitle";
+import Error from "./Error";
 
 interface Section {
   key: string;
@@ -37,6 +42,13 @@ export default function UserPage({
   const wishes = wishesData?.userWishes || [];
   const [isModalOpen, setIsModalOpen] = useState(false);
   const logout = useSessionStore((state) => state.logout);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteEmailConfirm, setDeleteEmailConfirm] = useState("");
+  const {
+    mutate: deleteAccount,
+    isPending: isDeleting,
+    error: deleteError,
+  } = useDeleteAccount();
   const [pendingCount, setPendingCount] = useState<{
     "to-receive": number;
     "to-deliver": number;
@@ -208,6 +220,20 @@ export default function UserPage({
         />
       ),
     },
+    {
+      key: "delete-account",
+      show: isCurrentUser,
+      component: () => (
+        <View className="items-center">
+          <CustomButton
+            className="bg-alert"
+            onPress={() => setIsDeleteModalOpen(true)}
+          >
+            <ButtonText>Eliminar cuenta</ButtonText>
+          </CustomButton>
+        </View>
+      ),
+    },
   ];
 
   return (
@@ -234,6 +260,54 @@ export default function UserPage({
           </View>
         )}
       </AvoidingKeyboard>
+      <CustomModal
+        isVisible={isDeleteModalOpen}
+        handleClose={() => {
+          setIsDeleteModalOpen(false);
+          setDeleteEmailConfirm("");
+        }}
+      >
+        <View className="gap-4 bg-background p-6 rounded-lg w-full">
+          <CloseModalButton
+            onClose={() => {
+              setIsDeleteModalOpen(false);
+              setDeleteEmailConfirm("");
+            }}
+          />
+          <TextTitle>Eliminar cuenta</TextTitle>
+          <Text className="text-main-text text-base">
+            Esta acción es permanente e irreversible. Se eliminarán todos tus datos,
+            incluyendo publicaciones, mensajes, notificaciones y transacciones.
+          </Text>
+          <View className="gap-2">
+            <Text className="text-main-text text-lg">
+              Escribí tu email para confirmar:
+            </Text>
+            <TextInput
+              className="bg-white rounded border border-stroke px-4 py-3 text-main-text"
+              placeholder={(user as PrivateUser).email}
+              value={deleteEmailConfirm}
+              onChangeText={setDeleteEmailConfirm}
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
+          </View>
+          {deleteError && (
+            <Error>{(deleteError as { message?: string })?.message || "Error al eliminar la cuenta"}</Error>
+          )}
+          <CustomButton
+            className="bg-alert"
+            disabled={
+              deleteEmailConfirm !== (user as PrivateUser).email || isDeleting
+            }
+            onPress={() => deleteAccount()}
+          >
+            <ButtonText>
+              {isDeleting ? "Eliminando..." : "Eliminar cuenta"}
+            </ButtonText>
+          </CustomButton>
+        </View>
+      </CustomModal>
     </MainView>
   );
 }

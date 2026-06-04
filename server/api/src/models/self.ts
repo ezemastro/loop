@@ -406,4 +406,57 @@ export class SelfModel {
       await client.query(queries.updateUserPassword, [hashedPassword, userId]);
     });
   };
+
+  static deleteSelf = async ({ userId }: { userId: UUID }) => {
+    return withClient(async (client) => {
+      const sellerListingIds = await client.query(queries.listingIdsBySellerId, [userId]);
+      const ids = sellerListingIds.map((row) => row.id);
+
+      if (ids.length > 0) {
+        await client.query(queries.setMessagesAttachedListingNullBySellerId, [userId]);
+        await client.query(queries.deleteListingTradesByListingIds(ids), [ids]);
+      }
+
+      await client.query(queries.deleteListingsBySellerId, [userId]);
+      await client.query(queries.updateListingsBuyerToNullByUserId, [userId]);
+      await client.query(queries.deleteMessagesByUserId, [userId]);
+      await client.query(queries.deleteNotificationsByUserId, [userId]);
+      await client.query(queries.deleteUserMissionsByUserId, [userId]);
+      await client.query(queries.deleteWalletTransactionsByUserId, [userId]);
+      await client.query(queries.deleteUserSchoolsByUserId, [userId]);
+      await client.query(queries.deleteUserWishesByUserId, [userId]);
+      await client.query(queries.updateMediaUploadedByToNullByUserId, [userId]);
+      await client.query(queries.deleteUserById, [userId]);
+    }, { transaction: true });
+  };
+
+  static deleteSelfByEmail = async ({ email }: { email: string }) => {
+    return withClient(async (client) => {
+      const [userDb] = await client.query(queries.userByEmailCaseInsensitive, [email]);
+      if (!userDb) {
+        throw new UnauthorizedError(ERROR_MESSAGES.USER_NOT_FOUND);
+      }
+
+      const sellerListingIds = await client.query(queries.listingIdsBySellerId, [
+        userDb.id,
+      ]);
+      const ids = sellerListingIds.map((row) => row.id);
+
+      if (ids.length > 0) {
+        await client.query(queries.setMessagesAttachedListingNullBySellerId, [userDb.id]);
+        await client.query(queries.deleteListingTradesByListingIds(ids), [ids]);
+      }
+
+      await client.query(queries.deleteListingsBySellerId, [userDb.id]);
+      await client.query(queries.updateListingsBuyerToNullByUserId, [userDb.id]);
+      await client.query(queries.deleteMessagesByUserId, [userDb.id]);
+      await client.query(queries.deleteNotificationsByUserId, [userDb.id]);
+      await client.query(queries.deleteUserMissionsByUserId, [userDb.id]);
+      await client.query(queries.deleteWalletTransactionsByUserId, [userDb.id]);
+      await client.query(queries.deleteUserSchoolsByUserId, [userDb.id]);
+      await client.query(queries.deleteUserWishesByUserId, [userDb.id]);
+      await client.query(queries.updateMediaUploadedByToNullByUserId, [userDb.id]);
+      await client.query(queries.deleteUserById, [userDb.id]);
+    }, { transaction: true });
+  };
 }

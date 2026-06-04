@@ -191,6 +191,17 @@ interface PostSelfChangePasswordRequest extends AuthApiRequest {
 }
 type PostSelfChangePasswordResponse = ApiResponse;
 
+// DELETE /me
+type DeleteSelfRequest = AuthApiRequest;
+type DeleteSelfResponse = ApiResponse;
+// POST /me/delete-request
+interface PostSelfDeleteRequest {
+  body: {
+    email: string;
+  };
+}
+type PostSelfDeleteRequestResponse = ApiResponse;
+
 // GET /users/:id
 interface GetUserByIdRequest {
   params: {

@@ -17,6 +17,8 @@ import cors from "cors";
 import { trimBody } from "./middlewares/trimBody.js";
 import { statsRouter } from "./routes/stats.js";
 
+import { SelfController } from "./controllers/self.js";
+
 export const app = express();
 
 app.use(express.json());
@@ -42,6 +44,8 @@ if (NODE_ENV === "development") {
 app.get("/status", (req, res) => {
   res.status(200).send(`Server is running. Environment: ${NODE_ENV}`);
 });
+
+app.post("/me/delete-request", trimBody, SelfController.deleteSelfRequest);
 
 // TODO: Falta ruta de borrar cuenta, ruta de cambiar contraseña, ruta de denunciar publicacion, ruta de denunciar usuario
 app.use("/auth", trimBody, authRouter);

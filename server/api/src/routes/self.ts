@@ -16,6 +16,8 @@ selfRouter.get("/messages/unread", SelfController.getSelfChatsUnread);
 selfRouter.post("/notification-token", SelfController.updateNotificationToken);
 selfRouter.post("/change-password", SelfController.modifySelfPassword);
 
+selfRouter.delete("/", SelfController.deleteSelf);
+
 selfRouter.get("/wishes", SelfController.getSelfWishes);
 selfRouter.post("/wishes", SelfController.createSelfWish);
 selfRouter.delete("/wishes/:categoryId", SelfController.deleteSelfWish);

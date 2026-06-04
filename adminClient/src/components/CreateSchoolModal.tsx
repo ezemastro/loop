@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { commonApi } from "@/api/commonApi";
 import adminApi from "@/api/adminApi";
 import { AxiosError } from "axios";
@@ -17,6 +17,17 @@ export default function CreateSchoolModal({ isOpen, onClose, onSuccess }: Create
   const [uploading, setUploading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (feedback) {
+      const timer = setTimeout(() => setFeedback(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [feedback]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -55,7 +66,7 @@ export default function CreateSchoolModal({ isOpen, onClose, onSuccess }: Create
 
       if (response.success && response.data) {
         setUploadedMediaId(response.data.media.id);
-        alert("Imagen subida exitosamente");
+        setFeedback({ type: "success", message: "Imagen subida exitosamente" });
       }
     } catch (err) {
       setError(err instanceof AxiosError ? err.response?.data?.error : "Error al subir la imagen");
@@ -68,6 +79,7 @@ export default function CreateSchoolModal({ isOpen, onClose, onSuccess }: Create
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setFeedback(null);
 
     if (!schoolName.trim()) {
       setError("El nombre de la escuela es requerido");
@@ -84,7 +96,7 @@ export default function CreateSchoolModal({ isOpen, onClose, onSuccess }: Create
       const response = await adminApi.createSchool(schoolName, uploadedMediaId);
 
       if (response.success) {
-        alert("Escuela creada exitosamente");
+        setFeedback({ type: "success", message: "Escuela creada exitosamente" });
         handleClose();
         onSuccess();
       }
@@ -102,6 +114,7 @@ export default function CreateSchoolModal({ isOpen, onClose, onSuccess }: Create
     setPreviewUrl(null);
     setUploadedMediaId(null);
     setError(null);
+    setFeedback(null);
     onClose();
   };
 
@@ -161,12 +174,9 @@ export default function CreateSchoolModal({ isOpen, onClose, onSuccess }: Create
             </div>
           )}
 
-          {uploadedMediaId && (
-            <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">
-              ✓ Imagen subida correctamente
-            </div>
+          {feedback && (
+            <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">{feedback.message}</div>
           )}
-
           {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>}
 
           <div className="flex gap-2">
