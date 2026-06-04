@@ -3,7 +3,7 @@ import { SORT_OPTIONS } from "../utils/sortOptions";
 const LISTING_STATUS: ListingStatus[] = ["published", "offered", "accepted", "received"];
 const NOTIFICATION_TYPES: NotificationType[] = ["mission", "loop", "donation", "admin"];
 const TRANSACTION_TYPES: TransactionType[] = ["loop", "mission", "donation", "admin"];
-const PRODUCT_STATUS: ProductStatus[] = ["fair", "good", "very_good", "like_new", "new"];
+const PRODUCT_STATUS: ProductStatus[] = ["like_new", "good", "fair"];
 
 const firstNameSchema = z.string().min(2).max(100);
 const lastNameSchema = z.string().min(2).max(100);

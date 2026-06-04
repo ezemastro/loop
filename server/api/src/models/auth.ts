@@ -12,14 +12,13 @@ import {
   UnauthorizedError,
 } from "../services/errors.js";
 import { comparePasswords, hashPassword } from "../services/hash.js";
-import { dbConnection, withClient } from "../services/postgresClient.js";
+import { withClient } from "../services/postgresClient.js";
 import { queries } from "../services/queries.js";
 import type { AuthLoginPayload, AuthRegisterPayload } from "../types/models.js";
 import {
   assignAllMissionsToUser,
   getSchoolsByIds,
   getUserSchools,
-  getMediaById,
 } from "../utils/helpersDb.js";
 import {
   parseUserBaseFromDb,
@@ -138,88 +137,78 @@ export class AuthModel {
     credential: string;
     schoolIds?: UUID[];
   }) => {
-    // Conectarse a la base de datos
-    let client: DatabaseClient;
-    try {
-      client = await dbConnection.connect();
-    } catch {
-      throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
+    const ticket = await webGoogleClient.verifyIdToken({
+      idToken: credential,
+      audience: WEB_GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    if (!payload) {
+      throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_CREDENTIAL_INVALID);
     }
 
-    try {
-      // Verificar el token de Google
-      const ticket = await webGoogleClient.verifyIdToken({
-        idToken: credential,
-        audience: WEB_GOOGLE_CLIENT_ID,
-      });
+    const googleId = payload.sub;
+    const email = payload.email;
+    const emailVerified = payload.email_verified;
+    const fullName = payload.name;
+    const givenName = payload.given_name;
+    const familyName = payload.family_name;
 
-      const payload = ticket.getPayload();
+    if (!emailVerified) {
+      throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_EMAIL_NOT_VERIFIED);
+    }
 
-      if (!payload) {
-        throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_CREDENTIAL_INVALID);
-      }
+    const emailLower = email!.toLowerCase();
+    const isValidEmail = VALID_EMAIL_DOMAINS.some((domain) => emailLower.endsWith(`@${domain}`));
+    if (!isValidEmail) {
+      throw new InvalidInputError(ERROR_MESSAGES.EMAIL_NOT_AUTHORIZED);
+    }
 
-      // Obtener información del usuario
-      const googleId = payload.sub;
-      const email = payload.email;
-      const emailVerified = payload.email_verified;
-      const fullName = payload.name;
-      const givenName = payload.given_name;
-      const familyName = payload.family_name;
-
-      // Verificar si el email está verificado
-      if (!emailVerified) {
-        throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_EMAIL_NOT_VERIFIED);
-      }
-
-      // Verificar si el email es válido según los dominios permitidos
-      const emailLower = email!.toLowerCase();
-      const isValidEmail = VALID_EMAIL_DOMAINS.some((domain) => emailLower.endsWith(`@${domain}`));
-      if (!isValidEmail) {
-        throw new InvalidInputError(ERROR_MESSAGES.EMAIL_NOT_AUTHORIZED);
-      }
-
-      // Verificar si el usuario ya existe
+    // Buscar usuario existente primero (sin DB)
+    return withClient(async (client) => {
       let userDb: DB_Users | undefined;
-
-      // Primero buscar por google_id
       [userDb] = await client.query(queries.userByGoogleId, [googleId]);
 
-      // Si no existe por google_id, buscar por email
       if (!userDb) {
         [userDb] = await client.query(queries.userByEmail, [email]);
-
-        // Si existe un usuario con ese email pero sin google_id, actualizarlo
         if (userDb) {
           await client.query(queries.updateUserGoogleId, [googleId, userDb.id]);
           userDb.google_id = googleId;
         }
       }
 
-      let user: PrivateUser;
+      // Usuario existente — login normal
+      if (userDb) {
+        if (userDb.google_id !== googleId) {
+          throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_ID_MISMATCH);
+        }
 
-      // Si no existe el usuario, crearlo
-      if (!userDb) {
-        await client.begin();
+        let profileMedia = null;
+        if (userDb.profile_media_id) {
+          const [profileMediaDb] = await client.query(queries.mediaById, [userDb.profile_media_id]);
+          if (profileMediaDb) profileMedia = parseMediaFromDb(profileMediaDb);
+        }
 
-        try {
-          // Si no envió schoolIds, error pidiendo que las envíe
-          if (!schoolIds || schoolIds.length === 0) {
-            throw new StepRequired(ERROR_MESSAGES.SCHOOL_IDS_REQUIRED_FOR_GOOGLE_SIGNUP);
-          }
-          // Validar escuelas
-          const schoolsDb = await Promise.all(
-            schoolIds.map(async (schoolId: UUID) => {
-              const [schoolDb] = await client.query(queries.schoolById, [schoolId]);
-              if (!schoolDb) {
-                throw new InvalidInputError(ERROR_MESSAGES.SCHOOL_NOT_FOUND);
-              }
-              return schoolDb;
-            }),
-          );
+        const schools = await getUserSchools({ client, userId: userDb.id });
 
-          // Crear el nuevo usuario con Google ID
-          const [newUserDb] = await client.query(queries.createUserWithGoogle, [
+        const user = parsePrivateUserFromBase({
+          user: parseUserBaseFromDb(userDb),
+          profileMedia,
+          schools,
+        });
+
+        return { user };
+      }
+
+      // Usuario nuevo — requiere schoolIds
+      if (!schoolIds || schoolIds.length === 0) {
+        throw new StepRequired(ERROR_MESSAGES.SCHOOL_IDS_REQUIRED_FOR_GOOGLE_SIGNUP);
+      }
+
+      // Crear usuario con transacción
+      return withClient(
+        async (txClient) => {
+          const [newUserDb] = await txClient.query(queries.createUserWithGoogle, [
             email,
             givenName || fullName,
             familyName || "",
@@ -230,94 +219,25 @@ export class AuthModel {
             throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
           }
 
-          // Insertar las relaciones usuario-escuela
-          for (const schoolId of schoolIds) {
-            await client.query(
-              {
-                key: "user_schools.insert",
-                text: `INSERT INTO user_schools (user_id, school_id) VALUES ($1, $2)`,
-              },
-              [newUserDb.id, schoolId],
-            );
-          }
+          await txClient.query(queries.insertUserSchools(schoolIds.length), [
+            newUserDb.id,
+            ...schoolIds,
+          ]);
 
-          // Obtener las escuelas completas
-          const schools = await Promise.all(
-            schoolsDb.map(async (schoolDb) => {
-              const [schoolMediaDb] = await client.query(queries.mediaById, [schoolDb.media_id]);
-              if (!schoolMediaDb) {
-                throw new InternalServerError(ERROR_MESSAGES.UNEXPECTED_ERROR);
-              }
-              const schoolBase = parseSchoolFromDb(schoolDb);
-              const schoolMedia = parseMediaFromDb(schoolMediaDb);
-              return parseSchoolFromBase({
-                school: schoolBase,
-                media: schoolMedia,
-              });
+          await assignAllMissionsToUser({ client: txClient, userId: newUserDb.id });
+
+          const schools = await getSchoolsByIds({ client: txClient, schoolIds });
+
+          return {
+            user: parsePrivateUserFromBase({
+              user: parseUserBaseFromDb(newUserDb),
+              profileMedia: null,
+              schools,
             }),
-          );
-
-          // Crear el objeto usuario
-          user = parsePrivateUserFromBase({
-            user: parseUserBaseFromDb(newUserDb),
-            profileMedia: null,
-            schools,
-          });
-
-          // Asignar misiones iniciales al usuario
-          await assignAllMissionsToUser({ client, userId: newUserDb.id });
-
-          await client.commit();
-        } catch (error) {
-          await client.rollback();
-          throw error;
-        }
-      } else {
-        // Usuario existente - iniciar sesión
-        // Verificar que el google_id coincida
-        if (userDb.google_id !== googleId) {
-          throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_ID_MISMATCH);
-        }
-
-        // Obtener información adicional del perfil
-        let profileMedia = null;
-        if (userDb.profile_media_id) {
-          const [profileMediaDb] = await client.query(queries.mediaById, [userDb.profile_media_id]);
-          if (profileMediaDb) profileMedia = parseMediaFromDb(profileMediaDb);
-        }
-
-        // Obtener todas las escuelas del usuario
-        const userSchoolsDb = await client.query(queries.userSchoolsByUserId, [userDb.id]);
-        const schools = await Promise.all(
-          userSchoolsDb.map(async (us: { school_id: UUID }) => {
-            const [schoolDb] = await client.query(queries.schoolById, [us.school_id]);
-            if (!schoolDb) {
-              throw new InternalServerError(ERROR_MESSAGES.SCHOOL_NOT_FOUND);
-            }
-            const [schoolMediaDb] = await client.query(queries.mediaById, [schoolDb.media_id]);
-            if (!schoolMediaDb) {
-              throw new InternalServerError(ERROR_MESSAGES.UNEXPECTED_ERROR);
-            }
-            const schoolBase = parseSchoolFromDb(schoolDb);
-            const schoolMedia = parseMediaFromDb(schoolMediaDb);
-            return parseSchoolFromBase({
-              school: schoolBase,
-              media: schoolMedia,
-            });
-          }),
-        );
-
-        // Crear el objeto usuario
-        user = parsePrivateUserFromBase({
-          user: parseUserBaseFromDb(userDb),
-          profileMedia,
-          schools,
-        });
-      }
-
-      return { user };
-    } finally {
-      client.release();
-    }
+          };
+        },
+        { transaction: true },
+      );
+    });
   };
 }

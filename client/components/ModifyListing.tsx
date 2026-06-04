@@ -1,6 +1,6 @@
 import { useEffect, useState, type JSX } from "react";
 import { View, Text, FlatList, TextInput, Pressable } from "react-native";
-import { MAX_LISTING_DESCRIPTION_LENGTH, MAX_LISTING_TITLE_LENGTH, COLORS } from "@/config";
+import { MAX_LISTING_DESCRIPTION_LENGTH, MAX_LISTING_TITLE_LENGTH, COLORS, PRICE_STATUS_MULTIPLIERS, PRODUCT_STATUSES } from "@/config";
 import CategorySelector from "./selectors/CategorySelector";
 import ProductStatusSelector from "./selectors/ProductStatusSelector";
 import CustomButton from "./bases/CustomButton";
@@ -180,6 +180,15 @@ export default function ModifyListing({
   const handleImageChange = (images: FormMedia[]) => {
     setForm((prev) => ({ ...prev, images }));
   };
+  const priceMultiplier = form.productStatus ? (PRICE_STATUS_MULTIPLIERS[form.productStatus] ?? 1) : 1;
+  const adjustedPriceMin =
+    form.category?.price?.min != null
+      ? Math.round(form.category.price.min * priceMultiplier)
+      : null;
+  const adjustedPriceMax =
+    form.category?.price?.max != null
+      ? Math.round(form.category.price.max * priceMultiplier)
+      : null;
   const sections: Section[] = [
     {
       key: "Images",
@@ -280,8 +289,8 @@ export default function ModifyListing({
                 setForm((prev) => ({ ...prev, price: number }));
               }}
               placeholder={
-                form.category?.price?.min && form.category.price.max
-                  ? `Recomendado: ${formatNumber(form.category?.price?.min)} - ${formatNumber(form.category?.price?.max)}`
+                adjustedPriceMin != null && adjustedPriceMax != null
+                  ? `Recomendado: ${formatNumber(adjustedPriceMin)} - ${formatNumber(adjustedPriceMax)}`
                   : "Introduce un precio para tu publicación"
               }
               underlineColorAndroid="transparent"
@@ -291,11 +300,11 @@ export default function ModifyListing({
             />
           </View>
           <Text className="mt-1 text-right text-sm text-secondary-text">
-            {form.price && form.category?.price?.max && form.price > form.category?.price?.max
-              ? `Recomendado: Max. ${formatNumber(form.category?.price?.max)}`
+            {form.price && adjustedPriceMax != null && form.price > adjustedPriceMax
+              ? `Recomendado: Max. ${formatNumber(adjustedPriceMax)}`
               : ""}
-            {form.price && form.category?.price?.min && form.price < form.category?.price?.min
-              ? `Recomendado: Min. ${formatNumber(form.category?.price?.min)}`
+            {form.price && adjustedPriceMin != null && form.price < adjustedPriceMin
+              ? `Recomendado: Min. ${formatNumber(adjustedPriceMin)}`
               : ""}
           </Text>
         </View>

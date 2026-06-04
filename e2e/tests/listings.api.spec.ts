@@ -9,7 +9,7 @@ test.describe("POST /listings", () => {
         description: "A test listing for E2E",
         price: 50000,
         categoryId,
-        productStatus: "new",
+        productStatus: "like_new",
         mediaIds: [],
       },
     });
@@ -33,7 +33,7 @@ test.describe("POST /listings", () => {
         title: "Unauthorized Listing",
         price: 50000,
         categoryId,
-        productStatus: "new",
+        productStatus: "like_new",
         mediaIds: [],
       },
     });
@@ -62,12 +62,12 @@ test.describe("GET /listings", () => {
   });
 
   test("filters listings by product status", async ({ apiUser }) => {
-    const res = await apiUser.get("/listings?productStatus=new");
+    const res = await apiUser.get("/listings?productStatus=like_new");
     expect(res.status()).toBe(200);
     const body = await res.json();
     expect(body.success).toBe(true);
     for (const listing of body.data.listings) {
-      expect(listing.productStatus).toBe("new");
+      expect(listing.productStatus).toBe("like_new");
     }
   });
 });
@@ -80,7 +80,7 @@ test.describe("GET /listings/:id", () => {
         title: "Get By ID Test",
         price: 20000,
         categoryId,
-        productStatus: "very_good",
+        productStatus: "like_new",
         mediaIds: [],
       },
     });
@@ -136,7 +136,7 @@ test.describe("DELETE /listings/:id", () => {
         title: "Delete Test",
         price: 5000,
         categoryId,
-        productStatus: "new",
+        productStatus: "like_new",
         mediaIds: [],
       },
     });
@@ -163,7 +163,7 @@ test.describe("POST /listings/:id/offer", () => {
         title: "Offer Test",
         price: 100000,
         categoryId,
-        productStatus: "new",
+        productStatus: "like_new",
         mediaIds: [],
       },
     });
@@ -190,7 +190,7 @@ test.describe("POST /listings/:id/offer/accept", () => {
         title: "Accept Test",
         price: 100000,
         categoryId,
-        productStatus: "new",
+        productStatus: "like_new",
         mediaIds: [],
       },
     });

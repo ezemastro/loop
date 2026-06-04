@@ -14,12 +14,8 @@ export default function ProductStatusBadge({
 }) {
   const getBackgroundColor = () => {
     switch (status) {
-      case PRODUCT_STATUSES.NEW:
-        return "bg-blue-500";
       case PRODUCT_STATUSES.LIKE_NEW:
         return "bg-teal-500";
-      case PRODUCT_STATUSES.VERY_GOOD:
-        return "bg-green-500";
       case PRODUCT_STATUSES.GOOD:
         return "bg-lime-500";
       case PRODUCT_STATUSES.FAIR:

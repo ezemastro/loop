@@ -25,16 +25,8 @@ export default function ProductStatusSelector({
   const options: { label: string; value: ProductStatus | null }[] = [
     { label: emptyLabel || "Cualquier estado", value: null },
     {
-      label: STATUS_TRANSLATIONS[PRODUCT_STATUSES.NEW],
-      value: PRODUCT_STATUSES.NEW,
-    },
-    {
       label: STATUS_TRANSLATIONS[PRODUCT_STATUSES.LIKE_NEW],
       value: PRODUCT_STATUSES.LIKE_NEW,
-    },
-    {
-      label: STATUS_TRANSLATIONS[PRODUCT_STATUSES.VERY_GOOD],
-      value: PRODUCT_STATUSES.VERY_GOOD,
     },
     {
       label: STATUS_TRANSLATIONS[PRODUCT_STATUSES.GOOD],

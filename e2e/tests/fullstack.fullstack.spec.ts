@@ -77,7 +77,7 @@ test.describe("Complete User Journey", () => {
         description: "Item for fullstack journey test",
         price: 100000,
         categoryId,
-        productStatus: "new",
+        productStatus: "like_new",
         mediaIds: [],
       },
     });
@@ -329,7 +329,7 @@ test.describe("Notifications Flow", () => {
         title: "Notification Test Item",
         price: 50000,
         categoryId,
-        productStatus: "new",
+        productStatus: "like_new",
         mediaIds: [],
       },
     });

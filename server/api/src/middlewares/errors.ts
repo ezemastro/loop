@@ -34,7 +34,7 @@ export const errorMiddleware = (err: Error, _req: Request, res: Response, _next:
     return res.status(500).json({ success: false, error: err.message });
   }
   if (err instanceof StepRequired) {
-    return res.status(400).json({ success: false, error: err.message });
+    return res.status(200).json({ success: false, error: err.message });
   }
   console.error("Error no manejado:", err);
   return res.status(500).json({ success: false, error: "Error interno del servidor" });

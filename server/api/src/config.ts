@@ -104,6 +104,7 @@ export const VALID_EMAIL_DOMAINS = [
   "colegiodelfaro.edu.ar",
   "southcreekschool.com.ar",
   "northschools.uy",
+  "theglobalschool.com.ar",
 ];
 
 export const MAX_UPLOAD_SIZE_BYTES = 15 * 1024 * 1024; // 15MB

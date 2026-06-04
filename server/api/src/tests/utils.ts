@@ -312,7 +312,7 @@ export const MOCK_LISTING: Listing = {
   disabled: false,
   listingStatus: "offered",
   offeredCredits: 100,
-  productStatus: "new",
+  productStatus: "like_new",
   sellerId: MOCK_USER.id,
   seller: MOCK_USER,
   title: "Test Listing",

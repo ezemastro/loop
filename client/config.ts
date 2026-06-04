@@ -46,20 +46,22 @@ export const VALID_EMAIL_DOMAINS = [
 ];
 
 export const PRODUCT_STATUSES = {
-  FAIR: "fair" as ProductStatus,
-  GOOD: "good" as ProductStatus,
-  VERY_GOOD: "very_good" as ProductStatus,
   LIKE_NEW: "like_new" as ProductStatus,
-  NEW: "new" as ProductStatus,
+  GOOD: "good" as ProductStatus,
+  FAIR: "fair" as ProductStatus,
 };
 
 export const STATUS_TRANSLATIONS = {
-  [PRODUCT_STATUSES.NEW]: "Nuevo",
   [PRODUCT_STATUSES.LIKE_NEW]: "Como nuevo",
-  [PRODUCT_STATUSES.VERY_GOOD]: "Muy bueno",
   [PRODUCT_STATUSES.GOOD]: "Bueno",
   [PRODUCT_STATUSES.FAIR]: "Regular",
 } as Record<ProductStatus, string>;
+
+export const PRICE_STATUS_MULTIPLIERS: Record<ProductStatus, number> = {
+  [PRODUCT_STATUSES.LIKE_NEW]: 1,
+  [PRODUCT_STATUSES.GOOD]: 0.7,
+  [PRODUCT_STATUSES.FAIR]: 0.4,
+};
 
 export const NOTIFICATIONS_CATEGORIES = {
   MISSION: "mission",
