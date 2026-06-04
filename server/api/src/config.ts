@@ -1,19 +1,15 @@
 import type { CookieOptions } from "express";
 import path from "path";
 
-// Carga condicional de dotenv para desarrollo
-(async () => {
+try {
   if (process.env.NODE_ENV !== "production") {
-    try {
-      // El import dinámico es aceptado por ESLint y funciona en runtime
-      const dotenv = await import("dotenv");
-      dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });
-      console.log("🌱 Variables de entorno locales cargadas.");
-    } catch {
-      // Silencioso en prod
-    }
+    const dotenv = require("dotenv");
+    dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });
+    console.log("Variables de entorno locales cargadas.");
   }
-})();
+} catch {
+  // Silencioso en prod o si dotenv no está disponible
+}
 
 export const {
   NODE_ENV,
@@ -23,7 +19,7 @@ export const {
   POSTGRES_PASSWORD: DB_PASSWORD,
   PGHOST: DB_HOST = "db",
   PORT = 3000,
-  JWT_SECRET,
+  JWT_SECRET = "jwt_secret_dev",
   TOKEN_EXP = 30 * 24 * 60 * 60, // 30 días
   ADMIN_PASS_TOKEN,
   ADMIN_TOKEN_EXP = 30 * 60, // 30 minutos

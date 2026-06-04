@@ -703,9 +703,22 @@ export const getUserSchools = async ({
 }): Promise<School[]> => {
   const userSchoolsDb = await client.query(queries.userSchoolsByUserId, [userId]);
   if (userSchoolsDb.length === 0) return [];
+  return getSchoolsByIds({
+    client,
+    schoolIds: userSchoolsDb.map((us) => us.school_id),
+  });
+};
+
+export const getSchoolsByIds = async ({
+  client,
+  schoolIds,
+}: {
+  client: DatabaseClient;
+  schoolIds: UUID[];
+}): Promise<School[]> => {
   const schools = await Promise.all(
-    userSchoolsDb.map(async (us: { school_id: UUID }) => {
-      const schoolDb = await client.query(queries.schoolById, [us.school_id]);
+    schoolIds.map(async (schoolId) => {
+      const schoolDb = await client.query(queries.schoolById, [schoolId]);
       if (!schoolDb[0]) {
         throw new InternalServerError(ERROR_MESSAGES.SCHOOL_NOT_FOUND);
       }
