@@ -36,7 +36,7 @@ function NotificationContent({ notification }: { notification: AppNotification }
 function MissionNotification({ payload }: { payload: MissionNotificationPayload }) {
   return (
     <View className="p-4 pb-2">
-      <Text className="text-main-text text-xl">Haz completado una misión</Text>
+      <Text className="text-main-text text-xl">Has completado una misión</Text>
       <Mission mission={payload.userMission} />
     </View>
   );
@@ -60,7 +60,7 @@ function LoopNotification({ payload }: { payload: LoopNotificationPayload }) {
       label = "Tu publicación ha sido vendida";
       break;
     case "listing_received":
-      label = "Haz entregado correctamente esta publicación";
+      label = "Has entregado correctamente esta publicación";
       break;
     case "listing_cancelled":
       label = "El loop con esta publicación ha sido cancelado";

@@ -124,7 +124,7 @@ export const NOTIFICATION_TEXTS = {
       title: "Publicación cancelada",
     },
     listing_received: {
-      body: "Haz completado correctamente un loop",
+      body: "Has completado correctamente un loop",
       title: "Loop completado",
     },
     new_offer: {
