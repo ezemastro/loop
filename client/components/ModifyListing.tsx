@@ -1,6 +1,12 @@
 import { useEffect, useState, type JSX } from "react";
 import { View, Text, FlatList, TextInput, Pressable } from "react-native";
-import { MAX_LISTING_DESCRIPTION_LENGTH, MAX_LISTING_TITLE_LENGTH, COLORS, PRICE_STATUS_MULTIPLIERS, PRODUCT_STATUSES } from "@/config";
+import {
+  MAX_LISTING_DESCRIPTION_LENGTH,
+  MAX_LISTING_TITLE_LENGTH,
+  COLORS,
+  PRICE_STATUS_MULTIPLIERS,
+  PRODUCT_STATUSES,
+} from "@/config";
 import CategorySelector from "./selectors/CategorySelector";
 import ProductStatusSelector from "./selectors/ProductStatusSelector";
 import CustomButton from "./bases/CustomButton";
@@ -180,7 +186,9 @@ export default function ModifyListing({
   const handleImageChange = (images: FormMedia[]) => {
     setForm((prev) => ({ ...prev, images }));
   };
-  const priceMultiplier = form.productStatus ? (PRICE_STATUS_MULTIPLIERS[form.productStatus] ?? 1) : 1;
+  const priceMultiplier = form.productStatus
+    ? (PRICE_STATUS_MULTIPLIERS[form.productStatus] ?? 1)
+    : 1;
   const adjustedPriceMin =
     form.category?.price?.min != null
       ? Math.round(form.category.price.min * priceMultiplier)
@@ -273,6 +281,18 @@ export default function ModifyListing({
       ),
     },
     {
+      key: "productStatus",
+      title: "Estado",
+      isError: errors.productStatus,
+      component: () => (
+        <ProductStatusSelector
+          value={form.productStatus}
+          onChange={(value) => setForm((prev) => ({ ...prev, productStatus: value }))}
+          className="mx-4 mb-4 bg-secondary-text/10 border-b border-gray-300 rounded-b-none rounded-t"
+        />
+      ),
+    },
+    {
       key: "price",
       title: "Precio",
       isError: errors.price,
@@ -308,18 +328,6 @@ export default function ModifyListing({
               : ""}
           </Text>
         </View>
-      ),
-    },
-    {
-      key: "productStatus",
-      title: "Estado",
-      isError: errors.productStatus,
-      component: () => (
-        <ProductStatusSelector
-          value={form.productStatus}
-          onChange={(value) => setForm((prev) => ({ ...prev, productStatus: value }))}
-          className="mx-4 mb-4 bg-secondary-text/10 border-b border-gray-300 rounded-b-none rounded-t"
-        />
       ),
     },
   ];
