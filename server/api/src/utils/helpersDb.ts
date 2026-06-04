@@ -120,12 +120,14 @@ export const getSchoolsByIds = async ({
   const mediaIds = [...new Set(schoolsDb.map((s) => s.media_id))];
   const mediaDb = await client.query(queries.mediaByIds(mediaIds), [mediaIds]);
   const mediaMap = new Map(mediaDb.map((m) => [m.id, parseMediaFromDb(m)]));
-  return schoolsDb.map((schoolDb) => {
-    const schoolBase = parseSchoolFromDb(schoolDb);
-    const media = mediaMap.get(schoolBase.mediaId);
-    if (!media) throw new NotFoundError(ERROR_MESSAGES.MEDIA_NOT_FOUND);
-    return parseSchoolFromBase({ school: schoolBase, media });
-  });
+  return schoolsDb
+    .map((schoolDb) => {
+      const schoolBase = parseSchoolFromDb(schoolDb);
+      const media = mediaMap.get(schoolBase.mediaId);
+      if (!media) return null;
+      return parseSchoolFromBase({ school: schoolBase, media });
+    })
+    .filter((s): s is School => s !== null);
 };
 
 export const getUserSchools = async ({
@@ -173,11 +175,17 @@ export const getPrivateUserById = async ({
   if (!userDb) throw new NotFoundError(ERROR_MESSAGES.USER_NOT_FOUND);
   const userBase = parseUserBaseFromDb(userDb);
   const schools = await getUserSchools({ client, userId });
+  let profileMedia = null;
+  if (userBase.profileMediaId) {
+    try {
+      profileMedia = await getMediaById({ client, mediaId: userBase.profileMediaId });
+    } catch (err) {
+      if (!(err instanceof NotFoundError)) throw err;
+    }
+  }
   const user = parsePrivateUserFromBase({
     user: userBase,
-    profileMedia: userBase.profileMediaId
-      ? await getMediaById({ client, mediaId: userBase.profileMediaId })
-      : null,
+    profileMedia,
     schools,
   });
   return user;
@@ -194,11 +202,17 @@ export const getUserById = async ({
   if (!userDb) throw new NotFoundError(ERROR_MESSAGES.USER_NOT_FOUND);
   const userBase = parseUserBaseFromDb(userDb);
   const schools = await getUserSchools({ client, userId });
+  let profileMedia = null;
+  if (userBase.profileMediaId) {
+    try {
+      profileMedia = await getMediaById({ client, mediaId: userBase.profileMediaId });
+    } catch (err) {
+      if (!(err instanceof NotFoundError)) throw err;
+    }
+  }
   const user = parsePublicUserFromBase({
     user: userBase,
-    profileMedia: userBase.profileMediaId
-      ? await getMediaById({ client, mediaId: userBase.profileMediaId })
-      : null,
+    profileMedia,
     schools,
   });
   return user;
