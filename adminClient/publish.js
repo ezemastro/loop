@@ -4,7 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const envPath = path.resolve(__dirname, "../.env");
+const envPath = path.resolve(__dirname, "../.env.prod");
 
 if (existsSync(envPath)) {
   process.loadEnvFile(envPath);
@@ -19,12 +19,12 @@ const API_URL = process.env.VITE_API_URL;
 const GOOGLE_CLIENT_ID = process.env.VITE_GOOGLE_CLIENT_ID;
 
 if (!API_URL) {
-  console.error("❌ Error: VITE_API_URL no está definido en ../.env");
+  console.error("❌ Error: VITE_API_URL no está definido en ../.env.prod");
   process.exit(1);
 }
 
 if (!GOOGLE_CLIENT_ID) {
-  console.error("❌ Error: VITE_GOOGLE_CLIENT_ID no está definido en ../.env");
+  console.error("❌ Error: VITE_GOOGLE_CLIENT_ID no está definido en ../.env.prod");
   process.exit(1);
 }
 

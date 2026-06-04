@@ -5,7 +5,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.resolve(__dirname, "../.env") });
+dotenv.config({ path: path.resolve(__dirname, "../.env.prod") });
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 const WEB_GOOGLE_CLIENT_ID =
