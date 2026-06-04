@@ -24,12 +24,7 @@ export default function MyListings() {
     {
       key: "pending-list",
       show: () => hasResults,
-      component: () => (
-        <AllMyPendingList
-          hasResults={hasResults}
-          setHasResults={setHasResults}
-        />
-      ),
+      component: () => <AllMyPendingList hasResults={hasResults} setHasResults={setHasResults} />,
     },
     {
       key: "own-title",
@@ -49,13 +44,9 @@ export default function MyListings() {
           refreshControl={<CustomRefresh />}
           contentContainerClassName="px-4 py-4"
           renderItem={({ item }) => (
-            <View
-              className={`mb-4 ${(!item.show || item.show()) === false && "hidden"}`}
-            >
+            <View className={`mb-4 ${(!item.show || item.show()) === false && "hidden"}`}>
               {item.title && (
-                <Text className="text-lg text-main-text text-center">
-                  {item.title}
-                </Text>
+                <Text className="text-lg text-main-text text-center">{item.title}</Text>
               )}
               {item.component()}
             </View>

@@ -18,22 +18,10 @@ export const SearchIcon = ({
   color,
   ...props
 }: Partial<IconProps<string>> & { color?: string }) => (
-  <Feather
-    size={24}
-    color={color}
-    className={className}
-    {...props}
-    name="search"
-  />
+  <Feather size={24} color={color} className={className} {...props} name="search" />
 );
 
-export const CreditIcon = ({
-  className,
-  size,
-}: {
-  className?: string;
-  size?: number;
-}) => (
+export const CreditIcon = ({ className, size }: { className?: string; size?: number }) => (
   <Image
     source={require("../assets/icons/credit.png")}
     className={className}
@@ -47,65 +35,35 @@ export const MessageIcon = ({
   color,
   ...props
 }: Partial<IconProps<string>> & { color?: string }) => (
-  <Feather
-    size={24}
-    color={color}
-    className={className}
-    {...props}
-    name="message-circle"
-  />
+  <Feather size={24} color={color} className={className} {...props} name="message-circle" />
 );
 export const NotificationIcon = ({
   className,
   color,
   ...props
 }: Partial<IconProps<string>> & { color?: string }) => (
-  <Feather
-    size={24}
-    color={color}
-    className={className}
-    {...props}
-    name="bell"
-  />
+  <Feather size={24} color={color} className={className} {...props} name="bell" />
 );
 export const BackIcon = ({
   className,
   color,
   ...props
 }: Partial<IconProps<string>> & { color?: string }) => (
-  <Feather
-    size={24}
-    color={color}
-    className={className}
-    {...props}
-    name="arrow-left"
-  />
+  <Feather size={24} color={color} className={className} {...props} name="arrow-left" />
 );
 export const ArrowDownIcon = ({
   className,
   color,
   ...props
 }: Partial<IconProps<string>> & { color?: string }) => (
-  <Feather
-    size={24}
-    color={color}
-    className={className}
-    {...props}
-    name="chevron-down"
-  />
+  <Feather size={24} color={color} className={className} {...props} name="chevron-down" />
 );
 export const ArrowUpIcon = ({
   className,
   color,
   ...props
 }: Partial<IconProps<string>> & { color?: string }) => (
-  <Feather
-    size={24}
-    color={color}
-    className={className}
-    {...props}
-    name="chevron-up"
-  />
+  <Feather size={24} color={color} className={className} {...props} name="chevron-up" />
 );
 export const CrossIcon = ({
   className,
@@ -119,169 +77,91 @@ export const CameraIcon = ({
   color,
   ...props
 }: Partial<IconProps<string>> & { color?: string }) => (
-  <Feather
-    size={24}
-    color={color}
-    className={className}
-    {...props}
-    name="camera"
-  />
+  <Feather size={24} color={color} className={className} {...props} name="camera" />
 );
 export const EditIcon = ({
   className,
   color,
   ...props
 }: Partial<IconProps<string>> & { color?: string }) => (
-  <Feather
-    size={24}
-    color={color}
-    className={className}
-    {...props}
-    name="edit"
-  />
+  <Feather size={24} color={color} className={className} {...props} name="edit" />
 );
 export const DeleteIcon = ({
   className,
   color,
   ...props
 }: Partial<IconProps<string>> & { color?: string }) => (
-  <Feather
-    size={24}
-    color={color}
-    className={className}
-    {...props}
-    name="trash-2"
-  />
+  <Feather size={24} color={color} className={className} {...props} name="trash-2" />
 );
 export const WasteIcon = ({
   className,
   color,
   ...props
 }: Partial<IconProps<string>> & { color?: string }) => (
-  <Feather
-    size={24}
-    color={color}
-    className={className}
-    {...props}
-    name="trash"
-  />
+  <Feather size={24} color={color} className={className} {...props} name="trash" />
 );
 export const CO2Icon = ({
   className,
   color,
   ...props
 }: Partial<IconProps<string>> & { color?: string }) => (
-  <Feather
-    size={24}
-    color={color}
-    className={className}
-    {...props}
-    name="cloud"
-  />
+  <Feather size={24} color={color} className={className} {...props} name="cloud" />
 );
 export const H20Icon = ({
   className,
   color,
   ...props
 }: Partial<IconProps<string>> & { color?: string }) => (
-  <Feather
-    size={24}
-    color={color}
-    className={className}
-    {...props}
-    name="droplet"
-  />
+  <Feather size={24} color={color} className={className} {...props} name="droplet" />
 );
 export const PlusCircleIcon = ({
   className,
   color,
   ...props
 }: Partial<IconProps<string>> & { color?: string }) => (
-  <Feather
-    size={24}
-    color={color}
-    className={className}
-    {...props}
-    name="plus-circle"
-  />
+  <Feather size={24} color={color} className={className} {...props} name="plus-circle" />
 );
 export const MinusCircleIcon = ({
   className,
   color,
   ...props
 }: Partial<IconProps<string>> & { color?: string }) => (
-  <Feather
-    size={24}
-    color={color}
-    className={className}
-    {...props}
-    name="minus-circle"
-  />
+  <Feather size={24} color={color} className={className} {...props} name="minus-circle" />
 );
 export const SendIcon = ({
   className,
   color,
   ...props
 }: Partial<IconProps<string>> & { color?: string }) => (
-  <Feather
-    size={24}
-    color={color}
-    className={className}
-    {...props}
-    name="send"
-  />
+  <Feather size={24} color={color} className={className} {...props} name="send" />
 );
 export const UserIcon = ({
   className,
   color,
   ...props
 }: Partial<IconProps<string>> & { color?: string }) => (
-  <Feather
-    size={24}
-    color={color}
-    className={className}
-    {...props}
-    name="user"
-  />
+  <Feather size={24} color={color} className={className} {...props} name="user" />
 );
 export const AddUserIcon = ({
   className,
   color,
   ...props
 }: Partial<IconProps<string>> & { color?: string }) => (
-  <Feather
-    size={24}
-    color={color}
-    className={className}
-    {...props}
-    name="user-plus"
-  />
+  <Feather size={24} color={color} className={className} {...props} name="user-plus" />
 );
 export const GalleryIcon = ({
   className,
   color,
   ...props
 }: Partial<IconProps<string>> & { color?: string }) => (
-  <Feather
-    size={24}
-    color={color}
-    className={className}
-    {...props}
-    name="image"
-  />
+  <Feather size={24} color={color} className={className} {...props} name="image" />
 );
 export const EmailIcon = ({
   className,
   color,
   ...props
 }: Partial<IconProps<string>> & { color?: string }) => (
-  <Feather
-    size={24}
-    color={color}
-    className={className}
-    {...props}
-    name="mail"
-  />
+  <Feather size={24} color={color} className={className} {...props} name="mail" />
 );
 
 export const HomeIcon = (props: Partial<IconProps<string>>) => (

@@ -54,37 +54,29 @@ export const ERROR_MESSAGES = {
   MISSION_NOT_FOUND: "Misión no encontrada",
   MESSAGE_NOT_FOUND: "Mensaje no encontrado",
   USER_NOT_AUTHORIZED: "Usuario no autorizado",
-  INVALID_LISTING_STATUS_TO_MODIFY:
-    "Estado de publicación inválido para modificar",
-  INVALID_LISTING_STATUS_TO_OFFER:
-    "Estado de listado inválido para hacer una oferta",
+  INVALID_LISTING_STATUS_TO_MODIFY: "Estado de publicación inválido para modificar",
+  INVALID_LISTING_STATUS_TO_OFFER: "Estado de listado inválido para hacer una oferta",
   NOT_LISTING_BUYER: "No eres el comprador de esta publicación",
-  INVALID_LISTING_STATUS_TO_DELETE_OFFER:
-    "Estado de publicación inválido para eliminar una oferta",
+  INVALID_LISTING_STATUS_TO_DELETE_OFFER: "Estado de publicación inválido para eliminar una oferta",
   NOT_LISTING_SELLER: "No eres el vendedor de esta publicación",
-  INVALID_LISTING_STATUS:
-    "Estado de publicación inválido para la acción que se quiere realizar",
+  INVALID_LISTING_STATUS: "Estado de publicación inválido para la acción que se quiere realizar",
   TOTAL_PRICE_EXCEEDED: "El precio total excede lo ofrecido",
   INSUFFICIENT_CREDITS: "Créditos insuficientes",
   OFFERED_CREDITS_NOT_FOUND: "Créditos ofrecidos no encontrados",
   INVALID_OFFER_PRICE: "Precio de oferta inválido",
-  CANNOT_OFFER_OWN_LISTING:
-    "No puedes hacer una oferta en tu propia publicación",
+  CANNOT_OFFER_OWN_LISTING: "No puedes hacer una oferta en tu propia publicación",
   FILE_NOT_FOUND: "Archivo no encontrado",
   INVALID_FILE_TYPE: "Tipo de archivo inválido",
   FILE_TOO_LARGE: "El archivo es demasiado grande",
   INVALID_PRICE_FOR_CATEGORY: "Precio inválido para la categoría",
-  INVALID_LISTING_STATUS_TO_DELETE:
-    "Estado de publicación inválido para eliminar",
+  INVALID_LISTING_STATUS_TO_DELETE: "Estado de publicación inválido para eliminar",
   MISSION_KEY_ALREADY_EXISTS: "La clave de misión ya existe",
   WISH_NOT_FOUND: "Deseo no encontrado",
-  EMAIL_NOT_AUTHORIZED:
-    "El correo electrónico no está autorizado para el registro",
+  EMAIL_NOT_AUTHORIZED: "El correo electrónico no está autorizado para el registro",
   GOOGLE_CREDENTIAL_INVALID: "El credential de Google es inválido",
   GOOGLE_EMAIL_NOT_VERIFIED: "El email de Google no está verificado",
   GOOGLE_ID_MISMATCH: "El ID de Google no coincide",
-  INCORRECT_LOGIN_METHOD:
-    "El método de inicio de sesión es incorrecto para este usuario",
+  INCORRECT_LOGIN_METHOD: "El método de inicio de sesión es incorrecto para este usuario",
   // Incluir palabra signup para saber que se trata de un usuario nuevo
   SCHOOL_IDS_REQUIRED_FOR_GOOGLE_SIGNUP: "signup requiere schoolIds",
   TOKEN_GENERATION_FAILED: "Error al generar el token de autenticación",

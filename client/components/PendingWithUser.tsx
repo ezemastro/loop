@@ -103,15 +103,10 @@ export default function PendingWithUser({
         renderItem={({ item }) => (
           <View
             className={
-              "px-4 " +
-              (!pendingCount[item.key as keyof typeof pendingCount]
-                ? "hidden"
-                : "")
+              "px-4 " + (!pendingCount[item.key as keyof typeof pendingCount] ? "hidden" : "")
             }
           >
-            <Text className="text-secondary-text text-lg font-bold">
-              {item.title}
-            </Text>
+            <Text className="text-secondary-text text-lg font-bold">{item.title}</Text>
             {item.component()}
           </View>
         )}

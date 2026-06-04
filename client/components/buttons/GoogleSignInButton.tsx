@@ -8,10 +8,7 @@ import {
   Alert,
   Platform,
 } from "react-native";
-import {
-  GoogleSignin,
-  statusCodes,
-} from "@react-native-google-signin/google-signin";
+import { GoogleSignin, statusCodes } from "@react-native-google-signin/google-signin";
 import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
 
@@ -29,9 +26,7 @@ interface GoogleSignInButtonProps {
   disabled?: boolean;
 }
 
-const ALLOWED_DOMAINS_TEXT = VALID_EMAIL_DOMAINS.map(
-  (domain) => `@${domain}`,
-).join(", ");
+const ALLOWED_DOMAINS_TEXT = VALID_EMAIL_DOMAINS.map((domain) => `@${domain}`).join(", ");
 
 const formatGoogleLoginError = (error: any): string => {
   const fallbackError = "Error al iniciar sesión con Google";
@@ -71,11 +66,10 @@ const GoogleSignInButtonInner: React.FC<GoogleSignInButtonProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const isMountedRef = useRef(true);
   const googleLoginMutation = useGoogleLogin();
-  const [webRequest, _webResponse, promptWebGoogleSignIn] =
-    Google.useIdTokenAuthRequest({
-      webClientId: WEB_GOOGLE_CLIENT_ID,
-      selectAccount: true,
-    });
+  const [webRequest, _webResponse, promptWebGoogleSignIn] = Google.useIdTokenAuthRequest({
+    webClientId: WEB_GOOGLE_CLIENT_ID,
+    selectAccount: true,
+  });
 
   useEffect(() => {
     return () => {
@@ -94,13 +88,9 @@ const GoogleSignInButtonInner: React.FC<GoogleSignInButtonProps> = ({
     } catch (error: any) {
       console.log("Error en login:", error);
 
-      const errorMessage =
-        error?.message?.toLowerCase() || error?.toString()?.toLowerCase() || "";
+      const errorMessage = error?.message?.toLowerCase() || error?.toString()?.toLowerCase() || "";
 
-      if (
-        errorMessage.includes("signup") ||
-        errorMessage.includes("register")
-      ) {
+      if (errorMessage.includes("signup") || errorMessage.includes("register")) {
         console.log("Usuario nuevo detectado, redirigiendo a school selection");
         router.push("/(auth)/schoolSelection");
         return;
@@ -210,9 +200,7 @@ const GoogleSignInButtonInner: React.FC<GoogleSignInButtonProps> = ({
           </View>
         )}
       </TouchableOpacity>
-      <Text style={styles.hintText}>
-        Dominios permitidos: {ALLOWED_DOMAINS_TEXT}
-      </Text>
+      <Text style={styles.hintText}>Dominios permitidos: {ALLOWED_DOMAINS_TEXT}</Text>
     </View>
   );
 };

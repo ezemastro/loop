@@ -15,15 +15,9 @@ type SchoolSelectorMultipleProps = {
   onChange?: (schools: School[]) => void;
 };
 
-type SchoolSelectorProps =
-  | SchoolSelectorSingleProps
-  | SchoolSelectorMultipleProps;
+type SchoolSelectorProps = SchoolSelectorSingleProps | SchoolSelectorMultipleProps;
 
-export default function SchoolSelector({
-  onChange,
-  value,
-  multiple = false,
-}: SchoolSelectorProps) {
+export default function SchoolSelector({ onChange, value, multiple = false }: SchoolSelectorProps) {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const openModal = () => {
@@ -43,11 +37,7 @@ export default function SchoolSelector({
         onPress={openModal}
         className={
           "rounded border border-stroke gap-0.5 " +
-          (Array.isArray(value)
-            ? value?.length && value.length > 0
-              ? ""
-              : "bg-white"
-            : "")
+          (Array.isArray(value) ? (value?.length && value.length > 0 ? "" : "bg-white") : "")
         }
       >
         {/* Si es null o array con 0 elementos */}
@@ -61,9 +51,7 @@ export default function SchoolSelector({
           </>
         ) : (
           <View className="h-16 justify-center items-center">
-            <Text className="text-secondary-text text-lg">
-              Seleccionar escuela
-            </Text>
+            <Text className="text-secondary-text text-lg">Seleccionar escuela</Text>
           </View>
         )}
       </Pressable>

@@ -25,14 +25,8 @@ type Field = {
 
 export default function Register() {
   const insets = useSafeAreaInsets();
-  const {
-    formData,
-    setFormData,
-    errors,
-    handleSubmit,
-    isRegisterError,
-    registerError,
-  } = useRegisterForm();
+  const { formData, setFormData, errors, handleSubmit, isRegisterError, registerError } =
+    useRegisterForm();
   const fields: Field[] = [
     {
       key: "firstName",
@@ -99,9 +93,7 @@ export default function Register() {
           placeholder="Repita su contraseña"
           secureTextEntry
           value={formData.confirmPassword}
-          onChangeText={(text) =>
-            setFormData({ ...formData, confirmPassword: text })
-          }
+          onChangeText={(text) => setFormData({ ...formData, confirmPassword: text })}
           autoCapitalize="none"
         />
       ),
@@ -136,9 +128,7 @@ export default function Register() {
             paddingTop: insets.top + 25,
           }}
           ListHeaderComponent={
-            <Text className="text-3xl py-3 text-center font-bold color-main-text">
-              Registrarse
-            </Text>
+            <Text className="text-3xl py-3 text-center font-bold color-main-text">Registrarse</Text>
           }
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
@@ -155,14 +145,10 @@ export default function Register() {
               {registerError?.name === ERROR_NAMES.CONFLICT && (
                 <Error>El correo electrónico ya está en uso</Error>
               )}
-              {isRegisterError &&
-                registerError?.name !== ERROR_NAMES.CONFLICT && (
-                  <Error>Ocurrió un error al registrarse</Error>
-                )}
-              <CustomButton
-                onPress={handleSubmit}
-                className={isRegisterError ? "mt-2" : "mt-6"}
-              >
+              {isRegisterError && registerError?.name !== ERROR_NAMES.CONFLICT && (
+                <Error>Ocurrió un error al registrarse</Error>
+              )}
+              <CustomButton onPress={handleSubmit} className={isRegisterError ? "mt-2" : "mt-6"}>
                 <ButtonText>Registrarse</ButtonText>
               </CustomButton>
               <View className="w-full h-0.5 bg-secondary-text/30 my-6" />

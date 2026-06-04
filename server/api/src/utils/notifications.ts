@@ -24,11 +24,7 @@ export const sendMissionNotification = async ({
   const payload: MissionNotificationPayloadBase = {
     userMissionId: missionId,
   };
-  await client.query(queries.createNotification, [
-    userId,
-    "mission" as NotificationType,
-    payload,
-  ]);
+  await client.query(queries.createNotification, [userId, "mission" as NotificationType, payload]);
   if (!notificationToken || disablePush) return;
   await sendNotification({
     notificationToken,
@@ -61,11 +57,7 @@ export const sendLoopNotification = async ({
     toOfferedCredits,
     type,
   };
-  await client.query(queries.createNotification, [
-    userId,
-    "loop" as NotificationType,
-    payload,
-  ]);
+  await client.query(queries.createNotification, [userId, "loop" as NotificationType, payload]);
   if (!notificationToken || disablePush) return;
   await sendNotification({
     notificationToken,
@@ -92,11 +84,7 @@ export const sendDonationNotification = async ({
     donorUserId,
     message,
   };
-  await client.query(queries.createNotification, [
-    userId,
-    "donation" as NotificationType,
-    payload,
-  ]);
+  await client.query(queries.createNotification, [userId, "donation" as NotificationType, payload]);
   if (!notificationToken || disablePush) return;
   await sendNotification({
     notificationToken,
@@ -129,11 +117,7 @@ export const sendAdminNotification = async ({
     referenceId,
     target,
   };
-  await client.query(queries.createNotification, [
-    userId,
-    "admin" as NotificationType,
-    payload,
-  ]);
+  await client.query(queries.createNotification, [userId, "admin" as NotificationType, payload]);
   if (!notificationToken || disablePush) return;
   await sendNotification({
     notificationToken,

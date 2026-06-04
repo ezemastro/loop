@@ -74,9 +74,7 @@ export default function ResetPasswordModal({
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block mb-2 font-semibold">
-              Nueva Contraseña:
-            </label>
+            <label className="block mb-2 font-semibold">Nueva Contraseña:</label>
             <input
               type="password"
               value={newPassword}
@@ -88,9 +86,7 @@ export default function ResetPasswordModal({
           </div>
 
           <div className="mb-4">
-            <label className="block mb-2 font-semibold">
-              Confirmar Contraseña:
-            </label>
+            <label className="block mb-2 font-semibold">Confirmar Contraseña:</label>
             <input
               type="password"
               value={confirmPassword}
@@ -101,11 +97,7 @@ export default function ResetPasswordModal({
             />
           </div>
 
-          {error && (
-            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-              {error}
-            </div>
-          )}
+          {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>}
 
           <div className="flex gap-2">
             <button

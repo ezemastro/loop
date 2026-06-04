@@ -95,9 +95,7 @@ export default function Login() {
               <TextLabel>{item.label}</TextLabel>
               <View>
                 {item.render()}
-                <Error textClassName="text-alert">
-                  {item.error ? item.errorMessage : null}
-                </Error>
+                <Error textClassName="text-alert">{item.error ? item.errorMessage : null}</Error>
               </View>
             </View>
           )}

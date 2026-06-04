@@ -9,8 +9,7 @@ dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 const WEB_GOOGLE_CLIENT_ID =
-  process.env.EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID ||
-  process.env.WEB_GOOGLE_CLIENT_ID;
+  process.env.EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID || process.env.WEB_GOOGLE_CLIENT_ID;
 
 if (!API_URL) {
   console.error("❌ ERROR: EXPO_PUBLIC_API_URL no definida en el .env");

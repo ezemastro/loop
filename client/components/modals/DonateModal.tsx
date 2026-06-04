@@ -13,13 +13,7 @@ import { useUserDonate } from "@/hooks/useDonate";
 import { useQueryClient } from "@tanstack/react-query";
 import Error from "../Error";
 
-export default function DonateModal({
-  isOpen,
-  onClose,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-}) {
+export default function DonateModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const queryClient = useQueryClient();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [amount, setAmount] = useState<number | null>(null);
@@ -55,9 +49,7 @@ export default function DonateModal({
         <View className="gap-2">
           <Text className="text-main-text text-lg">Donar a:</Text>
           <UserSelector value={selectedUser} onChange={setSelectedUser} />
-          {selectedUser?.id === user?.id && (
-            <Error>No puedes donar a ti mismo</Error>
-          )}
+          {selectedUser?.id === user?.id && <Error>No puedes donar a ti mismo</Error>}
         </View>
         <View className="gap-2">
           <Text className="text-main-text text-lg">Cantidad:</Text>

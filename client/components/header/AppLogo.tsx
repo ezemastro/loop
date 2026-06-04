@@ -10,9 +10,7 @@ export default function AppLogo() {
           resizeMode="contain"
         />
       </View>
-      <Text className="text-white font-semibold tracking-wider text-xl">
-        Loop
-      </Text>
+      <Text className="text-white font-semibold tracking-wider text-xl">Loop</Text>
     </View>
   );
 }

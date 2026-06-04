@@ -22,20 +22,16 @@ export const ALLOWED_IMAGE_MIME_TYPES = [
   "image/avif",
 ] as const;
 export const WEB_IMAGE_ACCEPT_ATTR = ALLOWED_IMAGE_MIME_TYPES.join(",");
-export const IMAGE_FORMAT_ERROR_MESSAGE =
-  "Solo se permiten imágenes JPG, PNG, WEBP o AVIF.";
+export const IMAGE_FORMAT_ERROR_MESSAGE = "Solo se permiten imágenes JPG, PNG, WEBP o AVIF.";
 
 export const API_URL = process.env.EXPO_PUBLIC_API_URL;
 export const FILE_BASE_URL = API_URL + "/uploads/";
 console.log("API_URL:", API_URL);
 console.log(".env working: ", process.env.EXPO_PUBLIC_ENV_WORKING);
 
-export const ANDROID_GOOGLE_CLIENT_ID =
-  process.env.EXPO_PUBLIC_ANDROID_GOOGLE_CLIENT_ID;
-export const IOS_GOOGLE_CLIENT_ID =
-  process.env.EXPO_PUBLIC_IOS_GOOGLE_CLIENT_ID;
-export const WEB_GOOGLE_CLIENT_ID =
-  process.env.EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID;
+export const ANDROID_GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_ANDROID_GOOGLE_CLIENT_ID;
+export const IOS_GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_IOS_GOOGLE_CLIENT_ID;
+export const WEB_GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID;
 export const REPORT_EMAIL = process.env.EXPO_PUBLIC_REPORT_EMAIL;
 export const GOOGLE_OAUTH_READY = process.env.GOOGLE_OAUTH_READY !== "false";
 export const NODE_ENV = process.env.NODE_ENV;

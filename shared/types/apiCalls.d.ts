@@ -13,12 +13,12 @@ interface ApiResponse<T> {
   error?: string;
 }
 interface Pagination {
-    totalRecords: number;
-    currentPage: number;
-    pageSize: number;
-    totalPages: number;
-    nextPage: number | null;
-    previousPage: number | null;
+  totalRecords: number;
+  currentPage: number;
+  pageSize: number;
+  totalPages: number;
+  nextPage: number | null;
+  previousPage: number | null;
 }
 interface PaginatedApiResponse<T> extends ApiResponse<T> {
   pagination: Pagination;
@@ -382,7 +382,6 @@ type PostMediaResponse = ApiResponse<{
   media: Media;
 }>;
 
-
 // GET /messages/:userId
 interface GetMessagesByUserIdRequest {
   params: {
@@ -616,8 +615,8 @@ type PostAdminMissionTemplateResponse = ApiResponse<{
 
 // GET /admin/missions
 type GetAdminMissionTemplatesResponse = ApiResponse<{
-  missionTemplates: MissionTemplate[]
-}>
+  missionTemplates: MissionTemplate[];
+}>;
 
 // PATCH /admin/missions/:missionTemplateId
 interface PatchAdminMissionTemplateRequest {

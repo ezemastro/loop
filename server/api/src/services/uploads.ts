@@ -18,11 +18,7 @@ if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
-const fileFilter = (
-  req: Request,
-  file: Express.Multer.File,
-  cb: multer.FileFilterCallback,
-) => {
+const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/avif"];
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
@@ -37,11 +33,7 @@ export const upload = multer({
   fileFilter,
 });
 
-export const optimizeUploadedImage = async (
-  req: Request,
-  _res: Response,
-  next: NextFunction,
-) => {
+export const optimizeUploadedImage = async (req: Request, _res: Response, next: NextFunction) => {
   if (!req.file) {
     return next(new InvalidInputError(ERROR_MESSAGES.FILE_NOT_FOUND));
   }

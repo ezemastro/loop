@@ -59,11 +59,10 @@ export default function Notifications() {
 
     try {
       setLoading(true);
-      const response = await adminApi.sendNotification(
-        selectedUser.id,
-        "admin",
-        { title, message },
-      );
+      const response = await adminApi.sendNotification(selectedUser.id, "admin", {
+        title,
+        message,
+      });
 
       if (response.success) {
         setSuccess("Notificación enviada exitosamente");
@@ -86,9 +85,7 @@ export default function Notifications() {
   return (
     <Layout>
       <div className="p-8 max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">
-          Enviar Notificación Administrativa
-        </h1>
+        <h1 className="text-3xl font-bold mb-6">Enviar Notificación Administrativa</h1>
 
         {error && (
           <div className="bg-red-100 text-red-700 p-4 rounded mb-4 flex items-center gap-2">
@@ -107,9 +104,7 @@ export default function Notifications() {
         <div className="bg-white p-6 rounded-lg shadow space-y-6">
           {/* Búsqueda de usuario */}
           <div>
-            <label className="block mb-2 font-semibold text-gray-700">
-              Usuario destinatario*:
-            </label>
+            <label className="block mb-2 font-semibold text-gray-700">Usuario destinatario*:</label>
             {selectedUser ? (
               <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded px-4 py-3">
                 <div>
@@ -167,9 +162,7 @@ export default function Notifications() {
           {/* Formulario de notificación */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block mb-2 font-semibold text-gray-700">
-                Título*:
-              </label>
+              <label className="block mb-2 font-semibold text-gray-700">Título*:</label>
               <input
                 type="text"
                 value={title}
@@ -181,9 +174,7 @@ export default function Notifications() {
             </div>
 
             <div>
-              <label className="block mb-2 font-semibold text-gray-700">
-                Mensaje*:
-              </label>
+              <label className="block mb-2 font-semibold text-gray-700">Mensaje*:</label>
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
@@ -211,8 +202,8 @@ export default function Notifications() {
             <strong>Título:</strong> Cambio en las políticas de uso
           </p>
           <p className="text-sm text-gray-600">
-            <strong>Mensaje:</strong> Hemos actualizado nuestras políticas de
-            privacidad. Por favor revisa los nuevos términos en tu perfil.
+            <strong>Mensaje:</strong> Hemos actualizado nuestras políticas de privacidad. Por favor
+            revisa los nuevos términos en tu perfil.
           </p>
         </div>
       </div>

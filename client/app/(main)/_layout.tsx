@@ -7,8 +7,7 @@ import { NOTIFICATIONS_CATEGORIES } from "@/config";
 
 Notifications.setNotificationHandler({
   handleNotification: async (notification) => {
-    return notification.request.content.categoryIdentifier ===
-      NOTIFICATIONS_CATEGORIES.MESSAGE
+    return notification.request.content.categoryIdentifier === NOTIFICATIONS_CATEGORIES.MESSAGE
       ? {
           shouldPlaySound: false,
           shouldSetBadge: false,

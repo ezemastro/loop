@@ -17,11 +17,7 @@ adminRouter.post(
 
 // Gestión de usuarios (requiere autenticación de admin)
 adminRouter.get("/users", adminTokenMiddleware, AdminController.getUsers);
-adminRouter.post(
-  "/users/:userId/credits",
-  adminTokenMiddleware,
-  AdminController.modifyUserCredits,
-);
+adminRouter.post("/users/:userId/credits", adminTokenMiddleware, AdminController.modifyUserCredits);
 adminRouter.post(
   "/users/:userId/reset-password",
   adminTokenMiddleware,
@@ -29,56 +25,24 @@ adminRouter.post(
 );
 
 // Gestión de escuelas
-adminRouter.post(
-  "/schools",
-  adminTokenMiddleware,
-  AdminController.createSchool,
-);
+adminRouter.post("/schools", adminTokenMiddleware, AdminController.createSchool);
 
-adminRouter.patch(
-  "/schools/:schoolId",
-  adminTokenMiddleware,
-  AdminController.updateSchool,
-);
+adminRouter.patch("/schools/:schoolId", adminTokenMiddleware, AdminController.updateSchool);
 
 // Gestión de categorías
-adminRouter.post(
-  "/categories",
-  adminTokenMiddleware,
-  AdminController.createCategory,
-);
-adminRouter.patch(
-  "/categories/:categoryId",
-  adminTokenMiddleware,
-  AdminController.updateCategory,
-);
+adminRouter.post("/categories", adminTokenMiddleware, AdminController.createCategory);
+adminRouter.patch("/categories/:categoryId", adminTokenMiddleware, AdminController.updateCategory);
 
 // Gestión de notificaciones
-adminRouter.post(
-  "/notifications",
-  adminTokenMiddleware,
-  AdminController.sendNotification,
-);
+adminRouter.post("/notifications", adminTokenMiddleware, AdminController.sendNotification);
 
 // Estadísticas
 adminRouter.get("/stats", adminTokenMiddleware, AdminController.getStats);
-adminRouter.get(
-  "/schools/stats",
-  adminTokenMiddleware,
-  AdminController.getSchoolStats,
-);
+adminRouter.get("/schools/stats", adminTokenMiddleware, AdminController.getSchoolStats);
 
 // Gestión de mission templates
-adminRouter.get(
-  "/missions",
-  adminTokenMiddleware,
-  AdminController.getMissionTemplates,
-);
-adminRouter.post(
-  "/missions",
-  adminTokenMiddleware,
-  AdminController.createMissionTemplate,
-);
+adminRouter.get("/missions", adminTokenMiddleware, AdminController.getMissionTemplates);
+adminRouter.post("/missions", adminTokenMiddleware, AdminController.createMissionTemplate);
 adminRouter.patch(
   "/missions/:missionTemplateId",
   adminTokenMiddleware,

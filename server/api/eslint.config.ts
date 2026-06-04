@@ -1,15 +1,12 @@
-import js from "@eslint/js";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 import { defineConfig } from "eslint/config";
-import eslintConfigPrettier from "eslint-config-prettier/flat";
-import eslintPluginPrettier from "eslint-plugin-prettier/recommended";
+import sharedConfig from "../../eslint.shared.config.js";
 
 export default defineConfig([
+  ...sharedConfig,
   {
     files: ["**/*.{js,mjs,cjs,ts,mts,cts}"],
-    plugins: { js },
-    extends: ["js/recommended"],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -18,24 +15,4 @@ export default defineConfig([
     },
   },
   tseslint.configs.recommended,
-  eslintConfigPrettier,
-  eslintPluginPrettier,
-  {
-    rules: {
-      "prettier/prettier": [
-        "error",
-        {
-          endOfLine: "auto",
-        },
-      ],
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        {
-          argsIgnorePattern: "^_",
-          varsIgnorePattern: "^_",
-          caughtErrorsIgnorePattern: "^_",
-        },
-      ],
-    },
-  },
 ]);

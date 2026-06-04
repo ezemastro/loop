@@ -4,13 +4,7 @@ import { ApiError, parseErrorName } from "../services/errors";
 import { useMutation } from "@tanstack/react-query";
 import { Platform } from "react-native";
 
-const fetchUploadFile = async ({
-  uri,
-  type,
-}: {
-  uri: string;
-  type: string;
-}) => {
+const fetchUploadFile = async ({ uri, type }: { uri: string; type: string }) => {
   const formData = new FormData();
 
   const fallbackName = `upload-${Date.now()}.jpg`;

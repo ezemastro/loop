@@ -34,9 +34,7 @@ export default function Listing({
       </View>
       <View className="flex-1 gap-2">
         <View>
-          <Text className="text-lg font-medium text-main-text">
-            {listing.title}
-          </Text>
+          <Text className="text-lg font-medium text-main-text">{listing.title}</Text>
           <CategoryBadge category={listing.category} className="text-sm" />
         </View>
         <View className="flex-row items-center gap-2">

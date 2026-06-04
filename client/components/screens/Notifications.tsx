@@ -10,11 +10,9 @@ import CustomRefresh from "../CustomRefresh";
 
 export default function Notifications() {
   const queryClient = useQueryClient();
-  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetching } =
-    useNotifications();
+  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetching } = useNotifications();
   const { mutateAsync: readAllNotifications } = useReadNotifications();
-  const notifications =
-    data?.pages.flatMap((page) => page.data!.notifications) || [];
+  const notifications = data?.pages.flatMap((page) => page.data!.notifications) || [];
 
   useEffect(() => {
     if (!isLoading && notifications.length > 0) {
@@ -38,14 +36,10 @@ export default function Notifications() {
           <>
             {isLoading && <Loader />}
             {!isLoading && !isError && !notifications.length && (
-              <Text className="text-secondary-text text-center">
-                No tienes notificaciones
-              </Text>
+              <Text className="text-secondary-text text-center">No tienes notificaciones</Text>
             )}
             {isError && (
-              <Text className="text-red-500 text-center">
-                Error al cargar las notificaciones
-              </Text>
+              <Text className="text-red-500 text-center">Error al cargar las notificaciones</Text>
             )}
           </>
         )}

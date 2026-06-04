@@ -62,9 +62,7 @@ export default function CategoryFormModal({
   }, [category, parentCategoryId]);
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >,
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -81,18 +79,10 @@ export default function CategoryFormModal({
         description: formData.description || undefined,
         parentId: formData.parentId || undefined,
         icon: formData.icon || undefined,
-        minPriceCredits: formData.minPriceCredits
-          ? parseInt(formData.minPriceCredits)
-          : undefined,
-        maxPriceCredits: formData.maxPriceCredits
-          ? parseInt(formData.maxPriceCredits)
-          : undefined,
-        statKgWaste: formData.statKgWaste
-          ? parseFloat(formData.statKgWaste)
-          : undefined,
-        statKgCo2: formData.statKgCo2
-          ? parseFloat(formData.statKgCo2)
-          : undefined,
+        minPriceCredits: formData.minPriceCredits ? parseInt(formData.minPriceCredits) : undefined,
+        maxPriceCredits: formData.maxPriceCredits ? parseInt(formData.maxPriceCredits) : undefined,
+        statKgWaste: formData.statKgWaste ? parseFloat(formData.statKgWaste) : undefined,
+        statKgCo2: formData.statKgCo2 ? parseFloat(formData.statKgCo2) : undefined,
         statLH2o: formData.statLH2o ? parseFloat(formData.statLH2o) : undefined,
       };
 
@@ -128,9 +118,7 @@ export default function CategoryFormModal({
   };
 
   // Aplanar todas las categorías y subcategorías con información de nivel
-  const flattenCategories = (
-    cats: Category[],
-  ): Array<Category & { level: number }> => {
+  const flattenCategories = (cats: Category[]): Array<Category & { level: number }> => {
     const result: Array<Category & { level: number }> = [];
     const flatten = (cat: Category, level: number = 0) => {
       result.push({ ...cat, level });
@@ -191,9 +179,7 @@ export default function CategoryFormModal({
             </div> */}
 
             <div className="col-span-2">
-              <label className="block mb-2 font-semibold">
-                Categoría Padre:
-              </label>
+              <label className="block mb-2 font-semibold">Categoría Padre:</label>
               <select
                 name="parentId"
                 value={formData.parentId}
@@ -214,9 +200,7 @@ export default function CategoryFormModal({
             </div>
 
             <div>
-              <label className="block mb-2 font-semibold">
-                Precio Mín (Créditos):
-              </label>
+              <label className="block mb-2 font-semibold">Precio Mín (Créditos):</label>
               <input
                 type="number"
                 name="minPriceCredits"
@@ -228,9 +212,7 @@ export default function CategoryFormModal({
             </div>
 
             <div>
-              <label className="block mb-2 font-semibold">
-                Precio Máx (Créditos):
-              </label>
+              <label className="block mb-2 font-semibold">Precio Máx (Créditos):</label>
               <input
                 type="number"
                 name="maxPriceCredits"
@@ -285,11 +267,7 @@ export default function CategoryFormModal({
             </div>
           </div>
 
-          {error && (
-            <div className="mt-4 p-3 bg-red-100 text-red-700 rounded">
-              {error}
-            </div>
-          )}
+          {error && <div className="mt-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>}
 
           <div className="flex gap-2 mt-6">
             <button

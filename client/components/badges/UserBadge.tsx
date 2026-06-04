@@ -15,9 +15,7 @@ export default function UserBadge({
   containerClassName?: string;
 }) {
   return (
-    <View
-      className={twMerge(`flex-row items-center gap-2`, containerClassName)}
-    >
+    <View className={twMerge(`flex-row items-center gap-2`, containerClassName)}>
       <Image
         source={getProfileImageSource(user.profileMedia?.url)}
         className={twMerge(`rounded-full bg-background`, imageClassName)}

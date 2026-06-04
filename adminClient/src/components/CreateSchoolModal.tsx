@@ -9,11 +9,7 @@ interface CreateSchoolModalProps {
   onSuccess: () => void;
 }
 
-export default function CreateSchoolModal({
-  isOpen,
-  onClose,
-  onSuccess,
-}: CreateSchoolModalProps) {
+export default function CreateSchoolModal({ isOpen, onClose, onSuccess }: CreateSchoolModalProps) {
   const [schoolName, setSchoolName] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -62,11 +58,7 @@ export default function CreateSchoolModal({
         alert("Imagen subida exitosamente");
       }
     } catch (err) {
-      setError(
-        err instanceof AxiosError
-          ? err.response?.data?.error
-          : "Error al subir la imagen",
-      );
+      setError(err instanceof AxiosError ? err.response?.data?.error : "Error al subir la imagen");
       console.error(err);
     } finally {
       setUploading(false);
@@ -97,11 +89,7 @@ export default function CreateSchoolModal({
         onSuccess();
       }
     } catch (err) {
-      setError(
-        err instanceof AxiosError
-          ? err.response?.data?.error
-          : "Error al crear la escuela",
-      );
+      setError(err instanceof AxiosError ? err.response?.data?.error : "Error al crear la escuela");
       console.error(err);
     } finally {
       setCreating(false);
@@ -126,9 +114,7 @@ export default function CreateSchoolModal({
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block mb-2 font-semibold">
-              Nombre de la Escuela*:
-            </label>
+            <label className="block mb-2 font-semibold">Nombre de la Escuela*:</label>
             <input
               type="text"
               value={schoolName}
@@ -140,9 +126,7 @@ export default function CreateSchoolModal({
           </div>
 
           <div className="mb-4">
-            <label className="block mb-2 font-semibold">
-              Logo de la Escuela*:
-            </label>
+            <label className="block mb-2 font-semibold">Logo de la Escuela*:</label>
             <input
               type="file"
               accept="image/*"
@@ -150,9 +134,7 @@ export default function CreateSchoolModal({
               className="border border-gray-300 rounded px-3 py-2 w-full"
               disabled={uploading || !!uploadedMediaId}
             />
-            <p className="text-sm text-gray-500 mt-1">
-              Formatos: JPG, PNG, WebP (máx. 5MB)
-            </p>
+            <p className="text-sm text-gray-500 mt-1">Formatos: JPG, PNG, WebP (máx. 5MB)</p>
           </div>
 
           {previewUrl && (
@@ -185,11 +167,7 @@ export default function CreateSchoolModal({
             </div>
           )}
 
-          {error && (
-            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-              {error}
-            </div>
-          )}
+          {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>}
 
           <div className="flex gap-2">
             <button

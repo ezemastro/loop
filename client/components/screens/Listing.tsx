@@ -45,20 +45,13 @@ export default function Listing() {
                 {isOwner ? (
                   listing.listingStatus === "published" && (
                     <View className="flex-row gap-2">
-                      <DeleteListingButton
-                        listingId={listing.id}
-                        onDelete={() => router.back()}
-                      />
+                      <DeleteListingButton listingId={listing.id} onDelete={() => router.back()} />
                       <EditListingButton listingId={listing.id} />
                     </View>
                   )
                 ) : (
                   <>
-                    <ReportButton
-                      listing={listing}
-                      className="px-3 py-2"
-                      label="Denunciar"
-                    />
+                    <ReportButton listing={listing} className="px-3 py-2" label="Denunciar" />
                     <AskButton userId={listing.seller.id} />
                   </>
                 )}
@@ -76,19 +69,12 @@ export default function Listing() {
             <View className="p-4 gap-3">
               <CategoryBadge category={listing.category} />
               <View className="gap-1">
-                <Text className="text-2xl font-bold text-main-text">
-                  {listing.title}
-                </Text>
+                <Text className="text-2xl font-bold text-main-text">{listing.title}</Text>
                 {listing.description && (
-                  <Text className="text-md text-main-text">
-                    {listing.description}
-                  </Text>
+                  <Text className="text-md text-main-text">{listing.description}</Text>
                 )}
               </View>
-              <ProductStatusBadge
-                status={listing.productStatus}
-                containerClassName="self-start"
-              />
+              <ProductStatusBadge status={listing.productStatus} containerClassName="self-start" />
               {listing.seller.schools.map((school) => (
                 <Text className="text-secondary-text" key={school.id}>
                   {school.name}
@@ -100,10 +86,7 @@ export default function Listing() {
         {
           key: "price",
           component: () => (
-            <BigCreditsBadge
-              credits={listing.price}
-              containerClassName="self-start ml-2"
-            />
+            <BigCreditsBadge credits={listing.price} containerClassName="self-start ml-2" />
           ),
         },
         {
@@ -141,9 +124,7 @@ export default function Listing() {
           key: "stats",
           component: () => (
             <View className="gap-3 p-4">
-              <Text className="text-2xl font-semibold text-main-text">
-                Con este loop ahorras:
-              </Text>
+              <Text className="text-2xl font-semibold text-main-text">Con este loop ahorras:</Text>
               <Stats
                 kgCo2={listing?.category.stats?.kgCo2 || 0}
                 kgWaste={listing?.category.stats?.kgWaste || 0}
@@ -164,17 +145,11 @@ export default function Listing() {
         className="flex-grow"
         renderItem={({ item }) => item.component()}
         ListEmptyComponent={
-          isLoading ? (
-            <Loader />
-          ) : error ? (
-            <Error>No se encontró la publicación</Error>
-          ) : null
+          isLoading ? <Loader /> : error ? <Error>No se encontró la publicación</Error> : null
         }
       />
       <View className="p-4 flex-row gap-4">
-        {listing && (
-          <ListingButtons listing={listing} onMutate={handleMutation} />
-        )}
+        {listing && <ListingButtons listing={listing} onMutate={handleMutation} />}
       </View>
     </MainView>
   );

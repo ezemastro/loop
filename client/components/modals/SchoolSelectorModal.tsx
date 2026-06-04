@@ -16,9 +16,7 @@ type SchoolSelectorModalMultipleProps = {
   onSelect: (schools: School[]) => void;
 };
 
-type SchoolSelectorModalProps =
-  | SchoolSelectorModalSingleProps
-  | SchoolSelectorModalMultipleProps;
+type SchoolSelectorModalProps = SchoolSelectorModalSingleProps | SchoolSelectorModalMultipleProps;
 
 export default function SchoolSelectorModal({
   isVisible,
@@ -34,17 +32,11 @@ export default function SchoolSelectorModal({
       onSelect={(schools: School | School[]) => onSelect(schools as any)}
       title="Seleccione las escuelas"
       useResource={useSchools}
-      renderItem={(school, options) => (
-        <School school={school} isSelected={options?.isSelected} />
-      )}
-      getItems={(data) =>
-        data?.pages.flatMap((page: any) => page.schools) || []
-      }
+      renderItem={(school, options) => <School school={school} isSelected={options?.isSelected} />}
+      getItems={(data) => data?.pages.flatMap((page: any) => page.schools) || []}
       getTotal={(data) => data?.pages[0].pagination.totalRecords}
       filterItems={(items, searchTerm) =>
-        items.filter((i) =>
-          i.name.toLowerCase().includes(searchTerm.toLowerCase()),
-        )
+        items.filter((i) => i.name.toLowerCase().includes(searchTerm.toLowerCase()))
       }
     />
   );

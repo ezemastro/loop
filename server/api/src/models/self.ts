@@ -1,9 +1,5 @@
 import { ERROR_MESSAGES, MISSION_KEYS, PAGE_SIZE } from "../config";
-import {
-  InternalServerError,
-  InvalidInputError,
-  UnauthorizedError,
-} from "../services/errors";
+import { InternalServerError, InvalidInputError, UnauthorizedError } from "../services/errors";
 import { comparePasswords, hashPassword } from "../services/hash";
 import { dbConnection } from "../services/postgresClient";
 import { queries } from "../services/queries";
@@ -115,18 +111,12 @@ export class SelfModel {
         });
       }
       // Preparar datos para actualizar usuario
-      email =
-        email && (await safeValidateEmail(email)).success ? email : user.email;
+      email = email && (await safeValidateEmail(email)).success ? email : user.email;
       firstName =
-        firstName && (await safeValidateFirstName(firstName)).success
-          ? firstName
-          : user.firstName;
+        firstName && (await safeValidateFirstName(firstName)).success ? firstName : user.firstName;
       lastName =
-        lastName && (await safeValidateLastName(lastName)).success
-          ? lastName
-          : user.lastName;
-      phone =
-        phone && (await safeValidatePhone(phone)).success ? phone : user.phone;
+        lastName && (await safeValidateLastName(lastName)).success ? lastName : user.lastName;
+      phone = phone && (await safeValidatePhone(phone)).success ? phone : user.phone;
       profileMediaId =
         profileMediaId && (await safeValidateUUID(profileMediaId)).success
           ? profileMediaId
@@ -151,10 +141,7 @@ export class SelfModel {
         if (schoolIds) {
           await client.query(queries.deleteUserSchools, [userId]);
           if (schoolIds.length > 0) {
-            await client.query(queries.insertUserSchools(schoolIds.length), [
-              userId,
-              ...schoolIds,
-            ]);
+            await client.query(queries.insertUserSchools(schoolIds.length), [userId, ...schoolIds]);
           }
         }
       } catch {
@@ -300,11 +287,7 @@ export class SelfModel {
     }
   };
 
-  static getSelfUnreadNotificationsCount = async ({
-    userId,
-  }: {
-    userId: UUID;
-  }) => {
+  static getSelfUnreadNotificationsCount = async ({ userId }: { userId: UUID }) => {
     // Crear conexión a la base de datos
     let client: DatabaseClient;
     try {
@@ -314,10 +297,7 @@ export class SelfModel {
     }
     try {
       // Obtener cuantas notificaciones no leídas tiene el usuario
-      const result = await client.query(
-        queries.unreadNotificationsCountByUserId,
-        [userId],
-      );
+      const result = await client.query(queries.unreadNotificationsCountByUserId, [userId]);
       const unreadNotificationsCount = result[0]?.unread_count ?? 0;
       return { unreadNotificationsCount };
     } finally {
@@ -343,13 +323,7 @@ export class SelfModel {
     }
   };
 
-  static getSelfChats = async ({
-    userId,
-    page,
-  }: {
-    userId: string;
-    page: number | undefined;
-  }) => {
+  static getSelfChats = async ({ userId, page }: { userId: string; page: number | undefined }) => {
     // Crear conexión a la base de datos
     let client: DatabaseClient;
     try {
@@ -399,9 +373,7 @@ export class SelfModel {
       // Obtener cuantos chats tiene con mensajes no leídos
       let unreadChatsCount: number;
       try {
-        const result = await client.query(queries.unreadChatsCountByUserId, [
-          userId,
-        ]);
+        const result = await client.query(queries.unreadChatsCountByUserId, [userId]);
         unreadChatsCount = safeNumber(result[0]?.unread_count) ?? 0;
       } catch {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
@@ -428,10 +400,7 @@ export class SelfModel {
     try {
       // Actualizar token de notificaciones push del usuario
       try {
-        await client.query(queries.updateNotificationToken, [
-          notificationToken,
-          userId,
-        ]);
+        await client.query(queries.updateNotificationToken, [notificationToken, userId]);
       } catch {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
       }
@@ -450,9 +419,7 @@ export class SelfModel {
     }
     try {
       // Obtener deseos del usuario
-      const wishesDb = await client.query(queries.getUserWishesByUserId, [
-        userId,
-      ]);
+      const wishesDb = await client.query(queries.getUserWishesByUserId, [userId]);
       const userWishesBase = wishesDb.map(parseUserWishFromDb);
       const userWishes = await Promise.all(
         userWishesBase.map(async (userWishBase) => {
@@ -489,11 +456,7 @@ export class SelfModel {
     }
     try {
       // Agregar deseo del usuario
-      const result = await client.query(queries.createUserWish, [
-        userId,
-        categoryId,
-        comment,
-      ]);
+      const result = await client.query(queries.createUserWish, [userId, categoryId, comment]);
       const userWishBase = parseUserWishFromDb(result[0]!);
       const userWish = parseUserWishFromBase({
         userWish: userWishBase,
@@ -510,13 +473,7 @@ export class SelfModel {
     }
   };
 
-  static deleteSelfWish = async ({
-    userId,
-    categoryId,
-  }: {
-    userId: UUID;
-    categoryId: UUID;
-  }) => {
+  static deleteSelfWish = async ({ userId, categoryId }: { userId: UUID; categoryId: UUID }) => {
     // Crear conexión a la base de datos
     let client: DatabaseClient;
     try {
@@ -575,11 +532,7 @@ export class SelfModel {
       };
       // Actualizar comentario del deseo del usuario
       try {
-        await client.query(queries.updateUserWish, [
-          newWish.comment,
-          newWish.categoryId,
-          wishId,
-        ]);
+        await client.query(queries.updateUserWish, [newWish.comment, newWish.categoryId, wishId]);
       } catch {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
       }
@@ -631,10 +584,7 @@ export class SelfModel {
         throw new UnauthorizedError(ERROR_MESSAGES.INVALID_CREDENTIALS);
       }
       // Comparar contraseña antigua
-      const isPasswordCorrect = await comparePasswords(
-        oldPassword,
-        currentPasswordHash,
-      );
+      const isPasswordCorrect = await comparePasswords(oldPassword, currentPasswordHash);
       if (!isPasswordCorrect) {
         throw new UnauthorizedError(ERROR_MESSAGES.INVALID_CREDENTIALS);
       }

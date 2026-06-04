@@ -8,9 +8,7 @@ export default function CreditsBalance() {
   return (
     <View className="bg-background/70 p-1 px-3 rounded-full flex-row items-center gap-3">
       <CreditIcon />
-      <Text className="text-credits-light font-medium text-lg">
-        {formatNumber(credits || 0)}
-      </Text>
+      <Text className="text-credits-light font-medium text-lg">{formatNumber(credits || 0)}</Text>
     </View>
   );
 }

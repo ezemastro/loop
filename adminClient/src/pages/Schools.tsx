@@ -43,36 +43,32 @@ export default function Schools() {
         const statsData = statsResponse.data?.schools || [];
 
         // Combinar datos: agregar stats a cada escuela
-        const schoolsWithStats: SchoolWithStats[] = schoolsData.map(
-          (school) => {
-            // Intentar match por id (pueden ser diferentes tipos)
-            const stats = statsData.find(
-              (s) =>
-                s.id === parseInt(school.id) ||
-                s.id.toString() === school.id ||
-                s.name === school.name,
-            );
+        const schoolsWithStats: SchoolWithStats[] = schoolsData.map((school) => {
+          // Intentar match por id (pueden ser diferentes tipos)
+          const stats = statsData.find(
+            (s) =>
+              s.id === parseInt(school.id) ||
+              s.id.toString() === school.id ||
+              s.name === school.name,
+          );
 
-            return {
-              ...school,
-              stats: stats
-                ? {
-                    kgWaste: stats.statKgWaste,
-                    kgCo2: stats.statKgCo2,
-                    lH2o: stats.statLH2o,
-                  }
-                : undefined,
-            };
-          },
-        );
+          return {
+            ...school,
+            stats: stats
+              ? {
+                  kgWaste: stats.statKgWaste,
+                  kgCo2: stats.statKgCo2,
+                  lH2o: stats.statLH2o,
+                }
+              : undefined,
+          };
+        });
 
         setSchools(schoolsWithStats);
       }
     } catch (err) {
       setError(
-        err instanceof AxiosError
-          ? err.response?.data?.error
-          : "Error al cargar las escuelas",
+        err instanceof AxiosError ? err.response?.data?.error : "Error al cargar las escuelas",
       );
       console.error(err);
     } finally {
@@ -98,17 +94,9 @@ export default function Schools() {
           </button>
         </div>
 
-        {error && (
-          <div className="bg-red-100 text-red-700 p-4 rounded mb-4">
-            {error}
-          </div>
-        )}
+        {error && <div className="bg-red-100 text-red-700 p-4 rounded mb-4">{error}</div>}
 
-        <SchoolsTable
-          schools={schools}
-          loading={loading}
-          onEdit={handleEditSchool}
-        />
+        <SchoolsTable schools={schools} loading={loading} onEdit={handleEditSchool} />
 
         <CreateSchoolModal
           isOpen={showCreateModal}

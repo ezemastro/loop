@@ -1,8 +1,4 @@
-import {
-  addNewMessageToCache,
-  replaceMessageInCache,
-  useMessages,
-} from "@/hooks/useMessages";
+import { addNewMessageToCache, replaceMessageInCache, useMessages } from "@/hooks/useMessages";
 import { useLocalSearchParams } from "expo-router";
 import { View, Text, Image, FlatList, RefreshControl } from "react-native";
 import { MainView } from "../bases/MainView";
@@ -29,22 +25,12 @@ export default function Chat() {
   const queryClient = useQueryClient();
   const { user: currentUser } = useAuth();
   const { userId: unparsedUserId } = useLocalSearchParams();
-  const userId = Array.isArray(unparsedUserId)
-    ? unparsedUserId[0]
-    : unparsedUserId;
+  const userId = Array.isArray(unparsedUserId) ? unparsedUserId[0] : unparsedUserId;
   const { data: userData } = useUser({ userId: userId });
-  const {
-    data,
-    isLoading,
-    isError,
-    fetchNextPage,
-    refetch,
-    hasNextPage,
-    isSuccess,
-    isFetching,
-  } = useMessages({
-    userId: userId,
-  });
+  const { data, isLoading, isError, fetchNextPage, refetch, hasNextPage, isSuccess, isFetching } =
+    useMessages({
+      userId: userId,
+    });
   const { mutate: sendMessage } = useSendMessage({ userId: userId });
   const { mutate: markMessagesAsRead } = useMessageRead({ userId: userId });
 
@@ -146,24 +132,18 @@ export default function Chat() {
             <>
               {!messages[index - 1] ||
               item.senderId !== messages[index - 1]?.senderId ||
-              minutesDifference(
-                item.createdAt,
-                messages[index - 1]?.createdAt,
-              ) > 5 ? (
+              minutesDifference(item.createdAt, messages[index - 1]?.createdAt) > 5 ? (
                 <ChatHourLabel date={item.createdAt} senderId={item.senderId} />
               ) : null}
               <MessageItem message={item} />
-              {!messages[index + 1] ||
-              !sameDay(item.createdAt, messages[index + 1]?.createdAt) ? (
+              {!messages[index + 1] || !sameDay(item.createdAt, messages[index + 1]?.createdAt) ? (
                 <ChatDayLabel date={item.createdAt} />
               ) : null}
             </>
           )}
           ListFooterComponent={
             messages.length && !hasNextPage ? (
-              <Text className="text-secondary-text text-center p-4">
-                No hay más mensajes
-              </Text>
+              <Text className="text-secondary-text text-center p-4">No hay más mensajes</Text>
             ) : null
           }
           ListHeaderComponent={
@@ -184,9 +164,7 @@ export default function Chat() {
           }}
           inverted
           onEndReachedThreshold={0.1}
-          refreshControl={
-            <RefreshControl refreshing={isFetching} onRefresh={refetch} />
-          }
+          refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         />
         <View className="bg-white p-2">
           <ChatInput onSubmit={handleSendMessage} />

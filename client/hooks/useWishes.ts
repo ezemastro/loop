@@ -12,10 +12,7 @@ export const useWishes = () => {
   });
 };
 
-const fetchCreateWish = async ({
-  categoryId,
-  comment,
-}: PostSelfWishRequest["body"]) => {
+const fetchCreateWish = async ({ categoryId, comment }: PostSelfWishRequest["body"]) => {
   const response = await api.post<PostSelfWishResponse>("/me/wishes", {
     categoryId,
     comment,
@@ -32,12 +29,8 @@ export const useCreateWish = () => {
       }),
   });
 };
-const fetchRemoveWish = async ({
-  categoryId,
-}: DeleteSelfWishRequest["params"]) => {
-  const response = await api.delete<DeleteSelfWishResponse>(
-    `/me/wishes/${categoryId}`,
-  );
+const fetchRemoveWish = async ({ categoryId }: DeleteSelfWishRequest["params"]) => {
+  const response = await api.delete<DeleteSelfWishResponse>(`/me/wishes/${categoryId}`);
   return response.data;
 };
 export const useRemoveWish = () => {

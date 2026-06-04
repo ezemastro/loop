@@ -1,9 +1,10 @@
-// https://docs.expo.dev/guides/using-eslint/
-const { defineConfig } = require("eslint/config");
-const expoConfig = require("eslint-config-expo/flat");
-const eslintPluginPrettierRecommended = require("eslint-plugin-prettier/recommended");
+import { defineConfig } from "eslint/config";
+import expoConfig from "eslint-config-expo/flat";
+import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
+import sharedConfig from "../eslint.shared.config.js";
 
-module.exports = defineConfig([
+export default defineConfig([
+  ...sharedConfig,
   expoConfig,
   eslintPluginPrettierRecommended,
   {
@@ -13,12 +14,6 @@ module.exports = defineConfig([
       "import/no-deprecated": "off",
       "import/no-named-as-default": "off",
       "import/no-unused-modules": "off",
-      "prettier/prettier": [
-        "error",
-        {
-          endOfLine: "auto",
-        },
-      ],
     },
   },
 ]);

@@ -65,9 +65,7 @@ export const useRegisterForm = () => {
         email: formattedErrors.email?._errors[0] || null,
         password: formattedErrors.password?._errors[0] || null,
         confirmPassword:
-          formData.password !== formData.confirmPassword
-            ? "Las contraseñas no coinciden"
-            : null,
+          formData.password !== formData.confirmPassword ? "Las contraseñas no coinciden" : null,
         schools: formattedErrors.schools?._errors[0] || null,
       });
     }

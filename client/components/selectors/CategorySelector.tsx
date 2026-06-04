@@ -38,12 +38,7 @@ export default function CategorySelector({
           <Category category={value} extended />
         ) : (
           <View className="h-16 justify-center items-center">
-            <Text
-              className={twMerge(
-                "text-secondary-text text-lg",
-                placeholderClassName,
-              )}
-            >
+            <Text className={twMerge("text-secondary-text text-lg", placeholderClassName)}>
               Seleccionar categoría
             </Text>
           </View>

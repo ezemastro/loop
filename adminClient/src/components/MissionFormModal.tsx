@@ -26,15 +26,12 @@ export default function MissionFormModal({
   const [error, setError] = useState<string | null>(null);
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >,
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value, type } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]:
-        type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
+      [name]: type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
     }));
   };
 
@@ -88,9 +85,7 @@ export default function MissionFormModal({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-2xl w-full m-4">
-        <h2 className="text-xl font-bold mb-4">
-          {mission ? "Editar Misión" : "Crear Misión"}
-        </h2>
+        <h2 className="text-xl font-bold mb-4">{mission ? "Editar Misión" : "Crear Misión"}</h2>
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
@@ -105,9 +100,7 @@ export default function MissionFormModal({
                 required
                 placeholder="donate_5_items"
               />
-              <p className="text-sm text-gray-500 mt-1">
-                Identificador único de la misión
-              </p>
+              <p className="text-sm text-gray-500 mt-1">Identificador único de la misión</p>
             </div>
 
             <div>
@@ -134,9 +127,7 @@ export default function MissionFormModal({
             </div>
 
             <div>
-              <label className="block mb-2 font-semibold">
-                Recompensa (Créditos)*:
-              </label>
+              <label className="block mb-2 font-semibold">Recompensa (Créditos)*:</label>
               <input
                 type="number"
                 name="rewardCredits"
@@ -162,11 +153,7 @@ export default function MissionFormModal({
             </div>
           </div>
 
-          {error && (
-            <div className="mt-4 p-3 bg-red-100 text-red-700 rounded">
-              {error}
-            </div>
-          )}
+          {error && <div className="mt-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>}
 
           <div className="flex gap-2 mt-6">
             <button

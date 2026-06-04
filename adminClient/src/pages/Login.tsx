@@ -70,9 +70,7 @@ export default function Login() {
                 className="border border-gray-300 rounded px-3 py-2 w-full"
                 required
               />
-              {formErrors?.email && (
-                <div className="text-red-500 text-sm">{formErrors.email}</div>
-              )}
+              {formErrors?.email && <div className="text-red-500 text-sm">{formErrors.email}</div>}
             </div>
             <div className="mb-4">
               <label htmlFor="password">Contraseña:</label>
@@ -84,9 +82,7 @@ export default function Login() {
                 required
               />
               {formErrors?.password && (
-                <div className="text-red-500 text-sm">
-                  {formErrors.password}
-                </div>
+                <div className="text-red-500 text-sm">{formErrors.password}</div>
               )}
             </div>
             <button
@@ -96,9 +92,7 @@ export default function Login() {
               Iniciar Sesión
             </button>
             {formErrors?.error && (
-              <div className="text-red-500 text-sm mt-3">
-                {formErrors.error}
-              </div>
+              <div className="text-red-500 text-sm mt-3">{formErrors.error}</div>
             )}
           </form>
           <div className="w-full h-0.5 bg-gray-300"></div>

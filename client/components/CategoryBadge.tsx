@@ -13,9 +13,7 @@ export default function CategoryBadge({
 }) {
   const { data } = useWishes();
   const wishedCategories = data?.userWishes || [];
-  const isWished = wishedCategories.some(
-    (wish) => wish.categoryId === category.id,
-  );
+  const isWished = wishedCategories.some((wish) => wish.categoryId === category.id);
   return (
     <Text
       className={twMerge(
@@ -24,8 +22,7 @@ export default function CategoryBadge({
         className,
       )}
     >
-      {category.parents &&
-        category.parents?.map((parent) => parent.name).join(" / ") + " / "}
+      {category.parents && category.parents?.map((parent) => parent.name).join(" / ") + " / "}
       {category.name}
     </Text>
   );

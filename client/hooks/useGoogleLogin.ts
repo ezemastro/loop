@@ -6,10 +6,7 @@ import { AxiosError } from "axios";
 
 const fetchGoogleLogin = async (body: PostAuthGoogleLoginRequest["body"]) => {
   try {
-    const response = await api.post<PostAuthGoogleLoginResponse>(
-      "/auth/google-login",
-      body,
-    );
+    const response = await api.post<PostAuthGoogleLoginResponse>("/auth/google-login", body);
 
     if (!response.data.success) {
       throw new Error(response.data.error || "Error desconocido");
@@ -19,10 +16,10 @@ const fetchGoogleLogin = async (body: PostAuthGoogleLoginRequest["body"]) => {
     console.log("Error en fetchGoogleLogin:", err);
     if (err instanceof AxiosError) {
       const errName = parseErrorName({ status: err.response?.status || 500 });
-      const errorMessage = 
-        err.response?.data?.error || 
-        err.response?.data?.message || 
-        err.message || 
+      const errorMessage =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        err.message ||
         "Error al iniciar sesión con Google";
       throw {
         name: errName,

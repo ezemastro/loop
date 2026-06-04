@@ -31,10 +31,7 @@ export default function CustomModal({
         )}
       >
         <View
-          className={twMerge(
-            `flex-1 items-center justify-center p-4 max-w-3xl w-full`,
-            className,
-          )}
+          className={twMerge(`flex-1 items-center justify-center p-4 max-w-3xl w-full`, className)}
         >
           {children}
         </View>

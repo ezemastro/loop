@@ -2,11 +2,7 @@ import { useState } from "react";
 import { View, TextInput, Pressable } from "react-native";
 import { SendIcon } from "./Icons";
 
-export default function ChatInput({
-  onSubmit,
-}: {
-  onSubmit: (text: string) => void;
-}) {
+export default function ChatInput({ onSubmit }: { onSubmit: (text: string) => void }) {
   const [messageText, setMessageText] = useState("");
 
   return (

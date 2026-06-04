@@ -40,11 +40,7 @@ export default function WishList() {
       <FlatList
         data={wishes}
         renderItem={({ item }) => (
-          <Wish
-            wish={item}
-            onEdit={() => handleEdit(item)}
-            onDelete={() => handleDelete(item)}
-          />
+          <Wish wish={item} onEdit={() => handleEdit(item)} onDelete={() => handleDelete(item)} />
         )}
         className="flex-1"
         contentContainerClassName="gap-1 pt-2"

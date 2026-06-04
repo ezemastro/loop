@@ -13,11 +13,7 @@ const getBearerToken = (authorization?: string | string[]) => {
   return token.length ? token : null;
 };
 
-export const tokenMiddleware = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+export const tokenMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const bearerToken = getBearerToken(req.headers.authorization);
   const token = req.cookies[COOKIE_NAMES.TOKEN] || bearerToken;
   const adminToken = req.cookies[COOKIE_NAMES.ADMIN_TOKEN];

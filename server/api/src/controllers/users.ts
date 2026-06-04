@@ -44,14 +44,8 @@ export class UsersController {
     res.status(200).json(successResponse({ data: { users }, pagination }));
   };
 
-  static getUserById = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
-    const userId = Array.isArray(req.params.userId)
-      ? req.params.userId[0]
-      : req.params.userId;
+  static getUserById = async (req: Request, res: Response, next: NextFunction) => {
+    const userId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
     try {
       await validateId(userId);
     } catch {
@@ -67,9 +61,7 @@ export class UsersController {
   };
 
   static donate = async (req: Request, res: Response, next: NextFunction) => {
-    const toUserId = Array.isArray(req.params.userId)
-      ? req.params.userId[0]
-      : req.params.userId;
+    const toUserId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
     const userId = req.session!.userId!;
     const { amount } = req.body;
     try {
@@ -92,11 +84,7 @@ export class UsersController {
     res.status(200).json(successResponse());
   };
 
-  static getUserWishes = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static getUserWishes = async (req: Request, res: Response, next: NextFunction) => {
     const { userId } = req.params as GetUserWishesRequest["params"];
     try {
       await validateId(userId);

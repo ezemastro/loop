@@ -13,9 +13,7 @@ interface Section {
 
 export default function TermsPage() {
   const insets = useSafeAreaInsets();
-  const setHasAcceptedTerms = useSessionStore(
-    (state) => state.setHasAcceptedTerms,
-  );
+  const setHasAcceptedTerms = useSessionStore((state) => state.setHasAcceptedTerms);
   const handleAccept = () => {
     setHasAcceptedTerms(true);
   };
@@ -97,19 +95,13 @@ export default function TermsPage() {
                 <TextTitle className="mb-4 text-3xl">{item.content}</TextTitle>
               )}
               {item.type === "subtitle" && (
-                <TextTitle className="mb-3 mt-3 text-left">
-                  {item.content}
-                </TextTitle>
+                <TextTitle className="mb-3 mt-3 text-left">{item.content}</TextTitle>
               )}
               {item.type === "paragraph" && (
-                <Text className="mb-2 text-main-text text-lg leading-6">
-                  {item.content}
-                </Text>
+                <Text className="mb-2 text-main-text text-lg leading-6">{item.content}</Text>
               )}
               {item.type === "list-item" && (
-                <Text className="mb-3 text-main-text text-lg leading-6">
-                  • {item.content}
-                </Text>
+                <Text className="mb-3 text-main-text text-lg leading-6">• {item.content}</Text>
               )}
             </>
           )}

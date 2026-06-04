@@ -14,9 +14,7 @@ export const sendPushNotification = async ({
   categoryId?: string;
 }) => {
   if (!Expo.isExpoPushToken(notificationToken)) {
-    console.error(
-      `Push token ${notificationToken} is not a valid Expo push token`,
-    );
+    console.error(`Push token ${notificationToken} is not a valid Expo push token`);
     return;
   }
   expo.sendPushNotificationsAsync([

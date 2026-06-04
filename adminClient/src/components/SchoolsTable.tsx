@@ -14,11 +14,7 @@ interface SchoolsTableProps {
   onEdit?: (school: School) => void;
 }
 
-export default function SchoolsTable({
-  schools,
-  loading,
-  onEdit,
-}: SchoolsTableProps) {
+export default function SchoolsTable({ schools, loading, onEdit }: SchoolsTableProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -34,15 +30,9 @@ export default function SchoolsTable({
           <tr>
             <th className="px-4 py-3 text-left font-semibold">Logo</th>
             <th className="px-4 py-3 text-left font-semibold">Nombre</th>
-            <th className="px-4 py-3 text-left font-semibold">
-              Kg Residuos Evitados
-            </th>
-            <th className="px-4 py-3 text-left font-semibold">
-              Kg CO₂ Evitados
-            </th>
-            <th className="px-4 py-3 text-left font-semibold">
-              Litros H₂O Ahorrados
-            </th>
+            <th className="px-4 py-3 text-left font-semibold">Kg Residuos Evitados</th>
+            <th className="px-4 py-3 text-left font-semibold">Kg CO₂ Evitados</th>
+            <th className="px-4 py-3 text-left font-semibold">Litros H₂O Ahorrados</th>
             <th className="px-4 py-3 text-left font-semibold">Acciones</th>
           </tr>
         </thead>
@@ -57,15 +47,9 @@ export default function SchoolsTable({
                 />
               </td>
               <td className="px-4 py-3 font-semibold">{school.name}</td>
-              <td className="px-4 py-3">
-                {school.stats?.kgWaste.toFixed(2) ?? "N/A"} kg
-              </td>
-              <td className="px-4 py-3">
-                {school.stats?.kgCo2.toFixed(2) ?? "N/A"} kg
-              </td>
-              <td className="px-4 py-3">
-                {school.stats?.lH2o.toFixed(2) ?? "N/A"} L
-              </td>
+              <td className="px-4 py-3">{school.stats?.kgWaste.toFixed(2) ?? "N/A"} kg</td>
+              <td className="px-4 py-3">{school.stats?.kgCo2.toFixed(2) ?? "N/A"} kg</td>
+              <td className="px-4 py-3">{school.stats?.lH2o.toFixed(2) ?? "N/A"} L</td>
               <td className="px-4 py-3">
                 <button
                   onClick={() => onEdit?.(school)}
@@ -80,9 +64,7 @@ export default function SchoolsTable({
       </table>
 
       {schools.length === 0 && (
-        <p className="text-center py-8 text-gray-500">
-          No hay escuelas registradas
-        </p>
+        <p className="text-center py-8 text-gray-500">No hay escuelas registradas</p>
       )}
     </div>
   );

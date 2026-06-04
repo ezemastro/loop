@@ -50,9 +50,7 @@ export const getPrivateUserById = async ({
   if (!userDb) throw new InternalServerError(ERROR_MESSAGES.USER_NOT_FOUND);
   const userBase = parseUserBaseFromDb(userDb);
   // Obtener todas las escuelas del usuario
-  const userSchoolsDb = await client.query(queries.userSchoolsByUserId, [
-    userId,
-  ]);
+  const userSchoolsDb = await client.query(queries.userSchoolsByUserId, [userId]);
   const schools = await Promise.all(
     userSchoolsDb.map(async (us: { school_id: UUID }) => {
       const schoolDb = await client.query(queries.schoolById, [us.school_id]);
@@ -84,14 +82,11 @@ export const getListingById = async ({
   listingId: UUID;
 }) => {
   const [listingDb] = await client.query(queries.listingById, [listingId]);
-  if (!listingDb)
-    throw new InternalServerError(ERROR_MESSAGES.LISTING_NOT_FOUND);
+  if (!listingDb) throw new InternalServerError(ERROR_MESSAGES.LISTING_NOT_FOUND);
   const listingBase = parseListingBaseFromDb(listingDb);
   const listing = parseListingFromBase({
     listing: listingBase,
-    buyer: listingBase.buyerId
-      ? await getUserById({ client, userId: listingBase.buyerId })
-      : null,
+    buyer: listingBase.buyerId ? await getUserById({ client, userId: listingBase.buyerId }) : null,
     media: await getMediasByListingId({ client, listingId }),
     seller: await getUserById({ client, userId: listingBase.sellerId }),
     category: await getCategoryById({
@@ -102,20 +97,12 @@ export const getListingById = async ({
   return listing;
 };
 
-export const getUserById = async ({
-  client,
-  userId,
-}: {
-  client: DatabaseClient;
-  userId: UUID;
-}) => {
+export const getUserById = async ({ client, userId }: { client: DatabaseClient; userId: UUID }) => {
   const [userDb] = await client.query(queries.userById, [userId]);
   if (!userDb) throw new InternalServerError(ERROR_MESSAGES.USER_NOT_FOUND);
   const userBase = parseUserBaseFromDb(userDb);
   // Obtener todas las escuelas del usuario
-  const userSchoolsDb = await client.query(queries.userSchoolsByUserId, [
-    userId,
-  ]);
+  const userSchoolsDb = await client.query(queries.userSchoolsByUserId, [userId]);
   const schools = await Promise.all(
     userSchoolsDb.map(async (us: { school_id: UUID }) => {
       const schoolDb = await client.query(queries.schoolById, [us.school_id]);
@@ -164,8 +151,7 @@ export const getSchoolById = async ({
     client,
     mediaId: schoolBase.mediaId,
   });
-  if (!schoolMedia)
-    throw new InternalServerError(ERROR_MESSAGES.MEDIA_NOT_FOUND);
+  if (!schoolMedia) throw new InternalServerError(ERROR_MESSAGES.MEDIA_NOT_FOUND);
   const school = parseSchoolFromBase({
     school: schoolBase,
     media: schoolMedia,
@@ -179,9 +165,7 @@ export const getMediasByListingId = async ({
   client: DatabaseClient;
   listingId: UUID;
 }) => {
-  const listingMediasDb = await client.query(queries.listingMediasByListingId, [
-    listingId,
-  ]);
+  const listingMediasDb = await client.query(queries.listingMediasByListingId, [listingId]);
   return await Promise.all(
     listingMediasDb.map((listingMediaDb) =>
       getMediaById({ client, mediaId: listingMediaDb.media_id }),
@@ -242,18 +226,13 @@ const getChildrenCategories = async ({
     return null;
   }
   // Obtener hijos
-  const childrenCategoriesDb = await client.query(
-    queries.categoriesByParentId,
-    [parentId],
-  );
+  const childrenCategoriesDb = await client.query(queries.categoriesByParentId, [parentId]);
   // Si no tiene hijos retornar null
   if (childrenCategoriesDb.length === 0) {
     return null;
   }
 
-  const childrenCategoriesBase = childrenCategoriesDb.map(
-    parseCategoryBaseFromDb,
-  );
+  const childrenCategoriesBase = childrenCategoriesDb.map(parseCategoryBaseFromDb);
 
   // Procesar los hijos en paralelo
   return await Promise.all(
@@ -327,9 +306,7 @@ export const getAllCategories = async ({
   if (categoriesDb.length === 0) return [];
 
   // 2. Parsear a objetos base
-  const categoriesBase: CategoryBase[] = categoriesDb.map(
-    parseCategoryBaseFromDb,
-  );
+  const categoriesBase: CategoryBase[] = categoriesDb.map(parseCategoryBaseFromDb);
 
   // 3. Crear un diccionario id -> categoryBase
   const categoryMap = new Map<UUID, CategoryBase>();
@@ -367,8 +344,7 @@ export const getAllCategories = async ({
       return { ...cat, children: null, parents: [] };
     }
 
-    const children =
-      childrenMap.get(cat.id)?.map((c) => buildCategory(c, depth + 1)) ?? null;
+    const children = childrenMap.get(cat.id)?.map((c) => buildCategory(c, depth + 1)) ?? null;
     const parents = buildParents(cat);
 
     return {
@@ -379,9 +355,7 @@ export const getAllCategories = async ({
   };
 
   // 8. Devolvemos solo las categorías raíz
-  return categoriesBase
-    .filter((cat) => !cat.parentId)
-    .map((cat) => buildCategory(cat));
+  return categoriesBase.filter((cat) => !cat.parentId).map((cat) => buildCategory(cat));
 };
 
 export const getUserMissionsByUserId = async ({
@@ -464,8 +438,7 @@ export const getNotificationsByUserId = async ({
             ? (notification.payload as LoopNotificationPayload).buyerId
               ? await getUserById({
                   client,
-                  userId: (notification.payload as LoopNotificationPayload)
-                    .buyerId!,
+                  userId: (notification.payload as LoopNotificationPayload).buyerId!,
                 })
               : null
             : undefined;
@@ -473,16 +446,14 @@ export const getNotificationsByUserId = async ({
           notification.type === "donation"
             ? await getUserById({
                 client,
-                userId: (notification.payload as DonationNotificationPayload)
-                  .donorUserId,
+                userId: (notification.payload as DonationNotificationPayload).donorUserId,
               })
             : undefined;
         const listingReferenceId =
           notification.type === "loop"
             ? (notification.payload as LoopNotificationPayload).listingId
             : notification.type === "admin" &&
-                (notification.payload as AdminNotificationPayload).target ===
-                  "listing" &&
+                (notification.payload as AdminNotificationPayload).target === "listing" &&
                 (notification.payload as AdminNotificationPayload).referenceId
               ? (notification.payload as AdminNotificationPayload).referenceId
               : null;
@@ -496,9 +467,7 @@ export const getNotificationsByUserId = async ({
           notification.type === "mission"
             ? await getUserMissionById({
                 client,
-                userMissionId: (
-                  notification.payload as MissionNotificationPayload
-                ).userMissionId,
+                userMissionId: (notification.payload as MissionNotificationPayload).userMissionId,
               })
             : undefined;
         return parseNotificationFromBase({
@@ -530,11 +499,8 @@ export const getUserMissionById = async ({
   client: DatabaseClient;
   userMissionId: UUID;
 }) => {
-  const [missionDb] = await client.query(queries.userMissionsById, [
-    userMissionId,
-  ]);
-  if (!missionDb)
-    throw new InternalServerError(ERROR_MESSAGES.MISSION_NOT_FOUND);
+  const [missionDb] = await client.query(queries.userMissionsById, [userMissionId]);
+  if (!missionDb) throw new InternalServerError(ERROR_MESSAGES.MISSION_NOT_FOUND);
   const missionBase = parseUserMissionBaseFromDb(missionDb);
   const missionTemplate = await getMissionTemplateById({
     client,
@@ -552,11 +518,8 @@ export const getMissionTemplateById = async ({
   client: DatabaseClient;
   templateId: UUID;
 }) => {
-  const [templateDb] = await client.query(queries.missionTemplateById, [
-    templateId,
-  ]);
-  if (!templateDb)
-    throw new InternalServerError(ERROR_MESSAGES.MISSION_TEMPLATE_NOT_FOUND);
+  const [templateDb] = await client.query(queries.missionTemplateById, [templateId]);
+  if (!templateDb) throw new InternalServerError(ERROR_MESSAGES.MISSION_TEMPLATE_NOT_FOUND);
   return parseMissionTemplateFromDb(templateDb);
 };
 export const getMessageById = async ({
@@ -567,8 +530,7 @@ export const getMessageById = async ({
   messageId: UUID;
 }) => {
   const [messageDb] = await client.query(queries.messageById, [messageId]);
-  if (!messageDb)
-    throw new InternalServerError(ERROR_MESSAGES.MESSAGE_NOT_FOUND);
+  if (!messageDb) throw new InternalServerError(ERROR_MESSAGES.MESSAGE_NOT_FOUND);
   const messageBase = parseMessageBaseFromDb(messageDb);
   return parseMessageFromBase({
     message: messageBase,
@@ -589,16 +551,14 @@ export const progressMission = async ({
   userId: UUID;
   missionKey: string;
 }) => {
-  const missionTemplateDb = await client.query(queries.missionTemplateByKey, [
-    missionKey,
-  ]);
+  const missionTemplateDb = await client.query(queries.missionTemplateByKey, [missionKey]);
   if (missionTemplateDb.length === 0) return;
   const missionTemplate = parseMissionTemplateFromDb(missionTemplateDb[0]!);
   if (missionTemplate.active === false) return;
-  const userMissionDb = await client.query(
-    queries.userMissionsByUserIdAndTemplateId,
-    [userId, missionTemplate.id],
-  );
+  const userMissionDb = await client.query(queries.userMissionsByUserIdAndTemplateId, [
+    userId,
+    missionTemplate.id,
+  ]);
   if (userMissionDb.length === 0) return;
   const userMissionBase = parseUserMissionBaseFromDb(userMissionDb[0]!);
   if (userMissionBase.completed) return;
@@ -613,13 +573,8 @@ export const progressMission = async ({
     const userDb = await client.query(queries.userById, [userId]);
     if (userDb.length === 0) return;
     const userBase = parseUserBaseFromDb(userDb[0]!);
-    const newCredits =
-      (userBase.credits.balance ?? 0) + missionTemplate.rewardCredits;
-    await client.query(queries.updateUserBalance, [
-      newCredits,
-      userBase.credits.locked,
-      userId,
-    ]);
+    const newCredits = (userBase.credits.balance ?? 0) + missionTemplate.rewardCredits;
+    await client.query(queries.updateUserBalance, [newCredits, userBase.credits.locked, userId]);
     // Enviar notificación de misión completada
     await sendMissionNotification({
       client,
@@ -646,18 +601,15 @@ export const assignMissionToUser = async ({
   userId: UUID;
   missionKey: string;
 }) => {
-  const missionTemplateDb = await client.query(queries.missionTemplateByKey, [
-    missionKey,
-  ]);
+  const missionTemplateDb = await client.query(queries.missionTemplateByKey, [missionKey]);
   if (missionTemplateDb.length === 0) return;
   const missionTemplate = parseMissionTemplateFromDb(missionTemplateDb[0]!);
-  const userMissionDb = await client.query(
-    queries.userMissionsByUserIdAndTemplateId,
-    [userId, missionTemplate.id],
-  );
+  const userMissionDb = await client.query(queries.userMissionsByUserIdAndTemplateId, [
+    userId,
+    missionTemplate.id,
+  ]);
   if (userMissionDb.length > 0) return;
-  const total =
-    safeNumber(missionKey.split("-")[missionKey.split("-").length - 1]) ?? 1;
+  const total = safeNumber(missionKey.split("-")[missionKey.split("-").length - 1]) ?? 1;
   await client.query(queries.assignMissionToUser, [
     userId,
     missionTemplate.id,
@@ -679,10 +631,10 @@ export const assignAllMissionsToUser = async ({
   if (missionTemplatesDb.length === 0) return;
   const missionTemplates = missionTemplatesDb.map(parseMissionTemplateFromDb);
   for (const missionTemplate of missionTemplates) {
-    const userMissionDb = await client.query(
-      queries.userMissionsByUserIdAndTemplateId,
-      [userId, missionTemplate.id],
-    );
+    const userMissionDb = await client.query(queries.userMissionsByUserIdAndTemplateId, [
+      userId,
+      missionTemplate.id,
+    ]);
     if (userMissionDb.length > 0) continue;
     await client.query(queries.assignMissionToUser, [
       userId,
@@ -690,11 +642,8 @@ export const assignAllMissionsToUser = async ({
       {
         current: 0,
         total:
-          safeNumber(
-            missionTemplate.key.split("-")[
-              missionTemplate.key.split("-").length - 1
-            ],
-          ) ?? 1,
+          safeNumber(missionTemplate.key.split("-")[missionTemplate.key.split("-").length - 1]) ??
+          1,
       },
       false,
     ]);
@@ -709,9 +658,7 @@ export const assignMissionToAllUsers = async ({
   missionTemplateId: UUID;
 }) => {
   // Obtener la mission template
-  const missionTemplateDb = await client.query(queries.missionTemplateById, [
-    missionTemplateId,
-  ]);
+  const missionTemplateDb = await client.query(queries.missionTemplateById, [missionTemplateId]);
   if (missionTemplateDb.length === 0) {
     throw new InternalServerError(ERROR_MESSAGES.MISSION_TEMPLATE_NOT_FOUND);
   }
@@ -723,17 +670,15 @@ export const assignMissionToAllUsers = async ({
 
   // Calcular el total desde el key
   const total =
-    safeNumber(
-      missionTemplate.key.split("-")[missionTemplate.key.split("-").length - 1],
-    ) ?? 1;
+    safeNumber(missionTemplate.key.split("-")[missionTemplate.key.split("-").length - 1]) ?? 1;
 
   // Asignar la misión a cada usuario que no la tenga ya
   for (const userDb of usersDb) {
     const userId = userDb.id;
-    const userMissionDb = await client.query(
-      queries.userMissionsByUserIdAndTemplateId,
-      [userId, missionTemplate.id],
-    );
+    const userMissionDb = await client.query(queries.userMissionsByUserIdAndTemplateId, [
+      userId,
+      missionTemplate.id,
+    ]);
     // Si el usuario ya tiene la misión, continuar
     if (userMissionDb.length > 0) continue;
     // Asignar la misión al usuario
@@ -756,9 +701,7 @@ export const getUserSchools = async ({
   client: DatabaseClient;
   userId: UUID;
 }): Promise<School[]> => {
-  const userSchoolsDb = await client.query(queries.userSchoolsByUserId, [
-    userId,
-  ]);
+  const userSchoolsDb = await client.query(queries.userSchoolsByUserId, [userId]);
   if (userSchoolsDb.length === 0) return [];
   const schools = await Promise.all(
     userSchoolsDb.map(async (us: { school_id: UUID }) => {

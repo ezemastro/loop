@@ -38,9 +38,7 @@ const LoopTrade = ({
     >
       <CreditIcon size={48} />
       <Text className="text-credits text-3xl">{formatNumber(credits)}</Text>
-      <Text className="self-end text-credits">
-        Max. {formatNumber(maxCredits)}
-      </Text>
+      <Text className="self-end text-credits">Max. {formatNumber(maxCredits)}</Text>
     </View>
   );
 };
@@ -86,15 +84,13 @@ export default function Offer() {
     sellerId: listingData?.listing?.buyerId || undefined,
   });
   const [selectedListings, setSelectedListings] = useState<Listing[]>([]);
-  const { mutate: acceptOffer, isPending: isLoadingAcceptOffer } =
-    useListingAcceptOffer({
-      listingId: listingId as string,
-      tradingListingIds: selectedListings.map((l) => l.id),
-    });
-  const { mutate: rejectOffer, isPending: isLoadingRejectOffer } =
-    useListingRejectOffer({
-      listingId: listingId as string,
-    });
+  const { mutate: acceptOffer, isPending: isLoadingAcceptOffer } = useListingAcceptOffer({
+    listingId: listingId as string,
+    tradingListingIds: selectedListings.map((l) => l.id),
+  });
+  const { mutate: rejectOffer, isPending: isLoadingRejectOffer } = useListingRejectOffer({
+    listingId: listingId as string,
+  });
 
   if (!listingId && typeof listingId !== "string") {
     if (router.canGoBack()) router.back();
@@ -106,13 +102,10 @@ export default function Offer() {
     ? buyerListingsData?.pages.flatMap((page) => page!.data!.listings)
     : [];
   const totalCredits =
-    (listing?.price || 0) -
-    (selectedListings.reduce((acc, curr) => acc + curr.price, 0) || 0);
+    (listing?.price || 0) - (selectedListings.reduce((acc, curr) => acc + curr.price, 0) || 0);
   const isNegative = totalCredits < 0;
   const selectableListings =
-    buyerListings?.filter((listing) =>
-      selectedListings.every((l) => l.id !== listing.id),
-    ) || [];
+    buyerListings?.filter((listing) => selectedListings.every((l) => l.id !== listing.id)) || [];
   const handleSubmit = () => {
     acceptOffer(undefined, { onSuccess });
   };
@@ -129,10 +122,7 @@ export default function Offer() {
     queryClient.invalidateQueries({ queryKey: ["listings"], exact: false });
   };
   const isLoading =
-    isLoadingListing ||
-    isLoadingBuyerListings ||
-    isLoadingAcceptOffer ||
-    isLoadingRejectOffer;
+    isLoadingListing || isLoadingBuyerListings || isLoadingAcceptOffer || isLoadingRejectOffer;
   const sections: Section[] = [
     {
       key: "header",
@@ -171,9 +161,7 @@ export default function Offer() {
       key: "receive",
       component: () => (
         <View className="gap-2">
-          <Text className="text-main-text font-semibold text-3xl">
-            Recibirás
-          </Text>
+          <Text className="text-main-text font-semibold text-3xl">Recibirás</Text>
           <LoopTrade
             credits={Math.abs(totalCredits)}
             positive={true}
@@ -188,9 +176,7 @@ export default function Offer() {
                 <SelectListingButton
                   type="remove"
                   onPress={() => {
-                    setSelectedListings(
-                      selectedListings.filter((l) => l.id !== listing.id),
-                    );
+                    setSelectedListings(selectedListings.filter((l) => l.id !== listing.id));
                   }}
                 />
               }
@@ -205,9 +191,7 @@ export default function Offer() {
       component: () => (
         <View className="mt-4 gap-4">
           <Text className="text-main-text text-2xl">
-            <Text className="text-main-text font-semibold">
-              Publicaciones de
-            </Text>{" "}
+            <Text className="text-main-text font-semibold">Publicaciones de</Text>{" "}
             <Text className="">
               {listing?.buyer?.firstName} {listing?.buyer?.lastName}
             </Text>
@@ -241,9 +225,7 @@ export default function Offer() {
         onEndReached={() => fetchNextPage()}
         onEndReachedThreshold={0.5}
         renderItem={({ item }) => (
-          <View className={item.show === false ? "hidden" : "mb-6"}>
-            {item.component()}
-          </View>
+          <View className={item.show === false ? "hidden" : "mb-6"}>{item.component()}</View>
         )}
       />
       <View>

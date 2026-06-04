@@ -12,11 +12,7 @@ import { safeNumber } from "../utils/safeNumber";
 import { parseQuery } from "../utils/parseQuery";
 
 export class MessagesController {
-  static getMessagesFromUser = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static getMessagesFromUser = async (req: Request, res: Response, next: NextFunction) => {
     // Validate parameters
     const parsedQuery: GetMessagesByUserIdRequest["query"] = {
       ...parseQuery(req.query),
@@ -45,11 +41,7 @@ export class MessagesController {
     res.status(200).json(successResponse({ data: { messages }, pagination }));
   };
 
-  static sendMessageToUser = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static sendMessageToUser = async (req: Request, res: Response, next: NextFunction) => {
     // Validate parameters and body
     try {
       await validateId(req.params.userId);
@@ -74,11 +66,7 @@ export class MessagesController {
     res.status(201).json(successResponse({ data: { message } }));
   };
 
-  static readAllMessages = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static readAllMessages = async (req: Request, res: Response, next: NextFunction) => {
     const { userId } = req.session!;
     const { userId: senderId } = req.params as PostMessageReadRequest["params"];
     try {

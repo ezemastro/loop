@@ -4,9 +4,7 @@ import { useSessionStore } from "@/stores/session";
 import { useMutation } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 
-const fetchRegisterToken = async (
-  body: PostSelfNotificationTokenRequest["body"],
-) => {
+const fetchRegisterToken = async (body: PostSelfNotificationTokenRequest["body"]) => {
   try {
     const response = await api.post<PostSelfNotificationTokenResponse>(
       "/me/notification-token",

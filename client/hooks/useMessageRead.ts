@@ -6,9 +6,7 @@ import { AxiosError } from "axios";
 type Params = PostMessageReadRequest["params"];
 const fetchMessageRead = async (params: Params) => {
   try {
-    const response = await api.post<PostMessageReadResponse>(
-      `/messages/${params.userId}/read`,
-    );
+    const response = await api.post<PostMessageReadResponse>(`/messages/${params.userId}/read`);
     return response.data.data;
   } catch (error) {
     if (error instanceof AxiosError) {

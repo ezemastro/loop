@@ -18,9 +18,7 @@ export default function ModifyWishModal({
   isVisible: boolean;
   handleClose: () => void;
 }) {
-  const [selectedCategory, setSelectedCategory] = useState(
-    wish?.category || null,
-  );
+  const [selectedCategory, setSelectedCategory] = useState(wish?.category || null);
   const [comment, setComment] = useState(wish?.comment || "");
   const { mutateAsync: modifyWish, isPending: isModifying } = useModifyWish();
   const { mutateAsync: createWish, isPending: isCreating } = useCreateWish();
@@ -84,9 +82,7 @@ export default function ModifyWishModal({
             className="mt-4"
             disabled={isLoading || !selectedCategory}
           >
-            <ButtonText>
-              {wish ? "Guardar cambios" : "Agregar deseo"}
-            </ButtonText>
+            <ButtonText>{wish ? "Guardar cambios" : "Agregar deseo"}</ButtonText>
           </CustomButton>
         </View>
       </AvoidingKeyboard>

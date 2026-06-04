@@ -3,16 +3,12 @@ import { parseErrorName } from "@/services/errors";
 import { type QueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 
-type Params = GetMessagesByUserIdRequest["params"] &
-  GetMessagesByUserIdRequest["query"];
+type Params = GetMessagesByUserIdRequest["params"] & GetMessagesByUserIdRequest["query"];
 const fetchChats = async (params: Params) => {
   try {
-    const response = await api.get<GetMessagesByUserIdResponse>(
-      `/messages/${params.userId}`,
-      {
-        params,
-      },
-    );
+    const response = await api.get<GetMessagesByUserIdResponse>(`/messages/${params.userId}`, {
+      params,
+    });
     return response.data;
   } catch (error) {
     if (error instanceof AxiosError) {
@@ -83,9 +79,7 @@ export const replaceMessageInCache = ({
               ...page,
               data: {
                 ...page.data,
-                messages: page.data.messages.map((m: any) =>
-                  m.id === targetId ? newMessage : m,
-                ),
+                messages: page.data.messages.map((m: any) => (m.id === targetId ? newMessage : m)),
               },
             }
           : page,

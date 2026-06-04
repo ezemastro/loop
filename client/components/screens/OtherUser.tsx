@@ -13,11 +13,7 @@ export default function OtherUser() {
   return (
     <>
       {isCurrentUser && (
-        <UserPage
-          user={currentUser}
-          isCurrentUser={isCurrentUser}
-          canGoBack={true}
-        />
+        <UserPage user={currentUser} isCurrentUser={isCurrentUser} canGoBack={true} />
       )}
       {isLoading && !isCurrentUser && <Loader />}
       {user && !isCurrentUser && (

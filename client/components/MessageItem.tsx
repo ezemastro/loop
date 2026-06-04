@@ -13,9 +13,7 @@ export default function MessageItem({
       <View
         className={
           "p-1 max-w-[80%] " +
-          (isSender
-            ? "border border-stroke rounded-l-2xl"
-            : "bg-secondary rounded-r-2xl")
+          (isSender ? "border border-stroke rounded-l-2xl" : "bg-secondary rounded-r-2xl")
         }
       >
         <Text

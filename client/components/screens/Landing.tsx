@@ -2,6 +2,7 @@ import ButtonText from "@/components/bases/ButtonText";
 import CustomButton from "@/components/bases/CustomButton";
 import { MainView } from "@/components/bases/MainView";
 import { GoogleSignInButton } from "@/components/buttons/GoogleSignInButton";
+import { GOOGLE_OAUTH_READY } from "@/config";
 import { useRouter } from "expo-router";
 import { View, Text, Image, ScrollView } from "react-native";
 
@@ -27,14 +28,17 @@ export default function Landing() {
             Una app donde podrás darle una segunda vida a tus útiles usados.
           </Text>
           <Text className="text-main-text text-lg mx-auto text-center my-8">
-            ¡Únete a nuestra comunidad y descubre cómo puedes contribuir a un
-            mundo más sostenible mientras encuentras tesoros ocultos en la
-            comunidad!
+            ¡Únete a nuestra comunidad y descubre cómo puedes contribuir a un mundo más sostenible
+            mientras encuentras tesoros ocultos en la comunidad!
           </Text>
-          <Text className="text-main-text w-96 mx-auto text-center my-2 pt-2 mt-auto">
-            Accede con un solo clic usando tu cuenta de Google
-          </Text>
-          <GoogleSignInButton />
+          {GOOGLE_OAUTH_READY && (
+            <>
+              <Text className="text-main-text w-96 mx-auto text-center my-2 pt-2 mt-auto">
+                Accede con un solo clic usando tu cuenta de Google
+              </Text>
+              <GoogleSignInButton />
+            </>
+          )}
           <Text className="text-main-text w-96 mx-auto text-center my-2 mt-4">
             ¿Primera vez aquí? ¡Regístrate ahora!
           </Text>

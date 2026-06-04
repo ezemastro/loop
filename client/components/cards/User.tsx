@@ -2,13 +2,7 @@ import { getProfileImageSource, getUrl } from "@/services/getUrl";
 import { View, Text, Image } from "react-native";
 import { twMerge } from "tailwind-merge";
 
-export default function User({
-  user,
-  className,
-}: {
-  user: PublicUser;
-  className?: string;
-}) {
+export default function User({ user, className }: { user: PublicUser; className?: string }) {
   return (
     <View className={twMerge("p-2 flex-row bg-white rounded", className)}>
       <Image

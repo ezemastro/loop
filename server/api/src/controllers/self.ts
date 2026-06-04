@@ -28,26 +28,15 @@ export class SelfController {
     }
     res.status(200).json(successResponse({ data: { user } }));
   };
-  static updateSelf = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static updateSelf = async (req: Request, res: Response, next: NextFunction) => {
     const { userId } = req.session!;
     try {
       await validateUpdateSelf(req.body);
     } catch {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
-    const {
-      email,
-      firstName,
-      lastName,
-      phone,
-      profileMediaId,
-      password,
-      schoolIds,
-    } = req.body as PatchSelfRequest["body"];
+    const { email, firstName, lastName, phone, profileMediaId, password, schoolIds } =
+      req.body as PatchSelfRequest["body"];
 
     let user: PrivateUser;
     try {
@@ -68,11 +57,7 @@ export class SelfController {
     res.status(200).json(successResponse({ data: { user } }));
   };
 
-  static getSelfListings = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static getSelfListings = async (req: Request, res: Response, next: NextFunction) => {
     const { userId } = req.session!;
     const parsedQuery: GetSelfListingsRequest["query"] = {
       ...parseQuery(req.query),
@@ -116,11 +101,7 @@ export class SelfController {
     res.status(200).json(successResponse({ data: { listings }, pagination }));
   };
 
-  static getSelfMissions = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static getSelfMissions = async (req: Request, res: Response, next: NextFunction) => {
     const { userId } = req.session!;
     let missions: UserMission[];
     try {
@@ -131,11 +112,7 @@ export class SelfController {
     res.status(200).json(successResponse({ data: { userMissions: missions } }));
   };
 
-  static getSelfNotifications = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static getSelfNotifications = async (req: Request, res: Response, next: NextFunction) => {
     const { userId } = req.session!;
     const parsedQuery: GetSelfNotificationsRequest["query"] = {
       ...parseQuery(req.query),
@@ -157,36 +134,23 @@ export class SelfController {
     } catch (err) {
       return next(err);
     }
-    res
-      .status(200)
-      .json(successResponse({ data: { notifications }, pagination }));
+    res.status(200).json(successResponse({ data: { notifications }, pagination }));
   };
 
-  static getSelfNotificationsUnread = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static getSelfNotificationsUnread = async (req: Request, res: Response, next: NextFunction) => {
     const { userId } = req.session!;
     let unreadNotificationsCount: number;
     try {
-      ({ unreadNotificationsCount } =
-        await SelfModel.getSelfUnreadNotificationsCount({
-          userId,
-        }));
+      ({ unreadNotificationsCount } = await SelfModel.getSelfUnreadNotificationsCount({
+        userId,
+      }));
     } catch (err) {
       return next(err);
     }
-    res
-      .status(200)
-      .json(successResponse({ data: { unreadNotificationsCount } }));
+    res.status(200).json(successResponse({ data: { unreadNotificationsCount } }));
   };
 
-  static readAllNotifications = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static readAllNotifications = async (req: Request, res: Response, next: NextFunction) => {
     const { userId } = req.session!;
     try {
       await SelfModel.setAllSelfNotificationsRead({ userId });
@@ -196,11 +160,7 @@ export class SelfController {
     res.status(204).send(successResponse());
   };
 
-  static getSelfChats = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static getSelfChats = async (req: Request, res: Response, next: NextFunction) => {
     const { userId } = req.session!;
     const parsedQuery: GetSelfMessagesRequest["query"] = {
       ...parseQuery(req.query),
@@ -217,11 +177,7 @@ export class SelfController {
     });
     res.status(200).json(successResponse({ data: { chats }, pagination }));
   };
-  static getSelfChatsUnread = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static getSelfChatsUnread = async (req: Request, res: Response, next: NextFunction) => {
     const { userId } = req.session!;
     let unreadChatsCount: number;
     try {
@@ -233,14 +189,9 @@ export class SelfController {
     }
     res.status(200).json(successResponse({ data: { unreadChatsCount } }));
   };
-  static updateNotificationToken = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static updateNotificationToken = async (req: Request, res: Response, next: NextFunction) => {
     const { userId } = req.session!;
-    const { notificationToken } =
-      req.body as PostSelfNotificationTokenRequest["body"];
+    const { notificationToken } = req.body as PostSelfNotificationTokenRequest["body"];
     try {
       await validateUpdateTokenRequest(req.body);
     } catch {
@@ -254,11 +205,7 @@ export class SelfController {
     res.status(204).send(successResponse());
   };
 
-  static createSelfWish = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static createSelfWish = async (req: Request, res: Response, next: NextFunction) => {
     const { userId } = req.session!;
     const { categoryId, comment } = req.body as PostSelfWishRequest["body"];
     // Validar categoryId
@@ -280,11 +227,7 @@ export class SelfController {
     res.status(201).send(successResponse({ data: { userWish } }));
   };
 
-  static deleteSelfWish = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static deleteSelfWish = async (req: Request, res: Response, next: NextFunction) => {
     const { userId } = req.session!;
     const { categoryId } = req.params as DeleteSelfWishRequest["params"];
     // Validar categoryId
@@ -302,11 +245,7 @@ export class SelfController {
     res.status(204).send(successResponse());
   };
 
-  static getSelfWishes = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static getSelfWishes = async (req: Request, res: Response, next: NextFunction) => {
     const { userId } = req.session!;
     let userWishes: UserWish[];
     try {
@@ -317,11 +256,7 @@ export class SelfController {
     res.status(200).send(successResponse({ data: { userWishes } }));
   };
 
-  static modifySelfWish = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static modifySelfWish = async (req: Request, res: Response, next: NextFunction) => {
     const { userId } = req.session!;
     const { wishId } = req.params as PutSelfWishRequest["params"];
     const { comment, categoryId } = req.body as PutSelfWishRequest["body"];
@@ -343,14 +278,9 @@ export class SelfController {
     res.status(204).send(successResponse());
   };
 
-  static modifySelfPassword = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static modifySelfPassword = async (req: Request, res: Response, next: NextFunction) => {
     const { userId } = req.session!;
-    const { oldPassword, newPassword } =
-      req.body as PostSelfChangePasswordRequest["body"];
+    const { oldPassword, newPassword } = req.body as PostSelfChangePasswordRequest["body"];
     try {
       await SelfModel.modifyUserPassword({
         userId,

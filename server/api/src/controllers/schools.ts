@@ -8,11 +8,7 @@ import { safeNumber } from "../utils/safeNumber";
 import { parseQuery } from "../utils/parseQuery";
 
 export class SchoolsController {
-  static getSchools = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static getSchools = async (req: Request, res: Response, next: NextFunction) => {
     const parsedQuery: GetSchoolsRequest["query"] = {
       ...parseQuery(req.query),
       page: safeNumber(req.query.page),
@@ -38,11 +34,7 @@ export class SchoolsController {
     }
     res.status(200).json(successResponse({ data: { schools }, pagination }));
   };
-  static getSchoolById = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static getSchoolById = async (req: Request, res: Response, next: NextFunction) => {
     const schoolId = Array.isArray(req.params.schoolId)
       ? req.params.schoolId[0]
       : req.params.schoolId;

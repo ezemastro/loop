@@ -28,14 +28,11 @@ export default function Messages() {
   const users = usersData?.pages.flatMap((page) => page!.data!.users) || [];
   const localFilteredUsers = users.filter(
     (user) =>
-      `${user.firstName} ${user.lastName}`
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) && user.id !== currentUser?.id,
+      `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      user.id !== currentUser?.id,
   );
   const localFilteredChats = chats.filter((chat) =>
-    `${chat.user.firstName} ${chat.user.lastName}`
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase()),
+    `${chat.user.firstName} ${chat.user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()),
   );
   const chatsToShow = hasNextPage ? chats : localFilteredChats;
   const usersToShow =
@@ -69,9 +66,7 @@ export default function Messages() {
             ? [
                 {
                   key: "usuarios-title",
-                  component: () => (
-                    <Text className="text-main-text text-center">Usuarios</Text>
-                  ),
+                  component: () => <Text className="text-main-text text-center">Usuarios</Text>,
                 },
                 ...usersToShow.map((user) => ({
                   key: user.id + "-user",
@@ -108,9 +103,7 @@ export default function Messages() {
               </Text>
             </View>
           ) : (
-            <Text className="text-center text-secondary-text">
-              No se encontraron usuarios
-            </Text>
+            <Text className="text-center text-secondary-text">No se encontraron usuarios</Text>
           )
         }
       />

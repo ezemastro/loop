@@ -21,9 +21,7 @@ export default function CategorySelectorModal({
   const { data, isLoading } = useCategories();
   const categories = data?.categories || [];
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategories, setSelectedCategories] = useState<
-    Category[] | null
-  >(null);
+  const [selectedCategories, setSelectedCategories] = useState<Category[] | null>(null);
   useEffect(() => {
     if (!isVisible) {
       setSelectedCategories(null);
@@ -48,9 +46,7 @@ export default function CategorySelectorModal({
           data={(selectedCategories && selectedCategories.length > 0
             ? selectedCategories[selectedCategories.length - 1].children
             : categories
-          )?.filter((category) =>
-            category.name.toLowerCase().includes(searchTerm.toLowerCase()),
-          )}
+          )?.filter((category) => category.name.toLowerCase().includes(searchTerm.toLowerCase()))}
           contentContainerClassName="gap-2"
           renderItem={({ item }) => (
             <Pressable
@@ -78,18 +74,14 @@ export default function CategorySelectorModal({
                     className="text-main-text"
                     onPress={() =>
                       setSelectedCategories((categories) =>
-                        categories && categories.length > 0
-                          ? categories.slice(0, -1)
-                          : null,
+                        categories && categories.length > 0 ? categories.slice(0, -1) : null,
                       )
                     }
                   />
                 </Pressable>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   <Text className="text-xl text-main-text text-center">
-                    {selectedCategories
-                      .map((category) => category.name)
-                      .join("/")}
+                    {selectedCategories.map((category) => category.name).join("/")}
                   </Text>
                 </ScrollView>
               </View>

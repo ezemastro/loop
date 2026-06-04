@@ -1,10 +1,6 @@
 import { useEffect, useState, type JSX } from "react";
 import { View, Text, FlatList, TextInput, Pressable } from "react-native";
-import {
-  MAX_LISTING_DESCRIPTION_LENGTH,
-  MAX_LISTING_TITLE_LENGTH,
-  COLORS,
-} from "@/config";
+import { MAX_LISTING_DESCRIPTION_LENGTH, MAX_LISTING_TITLE_LENGTH, COLORS } from "@/config";
 import CategorySelector from "./selectors/CategorySelector";
 import ProductStatusSelector from "./selectors/ProductStatusSelector";
 import CustomButton from "./bases/CustomButton";
@@ -94,10 +90,7 @@ export default function ModifyListing({
   } = useUploadFiles();
 
   useEffect(() => {
-    if (
-      (isPublishSuccess && listingData?.listing?.id) ||
-      (isUpdateSuccess && initialData?.id)
-    ) {
+    if ((isPublishSuccess && listingData?.listing?.id) || (isUpdateSuccess && initialData?.id)) {
       if (action === "create") {
         router.replace({
           pathname: "/listing/[listingId]",
@@ -113,15 +106,7 @@ export default function ModifyListing({
         router.back();
       }
     }
-  }, [
-    isPublishSuccess,
-    isUpdateSuccess,
-    router,
-    listingData,
-    initialData,
-    action,
-    queryClient,
-  ]);
+  }, [isPublishSuccess, isUpdateSuccess, router, listingData, initialData, action, queryClient]);
 
   const handleSubmit = async () => {
     // Validaciones
@@ -214,9 +199,7 @@ export default function ModifyListing({
       component: () => (
         <CategorySelector
           value={form.category}
-          onChange={(value) =>
-            setForm((prev) => ({ ...prev, category: value }))
-          }
+          onChange={(value) => setForm((prev) => ({ ...prev, category: value }))}
           className="mx-4 mb-4 bg-secondary-text/10 border-0 border-b border-gray-300 rounded-b-none rounded-t"
           placeholderClassName="text-secondary-text"
         />
@@ -273,8 +256,7 @@ export default function ModifyListing({
             textAlignVertical="top"
           />
           <Text className="mt-1 text-right text-sm text-secondary-text">
-            {form.description &&
-            form.description?.length > MAX_LISTING_DESCRIPTION_LENGTH - 50
+            {form.description && form.description?.length > MAX_LISTING_DESCRIPTION_LENGTH - 50
               ? `${form.description.length}/${MAX_LISTING_DESCRIPTION_LENGTH}`
               : ""}
           </Text>
@@ -309,14 +291,10 @@ export default function ModifyListing({
             />
           </View>
           <Text className="mt-1 text-right text-sm text-secondary-text">
-            {form.price &&
-            form.category?.price?.max &&
-            form.price > form.category?.price?.max
+            {form.price && form.category?.price?.max && form.price > form.category?.price?.max
               ? `Recomendado: Max. ${formatNumber(form.category?.price?.max)}`
               : ""}
-            {form.price &&
-            form.category?.price?.min &&
-            form.price < form.category?.price?.min
+            {form.price && form.category?.price?.min && form.price < form.category?.price?.min
               ? `Recomendado: Min. ${formatNumber(form.category?.price?.min)}`
               : ""}
           </Text>
@@ -330,9 +308,7 @@ export default function ModifyListing({
       component: () => (
         <ProductStatusSelector
           value={form.productStatus}
-          onChange={(value) =>
-            setForm((prev) => ({ ...prev, productStatus: value }))
-          }
+          onChange={(value) => setForm((prev) => ({ ...prev, productStatus: value }))}
           className="mx-4 mb-4 bg-secondary-text/10 border-b border-gray-300 rounded-b-none rounded-t"
         />
       ),
@@ -350,9 +326,7 @@ export default function ModifyListing({
           contentContainerStyle={{ paddingBottom: insets.bottom }}
           renderItem={({ item }) => (
             <View className="w-full gap-2">
-              {item.title && (
-                <Text className="px-4 text-2xl">{item.title}</Text>
-              )}
+              {item.title && <Text className="px-4 text-2xl">{item.title}</Text>}
               <View>
                 {item.isError && (
                   <Error textClassName="text-sm text-alert px-4">
@@ -365,24 +339,16 @@ export default function ModifyListing({
           )}
           ListFooterComponent={() => (
             <>
-              {isUploadFilesError && (
-                <Error>Ha ocurrido un error al subir los archivos.</Error>
-              )}
+              {isUploadFilesError && <Error>Ha ocurrido un error al subir los archivos.</Error>}
               {isPublishListingError && (
                 <Error>Ha ocurrido un error al publicar la publicación.</Error>
               )}
               {isUpdateListingError && (
-                <Error>
-                  Ha ocurrido un error al actualizar la publicación.
-                </Error>
+                <Error>Ha ocurrido un error al actualizar la publicación.</Error>
               )}
-              {(isPublishingListing ||
-                isUpdatingListing ||
-                isUploadingFiles) && <Loader />}
+              {(isPublishingListing || isUpdatingListing || isUploadingFiles) && <Loader />}
               <CustomButton className="m-4 mb-6" onPress={handleSubmit}>
-                <ButtonText>
-                  {action === "edit" ? "Actualizar" : "Publicar"}
-                </ButtonText>
+                <ButtonText>{action === "edit" ? "Actualizar" : "Publicar"}</ButtonText>
               </CustomButton>
             </>
           )}

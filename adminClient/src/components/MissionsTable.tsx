@@ -4,11 +4,7 @@ interface MissionsTableProps {
   onEdit: (mission: MissionTemplate) => void;
 }
 
-export default function MissionsTable({
-  missions,
-  loading,
-  onEdit,
-}: MissionsTableProps) {
+export default function MissionsTable({ missions, loading, onEdit }: MissionsTableProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -77,9 +73,7 @@ export default function MissionsTable({
       </table>
 
       {missions.length === 0 && (
-        <p className="text-center py-8 text-gray-500">
-          No hay misiones registradas
-        </p>
+        <p className="text-center py-8 text-gray-500">No hay misiones registradas</p>
       )}
     </div>
   );

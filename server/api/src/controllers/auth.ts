@@ -37,9 +37,7 @@ export class AuthController {
     try {
       token = generateToken({ userId: user.id });
     } catch {
-      return next(
-        new InternalServerError(ERROR_MESSAGES.TOKEN_GENERATION_FAILED),
-      );
+      return next(new InternalServerError(ERROR_MESSAGES.TOKEN_GENERATION_FAILED));
     }
     res.cookie(COOKIE_NAMES.TOKEN, token, cookieOptions);
 
@@ -67,9 +65,7 @@ export class AuthController {
     try {
       token = generateToken({ userId: user.id });
     } catch {
-      return next(
-        new InternalServerError(ERROR_MESSAGES.TOKEN_GENERATION_FAILED),
-      );
+      return next(new InternalServerError(ERROR_MESSAGES.TOKEN_GENERATION_FAILED));
     }
     res.cookie(COOKIE_NAMES.TOKEN, token, cookieOptions);
 
@@ -77,11 +73,7 @@ export class AuthController {
     return res.status(200).json(successResponse({ data: { user, token } }));
   };
 
-  static googleLogin = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static googleLogin = async (req: Request, res: Response, next: NextFunction) => {
     // Validar los datos de la solicitud
     try {
       await validateUserGoogleLogin(req.body);
@@ -89,13 +81,10 @@ export class AuthController {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
 
-    const { credential, schoolIds } =
-      req.body as PostAuthGoogleLoginRequest["body"];
+    const { credential, schoolIds } = req.body as PostAuthGoogleLoginRequest["body"];
 
     if (!credential) {
-      return next(
-        new InvalidInputError(ERROR_MESSAGES.GOOGLE_CREDENTIAL_INVALID),
-      );
+      return next(new InvalidInputError(ERROR_MESSAGES.GOOGLE_CREDENTIAL_INVALID));
     }
 
     let user: PrivateUser;

@@ -55,11 +55,7 @@ export default function UserPage({
         <View className="flex-row items-center justify-between">
           <View>{canGoBack && <BackButton />}</View>
           {!isCurrentUser && (
-            <ReportButton
-              user={user}
-              className="px-3 py-2 rounded-full"
-              label="Denunciar"
-            />
+            <ReportButton user={user} className="px-3 py-2 rounded-full" label="Denunciar" />
           )}
         </View>
       ),
@@ -109,9 +105,7 @@ export default function UserPage({
                   category={wish.category}
                   colorless
                 />
-                {wish.comment && (
-                  <Text className="text-secondary-text">{wish.comment}</Text>
-                )}
+                {wish.comment && <Text className="text-secondary-text">{wish.comment}</Text>}
               </View>
             ))}
           </View>
@@ -131,10 +125,7 @@ export default function UserPage({
               {formatNumber((user as PrivateUser).credits.balance)}
             </Text>
           </View>
-          <CustomButton
-            className="self-center w-1/2"
-            onPress={() => setIsModalOpen(true)}
-          >
+          <CustomButton className="self-center w-1/2" onPress={() => setIsModalOpen(true)}>
             <ButtonText>Donar</ButtonText>
           </CustomButton>
         </View>
@@ -149,14 +140,8 @@ export default function UserPage({
       title: "Publicaciones pendientes:",
       component: () => (
         <View className="gap-4">
-          <View
-            className={
-              "gap-2 " + (!pendingCount["waiting-acceptance"] ? "hidden" : "")
-            }
-          >
-            <Text className="text-secondary-text">
-              Esperando ser aceptadas:
-            </Text>
+          <View className={"gap-2 " + (!pendingCount["waiting-acceptance"] ? "hidden" : "")}>
+            <Text className="text-secondary-text">Esperando ser aceptadas:</Text>
             <MyPendingList
               type="waiting-acceptance"
               filterUserId={user.id}
@@ -169,9 +154,7 @@ export default function UserPage({
               }
             />
           </View>
-          <View
-            className={"gap-2 " + (!pendingCount["to-receive"] ? "hidden" : "")}
-          >
+          <View className={"gap-2 " + (!pendingCount["to-receive"] ? "hidden" : "")}>
             <Text className="text-secondary-text">Debes recibir:</Text>
             <MyPendingList
               type="to-receive"
@@ -196,9 +179,7 @@ export default function UserPage({
               }
             />
           </View>
-          <View
-            className={"gap-2 " + (!pendingCount["to-deliver"] ? "hidden" : "")}
-          >
+          <View className={"gap-2 " + (!pendingCount["to-deliver"] ? "hidden" : "")}>
             <Text className="text-secondary-text">Debes entregar:</Text>
             <MyPendingList
               type="to-deliver"
@@ -232,10 +213,7 @@ export default function UserPage({
   return (
     <MainView safeBottom={canGoBack}>
       <AvoidingKeyboard>
-        <DonateModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-        />
+        <DonateModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
         <FlatList
           data={sections.filter((s) => s.show !== false)}
           className="flex-grow"
@@ -243,9 +221,7 @@ export default function UserPage({
           contentContainerClassName="p-4 gap-6"
           renderItem={({ item }) => (
             <View className={"gap-2" + (item.hide ? " hidden" : "")}>
-              {item.title && (
-                <Text className="text-2xl text-main-text">{item.title}</Text>
-              )}
+              {item.title && <Text className="text-2xl text-main-text">{item.title}</Text>}
               {item.component()}
             </View>
           )}

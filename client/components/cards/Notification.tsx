@@ -5,19 +5,13 @@ import { DateBadge } from "../bases/DateBadge";
 import CreditsBadge from "../badges/CreditsBadge";
 import User from "./User";
 
-export default function NotificationCard({
-  notification,
-}: {
-  notification: AppNotification;
-}) {
+export default function NotificationCard({ notification }: { notification: AppNotification }) {
   const date = new Date(notification.createdAt);
   return (
     <View
       className={
         "bg-white rounded-lg " +
-        (!notification.isRead
-          ? "border border-main-text/50"
-          : "border border-stroke")
+        (!notification.isRead ? "border border-main-text/50" : "border border-stroke")
       }
     >
       <NotificationContent notification={notification} />
@@ -26,44 +20,20 @@ export default function NotificationCard({
   );
 }
 
-function NotificationContent({
-  notification,
-}: {
-  notification: AppNotification;
-}) {
+function NotificationContent({ notification }: { notification: AppNotification }) {
   switch (notification.type) {
     case "mission":
-      return (
-        <MissionNotification
-          payload={notification.payload as MissionNotificationPayload}
-        />
-      );
+      return <MissionNotification payload={notification.payload as MissionNotificationPayload} />;
     case "loop":
-      return (
-        <LoopNotification
-          payload={notification.payload as LoopNotificationPayload}
-        />
-      );
+      return <LoopNotification payload={notification.payload as LoopNotificationPayload} />;
     case "donation":
-      return (
-        <DonationNotification
-          payload={notification.payload as DonationNotificationPayload}
-        />
-      );
+      return <DonationNotification payload={notification.payload as DonationNotificationPayload} />;
     case "admin":
-      return (
-        <AdminNotification
-          payload={notification.payload as AdminNotificationPayload}
-        />
-      );
+      return <AdminNotification payload={notification.payload as AdminNotificationPayload} />;
   }
 }
 
-function MissionNotification({
-  payload,
-}: {
-  payload: MissionNotificationPayload;
-}) {
+function MissionNotification({ payload }: { payload: MissionNotificationPayload }) {
   return (
     <View className="p-4 pb-2">
       <Text className="text-main-text text-xl">Haz completado una misión</Text>
@@ -104,20 +74,12 @@ function LoopNotification({ payload }: { payload: LoopNotificationPayload }) {
   );
 }
 
-function DonationNotification({
-  payload,
-}: {
-  payload: DonationNotificationPayload;
-}) {
+function DonationNotification({ payload }: { payload: DonationNotificationPayload }) {
   return (
     <View className="p-4 gap-2">
       <Text className="text-main-text text-xl">Nueva donación recibida</Text>
       <User user={payload.donorUser} className="border border-stroke" />
-      <CreditsBadge
-        credits={payload.amount}
-        numberClassName="text-2xl"
-        iconSize={32}
-      />
+      <CreditsBadge credits={payload.amount} numberClassName="text-2xl" iconSize={32} />
     </View>
   );
 }

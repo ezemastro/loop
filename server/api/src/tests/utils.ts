@@ -216,10 +216,7 @@ export const MOCK_CATEGORIES_DB: DB_Categories[] = [
     stat_l_h2o: "180",
   },
 ];
-export const databaseQueryMock = async (
-  query: NamedQuery<unknown>,
-  params: unknown[],
-) => {
+export const databaseQueryMock = async (query: NamedQuery<unknown>, params: unknown[]) => {
   if (query === queries.userExists) {
     return [{ exists: false }];
   }
@@ -245,10 +242,7 @@ export const databaseQueryMock = async (
     return [MOCK_USER_MISSION_DB];
   }
   if (query === queries.mediaById) {
-    if (
-      params[0] === MOCK_USER_DB.profile_media_id &&
-      MOCK_USER_DB.profile_media_id !== null
-    ) {
+    if (params[0] === MOCK_USER_DB.profile_media_id && MOCK_USER_DB.profile_media_id !== null) {
       return [
         parseMediaToDb({
           media: MOCK_USER.profileMedia!,

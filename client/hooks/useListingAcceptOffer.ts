@@ -3,8 +3,7 @@ import { parseErrorName } from "@/services/errors";
 import { useMutation } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 
-type Params = PostListingOfferAcceptRequest["params"] &
-  PostListingOfferAcceptRequest["body"];
+type Params = PostListingOfferAcceptRequest["params"] & PostListingOfferAcceptRequest["body"];
 const fetchAcceptOffer = async (params: Params) => {
   try {
     const response = await api.post<PostListingOfferAcceptResponse>(

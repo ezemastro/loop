@@ -32,11 +32,7 @@ export default function ModifyCreditsModal({
 
     try {
       setLoading(true);
-      const response = await adminApi.modifyUserCredits(
-        user.id,
-        creditAmount,
-        isPositive,
-      );
+      const response = await adminApi.modifyUserCredits(user.id, creditAmount, isPositive);
 
       if (response.success) {
         alert("Créditos modificados exitosamente");
@@ -71,8 +67,7 @@ export default function ModifyCreditsModal({
           Modificar Créditos - {user.firstName} {user.lastName}
         </h2>
         <p className="mb-4 text-gray-600">
-          Créditos actuales:{" "}
-          <span className="font-semibold">{user.credits.balance}</span>
+          Créditos actuales: <span className="font-semibold">{user.credits.balance}</span>
         </p>
 
         <form onSubmit={handleSubmit}>
@@ -109,11 +104,7 @@ export default function ModifyCreditsModal({
             </label>
           </div>
 
-          {error && (
-            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-              {error}
-            </div>
-          )}
+          {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>}
 
           <div className="flex gap-2">
             <button

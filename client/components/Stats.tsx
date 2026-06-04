@@ -15,17 +15,17 @@ export default function Stats({
   return (
     <View className="flex-row justify-between gap-2">
       <Stat
-        label="Kg. de desechos reciclados"
+        label="Kg. de residuos evitados"
         value={kgWaste}
         icon={<WasteIcon color={COLORS.PRIMARY} size={42} />}
       />
       <Stat
-        label="Kg. de CO2 ahorrado"
+        label="Kg. de CO2 equivalente ahorrado"
         value={kgCo2}
         icon={<CO2Icon color={COLORS.SECONDARY} size={42} />}
       />
       <Stat
-        label="Litros de H20 ahorrados"
+        label="Metros cúbicos de H20 ahorrados"
         value={lH2o}
         icon={<H20Icon color={COLORS.TERTIARY} size={42} />}
       />

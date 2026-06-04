@@ -35,30 +35,19 @@ export default function Home() {
       key: "mission",
       title: "Misiones",
       show: hasMissions,
-      component: () => (
-        <Missions hasMissions={hasMissions} setHasMissions={setHasMissions} />
-      ),
+      component: () => <Missions hasMissions={hasMissions} setHasMissions={setHasMissions} />,
     },
     {
       key: "pending",
       title: "Loops pendientes",
       show: hasPending,
-      component: () => (
-        <AllMyPendingList
-          hasResults={hasPending}
-          setHasResults={setHasPending}
-        />
-      ),
+      component: () => <AllMyPendingList hasResults={hasPending} setHasResults={setHasPending} />,
     },
     {
       key: "feed",
       title: "Publicaciones recomendadas",
       component: () => (
-        <Feed
-          saveMoreFunction={(getMoreFunction) =>
-            (getMore.current = getMoreFunction)
-          }
-        />
+        <Feed saveMoreFunction={(getMoreFunction) => (getMore.current = getMoreFunction)} />
       ),
     },
   ];

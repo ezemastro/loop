@@ -30,9 +30,7 @@ export default function ReportButton({
   const getReportData = () => {
     if (listing) {
       const listingUrl = `loop://(main)/listing/${listing.id}`;
-      const sellerSchools = listing.seller.schools
-        .map((school) => school.name)
-        .join(", ");
+      const sellerSchools = listing.seller.schools.map((school) => school.name).join(", ");
 
       return {
         subject: `Denuncia de publicación ${listing.id}`,
@@ -115,10 +113,7 @@ export default function ReportButton({
 
     const to = REPORT_EMAIL ?? "";
     if (!to) {
-      Alert.alert(
-        "No disponible",
-        "No hay un correo de denuncia configurado por ahora.",
-      );
+      Alert.alert("No disponible", "No hay un correo de denuncia configurado por ahora.");
       return;
     }
 
@@ -179,10 +174,7 @@ export default function ReportButton({
               >
                 <ButtonText className="text-base">Compartir</ButtonText>
               </CustomButton>
-              <CustomButton
-                className="flex-1 bg-main-text"
-                onPress={() => setManualCopyText("")}
-              >
+              <CustomButton className="flex-1 bg-main-text" onPress={() => setManualCopyText("")}>
                 <ButtonText className="text-base">Cerrar</ButtonText>
               </CustomButton>
             </View>

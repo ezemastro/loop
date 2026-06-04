@@ -26,16 +26,11 @@ export default function ProfileImage({
   const { mutate: modifyUser } = useModifySelf();
   const { mutate: uploadImages } = useUploadFiles();
 
-  const [cameraStatus, cameraRequestPermission] =
-    ImagePicker.useCameraPermissions();
+  const [cameraStatus, cameraRequestPermission] = ImagePicker.useCameraPermissions();
   const [mediaLibraryStatus, mediaLibraryRequestPermission] =
     ImagePicker.useMediaLibraryPermissions();
-  const {
-    inferMimeTypeFromUri,
-    isAllowedMimeType,
-    pickWebImages,
-    optimizeImage,
-  } = useOptimizedImagePicker();
+  const { inferMimeTypeFromUri, isAllowedMimeType, pickWebImages, optimizeImage } =
+    useOptimizedImagePicker();
 
   const handleSelectImage = async (type: "library" | "camera") => {
     if (!isCurrentUser) return;
@@ -56,9 +51,7 @@ export default function ProfileImage({
         }
         pickedAsset = assets[0] || null;
       } else {
-        if (
-          mediaLibraryStatus?.status !== ImagePicker.PermissionStatus.GRANTED
-        ) {
+        if (mediaLibraryStatus?.status !== ImagePicker.PermissionStatus.GRANTED) {
           const permission = await mediaLibraryRequestPermission();
           if (!permission.granted) {
             // TODO - mostrar error
@@ -175,17 +168,13 @@ export default function ProfileImage({
           isModalOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           pickImages={handleSelectImage}
-          isCameraPermissionDenied={
-            cameraStatus?.status === ImagePicker.PermissionStatus.DENIED
-          }
+          isCameraPermissionDenied={cameraStatus?.status === ImagePicker.PermissionStatus.DENIED}
           isGalleryPermissionDenied={
             mediaLibraryStatus?.status === ImagePicker.PermissionStatus.DENIED
           }
         />
       )}
-      {uploadError && (
-        <Error textClassName="text-sm text-alert">{uploadError}</Error>
-      )}
+      {uploadError && <Error textClassName="text-sm text-alert">{uploadError}</Error>}
     </>
   );
 }

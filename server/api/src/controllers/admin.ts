@@ -41,8 +41,7 @@ export class AdminController {
 
   static register = async (req: Request, res: Response, next: NextFunction) => {
     // Validar los datos de la solicitud
-    const { email, fullName, password } =
-      req.body as PostAdminRegisterRequest["body"];
+    const { email, fullName, password } = req.body as PostAdminRegisterRequest["body"];
     try {
       await validateAdminRegister({ email, fullName, password });
     } catch {
@@ -67,11 +66,7 @@ export class AdminController {
     return res.status(201).json(successResponse({ data: { admin } }));
   };
 
-  static googleLogin = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static googleLogin = async (req: Request, res: Response, next: NextFunction) => {
     try {
       await validateAdminGoogleLogin(req.body);
     } catch {
@@ -99,11 +94,7 @@ export class AdminController {
     return res.status(200).json(successResponse({ data: { admin } }));
   };
 
-  static addValidEmailForRegistration = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static addValidEmailForRegistration = async (req: Request, res: Response, next: NextFunction) => {
     const { email } = req.body as PostAdminAuthorizeEmailRequest["body"];
     try {
       await AdminModel.addValidEmailForRegistration({ email });
@@ -127,14 +118,8 @@ export class AdminController {
     }
   };
 
-  static modifyUserCredits = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
-    const userId = Array.isArray(req.params.userId)
-      ? req.params.userId[0]
-      : req.params.userId;
+  static modifyUserCredits = async (req: Request, res: Response, next: NextFunction) => {
+    const userId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
     const { amount, positive, meta } = req.body;
     if (!userId) {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
@@ -153,11 +138,7 @@ export class AdminController {
   };
 
   // Gestión de escuelas
-  static createSchool = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static createSchool = async (req: Request, res: Response, next: NextFunction) => {
     const { name, mediaId } = req.body;
     try {
       const { school } = await AdminModel.createSchool({ name, mediaId });
@@ -167,11 +148,7 @@ export class AdminController {
     }
   };
 
-  static updateSchool = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static updateSchool = async (req: Request, res: Response, next: NextFunction) => {
     const schoolId = Array.isArray(req.params.schoolId)
       ? req.params.schoolId[0]
       : req.params.schoolId;
@@ -194,11 +171,7 @@ export class AdminController {
   };
 
   // Gestión de categorías
-  static createCategory = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static createCategory = async (req: Request, res: Response, next: NextFunction) => {
     const {
       name,
       description,
@@ -228,11 +201,7 @@ export class AdminController {
     }
   };
 
-  static updateCategory = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static updateCategory = async (req: Request, res: Response, next: NextFunction) => {
     const categoryId = Array.isArray(req.params.categoryId)
       ? req.params.categoryId[0]
       : req.params.categoryId;
@@ -270,11 +239,7 @@ export class AdminController {
   };
 
   // Gestión de notificaciones
-  static sendNotification = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static sendNotification = async (req: Request, res: Response, next: NextFunction) => {
     const { userId, type, payload } = req.body;
     try {
       const { notification } = await AdminModel.sendNotification({
@@ -289,11 +254,7 @@ export class AdminController {
   };
 
   // Estadísticas
-  static getStats = async (
-    _req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static getStats = async (_req: Request, res: Response, next: NextFunction) => {
     try {
       const { stats } = await AdminModel.getStats();
       return res.status(200).json(successResponse({ data: { stats } }));
@@ -302,11 +263,7 @@ export class AdminController {
     }
   };
 
-  static getSchoolStats = async (
-    _req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static getSchoolStats = async (_req: Request, res: Response, next: NextFunction) => {
     try {
       const { schools } = await AdminModel.getSchoolStats();
       return res.status(200).json(successResponse({ data: { schools } }));
@@ -316,26 +273,16 @@ export class AdminController {
   };
 
   // Gestión de mission templates
-  static getMissionTemplates = async (
-    _req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static getMissionTemplates = async (_req: Request, res: Response, next: NextFunction) => {
     try {
       const { missionTemplates } = await AdminModel.getMissionTemplates();
-      return res
-        .status(200)
-        .json(successResponse({ data: { missionTemplates } }));
+      return res.status(200).json(successResponse({ data: { missionTemplates } }));
     } catch (error) {
       next(error);
     }
   };
 
-  static createMissionTemplate = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static createMissionTemplate = async (req: Request, res: Response, next: NextFunction) => {
     const { key, title, description, rewardCredits, active } = req.body;
     try {
       await validateCreateMissionTemplate({
@@ -356,19 +303,13 @@ export class AdminController {
         rewardCredits,
         active,
       });
-      return res
-        .status(201)
-        .json(successResponse({ data: { missionTemplate } }));
+      return res.status(201).json(successResponse({ data: { missionTemplate } }));
     } catch (error) {
       next(error);
     }
   };
 
-  static updateMissionTemplate = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static updateMissionTemplate = async (req: Request, res: Response, next: NextFunction) => {
     const missionTemplateId = Array.isArray(req.params.missionTemplateId)
       ? req.params.missionTemplateId[0]
       : req.params.missionTemplateId;
@@ -394,23 +335,15 @@ export class AdminController {
         rewardCredits,
         active,
       });
-      return res
-        .status(200)
-        .json(successResponse({ data: { missionTemplate } }));
+      return res.status(200).json(successResponse({ data: { missionTemplate } }));
     } catch (error) {
       next(error);
     }
   };
 
-  static resetUserPassword = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
-    const { newPassword } =
-      req.body as PostAdminUserResetPasswordRequest["body"];
-    const { userId } =
-      req.params as PostAdminUserResetPasswordRequest["params"];
+  static resetUserPassword = async (req: Request, res: Response, next: NextFunction) => {
+    const { newPassword } = req.body as PostAdminUserResetPasswordRequest["body"];
+    const { userId } = req.params as PostAdminUserResetPasswordRequest["params"];
     try {
       await validateId(userId);
     } catch {

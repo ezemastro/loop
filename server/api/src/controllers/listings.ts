@@ -13,11 +13,7 @@ import { safeNumber } from "../utils/safeNumber";
 import { parseQuery } from "../utils/parseQuery";
 
 export class ListingsController {
-  static getListings = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static getListings = async (req: Request, res: Response, next: NextFunction) => {
     const parsedQuery: GetListingsRequest["query"] = {
       ...parseQuery(req.query),
       page: safeNumber(req.query.page),
@@ -27,17 +23,8 @@ export class ListingsController {
     } catch {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
-    const {
-      page,
-      order,
-      sort,
-      searchTerm,
-      categoryId,
-      userId,
-      productStatus,
-      schoolId,
-      sellerId,
-    } = parsedQuery || {};
+    const { page, order, sort, searchTerm, categoryId, userId, productStatus, schoolId, sellerId } =
+      parsedQuery || {};
 
     let listings: Listing[];
     let pagination: Pagination;
@@ -59,11 +46,7 @@ export class ListingsController {
     res.status(200).json(successResponse({ data: { listings }, pagination }));
   };
 
-  static createListing = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static createListing = async (req: Request, res: Response, next: NextFunction) => {
     const parsedBody = {
       ...parseQuery(req.body),
       price: safeNumber(req.body.price) as number,
@@ -73,8 +56,7 @@ export class ListingsController {
     } catch {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
-    const { title, description, price, categoryId, productStatus, mediaIds } =
-      parsedBody;
+    const { title, description, price, categoryId, productStatus, mediaIds } = parsedBody;
 
     let listing: Listing;
     try {
@@ -93,11 +75,7 @@ export class ListingsController {
     res.status(201).json(successResponse({ data: { listing } }));
   };
 
-  static updateListing = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static updateListing = async (req: Request, res: Response, next: NextFunction) => {
     const parsedBody = {
       ...req.body,
       price: safeNumber(req.body.price) as number | undefined,
@@ -109,8 +87,7 @@ export class ListingsController {
     } catch {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
-    const { title, description, price, categoryId, productStatus, mediaIds } =
-      parsedBody;
+    const { title, description, price, categoryId, productStatus, mediaIds } = parsedBody;
 
     let listing: Listing;
     try {
@@ -130,11 +107,7 @@ export class ListingsController {
     res.status(200).json(successResponse({ data: { listing } }));
   };
 
-  static deleteListing = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static deleteListing = async (req: Request, res: Response, next: NextFunction) => {
     const { listingId } = req.params as DeleteListingRequest["params"];
     try {
       await validateId(listingId);
@@ -153,11 +126,7 @@ export class ListingsController {
     res.status(204).json(successResponse());
   };
 
-  static getListingById = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static getListingById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       await validateId(req.params.listingId);
     } catch {
@@ -174,11 +143,7 @@ export class ListingsController {
     res.status(200).json(successResponse({ data: { listing } }));
   };
 
-  static makeOffer = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static makeOffer = async (req: Request, res: Response, next: NextFunction) => {
     const parsedBody: PostListingOfferRequest["body"] = {
       ...req.body,
       price: safeNumber(req.body.price),
@@ -204,11 +169,7 @@ export class ListingsController {
     res.status(201).json(successResponse({ data: { listing } }));
   };
 
-  static deleteOffer = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static deleteOffer = async (req: Request, res: Response, next: NextFunction) => {
     try {
       await validateId(req.params.listingId);
     } catch {
@@ -227,11 +188,7 @@ export class ListingsController {
     res.status(204).json(successResponse());
   };
 
-  static rejectOffer = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static rejectOffer = async (req: Request, res: Response, next: NextFunction) => {
     try {
       await validateId(req.params.listingId);
     } catch {
@@ -250,11 +207,7 @@ export class ListingsController {
     res.status(204).json(successResponse());
   };
 
-  static acceptOffer = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static acceptOffer = async (req: Request, res: Response, next: NextFunction) => {
     try {
       await validateId(req.params.listingId);
       if (req.body.tradingListingIds) {
@@ -264,8 +217,7 @@ export class ListingsController {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     const { listingId } = req.params as PostListingOfferAcceptRequest["params"];
-    const { tradingListingIds } =
-      (req.body as PostListingOfferAcceptRequest["body"]) || {};
+    const { tradingListingIds } = (req.body as PostListingOfferAcceptRequest["body"]) || {};
 
     try {
       await ListingsModel.acceptOffer({
@@ -279,11 +231,7 @@ export class ListingsController {
     res.status(204).json(successResponse());
   };
 
-  static receiveListing = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static receiveListing = async (req: Request, res: Response, next: NextFunction) => {
     try {
       await validateId(req.params.listingId);
     } catch {

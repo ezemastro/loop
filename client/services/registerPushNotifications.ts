@@ -21,16 +21,12 @@ export const registerPushNotification = async () => {
     if (finalStatus !== "granted") {
       throw new Error("Failed to get push token for push notification!");
     }
-    const projectId =
-      Constants.expoConfig?.extra?.eas?.projectId ??
-      Constants.easConfig?.projectId;
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
     if (!projectId) {
       throw new Error("EAS project ID is not defined");
     }
     try {
-      const pushTokenString = (
-        await Notification.getExpoPushTokenAsync({ projectId })
-      ).data;
+      const pushTokenString = (await Notification.getExpoPushTokenAsync({ projectId })).data;
       return pushTokenString;
     } catch (error) {
       throw new Error("Error getting push token: " + error);

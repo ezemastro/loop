@@ -2,9 +2,7 @@ import { api } from "@/api/loop";
 import { useQuery } from "@tanstack/react-query";
 
 const fetchUnreadMessages = async () => {
-  const response = await api.get<GetSelfMessagesUnreadResponse>(
-    "/me/messages/unread",
-  );
+  const response = await api.get<GetSelfMessagesUnreadResponse>("/me/messages/unread");
   return response.data.data;
 };
 

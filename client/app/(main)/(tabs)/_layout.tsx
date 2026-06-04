@@ -44,18 +44,14 @@ export default function TabsLayout() {
           name="home"
           options={{
             title: "Inicio",
-            tabBarIcon: ({ color, size }) => (
-              <HomeIcon color={color} size={size + 2} />
-            ),
+            tabBarIcon: ({ color, size }) => <HomeIcon color={color} size={size + 2} />,
           }}
         />
         <Tabs.Screen
           name="myListings"
           options={{
             title: "Mis Loops",
-            tabBarIcon: ({ color, size }) => (
-              <MyListingsIcon color={color} size={size + 2} />
-            ),
+            tabBarIcon: ({ color, size }) => <MyListingsIcon color={color} size={size + 2} />,
           }}
         />
         <Tabs.Screen
@@ -75,18 +71,14 @@ export default function TabsLayout() {
           name="wishlist"
           options={{
             title: "Deseados",
-            tabBarIcon: ({ color, size }) => (
-              <WishlistIcon color={color} size={size + 2} />
-            ),
+            tabBarIcon: ({ color, size }) => <WishlistIcon color={color} size={size + 2} />,
           }}
         />
         <Tabs.Screen
           name="profile"
           options={{
             title: "Perfil",
-            tabBarIcon: ({ color, size }) => (
-              <ProfileIcon color={color} size={size + 2} />
-            ),
+            tabBarIcon: ({ color, size }) => <ProfileIcon color={color} size={size + 2} />,
           }}
         />
         <Tabs.Screen name="search" options={{ href: null }} />

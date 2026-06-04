@@ -28,8 +28,7 @@ services:
       - PGHOST=db
       - API_PORT=${API_PORT}
     volumes:
-      - ./api/src:/app/src
-      - /app/node_modules
+      - /app/server/api/node_modules
       - ./uploads:/uploads
     depends_on:
       - db
@@ -37,7 +36,7 @@ services:
       watch:
         - action: sync
           path: ./api/src
-          target: /app/src
+          target: /app/server/api/src
           ignore:
             - node_modules/
         - action: rebuild

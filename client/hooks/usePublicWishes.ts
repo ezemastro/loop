@@ -5,12 +5,9 @@ import { AxiosError } from "axios";
 
 const fetchWishes = async (params: GetUserWishesRequest["params"]) => {
   try {
-    const response = await api.get<GetUserWishesResponse>(
-      `/users/${params.userId}/wishes`,
-      {
-        params,
-      },
-    );
+    const response = await api.get<GetUserWishesResponse>(`/users/${params.userId}/wishes`, {
+      params,
+    });
     return response.data.data;
   } catch (error) {
     if (error instanceof AxiosError) {

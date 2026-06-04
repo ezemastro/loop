@@ -3,11 +3,7 @@ import type { NextFunction, Request, Response } from "express";
 import { successResponse } from "../utils/responses";
 
 export class CategoriesController {
-  static getCategories = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  static getCategories = async (req: Request, res: Response, next: NextFunction) => {
     let categories: Category[];
     try {
       ({ categories } = await CategoriesModel.getCategories());

@@ -90,9 +90,7 @@ export default function AllMyPendingList({
           key={section.key}
         >
           {section.title && (
-            <Text className="text-lg text-secondary-text text-center">
-              {section.title}
-            </Text>
+            <Text className="text-lg text-secondary-text text-center">{section.title}</Text>
           )}
           {section.component()}
         </View>

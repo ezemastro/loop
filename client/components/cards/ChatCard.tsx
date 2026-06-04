@@ -8,9 +8,7 @@ export default function ChatCard({ chat }: { chat: UserMessage }) {
 
   const lastMessageShortText = (text: string) => {
     const singleLineText = text.replace(/[\r\n]+/g, " ");
-    return singleLineText.length > 30
-      ? singleLineText.slice(0, 30) + "..."
-      : singleLineText;
+    return singleLineText.length > 30 ? singleLineText.slice(0, 30) + "..." : singleLineText;
   };
   return (
     <Pressable
@@ -30,10 +28,7 @@ export default function ChatCard({ chat }: { chat: UserMessage }) {
       <View>
         <View className="flex-row items-center gap-2">
           <Text
-            className={
-              "text-main-text text-lg" +
-              (chat.pendingMessages > 0 ? " font-bold" : "")
-            }
+            className={"text-main-text text-lg" + (chat.pendingMessages > 0 ? " font-bold" : "")}
           >
             {chat.user.firstName} {chat.user.lastName}
           </Text>
@@ -48,16 +43,12 @@ export default function ChatCard({ chat }: { chat: UserMessage }) {
             ))}
           </View>
         </View>
-        <Text className="text-secondary-text">
-          {lastMessageShortText(chat.lastMessage.text)}
-        </Text>
+        <Text className="text-secondary-text">{lastMessageShortText(chat.lastMessage.text)}</Text>
       </View>
       <View className="flex-1 items-end px-3">
         {chat.pendingMessages > 0 && (
           <View className="bg-primary size-9 rounded-full items-center justify-center">
-            <Text className="text-white font-bold text-center text-lg">
-              {chat.pendingMessages}
-            </Text>
+            <Text className="text-white font-bold text-center text-lg">{chat.pendingMessages}</Text>
           </View>
         )}
       </View>

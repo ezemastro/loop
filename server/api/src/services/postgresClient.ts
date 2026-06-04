@@ -1,10 +1,6 @@
 import { Pool, type PoolClient, type QueryResultRow } from "pg";
 import { DB_HOST, DB_NAME, DB_PASSWORD, DB_USER } from "../config.js";
-import type {
-  DatabaseConnection,
-  DatabaseClient,
-  NamedQuery,
-} from "../types/dbClient.js";
+import type { DatabaseConnection, DatabaseClient, NamedQuery } from "../types/dbClient.js";
 
 const pool = new Pool({
   user: DB_USER,
@@ -21,10 +17,7 @@ class PostgresSession implements DatabaseClient {
     this.client = client;
   }
 
-  async query<T extends QueryResultRow>(
-    q: NamedQuery<T>,
-    params?: unknown[],
-  ): Promise<T[]> {
+  async query<T extends QueryResultRow>(q: NamedQuery<T>, params?: unknown[]): Promise<T[]> {
     const result = await this.client.query<T>(q.text, params);
     return result.rows;
   }

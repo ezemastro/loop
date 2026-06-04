@@ -22,8 +22,7 @@ export default function ListingSearchFiltersModal({
   defaultValues: FiltersValue;
   onSelect: (filters: FiltersValue) => void;
 }) {
-  const [selectedFilters, setSelectedFilters] =
-    useState<FiltersValue>(defaultValues);
+  const [selectedFilters, setSelectedFilters] = useState<FiltersValue>(defaultValues);
   useEffect(() => {
     if (isVisible) {
       setSelectedFilters(defaultValues);
@@ -117,14 +116,9 @@ export default function ListingSearchFiltersModal({
               </View>
             </View>
           )}
-          ListHeaderComponent={() => (
-            <TextTitle className="mb-4">Filtros</TextTitle>
-          )}
+          ListHeaderComponent={() => <TextTitle className="mb-4">Filtros</TextTitle>}
           ListFooterComponent={
-            <CustomButton
-              onPress={() => onSelect(selectedFilters)}
-              className="mt-4"
-            >
+            <CustomButton onPress={() => onSelect(selectedFilters)} className="mt-4">
               <ButtonText>Aplicar</ButtonText>
             </CustomButton>
           }

@@ -1,9 +1,5 @@
 import { ERROR_MESSAGES, MISSION_KEYS, PAGE_SIZE } from "../config";
-import {
-  InternalServerError,
-  InvalidInputError,
-  UnauthorizedError,
-} from "../services/errors";
+import { InternalServerError, InvalidInputError, UnauthorizedError } from "../services/errors";
 import { dbConnection } from "../services/postgresClient";
 import { queries } from "../services/queries";
 import type { DatabaseClient } from "../types/dbClient";
@@ -210,9 +206,7 @@ export class ListingsModel {
     }
     try {
       // Obtener información de la publicación
-      const [oldListingDb] = await client.query(queries.getListingById, [
-        listingId,
-      ]);
+      const [oldListingDb] = await client.query(queries.getListingById, [listingId]);
       if (!oldListingDb) {
         throw new InvalidInputError(ERROR_MESSAGES.LISTING_NOT_FOUND);
       }
@@ -223,9 +217,7 @@ export class ListingsModel {
       }
       // Validar si el estado de la lista es "Publicado"
       if (oldListingBase.listingStatus !== "published") {
-        throw new InvalidInputError(
-          ERROR_MESSAGES.INVALID_LISTING_STATUS_TO_MODIFY,
-        );
+        throw new InvalidInputError(ERROR_MESSAGES.INVALID_LISTING_STATUS_TO_MODIFY);
       }
       // Actualizar la información de la publicación
       try {
@@ -274,9 +266,7 @@ export class ListingsModel {
           categoryId: categoryId ?? oldListingBase.categoryId,
         }),
         media: mediaIds
-          ? await Promise.all(
-              mediaIds.map((mediaId) => getMediaById({ client, mediaId })),
-            )
+          ? await Promise.all(mediaIds.map((mediaId) => getMediaById({ client, mediaId })))
           : await getMediasByListingId({ client, listingId }),
       });
 
@@ -290,13 +280,7 @@ export class ListingsModel {
     }
   };
 
-  static deleteListing = async ({
-    listingId,
-    userId,
-  }: {
-    listingId: UUID;
-    userId: UUID;
-  }) => {
+  static deleteListing = async ({ listingId, userId }: { listingId: UUID; userId: UUID }) => {
     let client: DatabaseClient;
     try {
       client = await dbConnection.connect();
@@ -305,9 +289,7 @@ export class ListingsModel {
     }
     try {
       // Validar que sea el dueño
-      const [listingDb] = await client.query(queries.getListingById, [
-        listingId,
-      ]);
+      const [listingDb] = await client.query(queries.getListingById, [listingId]);
       if (!listingDb) {
         throw new InvalidInputError(ERROR_MESSAGES.LISTING_NOT_FOUND);
       }
@@ -316,9 +298,7 @@ export class ListingsModel {
       }
       // Validar que el estado de la publicación sea "Publicado"
       if (listingDb.listing_status !== "published") {
-        throw new InvalidInputError(
-          ERROR_MESSAGES.INVALID_LISTING_STATUS_TO_DELETE,
-        );
+        throw new InvalidInputError(ERROR_MESSAGES.INVALID_LISTING_STATUS_TO_DELETE);
       }
       try {
         await client.query(queries.deleteListingById, [listingId, userId]);
@@ -365,18 +345,14 @@ export class ListingsModel {
     }
     try {
       // Obtener publicación
-      const [listingBaseDb] = await client.query(queries.listingById, [
-        listingId,
-      ]);
+      const [listingBaseDb] = await client.query(queries.listingById, [listingId]);
       if (!listingBaseDb) {
         throw new InvalidInputError(ERROR_MESSAGES.LISTING_NOT_FOUND);
       }
       const listingBase = parseListingBaseFromDb(listingBaseDb);
       // Verificar el estado de la publicación
       if (listingBase.listingStatus !== "published") {
-        throw new InvalidInputError(
-          ERROR_MESSAGES.INVALID_LISTING_STATUS_TO_OFFER,
-        );
+        throw new InvalidInputError(ERROR_MESSAGES.INVALID_LISTING_STATUS_TO_OFFER);
       }
       // Validar precio
       if (offeredCredits < 0 || offeredCredits > listingBase.price) {
@@ -396,9 +372,7 @@ export class ListingsModel {
         throw new InvalidInputError(ERROR_MESSAGES.INSUFFICIENT_CREDITS);
       }
       // Obtener información del vendedor
-      const [sellerDb] = await client.query(queries.userById, [
-        listingBase.sellerId,
-      ]);
+      const [sellerDb] = await client.query(queries.userById, [listingBase.sellerId]);
       if (!sellerDb) {
         throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
       }
@@ -453,13 +427,7 @@ export class ListingsModel {
     }
   };
 
-  static deleteOffer = async ({
-    listingId,
-    userId,
-  }: {
-    listingId: UUID;
-    userId: UUID;
-  }) => {
+  static deleteOffer = async ({ listingId, userId }: { listingId: UUID; userId: UUID }) => {
     let client: DatabaseClient;
     try {
       client = await dbConnection.connect();
@@ -469,9 +437,7 @@ export class ListingsModel {
     try {
       client.begin();
       // Obtener publicación
-      const [oldListingDb] = await client.query(queries.getListingById, [
-        listingId,
-      ]);
+      const [oldListingDb] = await client.query(queries.getListingById, [listingId]);
       if (!oldListingDb) {
         throw new InvalidInputError(ERROR_MESSAGES.LISTING_NOT_FOUND);
       }
@@ -482,9 +448,7 @@ export class ListingsModel {
       }
       // Validar que el estado de la publicación es el correcto
       if (oldListing.listingStatus !== "offered") {
-        throw new InvalidInputError(
-          ERROR_MESSAGES.INVALID_LISTING_STATUS_TO_DELETE_OFFER,
-        );
+        throw new InvalidInputError(ERROR_MESSAGES.INVALID_LISTING_STATUS_TO_DELETE_OFFER);
       }
       // Eliminar la oferta
       await client.query(queries.deleteOffer, [listingId]);
@@ -502,9 +466,7 @@ export class ListingsModel {
       // Obtener información del vendedor
       let sellerBase: UserBase;
       try {
-        const [sellerDb] = await client.query(queries.userById, [
-          oldListing.sellerId,
-        ]);
+        const [sellerDb] = await client.query(queries.userById, [oldListing.sellerId]);
         sellerBase = parseUserBaseFromDb(sellerDb!);
       } catch {
         throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
@@ -551,13 +513,7 @@ export class ListingsModel {
     }
   };
 
-  static rejectOffer = async ({
-    listingId,
-    userId,
-  }: {
-    listingId: UUID;
-    userId: UUID;
-  }) => {
+  static rejectOffer = async ({ listingId, userId }: { listingId: UUID; userId: UUID }) => {
     let client: DatabaseClient;
     try {
       client = await dbConnection.connect();
@@ -566,9 +522,7 @@ export class ListingsModel {
     }
     try {
       // Obtener publicación
-      const [oldListingDb] = await client.query(queries.getListingById, [
-        listingId,
-      ]);
+      const [oldListingDb] = await client.query(queries.getListingById, [listingId]);
       if (!oldListingDb) {
         throw new InvalidInputError(ERROR_MESSAGES.LISTING_NOT_FOUND);
       }
@@ -586,9 +540,7 @@ export class ListingsModel {
       // Obtener información del comprador
       let buyerBase: UserBase;
       try {
-        const [buyerDb] = await client.query(queries.userById, [
-          oldListing.buyerId,
-        ]);
+        const [buyerDb] = await client.query(queries.userById, [oldListing.buyerId]);
         buyerBase = parseUserBaseFromDb(buyerDb!);
       } catch {
         throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
@@ -628,9 +580,7 @@ export class ListingsModel {
     try {
       await client.begin();
       // Obtener publicación
-      const [oldListingDb] = await client.query(queries.getListingById, [
-        listingId,
-      ]);
+      const [oldListingDb] = await client.query(queries.getListingById, [listingId]);
       if (!oldListingDb) {
         throw new InvalidInputError(ERROR_MESSAGES.LISTING_NOT_FOUND);
       }
@@ -651,23 +601,15 @@ export class ListingsModel {
       let tradingListings: ListingBase[] = [];
       if (tradingListingIds.length > 0) {
         const tradingListingsDb = await Promise.all(
-          tradingListingIds.map((id) =>
-            client.query(queries.getListingById, [id]),
-          ),
+          tradingListingIds.map((id) => client.query(queries.getListingById, [id])),
         );
         // Validar que existan
         if (tradingListingsDb.some(([db]) => !db)) {
           throw new InvalidInputError(ERROR_MESSAGES.LISTING_NOT_FOUND);
         }
-        tradingListings = tradingListingsDb.map(([db]) =>
-          parseListingBaseFromDb(db!),
-        );
+        tradingListings = tradingListingsDb.map(([db]) => parseListingBaseFromDb(db!));
         // Validar que el comprador sea el dueño
-        if (
-          tradingListings.some(
-            (listing) => listing.sellerId !== oldListing.buyerId,
-          )
-        ) {
+        if (tradingListings.some((listing) => listing.sellerId !== oldListing.buyerId)) {
           throw new UnauthorizedError(ERROR_MESSAGES.NOT_LISTING_BUYER);
         }
       }
@@ -686,20 +628,13 @@ export class ListingsModel {
         newSellerLocked = tradingListingsTotalPrice - oldListing.price;
         newOfferedCredits = tradingListings.map((listing) => ({
           id: listing.id,
-          offeredCredits: Math.floor(
-            newSellerLocked * (listing.price / tradingListingsTotalPrice),
-          ),
+          offeredCredits: Math.floor(newSellerLocked * (listing.price / tradingListingsTotalPrice)),
         }));
-        const accumulated = newOfferedCredits.reduce(
-          (acc, curr) => acc + curr.offeredCredits,
-          0,
-        );
+        const accumulated = newOfferedCredits.reduce((acc, curr) => acc + curr.offeredCredits, 0);
         if (accumulated < newSellerLocked) {
-          const lastOfferedCreditsObj =
-            newOfferedCredits[newOfferedCredits.length - 1];
+          const lastOfferedCreditsObj = newOfferedCredits[newOfferedCredits.length - 1];
           if (lastOfferedCreditsObj) {
-            lastOfferedCreditsObj.offeredCredits +=
-              newSellerLocked - accumulated;
+            lastOfferedCreditsObj.offeredCredits += newSellerLocked - accumulated;
           }
         }
         newOfferedCredits.push({
@@ -732,9 +667,7 @@ export class ListingsModel {
       // Obtener vendedor
       let buyerBase: UserBase;
       try {
-        const [buyerDb] = await client.query(queries.userById, [
-          oldListing.buyerId!,
-        ]);
+        const [buyerDb] = await client.query(queries.userById, [oldListing.buyerId!]);
         buyerBase = parseUserBaseFromDb(buyerDb!);
       } catch {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
@@ -744,19 +677,14 @@ export class ListingsModel {
         // Actualizar los precios ofrecidos
         await Promise.all(
           newOfferedCredits.map(({ id, offeredCredits }) => {
-            client.query(queries.updateListingOfferedCreditsById, [
-              offeredCredits,
-              id,
-            ]);
+            client.query(queries.updateListingOfferedCreditsById, [offeredCredits, id]);
           }),
         );
         // Actualizar la publicación principal
         await client.query(queries.acceptOffer, [listingId]);
         // Actualizar las publicaciones de intercambio
         await Promise.all(
-          tradingListingIds.map((id) =>
-            client.query(queries.markListingAsSold, [userId, id]),
-          ),
+          tradingListingIds.map((id) => client.query(queries.markListingAsSold, [userId, id])),
         );
         // Actualizar los créditos del vendedor
         if (newSellerLocked > 0) {
@@ -769,12 +697,8 @@ export class ListingsModel {
         // Actualizar los créditos del comprador
         if (newBuyerLocked >= 0) {
           await client.query(queries.updateUserBalance, [
-            buyerBase.credits.balance +
-              oldListing.offeredCredits! -
-              newBuyerLocked,
-            buyerBase.credits.locked +
-              newBuyerLocked -
-              oldListing.offeredCredits!,
+            buyerBase.credits.balance + oldListing.offeredCredits! - newBuyerLocked,
+            buyerBase.credits.locked + newBuyerLocked - oldListing.offeredCredits!,
             buyerBase.id,
           ]);
         }
@@ -819,13 +743,7 @@ export class ListingsModel {
     }
   };
 
-  static receiveListing = async ({
-    listingId,
-    userId,
-  }: {
-    listingId: UUID;
-    userId: UUID;
-  }) => {
+  static receiveListing = async ({ listingId, userId }: { listingId: UUID; userId: UUID }) => {
     // Obtener cliente de base de datos
     let client: DatabaseClient;
     try {
@@ -837,9 +755,7 @@ export class ListingsModel {
       // Iniciar transacción
       await client.begin();
       // Obtener publicación
-      const [listingDb] = await client.query(queries.getListingById, [
-        listingId,
-      ]);
+      const [listingDb] = await client.query(queries.getListingById, [listingId]);
       if (!listingDb) {
         throw new InvalidInputError(ERROR_MESSAGES.LISTING_NOT_FOUND);
       }
@@ -855,9 +771,7 @@ export class ListingsModel {
       // Transferir los créditos del comprador
       try {
         // Obtener comprador
-        const [buyerDb] = await client.query(queries.userById, [
-          listingBase.buyerId,
-        ]);
+        const [buyerDb] = await client.query(queries.userById, [listingBase.buyerId]);
         if (!buyerDb) {
           throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
         }
@@ -874,9 +788,7 @@ export class ListingsModel {
       // Obtener información del vendedor
       let sellerBase: UserBase;
       try {
-        const [sellerDb] = await client.query(queries.userById, [
-          listingBase.sellerId,
-        ]);
+        const [sellerDb] = await client.query(queries.userById, [listingBase.sellerId]);
         sellerBase = parseUserBaseFromDb(sellerDb!);
       } catch {
         throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
@@ -907,9 +819,7 @@ export class ListingsModel {
       });
       // Almacenar estadísticas
       try {
-        const [categoryDb] = await client.query(queries.categoryById, [
-          listingBase.categoryId,
-        ]);
+        const [categoryDb] = await client.query(queries.categoryById, [listingBase.categoryId]);
         const categoryBase = parseCategoryBaseFromDb(categoryDb!);
         // Aumentar estadísticas del vendedor
         await client.query(queries.increaseUserStats, [
@@ -926,16 +836,11 @@ export class ListingsModel {
           listingBase.buyerId!,
         ]);
         // Aumentar estadísticas de las escuelas involucradas
-        const sellerSchoolsDb = await client.query(
-          queries.userSchoolsByUserId,
-          [sellerBase.id],
-        );
+        const sellerSchoolsDb = await client.query(queries.userSchoolsByUserId, [sellerBase.id]);
         const buyerSchoolsDb = await client.query(queries.userSchoolsByUserId, [
           listingBase.buyerId!,
         ]);
-        const schoolsIds = [...sellerSchoolsDb, ...buyerSchoolsDb].map(
-          (db) => db.school_id,
-        );
+        const schoolsIds = [...sellerSchoolsDb, ...buyerSchoolsDb].map((db) => db.school_id);
         const uniqueSchoolsIds = Array.from(new Set(schoolsIds));
         for (const schoolId of uniqueSchoolsIds) {
           await client.query(queries.increaseSchoolStats, [
@@ -964,13 +869,7 @@ export class ListingsModel {
     }
   };
 
-  static cancelListing = async ({
-    listingId,
-    userId,
-  }: {
-    listingId: UUID;
-    userId: UUID;
-  }) => {
+  static cancelListing = async ({ listingId, userId }: { listingId: UUID; userId: UUID }) => {
     // Obtener cliente de base de datos
     let client: DatabaseClient;
     try {
@@ -982,9 +881,7 @@ export class ListingsModel {
       // Iniciar transacción
       await client.begin();
       // Obtener publicación
-      const [listingDb] = await client.query(queries.getListingById, [
-        listingId,
-      ]);
+      const [listingDb] = await client.query(queries.getListingById, [listingId]);
       if (!listingDb) {
         throw new InvalidInputError(ERROR_MESSAGES.LISTING_NOT_FOUND);
       }
@@ -1008,8 +905,7 @@ export class ListingsModel {
       } catch {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
       }
-      const sellerShouldPay =
-        listingBase.price - (listingBase.offeredCredits ?? 0);
+      const sellerShouldPay = listingBase.price - (listingBase.offeredCredits ?? 0);
       if (sellerBase.credits.balance < sellerShouldPay) {
         throw new InvalidInputError(ERROR_MESSAGES.INSUFFICIENT_CREDITS);
       }
@@ -1026,9 +922,7 @@ export class ListingsModel {
       }
       let buyerBase: UserBase;
       try {
-        const [buyerDb] = await client.query(queries.userById, [
-          listingBase.buyerId,
-        ]);
+        const [buyerDb] = await client.query(queries.userById, [listingBase.buyerId]);
         buyerBase = parseUserBaseFromDb(buyerDb!);
       } catch {
         throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);

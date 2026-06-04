@@ -2,8 +2,7 @@ import { api } from "@/api/loop";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
 const fetchNotifications = async () => {
-  const response =
-    await api.get<GetSelfNotificationsResponse>("/me/notifications");
+  const response = await api.get<GetSelfNotificationsResponse>("/me/notifications");
   return response.data;
 };
 

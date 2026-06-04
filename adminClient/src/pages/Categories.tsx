@@ -11,9 +11,7 @@ export default function Categories() {
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [parentCategoryId, setParentCategoryId] = useState<
-    string | undefined
-  >();
+  const [parentCategoryId, setParentCategoryId] = useState<string | undefined>();
 
   useEffect(() => {
     loadCategories();
@@ -74,11 +72,7 @@ export default function Categories() {
           </button>
         </div>
 
-        {error && (
-          <div className="bg-red-100 text-red-700 p-4 rounded mb-4">
-            {error}
-          </div>
-        )}
+        {error && <div className="bg-red-100 text-red-700 p-4 rounded mb-4">{error}</div>}
 
         <CategoriesTable
           categories={categories}

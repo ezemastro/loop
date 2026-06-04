@@ -5,11 +5,7 @@ import { queries } from "../services/queries";
 import type { DatabaseClient } from "../types/dbClient";
 import { getListingById } from "../utils/helpersDb";
 import { sendMessageNotification } from "../utils/notifications";
-import {
-  parseMessageBaseFromDb,
-  parseMessageFromBase,
-  parsePagination,
-} from "../utils/parseDb";
+import { parseMessageBaseFromDb, parseMessageFromBase, parsePagination } from "../utils/parseDb";
 import { safeNumber } from "../utils/safeNumber";
 
 export class MessagesModel {
@@ -31,10 +27,12 @@ export class MessagesModel {
     }
     try {
       // Obtener mensajes
-      const messagesDb = await client.query(
-        queries.messagesBySenderAndRecipient,
-        [senderId, recipientId, PAGE_SIZE, PAGE_SIZE * ((page ?? 1) - 1)],
-      );
+      const messagesDb = await client.query(queries.messagesBySenderAndRecipient, [
+        senderId,
+        recipientId,
+        PAGE_SIZE,
+        PAGE_SIZE * ((page ?? 1) - 1),
+      ]);
       const messages = await Promise.all(
         messagesDb.map(async (msg) => {
           const messageBase = parseMessageBaseFromDb(msg);
@@ -88,13 +86,11 @@ export class MessagesModel {
       ]);
       // Obtener nombre del remitente
       const senderDb = await client.query(queries.userById, [senderId]);
-      if (senderDb.length === 0)
-        throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
+      if (senderDb.length === 0) throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
       const senderName = `${senderDb[0]!.first_name} ${senderDb[0]!.last_name}`;
       // Obtener token de notificación del destinatario
       const recipientDb = await client.query(queries.userById, [recipientId]);
-      if (recipientDb.length === 0)
-        throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
+      if (recipientDb.length === 0) throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
       // Enviar notificación
       await sendMessageNotification({
         senderName,
@@ -121,13 +117,7 @@ export class MessagesModel {
       client.release();
     }
   }
-  static async markMessagesAsRead({
-    userId,
-    senderId,
-  }: {
-    userId: UUID;
-    senderId: UUID;
-  }) {
+  static async markMessagesAsRead({ userId, senderId }: { userId: UUID; senderId: UUID }) {
     // Obtener cliente de base de datos
     let client: DatabaseClient;
     try {

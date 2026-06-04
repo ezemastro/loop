@@ -35,10 +35,7 @@ export default function CategoriesTable({
     });
   };
 
-  const renderCategoryRow = (
-    category: Category,
-    level: number = 0,
-  ): JSX.Element[] => {
+  const renderCategoryRow = (category: Category, level: number = 0): JSX.Element[] => {
     const hasChildren = category.children && category.children.length > 0;
     const isExpanded = expandedIds.has(category.id);
     const rows: JSX.Element[] = [];
@@ -46,10 +43,7 @@ export default function CategoriesTable({
     rows.push(
       <tr key={category.id} className="border-t hover:bg-gray-50">
         <td className="px-4 py-3">
-          <div
-            className="flex items-center gap-2"
-            style={{ paddingLeft: `${level * 24}px` }}
-          >
+          <div className="flex items-center gap-2" style={{ paddingLeft: `${level * 24}px` }}>
             {hasChildren && (
               <button
                 onClick={() => toggleExpand(category.id)}
@@ -109,18 +103,10 @@ export default function CategoriesTable({
       <table className="w-full table-fixed">
         <thead className="bg-gray-100">
           <tr>
-            <th className="px-4 py-3 text-left font-semibold w-[40%]">
-              Nombre
-            </th>
-            <th className="px-4 py-3 text-left font-semibold w-[35%]">
-              Descripción
-            </th>
-            <th className="px-4 py-3 text-left font-semibold w-[15%]">
-              Rango Precio
-            </th>
-            <th className="px-4 py-3 text-left font-semibold w-[10%]">
-              Acciones
-            </th>
+            <th className="px-4 py-3 text-left font-semibold w-[40%]">Nombre</th>
+            <th className="px-4 py-3 text-left font-semibold w-[35%]">Descripción</th>
+            <th className="px-4 py-3 text-left font-semibold w-[15%]">Rango Precio</th>
+            <th className="px-4 py-3 text-left font-semibold w-[10%]">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -131,9 +117,7 @@ export default function CategoriesTable({
       </table>
 
       {categories.length === 0 && (
-        <p className="text-center py-8 text-gray-500">
-          No hay categorías registradas
-        </p>
+        <p className="text-center py-8 text-gray-500">No hay categorías registradas</p>
       )}
     </div>
   );

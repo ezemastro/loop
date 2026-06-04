@@ -61,9 +61,7 @@ export class AuthModel {
       const hashedPassword = await hashPassword(password);
       // Validar email
       const emailLower = email.toLowerCase();
-      const isValidEmail = VALID_EMAIL_DOMAINS.some((domain) =>
-        emailLower.endsWith(`@${domain}`),
-      );
+      const isValidEmail = VALID_EMAIL_DOMAINS.some((domain) => emailLower.endsWith(`@${domain}`));
       if (!isValidEmail) {
         throw new InvalidInputError(ERROR_MESSAGES.EMAIL_NOT_AUTHORIZED);
       }
@@ -90,9 +88,7 @@ export class AuthModel {
       // Obtener las escuelas completas
       const schools = await Promise.all(
         schoolsDb.map(async (schoolDb) => {
-          const [schoolMediaDb] = await client.query(queries.mediaById, [
-            schoolDb.media_id,
-          ]);
+          const [schoolMediaDb] = await client.query(queries.mediaById, [schoolDb.media_id]);
           if (!schoolMediaDb) {
             throw new InternalServerError(ERROR_MESSAGES.UNEXPECTED_ERROR);
           }
@@ -155,10 +151,7 @@ export class AuthModel {
         throw new InvalidInputError(ERROR_MESSAGES.INCORRECT_LOGIN_METHOD);
       }
       // Verificar la contraseña
-      const isPasswordCorrect = await comparePasswords(
-        password,
-        userDb.password,
-      );
+      const isPasswordCorrect = await comparePasswords(password, userDb.password);
       if (!isPasswordCorrect) {
         console.log(password);
         throw new InvalidInputError(ERROR_MESSAGES.INVALID_CREDENTIALS);
@@ -166,26 +159,18 @@ export class AuthModel {
       // Obtener información adicional del perfil
       let profileMedia = null;
       if (userDb.profile_media_id) {
-        const [profileMediaDb] = await client.query(queries.mediaById, [
-          userDb.profile_media_id,
-        ]);
+        const [profileMediaDb] = await client.query(queries.mediaById, [userDb.profile_media_id]);
         if (profileMediaDb) profileMedia = parseMediaFromDb(profileMediaDb);
       }
       // Obtener todas las escuelas del usuario
-      const userSchoolsDb = await client.query(queries.userSchoolsByUserId, [
-        userDb.id,
-      ]);
+      const userSchoolsDb = await client.query(queries.userSchoolsByUserId, [userDb.id]);
       const schools = await Promise.all(
         userSchoolsDb.map(async (us: { school_id: UUID }) => {
-          const [schoolDb] = await client.query(queries.schoolById, [
-            us.school_id,
-          ]);
+          const [schoolDb] = await client.query(queries.schoolById, [us.school_id]);
           if (!schoolDb) {
             throw new InternalServerError(ERROR_MESSAGES.SCHOOL_NOT_FOUND);
           }
-          const [schoolMediaDb] = await client.query(queries.mediaById, [
-            schoolDb.media_id,
-          ]);
+          const [schoolMediaDb] = await client.query(queries.mediaById, [schoolDb.media_id]);
           if (!schoolMediaDb) {
             throw new InternalServerError(ERROR_MESSAGES.UNEXPECTED_ERROR);
           }
@@ -253,9 +238,7 @@ export class AuthModel {
 
       // Verificar si el email es válido según los dominios permitidos
       const emailLower = email!.toLowerCase();
-      const isValidEmail = VALID_EMAIL_DOMAINS.some((domain) =>
-        emailLower.endsWith(`@${domain}`),
-      );
+      const isValidEmail = VALID_EMAIL_DOMAINS.some((domain) => emailLower.endsWith(`@${domain}`));
       if (!isValidEmail) {
         throw new InvalidInputError(ERROR_MESSAGES.EMAIL_NOT_AUTHORIZED);
       }
@@ -286,16 +269,12 @@ export class AuthModel {
         try {
           // Si no envió schoolIds, error pidiendo que las envíe
           if (!schoolIds || schoolIds.length === 0) {
-            throw new StepRequired(
-              ERROR_MESSAGES.SCHOOL_IDS_REQUIRED_FOR_GOOGLE_SIGNUP,
-            );
+            throw new StepRequired(ERROR_MESSAGES.SCHOOL_IDS_REQUIRED_FOR_GOOGLE_SIGNUP);
           }
           // Validar escuelas
           const schoolsDb = await Promise.all(
             schoolIds.map(async (schoolId: UUID) => {
-              const [schoolDb] = await client.query(queries.schoolById, [
-                schoolId,
-              ]);
+              const [schoolDb] = await client.query(queries.schoolById, [schoolId]);
               if (!schoolDb) {
                 throw new InvalidInputError(ERROR_MESSAGES.SCHOOL_NOT_FOUND);
               }
@@ -329,9 +308,7 @@ export class AuthModel {
           // Obtener las escuelas completas
           const schools = await Promise.all(
             schoolsDb.map(async (schoolDb) => {
-              const [schoolMediaDb] = await client.query(queries.mediaById, [
-                schoolDb.media_id,
-              ]);
+              const [schoolMediaDb] = await client.query(queries.mediaById, [schoolDb.media_id]);
               if (!schoolMediaDb) {
                 throw new InternalServerError(ERROR_MESSAGES.UNEXPECTED_ERROR);
               }
@@ -369,27 +346,19 @@ export class AuthModel {
         // Obtener información adicional del perfil
         let profileMedia = null;
         if (userDb.profile_media_id) {
-          const [profileMediaDb] = await client.query(queries.mediaById, [
-            userDb.profile_media_id,
-          ]);
+          const [profileMediaDb] = await client.query(queries.mediaById, [userDb.profile_media_id]);
           if (profileMediaDb) profileMedia = parseMediaFromDb(profileMediaDb);
         }
 
         // Obtener todas las escuelas del usuario
-        const userSchoolsDb = await client.query(queries.userSchoolsByUserId, [
-          userDb.id,
-        ]);
+        const userSchoolsDb = await client.query(queries.userSchoolsByUserId, [userDb.id]);
         const schools = await Promise.all(
           userSchoolsDb.map(async (us: { school_id: UUID }) => {
-            const [schoolDb] = await client.query(queries.schoolById, [
-              us.school_id,
-            ]);
+            const [schoolDb] = await client.query(queries.schoolById, [us.school_id]);
             if (!schoolDb) {
               throw new InternalServerError(ERROR_MESSAGES.SCHOOL_NOT_FOUND);
             }
-            const [schoolMediaDb] = await client.query(queries.mediaById, [
-              schoolDb.media_id,
-            ]);
+            const [schoolMediaDb] = await client.query(queries.mediaById, [schoolDb.media_id]);
             if (!schoolMediaDb) {
               throw new InternalServerError(ERROR_MESSAGES.UNEXPECTED_ERROR);
             }

@@ -35,8 +35,7 @@ export default function AuthorizeAdmin() {
     } catch (err) {
       if (err instanceof AxiosError) {
         setError(
-          err.response?.data?.error ||
-            "Error al autorizar el email. Puede que ya esté autorizado.",
+          err.response?.data?.error || "Error al autorizar el email. Puede que ya esté autorizado.",
         );
       } else {
         setError("Error al autorizar el email. Puede que ya esté autorizado.");
@@ -50,12 +49,9 @@ export default function AuthorizeAdmin() {
   return (
     <Layout>
       <div className="p-8 max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2">
-          Autorizar Nuevo Administrador
-        </h1>
+        <h1 className="text-3xl font-bold mb-2">Autorizar Nuevo Administrador</h1>
         <p className="text-gray-600 mb-6">
-          Agrega un email a la lista de autorizados para registro de
-          administradores
+          Agrega un email a la lista de autorizados para registro de administradores
         </p>
 
         {error && (
@@ -109,14 +105,8 @@ export default function AuthorizeAdmin() {
           <ol className="text-sm text-blue-800 space-y-2 list-decimal list-inside">
             <li>Ingresa el email de la persona que quieres autorizar</li>
             <li>El email se agregará a la lista de permitidos</li>
-            <li>
-              La persona podrá ir a la página de registro y crear su cuenta de
-              administrador
-            </li>
-            <li>
-              Solo los emails autorizados pueden registrarse como
-              administradores
-            </li>
+            <li>La persona podrá ir a la página de registro y crear su cuenta de administrador</li>
+            <li>Solo los emails autorizados pueden registrarse como administradores</li>
           </ol>
         </div>
       </div>

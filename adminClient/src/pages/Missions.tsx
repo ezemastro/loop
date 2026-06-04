@@ -10,9 +10,7 @@ export default function Missions() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [editingMission, setEditingMission] = useState<MissionTemplate | null>(
-    null,
-  );
+  const [editingMission, setEditingMission] = useState<MissionTemplate | null>(null);
 
   useEffect(() => {
     loadMissions();
@@ -64,17 +62,9 @@ export default function Missions() {
           </button>
         </div>
 
-        {error && (
-          <div className="bg-red-100 text-red-700 p-4 rounded mb-4">
-            {error}
-          </div>
-        )}
+        {error && <div className="bg-red-100 text-red-700 p-4 rounded mb-4">{error}</div>}
 
-        <MissionsTable
-          missions={missions}
-          loading={loading}
-          onEdit={handleEdit}
-        />
+        <MissionsTable missions={missions} loading={loading} onEdit={handleEdit} />
 
         <MissionFormModal
           mission={editingMission}

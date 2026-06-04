@@ -7,9 +7,7 @@ export const getUrl = (path: string) => {
   return `${FILE_BASE_URL}${path}`;
 };
 
-export const getProfileImageSource = (
-  path?: string | null,
-): ImageSourcePropType => {
+export const getProfileImageSource = (path?: string | null): ImageSourcePropType => {
   if (!path?.trim()) return DEFAULT_PROFILE_IMAGE;
   return { uri: getUrl(path) };
 };

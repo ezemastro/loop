@@ -15,9 +15,7 @@ export default function Missions({
   const { data, isLoading, error } = useMissions();
   const missions = data?.userMissions;
   const showMissions =
-    !!missions &&
-    missions.length > 0 &&
-    missions.some((mission) => !mission.completed);
+    !!missions && missions.length > 0 && missions.some((mission) => !mission.completed);
   useEffect(() => {
     if (showMissions !== hasMissions) {
       setHasMissions?.(showMissions);

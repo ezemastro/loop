@@ -49,11 +49,7 @@ export default function Register() {
     }
     setFormErrors(null);
     try {
-      const registerResponse = await adminApi.register(
-        email,
-        fullName,
-        password,
-      );
+      const registerResponse = await adminApi.register(email, fullName, password);
       if (registerResponse.success) {
         // Almacenar sesión
         login(email, fullName);
@@ -82,9 +78,7 @@ export default function Register() {
               className="border border-gray-300 rounded px-3 py-2 w-full"
               required
             />
-            {formErrors?.email && (
-              <div className="text-red-500 text-sm">{formErrors.email}</div>
-            )}
+            {formErrors?.email && <div className="text-red-500 text-sm">{formErrors.email}</div>}
           </div>
           <div className="mb-4">
             <label htmlFor="fullName">Nombre Completo:</label>
@@ -122,9 +116,7 @@ export default function Register() {
               required
             />
             {formErrors?.passwordConfirm && (
-              <div className="text-red-500 text-sm">
-                {formErrors.passwordConfirm}
-              </div>
+              <div className="text-red-500 text-sm">{formErrors.passwordConfirm}</div>
             )}
           </div>
           <button
@@ -133,9 +125,7 @@ export default function Register() {
           >
             Registrar
           </button>
-          {formErrors?.error && (
-            <div className="text-red-500 text-sm mt-3">{formErrors.error}</div>
-          )}
+          {formErrors?.error && <div className="text-red-500 text-sm mt-3">{formErrors.error}</div>}
         </form>
       </div>
     </Layout>

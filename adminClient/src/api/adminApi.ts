@@ -22,12 +22,9 @@ export const adminApi = {
    * @param credential - Token JWT que devuelve Google Sign-In
    */
   googleLogin: async (credential: string) => {
-    const response = await api.post<PostAdminGoogleLoginResponse>(
-      "/admin/google-login",
-      {
-        credential,
-      },
-    );
+    const response = await api.post<PostAdminGoogleLoginResponse>("/admin/google-login", {
+      credential,
+    });
     return response.data;
   },
 
@@ -35,26 +32,20 @@ export const adminApi = {
    * Registrar un nuevo administrador
    */
   register: async (email: string, fullName: string, password: string) => {
-    const response = await api.post<PostAdminRegisterResponse>(
-      "/admin/register",
-      {
-        email,
-        fullName,
-        password,
-      },
-    );
+    const response = await api.post<PostAdminRegisterResponse>("/admin/register", {
+      email,
+      fullName,
+      password,
+    });
     return response.data;
   },
   /**
    * Validar un nuevo email para registro de administradores
    */
   addValidEmailForRegistration: async (email: string) => {
-    const response = await api.post<PostAdminAuthorizeEmailResponse>(
-      "/admin/authorize-email",
-      {
-        email,
-      },
-    );
+    const response = await api.post<PostAdminAuthorizeEmailResponse>("/admin/authorize-email", {
+      email,
+    });
     return response.data;
   },
 
@@ -94,13 +85,10 @@ export const adminApi = {
    * Crear una nueva escuela
    */
   createSchool: async (name: string, mediaId: UUID) => {
-    const response = await api.post<PostAdminSchoolsResponse>(
-      "/admin/schools",
-      {
-        name,
-        mediaId,
-      },
-    );
+    const response = await api.post<PostAdminSchoolsResponse>("/admin/schools", {
+      name,
+      mediaId,
+    });
     return response.data;
   },
 
@@ -108,13 +96,10 @@ export const adminApi = {
    * Actualizar una escuela existente (nombre y/o logo)
    */
   updateSchool: async (schoolId: UUID, name?: string, mediaId?: UUID) => {
-    const response = await api.patch<PatchAdminSchoolsResponse>(
-      `/admin/schools/${schoolId}`,
-      {
-        name,
-        mediaId,
-      },
-    );
+    const response = await api.patch<PatchAdminSchoolsResponse>(`/admin/schools/${schoolId}`, {
+      name,
+      mediaId,
+    });
     return response.data;
   },
 
@@ -133,10 +118,7 @@ export const adminApi = {
     statKgCo2?: number;
     statLH2o?: number;
   }) => {
-    const response = await api.post<PostAdminCategoriesResponse>(
-      "/admin/categories",
-      data,
-    );
+    const response = await api.post<PostAdminCategoriesResponse>("/admin/categories", data);
     return response.data;
   },
 
@@ -173,14 +155,11 @@ export const adminApi = {
     type: NotificationType,
     payload: Record<string, unknown>,
   ) => {
-    const response = await api.post<PostAdminNotificationResponse>(
-      "/admin/notifications",
-      {
-        userId,
-        type,
-        payload,
-      },
-    );
+    const response = await api.post<PostAdminNotificationResponse>("/admin/notifications", {
+      userId,
+      type,
+      payload,
+    });
     return response.data;
   },
 
@@ -197,9 +176,7 @@ export const adminApi = {
    * Obtener estadísticas por escuela
    */
   getSchoolStats: async () => {
-    const response = await api.get<GetAdminSchoolStatsResponse>(
-      "/admin/schools/stats",
-    );
+    const response = await api.get<GetAdminSchoolStatsResponse>("/admin/schools/stats");
     return response.data;
   },
 
@@ -214,10 +191,7 @@ export const adminApi = {
     rewardCredits: number;
     active: boolean;
   }) => {
-    const response = await api.post<PostAdminMissionTemplateResponse>(
-      "/admin/missions",
-      data,
-    );
+    const response = await api.post<PostAdminMissionTemplateResponse>("/admin/missions", data);
     return response.data;
   },
 
@@ -245,8 +219,7 @@ export const adminApi = {
    * Obtener todas las mission templates
    */
   getMissionTemplates: async () => {
-    const response =
-      await api.get<GetAdminMissionTemplatesResponse>("/admin/missions");
+    const response = await api.get<GetAdminMissionTemplatesResponse>("/admin/missions");
     return response.data;
   },
 

@@ -10,12 +10,7 @@ export default function Mission({
   className?: string;
 }) {
   return (
-    <View
-      className={twMerge(
-        "flex-row bg-white p-2 rounded gap-2 items-center",
-        className,
-      )}
-    >
+    <View className={twMerge("flex-row bg-white p-2 rounded gap-2 items-center", className)}>
       <View className="flex-grow justify-between gap-2">
         <View className="items-center">
           <Text className="text-main-text text-lg text-center">
@@ -43,10 +38,7 @@ export default function Mission({
       </View>
       <View className="bg-stroke/40 self-stretch w-0.5 rounded-full" />
       <View>
-        <CreditsBadge
-          credits={mission.missionTemplate.rewardCredits}
-          vertical
-        />
+        <CreditsBadge credits={mission.missionTemplate.rewardCredits} vertical />
       </View>
     </View>
   );

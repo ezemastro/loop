@@ -73,11 +73,7 @@ export default function EditSchoolModal({
         alert("Imagen subida exitosamente");
       }
     } catch (err) {
-      setError(
-        err instanceof AxiosError
-          ? err.response?.data?.error
-          : "Error al subir la imagen",
-      );
+      setError(err instanceof AxiosError ? err.response?.data?.error : "Error al subir la imagen");
       console.error(err);
     } finally {
       setUploading(false);
@@ -114,9 +110,7 @@ export default function EditSchoolModal({
       }
     } catch (err) {
       setError(
-        err instanceof AxiosError
-          ? err.response?.data?.error
-          : "Error al actualizar la escuela",
+        err instanceof AxiosError ? err.response?.data?.error : "Error al actualizar la escuela",
       );
       console.error(err);
     } finally {
@@ -142,9 +136,7 @@ export default function EditSchoolModal({
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block mb-2 font-semibold">
-              Nombre de la Escuela*:
-            </label>
+            <label className="block mb-2 font-semibold">Nombre de la Escuela*:</label>
             <input
               type="text"
               value={schoolName}
@@ -156,9 +148,7 @@ export default function EditSchoolModal({
           </div>
 
           <div className="mb-4">
-            <label className="block mb-2 font-semibold">
-              Logo de la Escuela (Opcional):
-            </label>
+            <label className="block mb-2 font-semibold">Logo de la Escuela (Opcional):</label>
 
             {/* Logo actual */}
             <div className="mb-3">
@@ -203,11 +193,7 @@ export default function EditSchoolModal({
             </button>
           )}
 
-          {error && (
-            <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
-              {error}
-            </div>
-          )}
+          {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
 
           <div className="flex gap-3">
             <button

@@ -12,10 +12,7 @@ export interface NamedQuery<T> {
 }
 
 export interface DatabaseClient {
-  query<T extends QueryResultRow>(
-    q: NamedQuery<T>,
-    params?: unknown[],
-  ): Promise<T[]>;
+  query<T extends QueryResultRow>(q: NamedQuery<T>, params?: unknown[]): Promise<T[]>;
 
   begin(): Promise<void>;
   commit(): Promise<void>;

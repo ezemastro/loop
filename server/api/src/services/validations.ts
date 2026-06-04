@@ -1,30 +1,9 @@
 import z from "zod";
 import { SORT_OPTIONS } from "../utils/sortOptions";
-const LISTING_STATUS: ListingStatus[] = [
-  "published",
-  "offered",
-  "accepted",
-  "received",
-];
-const NOTIFICATION_TYPES: NotificationType[] = [
-  "mission",
-  "loop",
-  "donation",
-  "admin",
-];
-const TRANSACTION_TYPES: TransactionType[] = [
-  "loop",
-  "mission",
-  "donation",
-  "admin",
-];
-const PRODUCT_STATUS: ProductStatus[] = [
-  "fair",
-  "good",
-  "very_good",
-  "like_new",
-  "new",
-];
+const LISTING_STATUS: ListingStatus[] = ["published", "offered", "accepted", "received"];
+const NOTIFICATION_TYPES: NotificationType[] = ["mission", "loop", "donation", "admin"];
+const TRANSACTION_TYPES: TransactionType[] = ["loop", "mission", "donation", "admin"];
+const PRODUCT_STATUS: ProductStatus[] = ["fair", "good", "very_good", "like_new", "new"];
 
 const firstNameSchema = z.string().min(2).max(100);
 const lastNameSchema = z.string().min(2).max(100);
@@ -35,18 +14,12 @@ const orderSchema = z.enum(["asc", "desc"]);
 const sortSchema = z.enum(SORT_OPTIONS);
 
 export const validateId = (data: unknown) => z.uuid().parseAsync(data);
-export const safeValidateFirstName = (data: unknown) =>
-  firstNameSchema.safeParseAsync(data);
-export const safeValidateLastName = (data: unknown) =>
-  lastNameSchema.safeParseAsync(data);
-export const safeValidateEmail = (data: unknown) =>
-  emailSchema.safeParseAsync(data);
-export const safeValidatePhone = (data: unknown) =>
-  phoneSchema.safeParseAsync(data);
-export const safeValidatePassword = (data: unknown) =>
-  passwordSchema.safeParseAsync(data);
-export const safeValidateUUID = (data: unknown) =>
-  z.uuid().safeParseAsync(data);
+export const safeValidateFirstName = (data: unknown) => firstNameSchema.safeParseAsync(data);
+export const safeValidateLastName = (data: unknown) => lastNameSchema.safeParseAsync(data);
+export const safeValidateEmail = (data: unknown) => emailSchema.safeParseAsync(data);
+export const safeValidatePhone = (data: unknown) => phoneSchema.safeParseAsync(data);
+export const safeValidatePassword = (data: unknown) => passwordSchema.safeParseAsync(data);
+export const safeValidateUUID = (data: unknown) => z.uuid().safeParseAsync(data);
 
 const mediaSchema = z.object({
   id: z.uuid(),
@@ -77,8 +50,7 @@ const privateUserSchema = z.object({
   }),
   schools: z.array(schoolSchema),
 });
-export const validatePrivateUser = (data: unknown) =>
-  privateUserSchema.parseAsync(data);
+export const validatePrivateUser = (data: unknown) => privateUserSchema.parseAsync(data);
 
 const publicUserSchema = z.object({
   id: z.uuid(),
@@ -89,8 +61,7 @@ const publicUserSchema = z.object({
   profileMedia: mediaSchema.nullable(),
   schools: z.array(schoolSchema),
 });
-export const validatePublicUser = (data: unknown) =>
-  publicUserSchema.parseAsync(data);
+export const validatePublicUser = (data: unknown) => publicUserSchema.parseAsync(data);
 const categoryBaseSchema = z.object({
   id: z.uuid(),
   name: z.string().min(2).max(100),
@@ -133,8 +104,7 @@ const categorySchema = z.object({
     .nullable(),
   children: z.array(z.lazy((): z.ZodTypeAny => categorySchema)).nullable(),
 });
-export const validateCategory = (data: unknown) =>
-  categorySchema.parseAsync(data);
+export const validateCategory = (data: unknown) => categorySchema.parseAsync(data);
 
 const listingSchema = z.object({
   id: z.uuid(),
@@ -152,8 +122,7 @@ const listingSchema = z.object({
   offeredCredits: z.number().min(0).nullable(),
   media: z.array(mediaSchema).nullable(),
 });
-export const validateListing = (data: unknown) =>
-  listingSchema.parseAsync(data);
+export const validateListing = (data: unknown) => listingSchema.parseAsync(data);
 
 const walletTransactionSchema = z.object({
   id: z.uuid(),
@@ -178,8 +147,7 @@ const missionTemplateSchema = z.object({
   active: z.boolean(),
   createdAt: z.date(),
 });
-export const validateMissionTemplate = (data: unknown) =>
-  missionTemplateSchema.parseAsync(data);
+export const validateMissionTemplate = (data: unknown) => missionTemplateSchema.parseAsync(data);
 
 const userMissionSchema = z.object({
   id: z.uuid(),
@@ -190,8 +158,7 @@ const userMissionSchema = z.object({
   completedAt: z.date().nullable().optional(),
   progress: z.object({}).optional(),
 });
-export const validateUserMission = (data: unknown) =>
-  userMissionSchema.parseAsync(data);
+export const validateUserMission = (data: unknown) => userMissionSchema.parseAsync(data);
 
 const notificationSchema = z.object({
   id: z.uuid(),
@@ -235,8 +202,7 @@ const notificationSchema = z.object({
     }),
   ]),
 });
-export const validateNotification = (data: unknown) =>
-  notificationSchema.parseAsync(data);
+export const validateNotification = (data: unknown) => notificationSchema.parseAsync(data);
 
 const messageSchema = z.object({
   id: z.uuid(),
@@ -249,8 +215,7 @@ const messageSchema = z.object({
   attachedListingId: z.uuid().nullable().optional(),
   attachedListing: listingSchema.optional(),
 });
-export const validateMessage = (data: unknown) =>
-  messageSchema.parseAsync(data);
+export const validateMessage = (data: unknown) => messageSchema.parseAsync(data);
 
 const registerSchema = z.object({
   password: passwordSchema,
@@ -259,8 +224,7 @@ const registerSchema = z.object({
   schoolIds: z.array(z.uuid()).min(1),
   email: emailSchema,
 });
-export const validateRegister = (data: unknown) =>
-  registerSchema.parseAsync(data);
+export const validateRegister = (data: unknown) => registerSchema.parseAsync(data);
 
 const loginSchema = z.object({
   email: z.email(),
@@ -277,8 +241,7 @@ const updateSelfSchema = z.object({
   password: passwordSchema.optional(),
   schoolIds: z.array(z.uuid()).min(1).optional(),
 });
-export const validateUpdateSelf = (data: unknown) =>
-  updateSelfSchema.parseAsync(data);
+export const validateUpdateSelf = (data: unknown) => updateSelfSchema.parseAsync(data);
 
 const paginatedQuery = z.object({
   page: z.number().min(1).optional(),
@@ -286,26 +249,22 @@ const paginatedQuery = z.object({
   sort: sortSchema.optional(),
   order: orderSchema.optional(),
 });
-export const validatePaginationParams = (data: unknown) =>
-  paginatedQuery.parseAsync(data);
+export const validatePaginationParams = (data: unknown) => paginatedQuery.parseAsync(data);
 
 const getRolesRequestQuery = paginatedQuery.extend({
   searchTerm: z.string().max(100).optional(),
 });
-export const validateGetRolesRequest = (data: unknown) =>
-  getRolesRequestQuery.parseAsync(data);
+export const validateGetRolesRequest = (data: unknown) => getRolesRequestQuery.parseAsync(data);
 const getUsersRequestQuery = paginatedQuery.extend({
   searchTerm: z.string().max(100).optional(),
   schoolId: z.uuid().optional(),
   userId: z.uuid().optional(),
 });
-export const validateGetUsersRequest = (data: unknown) =>
-  getUsersRequestQuery.parseAsync(data);
+export const validateGetUsersRequest = (data: unknown) => getUsersRequestQuery.parseAsync(data);
 const getSchoolsRequestQuery = paginatedQuery.extend({
   searchTerm: z.string().max(100).optional(),
 });
-export const validateGetSchoolsRequest = (data: unknown) =>
-  getSchoolsRequestQuery.parseAsync(data);
+export const validateGetSchoolsRequest = (data: unknown) => getSchoolsRequestQuery.parseAsync(data);
 const getListingsRequestQuery = paginatedQuery.extend({
   searchTerm: z.string().max(100).optional(),
   categoryId: z.uuid().optional(),
@@ -369,42 +328,36 @@ const putSelfWishRequest = z.object({
   comment: z.string().max(300).nullable().optional(),
   categoryId: z.uuid().optional(),
 });
-export const validatePutSelfWishRequest = (data: unknown) =>
-  putSelfWishRequest.parseAsync(data);
+export const validatePutSelfWishRequest = (data: unknown) => putSelfWishRequest.parseAsync(data);
 const postSelfWishRequest = z.object({
   categoryId: z.uuid(),
   comment: z.string().max(300).nullable().optional(),
 });
-export const validatePostSelfWishRequest = (data: unknown) =>
-  postSelfWishRequest.parseAsync(data);
+export const validatePostSelfWishRequest = (data: unknown) => postSelfWishRequest.parseAsync(data);
 
 // ADMIN
 const adminLoginSchema = z.object({
   email: z.email(),
   password: z.string().min(6).max(100),
 });
-export const validateAdminLogin = (data: unknown) =>
-  adminLoginSchema.parseAsync(data);
+export const validateAdminLogin = (data: unknown) => adminLoginSchema.parseAsync(data);
 const adminGoogleLoginSchema = z.object({
   credential: z.string().min(1),
 });
-export const validateAdminGoogleLogin = (data: unknown) =>
-  adminGoogleLoginSchema.parseAsync(data);
+export const validateAdminGoogleLogin = (data: unknown) => adminGoogleLoginSchema.parseAsync(data);
 const adminRegisterSchema = z.object({
   email: z.email(),
   fullName: z.string().min(2).max(100),
   password: z.string().min(6).max(100),
 });
-export const validateAdminRegister = (data: unknown) =>
-  adminRegisterSchema.parseAsync(data);
+export const validateAdminRegister = (data: unknown) => adminRegisterSchema.parseAsync(data);
 
 // Validación para Google Login de usuarios
 const userGoogleLoginSchema = z.object({
   credential: z.string().min(1),
   schoolIds: z.array(z.uuid()).min(1).optional(),
 });
-export const validateUserGoogleLogin = (data: unknown) =>
-  userGoogleLoginSchema.parseAsync(data);
+export const validateUserGoogleLogin = (data: unknown) => userGoogleLoginSchema.parseAsync(data);
 
 const createMissionTemplateSchema = z.object({
   key: z.string().min(1).max(100),

@@ -24,8 +24,6 @@ export class UploadsController {
       return next(error);
     }
     const publicUrl = `${BASE_URL}/uploads/${media.url}`;
-    res
-      .status(201)
-      .json(successResponse({ data: { media: { ...media, url: publicUrl } } }));
+    res.status(201).json(successResponse({ data: { media: { ...media, url: publicUrl } } }));
   };
 }

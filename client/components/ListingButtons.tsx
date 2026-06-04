@@ -84,10 +84,7 @@ export default function ListingButtons({
       }
       if (user?.id === listing.buyer?.id) {
         return (
-          <CustomButton
-            className="bg-alert flex-grow"
-            onPress={() => handleDeleteOffer()}
-          >
+          <CustomButton className="bg-alert flex-grow" onPress={() => handleDeleteOffer()}>
             <ButtonText>Cancelar</ButtonText>
           </CustomButton>
         );
@@ -116,10 +113,7 @@ export default function ListingButtons({
       }
       if (user?.id === listing.buyer?.id) {
         return (
-          <CustomButton
-            onPress={() => handleMarkReceived()}
-            className="flex-grow"
-          >
+          <CustomButton onPress={() => handleMarkReceived()} className="flex-grow">
             <ButtonText>Recibido</ButtonText>
           </CustomButton>
         );

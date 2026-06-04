@@ -6,10 +6,7 @@ import { AxiosError } from "axios";
 
 const fetchRegister = async (body: PostAuthRegisterRequest["body"]) => {
   try {
-    const response = await api.post<PostAuthRegisterResponse>(
-      "/auth/register",
-      body,
-    );
+    const response = await api.post<PostAuthRegisterResponse>("/auth/register", body);
 
     if (!response.data.success) {
       throw new Error(response.data.error || "Error desconocido");

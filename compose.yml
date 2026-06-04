@@ -11,7 +11,7 @@ services:
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
     networks:
-      - loop-network
+      - proxy-network
 
   # --- BACKEND (API) ---
   api:
@@ -32,7 +32,7 @@ services:
     depends_on:
       - db
     networks:
-      - loop-network
+      - proxy-network
 
   # --- FRONTEND (WEB PRINCIPAL) ---
   web:
@@ -40,34 +40,17 @@ services:
     container_name: web
     restart: unless-stopped
     networks:
-      - loop-network
+      - proxy-network
 
   # --- PANEL ADMIN ---
   admin:
     image: ezemastro/loop-admin:latest
     container_name: admin
     restart: unless-stopped
-    networks:
-      - loop-network
-
-  # --- PROXY INVERSO (CADDY) ---
-  caddy:
-    image: caddy:latest
-    container_name: caddy
-    restart: always
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - api
-      - web
-      - admin
+      - "3002:80"
     networks:
-      - loop-network
+      - proxy-network
 
   backup:
     image: prodrigestivill/postgres-backup-local
@@ -85,12 +68,8 @@ services:
       - SCHEDULE=@daily
       - BACKUP_KEEP_DAYS=7
     networks:
-      - loop-network
+      - proxy-network
 
 networks:
-  loop-network:
-    driver: bridge
-
-volumes:
-  caddy_data:
-  caddy_config:
+  proxy-network:
+    external: true

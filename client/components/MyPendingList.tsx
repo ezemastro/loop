@@ -3,11 +3,7 @@ import ListingViewList from "./bases/ListingViewList";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 
-type PendingType =
-  | "to-receive"
-  | "to-deliver"
-  | "to-accept"
-  | "waiting-acceptance";
+type PendingType = "to-receive" | "to-deliver" | "to-accept" | "waiting-acceptance";
 export default function MyPendingList({
   type,
   hasResults,
@@ -52,8 +48,7 @@ export default function MyPendingList({
         };
     }
   };
-  const { data, isError, isLoading, fetchNextPage, hasNextPage } =
-    useMyListings(getParams());
+  const { data, isError, isLoading, fetchNextPage, hasNextPage } = useMyListings(getParams());
   const listings = data?.pages.flatMap((page) => page!.data!.listings) || [];
   useEffect(() => {
     if ((listings.length !== 0) === hasResults) return;

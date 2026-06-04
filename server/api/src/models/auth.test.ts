@@ -18,11 +18,7 @@ import { AuthModel } from "./auth";
 import { queries } from "../services/queries";
 import { validatePrivateUser } from "../services/validations";
 import { ERROR_MESSAGES } from "../config";
-import {
-  ConflictError,
-  InternalServerError,
-  InvalidInputError,
-} from "../services/errors";
+import { ConflictError, InternalServerError, InvalidInputError } from "../services/errors";
 import { databaseQueryMock, MOCK_USER, MOCK_USER_DB } from "../tests/utils";
 
 describe("AuthModel", () => {
@@ -41,9 +37,7 @@ describe("AuthModel", () => {
   describe("Register", () => {
     it.skip("Should register a user successfully", async () => {
       const modelReturn = await AuthModel.registerUser(MOCK_USER);
-      await expect(
-        validatePrivateUser(modelReturn.user),
-      ).resolves.not.toThrow();
+      await expect(validatePrivateUser(modelReturn.user)).resolves.not.toThrow();
       expect(mockQuery).toHaveBeenCalled();
     });
 
@@ -104,9 +98,7 @@ describe("AuthModel", () => {
         email: MOCK_USER.email,
         password: "validPassword",
       });
-      await expect(
-        validatePrivateUser(modelReturn.user),
-      ).resolves.not.toThrow();
+      await expect(validatePrivateUser(modelReturn.user)).resolves.not.toThrow();
     });
 
     it("Should throw error if password is incorrect", async () => {

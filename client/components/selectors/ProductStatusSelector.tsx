@@ -58,12 +58,7 @@ export default function ProductStatusSelector({
             className,
           )}
         >
-          <Text
-            className={twMerge(
-              "text-lg",
-              value ? "text-main-text" : "text-secondary-text",
-            )}
-          >
+          <Text className={twMerge("text-lg", value ? "text-main-text" : "text-secondary-text")}>
             {selectedOption?.label || emptyLabel || "Cualquier estado"}
           </Text>
           {isOpen ? (
@@ -90,9 +85,7 @@ export default function ProductStatusSelector({
                 <Text
                   className={twMerge(
                     "text-base",
-                    option.value === null
-                      ? "text-secondary-text"
-                      : "text-main-text",
+                    option.value === null ? "text-secondary-text" : "text-main-text",
                   )}
                 >
                   {option.label}
@@ -120,9 +113,7 @@ export default function ProductStatusSelector({
             key={option.value || "any"}
             label={option.label}
             value={option.value}
-            color={
-              option.value === null ? COLORS.SECONDARY_TEXT : COLORS.MAIN_TEXT
-            }
+            color={option.value === null ? COLORS.SECONDARY_TEXT : COLORS.MAIN_TEXT}
           />
         ))}
       </Picker>

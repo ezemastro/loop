@@ -35,14 +35,11 @@ export default function ImageSourceSelectorModal({
           >
             <GalleryIcon className="text-main-text" size={24} />
             <View className="flex-row flex-grow items-center">
-              <Text className="text-main-text text-center">
-                Seleccionar de mi galería
-              </Text>
+              <Text className="text-main-text text-center">Seleccionar de mi galería</Text>
             </View>
             <Text
               className={
-                "text-secondary-text text-center " +
-                (!isGalleryPermissionDenied ? "hidden" : "")
+                "text-secondary-text text-center " + (!isGalleryPermissionDenied ? "hidden" : "")
               }
             >
               Permiso denegado
@@ -61,8 +58,7 @@ export default function ImageSourceSelectorModal({
             </View>
             <Text
               className={
-                "text-secondary-text text-center " +
-                (!isCameraPermissionDenied ? "hidden" : "")
+                "text-secondary-text text-center " + (!isCameraPermissionDenied ? "hidden" : "")
               }
             >
               Permiso denegado

@@ -34,8 +34,7 @@ export const useSessionStore = create<SessionStore>()(
       setUser: (user) => set({ user }),
       setAuthToken: (token) => set({ authToken: token }),
       hasAcceptedTerms: false,
-      setHasAcceptedTerms: (accepted: boolean) =>
-        set({ hasAcceptedTerms: accepted }),
+      setHasAcceptedTerms: (accepted: boolean) => set({ hasAcceptedTerms: accepted }),
       hasToken: false,
       setHasToken: (hasToken: boolean) => set({ hasToken }),
     }),

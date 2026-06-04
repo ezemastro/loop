@@ -1,11 +1,7 @@
 import { dbConnection } from "../services/postgresClient";
 import type { DatabaseClient } from "../types/dbClient";
 import { ERROR_MESSAGES, ADMIN_GOOGLE_CLIENT_ID, PAGE_SIZE } from "../config";
-import {
-  ConflictError,
-  InternalServerError,
-  InvalidInputError,
-} from "../services/errors";
+import { ConflictError, InternalServerError, InvalidInputError } from "../services/errors";
 import { queries } from "../services/queries";
 import {
   parseAdminFromDb,
@@ -18,15 +14,8 @@ import {
   parsePrivateUserFromBase,
 } from "../utils/parseDb";
 import { comparePasswords, hashPassword } from "../services/hash";
-import {
-  assignMissionToAllUsers,
-  getMediaById,
-  getUserSchools,
-} from "../utils/helpersDb";
-import {
-  DEFAULT_ORDER_OPTION,
-  DEFAULT_SORT_OPTION,
-} from "../utils/sortOptions";
+import { assignMissionToAllUsers, getMediaById, getUserSchools } from "../utils/helpersDb";
+import { DEFAULT_ORDER_OPTION, DEFAULT_SORT_OPTION } from "../utils/sortOptions";
 import { safeNumber } from "../utils/safeNumber";
 import { adminGoogleClient } from "../services/googleOauth";
 
@@ -46,10 +35,7 @@ export class AdminModel {
       }
       const admin = parseAdminFromDb(adminDb[0]);
       // Verificar la contraseña
-      const isPasswordCorrect = await comparePasswords(
-        password,
-        adminDb[0].password,
-      );
+      const isPasswordCorrect = await comparePasswords(password, adminDb[0].password);
       if (!isPasswordCorrect) {
         throw new InvalidInputError(ERROR_MESSAGES.INVALID_CREDENTIALS);
       }
@@ -82,10 +68,7 @@ export class AdminModel {
         throw new InvalidInputError(ERROR_MESSAGES.USER_ALREADY_EXISTS);
       }
       // Verificar si el mail de registro está autorizado
-      const isValidEmailDb = await client.query(
-        queries.isValidEmailForAdminRegistration,
-        [email],
-      );
+      const isValidEmailDb = await client.query(queries.isValidEmailForAdminRegistration, [email]);
       if (!isValidEmailDb[0]?.exists) {
         throw new InvalidInputError(ERROR_MESSAGES.EMAIL_NOT_AUTHORIZED);
       }
@@ -162,10 +145,9 @@ export class AdminModel {
       if (!adminDb) {
         // Registrar nuevo admin
         // Verificar si el mail de registro está autorizado
-        const isValidEmailDb = await client.query(
-          queries.isValidEmailForAdminRegistration,
-          [email],
-        );
+        const isValidEmailDb = await client.query(queries.isValidEmailForAdminRegistration, [
+          email,
+        ]);
         if (!isValidEmailDb[0]?.exists) {
           throw new InvalidInputError(ERROR_MESSAGES.EMAIL_NOT_AUTHORIZED);
         }
@@ -195,10 +177,7 @@ export class AdminModel {
         // Verificar si el admin no se registró con Google
         if (!adminDb.google_id) {
           // Agregar googleId al admin existente
-          await client.query(queries.updateAdminGoogleId, [
-            googleId,
-            adminDb.id,
-          ]);
+          await client.query(queries.updateAdminGoogleId, [googleId, adminDb.id]);
         } else {
           // Verificar que el googleId coincida
           if (adminDb.google_id !== googleId) {
@@ -228,13 +207,7 @@ export class AdminModel {
   }
 
   // Gestión de usuarios
-  static async getUsers({
-    page = 1,
-    search,
-  }: {
-    page?: number;
-    search?: string;
-  }) {
+  static async getUsers({ page = 1, search }: { page?: number; search?: string }) {
     let client: DatabaseClient;
     try {
       client = await dbConnection.connect();
@@ -337,13 +310,7 @@ export class AdminModel {
   // MODIFICAR CONTRASEÑA DE USUARIO
   // Y AGREGAR ENDPOINT EN USER PARA QUE LA PUEDA CAMBIAR ELLA MISMA
 
-  static async resetUserPassword({
-    userId,
-    newPassword,
-  }: {
-    userId: UUID;
-    newPassword: string;
-  }) {
+  static async resetUserPassword({ userId, newPassword }: { userId: UUID; newPassword: string }) {
     let client: DatabaseClient;
     try {
       client = await dbConnection.connect();
@@ -362,13 +329,7 @@ export class AdminModel {
   }
 
   // Gestión de escuelas
-  static async createSchool({
-    name,
-    mediaId,
-  }: {
-    name: string;
-    mediaId: UUID;
-  }) {
+  static async createSchool({ name, mediaId }: { name: string; mediaId: UUID }) {
     let client: DatabaseClient;
     try {
       client = await dbConnection.connect();
@@ -385,10 +346,7 @@ export class AdminModel {
       }
 
       // Crear la escuela
-      const schoolDb = await client.query(queries.createSchool, [
-        name,
-        mediaId,
-      ]);
+      const schoolDb = await client.query(queries.createSchool, [name, mediaId]);
       if (!schoolDb[0]) {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
       }
@@ -425,9 +383,7 @@ export class AdminModel {
       await client.begin();
 
       // Obtener la escuela actual para validar que existe
-      const existingSchoolDb = await client.query(queries.schoolById, [
-        schoolId,
-      ]);
+      const existingSchoolDb = await client.query(queries.schoolById, [schoolId]);
       if (!existingSchoolDb[0]) {
         throw new InvalidInputError("Escuela no encontrada");
       }
@@ -524,9 +480,7 @@ export class AdminModel {
 
       await client.commit();
 
-      const categoryBase = parseCategoryBaseFromDb(
-        categoryDb[0] as DB_Categories,
-      );
+      const categoryBase = parseCategoryBaseFromDb(categoryDb[0] as DB_Categories);
       return { category: categoryBase };
     } catch (error) {
       await client.rollback();
@@ -587,12 +541,8 @@ export class AdminModel {
         description !== undefined ? description : categoryDb[0].description,
         parentId !== undefined ? parentId : categoryDb[0].parent_id,
         icon !== undefined ? icon : categoryDb[0].icon,
-        minPriceCredits !== undefined
-          ? minPriceCredits
-          : categoryDb[0].min_price_credits,
-        maxPriceCredits !== undefined
-          ? maxPriceCredits
-          : categoryDb[0].max_price_credits,
+        minPriceCredits !== undefined ? minPriceCredits : categoryDb[0].min_price_credits,
+        maxPriceCredits !== undefined ? maxPriceCredits : categoryDb[0].max_price_credits,
         statKgWaste !== undefined ? statKgWaste : categoryDb[0].stat_kg_waste,
         statKgCo2 !== undefined ? statKgCo2 : categoryDb[0].stat_kg_co2,
         statLH2o !== undefined ? statLH2o : categoryDb[0].stat_l_h2o,
@@ -601,9 +551,7 @@ export class AdminModel {
 
       await client.commit();
 
-      const categoryBase = parseCategoryBaseFromDb(
-        updatedCategoryDb[0] as DB_Categories,
-      );
+      const categoryBase = parseCategoryBaseFromDb(updatedCategoryDb[0] as DB_Categories);
       return { category: categoryBase };
     } catch (error) {
       await client.rollback();
@@ -646,9 +594,7 @@ export class AdminModel {
 
       await client.commit();
 
-      const notificationBase = parseNotificationBaseFromDb(
-        notificationDb[0] as DB_Notifications,
-      );
+      const notificationBase = parseNotificationBaseFromDb(notificationDb[0] as DB_Notifications);
       return { notification: notificationBase };
     } catch (error) {
       await client.rollback();
@@ -668,13 +614,10 @@ export class AdminModel {
     }
     try {
       const statsDb = await client.query(queries.getGlobalStats);
-      const stats = statsDb.reduce(
-        (acc: Record<string, number>, row: DB_GlobalStats) => {
-          acc[row.stat_name] = Number(row.stat_value);
-          return acc;
-        },
-        {},
-      );
+      const stats = statsDb.reduce((acc: Record<string, number>, row: DB_GlobalStats) => {
+        acc[row.stat_name] = Number(row.stat_value);
+        return acc;
+      }, {});
 
       return { stats };
     } finally {
@@ -714,10 +657,7 @@ export class AdminModel {
       throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
     }
     try {
-      const missionTemplatesDb = await client.query(
-        queries.allMissionTemplates,
-        [],
-      );
+      const missionTemplatesDb = await client.query(queries.allMissionTemplates, []);
 
       const missionTemplates = missionTemplatesDb.map((row) =>
         parseMissionTemplateFromDb(row as DB_MissionTemplates),
@@ -752,17 +692,18 @@ export class AdminModel {
       await client.begin();
 
       // Verificar que el key no exista
-      const existingMission = await client.query(queries.missionTemplateByKey, [
-        key,
-      ]);
+      const existingMission = await client.query(queries.missionTemplateByKey, [key]);
       if (existingMission[0]) {
         throw new ConflictError(ERROR_MESSAGES.MISSION_KEY_ALREADY_EXISTS);
       }
 
-      const missionTemplateDb = await client.query(
-        queries.createMissionTemplate,
-        [key, title, description || null, rewardCredits, active],
-      );
+      const missionTemplateDb = await client.query(queries.createMissionTemplate, [
+        key,
+        title,
+        description || null,
+        rewardCredits,
+        active,
+      ]);
 
       if (!missionTemplateDb[0]) {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
@@ -810,25 +751,18 @@ export class AdminModel {
       await client.begin();
 
       // Verificar que la misión existe
-      const missionDb = await client.query(queries.missionTemplateById, [
-        missionTemplateId,
-      ]);
+      const missionDb = await client.query(queries.missionTemplateById, [missionTemplateId]);
       if (!missionDb[0]) {
         throw new InvalidInputError(ERROR_MESSAGES.MISSION_NOT_FOUND);
       }
 
-      const updatedMissionDb = await client.query(
-        queries.updateMissionTemplate,
-        [
-          title !== undefined ? title : missionDb[0].title,
-          description !== undefined ? description : missionDb[0].description,
-          rewardCredits !== undefined
-            ? rewardCredits
-            : missionDb[0].reward_credits,
-          active !== undefined ? active : missionDb[0].active,
-          missionTemplateId,
-        ],
-      );
+      const updatedMissionDb = await client.query(queries.updateMissionTemplate, [
+        title !== undefined ? title : missionDb[0].title,
+        description !== undefined ? description : missionDb[0].description,
+        rewardCredits !== undefined ? rewardCredits : missionDb[0].reward_credits,
+        active !== undefined ? active : missionDb[0].active,
+        missionTemplateId,
+      ]);
 
       if (!updatedMissionDb[0]) {
         throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);

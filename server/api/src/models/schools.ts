@@ -4,21 +4,12 @@ import { dbConnection } from "../services/postgresClient";
 import { queries } from "../services/queries";
 import type { DatabaseClient } from "../types/dbClient";
 import { getMediaById, getSchoolById } from "../utils/helpersDb";
-import {
-  parsePagination,
-  parseSchoolFromBase,
-  parseSchoolFromDb,
-} from "../utils/parseDb";
+import { parsePagination, parseSchoolFromBase, parseSchoolFromDb } from "../utils/parseDb";
 import { safeNumber } from "../utils/safeNumber";
 
 export class SchoolsModel {
   static getSchools = async (query: GetSchoolsRequest["query"]) => {
-    const {
-      page = 1,
-      sort = "created_at",
-      order = "desc",
-      searchTerm,
-    } = query || {};
+    const { page = 1, sort = "created_at", order = "desc", searchTerm } = query || {};
 
     // Obtener cliente
     let client: DatabaseClient;

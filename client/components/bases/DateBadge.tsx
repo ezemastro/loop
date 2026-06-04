@@ -15,8 +15,7 @@ export const DateBadge = ({
   includeTime?: boolean;
 }) => {
   const isToday = date.toDateString() === new Date().toDateString();
-  const isYesterday =
-    date.toDateString() === new Date(Date.now() - 86400000).toDateString();
+  const isYesterday = date.toDateString() === new Date(Date.now() - 86400000).toDateString();
 
   let text: string;
   if (isToday) {
@@ -28,9 +27,7 @@ export const DateBadge = ({
   }
   return (
     <Text className={twMerge("text-secondary-text", className)}>
-      {text}{" "}
-      {includeTime &&
-        date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+      {text} {includeTime && date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
     </Text>
   );
 };

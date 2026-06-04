@@ -32,10 +32,7 @@ export default function Search() {
     }));
   }, [debouncedTerm]);
 
-  const handleSortChange = (newSort: {
-    sortBy?: SortOptions;
-    sortOrder?: OrderOptions;
-  }) => {
+  const handleSortChange = (newSort: { sortBy?: SortOptions; sortOrder?: OrderOptions }) => {
     setQuery((prev) => ({
       ...prev,
       sort: newSort.sortBy,

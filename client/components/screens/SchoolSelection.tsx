@@ -77,8 +77,7 @@ export default function SchoolSelection() {
       {
         onError: async (error: any) => {
           console.error("Error al completar registro:", error);
-          const errorMessage =
-            error?.message || "Error al completar el registro con Google";
+          const errorMessage = error?.message || "Error al completar el registro con Google";
           Alert.alert("Error", errorMessage);
         },
         onSuccess: async () => {
@@ -103,8 +102,7 @@ export default function SchoolSelection() {
     );
   }
 
-  const isButtonDisabled =
-    selectedSchools.length === 0 || googleLoginMutation.isPending;
+  const isButtonDisabled = selectedSchools.length === 0 || googleLoginMutation.isPending;
 
   return (
     <MainView>
@@ -122,18 +120,10 @@ export default function SchoolSelection() {
               <BackButton />
             </View>
             <Text className="color-main-text text-lg text-center">
-              Para terminar de crear su cuenta seleccione la o las escuelas a
-              las que pertenece
+              Para terminar de crear su cuenta seleccione la o las escuelas a las que pertenece
             </Text>
-            <SchoolSelector
-              value={selectedSchools}
-              multiple
-              onChange={setSelectedSchools}
-            />
-            <CustomButton
-              onPress={handleCompleteSignIn}
-              disabled={isButtonDisabled}
-            >
+            <SchoolSelector value={selectedSchools} multiple onChange={setSelectedSchools} />
+            <CustomButton onPress={handleCompleteSignIn} disabled={isButtonDisabled}>
               {googleLoginMutation.isPending ? (
                 <ActivityIndicator color="#fff" size="small" />
               ) : (

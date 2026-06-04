@@ -8,10 +8,7 @@ interface GoogleLoginButtonProps {
   onError?: (error: string) => void;
 }
 
-export default function GoogleLoginButton({
-  onSuccess,
-  onError,
-}: GoogleLoginButtonProps) {
+export default function GoogleLoginButton({ onSuccess, onError }: GoogleLoginButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const login = useSessionStore((state) => state.login);
 
@@ -19,9 +16,7 @@ export default function GoogleLoginButton({
    * Maneja la respuesta exitosa de Google
    * Google devuelve un objeto con la propiedad 'credential' que es un JWT
    */
-  const handleGoogleSuccess = async (
-    credentialResponse: CredentialResponse,
-  ) => {
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     try {
       setIsLoading(true);
 
@@ -31,9 +26,7 @@ export default function GoogleLoginButton({
       }
 
       // Enviar el credential al backend
-      const response = await adminApi.googleLogin(
-        credentialResponse.credential,
-      );
+      const response = await adminApi.googleLogin(credentialResponse.credential);
 
       if (response.success && response.data?.admin) {
         login(response.data?.admin.email, response.data?.admin.fullName);
@@ -46,9 +39,7 @@ export default function GoogleLoginButton({
     } catch (error) {
       console.error("Error en Google login:", error);
       const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Error al iniciar sesión con Google";
+        error instanceof Error ? error.message : "Error al iniciar sesión con Google";
       onError?.(errorMessage);
     } finally {
       setIsLoading(false);
@@ -61,9 +52,7 @@ export default function GoogleLoginButton({
    */
   const handleGoogleError = () => {
     console.error("Error en el login de Google");
-    onError?.(
-      "Error al iniciar sesión con Google. Por favor, intenta nuevamente.",
-    );
+    onError?.("Error al iniciar sesión con Google. Por favor, intenta nuevamente.");
   };
 
   return (

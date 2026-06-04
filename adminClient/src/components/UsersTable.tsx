@@ -39,9 +39,7 @@ export default function UsersTable({
               </td>
               <td className="px-4 py-3">{user.email}</td>
               <td className="px-4 py-3">{user.credits.balance}</td>
-              <td className="px-4 py-3">
-                {user.schools.map((s) => s.name).join(", ") || "N/A"}
-              </td>
+              <td className="px-4 py-3">{user.schools.map((s) => s.name).join(", ") || "N/A"}</td>
               <td className="px-4 py-3">
                 <div className="flex gap-2">
                   <button
@@ -64,9 +62,7 @@ export default function UsersTable({
       </table>
 
       {users.length === 0 && (
-        <p className="text-center py-8 text-gray-500">
-          No se encontraron usuarios
-        </p>
+        <p className="text-center py-8 text-gray-500">No se encontraron usuarios</p>
       )}
     </div>
   );

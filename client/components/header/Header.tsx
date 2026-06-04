@@ -33,9 +33,7 @@ export default function Header() {
           <Pressable onPress={() => router.push("/(main)/(tabs)/messages")}>
             <Messages />
           </Pressable>
-          <Pressable
-            onPress={() => router.push("/(main)/(tabs)/notifications")}
-          >
+          <Pressable onPress={() => router.push("/(main)/(tabs)/notifications")}>
             <Notifications />
           </Pressable>
         </View>

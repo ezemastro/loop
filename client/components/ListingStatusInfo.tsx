@@ -15,11 +15,7 @@ export default function ListingStatusInfo({ listing }: { listing: Listing }) {
               <Text className="font-bold">
                 {listing.buyer?.firstName} {listing.buyer?.lastName}
               </Text>
-              <Text>
-                {" "}
-                quiere loopear este artículo, elige que quieres recibir a
-                cambio.
-              </Text>
+              <Text> quiere loopear este artículo, elige que quieres recibir a cambio.</Text>
             </Text>
           </View>
         );

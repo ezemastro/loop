@@ -9,8 +9,6 @@ export default function TextTitle({
   className?: string;
 }) {
   return (
-    <Text className={twMerge("text-center text-2xl text-main-text", className)}>
-      {children}
-    </Text>
+    <Text className={twMerge("text-center text-2xl text-main-text", className)}>{children}</Text>
   );
 }

@@ -5,9 +5,7 @@ import { AxiosError } from "axios";
 
 const fetchListing = async (params: GetListingByIdRequest["params"]) => {
   try {
-    const response = await api.get<GetListingByIdResponse>(
-      `/listings/${params.listingId}`,
-    );
+    const response = await api.get<GetListingByIdResponse>(`/listings/${params.listingId}`);
     return response.data.data;
   } catch (error) {
     if (error instanceof AxiosError) {

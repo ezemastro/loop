@@ -25,9 +25,7 @@ export default function CreditsBadge({
       )}
     >
       <CreditIcon size={iconSize} />
-      <Text
-        className={twMerge(`text-md font-medium text-credits`, numberClassName)}
-      >
+      <Text className={twMerge(`text-md font-medium text-credits`, numberClassName)}>
         {formatNumber(credits)}
       </Text>
     </View>

@@ -3,10 +3,7 @@ import { getUrl } from "@/services/getUrl";
 import { useRef, useState } from "react";
 import { View, Image, Dimensions } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
-import Carousel, {
-  ICarouselInstance,
-  Pagination,
-} from "react-native-reanimated-carousel";
+import Carousel, { ICarouselInstance, Pagination } from "react-native-reanimated-carousel";
 
 const width = Dimensions.get("window").width;
 

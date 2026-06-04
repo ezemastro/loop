@@ -12,7 +12,15 @@ type MediaType = "image" | "video" | "audio" | string;
 type TransactionType = "loop" | "mission" | "admin" | "donation";
 type NotificationType = "mission" | "loop" | "donation" | "admin";
 type AdminActions = "delete" | "update" | "credits";
-type SortOptions = "createdAt" | "price" | "title" | "updatedAt" | "listingStatus" | "categoryId" | "sellerId" | "buyerId";
+type SortOptions =
+  | "createdAt"
+  | "price"
+  | "title"
+  | "updatedAt"
+  | "listingStatus"
+  | "categoryId"
+  | "sellerId"
+  | "buyerId";
 type OrderOptions = "asc" | "desc";
 
 interface Media {

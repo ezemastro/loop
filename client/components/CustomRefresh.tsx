@@ -3,10 +3,7 @@ import { RefreshControl, RefreshControlProps } from "react-native";
 
 export default function CustomRefresh(
   props: Partial<
-    React.ReactElement<
-      RefreshControlProps,
-      string | React.JSXElementConstructor<any>
-    >["props"]
+    React.ReactElement<RefreshControlProps, string | React.JSXElementConstructor<any>>["props"]
   >,
 ) {
   const queryClient = useQueryClient();

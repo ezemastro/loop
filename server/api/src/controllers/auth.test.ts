@@ -38,9 +38,7 @@ describe("AuthController", () => {
       await AuthController.register(reqMock, resMock, nextMock);
       expect(registerUserMock).toHaveBeenCalled();
       expect(resMock.status).toHaveBeenCalledWith(201);
-      expect(resMock.json).toHaveBeenCalledWith(
-        successResponse({ data: { user: MOCK_USER } }),
-      );
+      expect(resMock.json).toHaveBeenCalledWith(successResponse({ data: { user: MOCK_USER } }));
       expect(resMock.cookie).toHaveBeenCalledTimes(1);
       expect(generateTokenSpy).toHaveBeenCalledWith({ userId: MOCK_USER.id });
     });
@@ -49,9 +47,7 @@ describe("AuthController", () => {
         body: {},
       });
       await AuthController.register(reqMock, resMock, nextMock);
-      expect(nextMock).toHaveBeenCalledWith(
-        new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT),
-      );
+      expect(nextMock).toHaveBeenCalledWith(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
       expect(registerUserMock).not.toHaveBeenCalled();
       expect(generateTokenSpy).not.toHaveBeenCalled();
     });
@@ -65,9 +61,7 @@ describe("AuthController", () => {
       await AuthController.login(reqMock, resMock, nextMock);
       expect(loginUserMock).toHaveBeenCalled();
       expect(resMock.status).toHaveBeenCalledWith(200);
-      expect(resMock.json).toHaveBeenCalledWith(
-        successResponse({ data: { user: MOCK_USER } }),
-      );
+      expect(resMock.json).toHaveBeenCalledWith(successResponse({ data: { user: MOCK_USER } }));
       expect(resMock.cookie).toHaveBeenCalledTimes(1);
       expect(generateTokenSpy).toHaveBeenCalledWith({ userId: MOCK_USER.id });
     });
@@ -76,9 +70,7 @@ describe("AuthController", () => {
         body: {},
       });
       await AuthController.login(reqMock, resMock, nextMock);
-      expect(nextMock).toHaveBeenCalledWith(
-        new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT),
-      );
+      expect(nextMock).toHaveBeenCalledWith(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
       expect(loginUserMock).not.toHaveBeenCalled();
       expect(generateTokenSpy).not.toHaveBeenCalled();
     });

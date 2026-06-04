@@ -5,9 +5,7 @@ import { AxiosError } from "axios";
 
 const fetchUser = async (params: GetUserByIdRequest["params"]) => {
   try {
-    const response = await api.get<GetUserByIdResponse>(
-      `/users/${params.userId}`,
-    );
+    const response = await api.get<GetUserByIdResponse>(`/users/${params.userId}`);
     return response.data.data;
   } catch (err) {
     if (err instanceof AxiosError) {

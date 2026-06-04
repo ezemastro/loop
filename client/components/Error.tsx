@@ -12,9 +12,7 @@ export default function Error({
 }) {
   return (
     <View className={twMerge("items-center justify-center", className)}>
-      <Text className={twMerge("text-main-text", textClassName)}>
-        {children}
-      </Text>
+      <Text className={twMerge("text-main-text", textClassName)}>{children}</Text>
     </View>
   );
 }

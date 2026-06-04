@@ -24,25 +24,16 @@ export default function UserSelector({
   };
   return (
     <View>
-      <Pressable
-        onPress={openModal}
-        className="bg-white rounded border border-stroke"
-      >
+      <Pressable onPress={openModal} className="bg-white rounded border border-stroke">
         {value ? (
           <User user={value} />
         ) : (
           <View className="h-16 justify-center items-center">
-            <Text className="text-secondary-text text-lg">
-              Seleccionar usuario
-            </Text>
+            <Text className="text-secondary-text text-lg">Seleccionar usuario</Text>
           </View>
         )}
       </Pressable>
-      <UserSelectorModal
-        isVisible={isModalVisible}
-        onSelect={handleSelect}
-        onClose={closeModal}
-      />
+      <UserSelectorModal isVisible={isModalVisible} onSelect={handleSelect} onClose={closeModal} />
     </View>
   );
 }

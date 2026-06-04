@@ -148,9 +148,7 @@ export class UsersModel {
       throw new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR);
     }
     try {
-      const userWishesDb = await client.query(queries.getUserWishesByUserId, [
-        userId,
-      ]);
+      const userWishesDb = await client.query(queries.getUserWishesByUserId, [userId]);
       const userWishes = await Promise.all(
         userWishesDb.map(async (wishDb) => {
           const wishBase = parseUserWishFromDb(wishDb);

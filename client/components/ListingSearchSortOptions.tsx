@@ -48,9 +48,7 @@ export default function ListingSearchSortOptions({
     setSort({
       sortBy: sort.sortBy,
       sortOrder:
-        sort.sortOrder === SORT_ORDERS.DESCENDING
-          ? SORT_ORDERS.ASCENDING
-          : SORT_ORDERS.DESCENDING,
+        sort.sortOrder === SORT_ORDERS.DESCENDING ? SORT_ORDERS.ASCENDING : SORT_ORDERS.DESCENDING,
     });
   };
   const debouncedSort = useDebouncedCallback((newSort: SortState | null) => {

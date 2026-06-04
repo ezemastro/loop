@@ -21,13 +21,9 @@ export default function Stat({
       )}
     >
       {icon}
-      <Text className="text-2xl text-main-text font-bold mt-2">
-        {formatNumber(value)}
-      </Text>
+      <Text className="text-2xl text-main-text font-bold mt-2">{formatNumber(value)}</Text>
       <View className="items-center justify-center flex-grow">
-        <Text className="text-main-text/90 text-sm text-center font-normal">
-          {label}
-        </Text>
+        <Text className="text-main-text/90 text-sm text-center font-normal">{label}</Text>
       </View>
     </View>
   );

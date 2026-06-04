@@ -1,23 +1,9 @@
-import {
-  View,
-  Dimensions,
-  Image,
-  Text,
-  Pressable,
-  Platform,
-} from "react-native";
+import { View, Dimensions, Image, Text, Pressable, Platform } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useRef, useState } from "react";
-import Carousel, {
-  ICarouselInstance,
-  Pagination,
-} from "react-native-reanimated-carousel";
+import Carousel, { ICarouselInstance, Pagination } from "react-native-reanimated-carousel";
 import { useSharedValue } from "react-native-reanimated";
-import {
-  COLORS,
-  IMAGE_FORMAT_ERROR_MESSAGE,
-  MAX_LISTING_IMAGES,
-} from "@/config";
+import { COLORS, IMAGE_FORMAT_ERROR_MESSAGE, MAX_LISTING_IMAGES } from "@/config";
 import { CameraIcon, CrossIcon } from "../Icons";
 import { twMerge } from "tailwind-merge";
 import { getUrl } from "@/services/getUrl";
@@ -45,20 +31,14 @@ export default function ImagesSelector({
   const addPressStartRef = useRef<{ x: number; y: number } | null>(null);
   const isDraggingAddRef = useRef(false);
   const [containerWidth, setContainerWidth] = useState(width);
-  const [selectedImages, setSelectedImages] =
-    useState<SelectedImage[]>(initialImages);
+  const [selectedImages, setSelectedImages] = useState<SelectedImage[]>(initialImages);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const allowAddMore = selectedImages.length < MAX_LISTING_IMAGES;
-  const [cameraStatus, cameraRequestPermission] =
-    ImagePicker.useCameraPermissions();
+  const [cameraStatus, cameraRequestPermission] = ImagePicker.useCameraPermissions();
   const [mediaLibraryStatus, mediaLibraryRequestPermission] =
     ImagePicker.useMediaLibraryPermissions();
-  const {
-    inferMimeTypeFromUri,
-    isAllowedMimeType,
-    pickWebImages,
-    optimizeImage,
-  } = useOptimizedImagePicker();
+  const { inferMimeTypeFromUri, isAllowedMimeType, pickWebImages, optimizeImage } =
+    useOptimizedImagePicker();
 
   const toUploadPayload = (images: SelectedImage[]) =>
     images.map((img) => ({
@@ -87,9 +67,7 @@ export default function ImagesSelector({
           setUploadError(IMAGE_FORMAT_ERROR_MESSAGE);
         }
       } else {
-        if (
-          mediaLibraryStatus?.status !== ImagePicker.PermissionStatus.GRANTED
-        ) {
+        if (mediaLibraryStatus?.status !== ImagePicker.PermissionStatus.GRANTED) {
           const permission = await mediaLibraryRequestPermission();
           if (!permission.granted) {
             // TODO - mostrar error
@@ -124,10 +102,7 @@ export default function ImagesSelector({
     } else return;
 
     if (!isWeb && result && !result.canceled) {
-      const selected = result.assets.slice(
-        0,
-        MAX_LISTING_IMAGES - selectedImages.length,
-      );
+      const selected = result.assets.slice(0, MAX_LISTING_IMAGES - selectedImages.length);
 
       pickedAssets = selected
         .map((asset) => {
@@ -147,9 +122,7 @@ export default function ImagesSelector({
     }
 
     if (pickedAssets.length > 0) {
-      const optimizedAssets = await Promise.all(
-        pickedAssets.map((asset) => optimizeImage(asset)),
-      );
+      const optimizedAssets = await Promise.all(pickedAssets.map((asset) => optimizeImage(asset)));
 
       const newImages = [...selectedImages, ...optimizedAssets];
       setSelectedImages(newImages);
@@ -170,9 +143,7 @@ export default function ImagesSelector({
           isModalOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           pickImages={pickImages}
-          isCameraPermissionDenied={
-            cameraStatus?.status === ImagePicker.PermissionStatus.DENIED
-          }
+          isCameraPermissionDenied={cameraStatus?.status === ImagePicker.PermissionStatus.DENIED}
           isGalleryPermissionDenied={
             mediaLibraryStatus?.status === ImagePicker.PermissionStatus.DENIED
           }
@@ -189,18 +160,14 @@ export default function ImagesSelector({
       >
         <Carousel
           ref={carouselRef}
-          data={
-            allowAddMore ? [...selectedImages, { uri: "add" }] : selectedImages
-          }
+          data={allowAddMore ? [...selectedImages, { uri: "add" }] : selectedImages}
           width={containerWidth}
           height={240}
           onProgressChange={progress}
           autoPlayInterval={3000}
           enabled={selectedImages.length > 0}
           renderItem={({ item, index }) => (
-            <View
-              style={{ height: "100%", width: "100%", paddingHorizontal: 16 }}
-            >
+            <View style={{ height: "100%", width: "100%", paddingHorizontal: 16 }}>
               {allowAddMore && index === selectedImages.length ? (
                 <Pressable
                   className="h-full w-full items-center justify-center rounded bg-secondary-text/20"
@@ -213,12 +180,8 @@ export default function ImagesSelector({
                   }}
                   onPressOut={(event) => {
                     if (!addPressStartRef.current) return;
-                    const deltaX = Math.abs(
-                      event.nativeEvent.pageX - addPressStartRef.current.x,
-                    );
-                    const deltaY = Math.abs(
-                      event.nativeEvent.pageY - addPressStartRef.current.y,
-                    );
+                    const deltaX = Math.abs(event.nativeEvent.pageX - addPressStartRef.current.x);
+                    const deltaY = Math.abs(event.nativeEvent.pageY - addPressStartRef.current.y);
                     isDraggingAddRef.current =
                       deltaX > DRAG_THRESHOLD_PX || deltaY > DRAG_THRESHOLD_PX;
                   }}
@@ -235,9 +198,7 @@ export default function ImagesSelector({
                   }}
                 >
                   <CameraIcon className="text-main-text" size={56} />
-                  <Text className="mt-2 text-main-text">
-                    Presiona para agregar imágenes
-                  </Text>
+                  <Text className="mt-2 text-main-text">Presiona para agregar imágenes</Text>
                   <Text className="mt-1 text-xs text-secondary-text">
                     Formatos: JPG, PNG, WEBP o AVIF
                   </Text>
@@ -246,12 +207,7 @@ export default function ImagesSelector({
                 <>
                   <Image
                     source={{
-                      uri:
-                        "uri" in item
-                          ? item.uri
-                          : "url" in item
-                            ? getUrl(item.url)
-                            : "",
+                      uri: "uri" in item ? item.uri : "url" in item ? getUrl(item.url) : "",
                     }}
                     className="rounded"
                     style={{ width: "100%", height: "100%" }}
@@ -276,11 +232,7 @@ export default function ImagesSelector({
         />
         {selectedImages.length > 0 && (
           <Pagination.Basic
-            data={
-              allowAddMore
-                ? [...selectedImages, { uri: "add" }]
-                : selectedImages
-            }
+            data={allowAddMore ? [...selectedImages, { uri: "add" }] : selectedImages}
             progress={progress}
             containerStyle={{ justifyContent: "center", gap: 8 }}
             dotStyle={{
@@ -296,9 +248,7 @@ export default function ImagesSelector({
             onPress={onPressPagination}
           />
         )}
-        {uploadError && (
-          <Error textClassName="text-sm text-alert">{uploadError}</Error>
-        )}
+        {uploadError && <Error textClassName="text-sm text-alert">{uploadError}</Error>}
       </View>
     </>
   );

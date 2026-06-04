@@ -1,11 +1,14 @@
+# --- Aplicación Principal (Expo Web) ---
 loop.reditinere.com {
     reverse_proxy web:3000
 }
 
+# --- API (Express + TS) ---
 api.loop.reditinere.com {
     reverse_proxy api:3000
 }
 
+# --- Panel de Administración (React + Vite + Nginx) ---
 admin.loop.reditinere.com {
-    reverse_proxy admin:3000
+    reverse_proxy admin:3002
 }

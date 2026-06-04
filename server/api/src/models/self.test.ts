@@ -10,11 +10,7 @@ import { ERROR_MESSAGES } from "../config";
 import { InternalServerError } from "../services/errors";
 import { dbConnection } from "../services/postgresClient";
 import { validatePrivateUser } from "../services/validations";
-import {
-  databaseQueryMock,
-  MOCK_RANDOM_MEDIA,
-  MOCK_USER,
-} from "../tests/utils";
+import { databaseQueryMock, MOCK_RANDOM_MEDIA, MOCK_USER } from "../tests/utils";
 import { SelfModel } from "./self";
 
 console.log(jest.isMockFunction(dbConnection.connect));
@@ -58,36 +54,30 @@ describe("SelfModel", () => {
       { field: "firstName", value: "ValidFirstName" },
       { field: "lastName", value: "ValidLastName" },
       { field: "profileMediaId", value: MOCK_RANDOM_MEDIA.id },
-    ])(
-      "Should update user data if $field is valid",
-      async ({ field, value }) => {
-        const result = await SelfModel.updateSelf({
-          ...MOCK_USER,
-          userId: MOCK_USER.id,
-          [field]: value,
-        });
-        expect(result.user[field as keyof typeof result.user]).toBe(value);
-      },
-    );
+    ])("Should update user data if $field is valid", async ({ field, value }) => {
+      const result = await SelfModel.updateSelf({
+        ...MOCK_USER,
+        userId: MOCK_USER.id,
+        [field]: value,
+      });
+      expect(result.user[field as keyof typeof result.user]).toBe(value);
+    });
     it.skip.each([
       { field: "email", value: "invalid-email" },
       { field: "phone", value: "inv" },
       { field: "firstName", value: "i" },
       { field: "lastName", value: "i" },
       { field: "profileMediaId", value: "inv" },
-    ])(
-      "Should not update user data if $field is invalid",
-      async ({ field, value }) => {
-        const result = await SelfModel.updateSelf({
-          ...MOCK_USER,
-          userId: MOCK_USER.id,
-          [field]: value,
-        });
-        expect(result.user[field as keyof typeof result.user]).toBe(
-          MOCK_USER[field as keyof typeof MOCK_USER],
-        );
-      },
-    );
+    ])("Should not update user data if $field is invalid", async ({ field, value }) => {
+      const result = await SelfModel.updateSelf({
+        ...MOCK_USER,
+        userId: MOCK_USER.id,
+        [field]: value,
+      });
+      expect(result.user[field as keyof typeof result.user]).toBe(
+        MOCK_USER[field as keyof typeof MOCK_USER],
+      );
+    });
     it.skip("Should update if many data is invalid", async () => {
       const result = await SelfModel.updateSelf({
         ...MOCK_USER,
@@ -109,9 +99,9 @@ describe("SelfModel", () => {
     });
     it("Should handle database error", async () => {
       dbConnection.connect = jest.fn().mockRejectedValue(new Error("DB Error"));
-      await expect(
-        SelfModel.updateSelf({ userId: MOCK_USER.id }),
-      ).rejects.toThrow(new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR));
+      await expect(SelfModel.updateSelf({ userId: MOCK_USER.id })).rejects.toThrow(
+        new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR),
+      );
     });
   });
 });

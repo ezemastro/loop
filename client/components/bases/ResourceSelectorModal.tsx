@@ -129,9 +129,7 @@ export default function ResourceSelectorModal<T>({
             )}
             ListEmptyComponent={() => (
               <View className="justify-center items-center mt-10">
-                {isError && (
-                  <Error>Error al cargar {title.toLowerCase()}</Error>
-                )}
+                {isError && <Error>Error al cargar {title.toLowerCase()}</Error>}
                 {isLoading && <Loader />}
                 {filteredItems.length === 0 && !isLoading && !isError && (
                   <TextInfo>No se encontraron resultados</TextInfo>

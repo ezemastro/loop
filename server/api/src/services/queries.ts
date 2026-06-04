@@ -7,10 +7,7 @@ const q = <T>(key: string, text: string): NamedQuery<T> => ({
 });
 
 export const queries = {
-  deleteUserSchools: q<void>(
-    "user_schools.delete",
-    `DELETE FROM user_schools WHERE user_id = $1`,
-  ),
+  deleteUserSchools: q<void>("user_schools.delete", `DELETE FROM user_schools WHERE user_id = $1`),
 
   insertUserSchools: (schoolCount: number) =>
     q<void>(
@@ -46,25 +43,16 @@ export const queries = {
     `UPDATE users SET google_id = $1 WHERE id = $2`,
   ),
 
-  userByGoogleId: q<DB_Users>(
-    "user.byGoogleId",
-    `SELECT * FROM users WHERE google_id = $1`,
-  ),
+  userByGoogleId: q<DB_Users>("user.byGoogleId", `SELECT * FROM users WHERE google_id = $1`),
 
   updateUserPassword: q<void>(
     "user.updatePassword",
     `UPDATE users SET password = $1 WHERE id = $2`,
   ),
 
-  schoolById: q<DB_Schools>(
-    "school.byId",
-    `SELECT * FROM schools WHERE id = $1`,
-  ),
+  schoolById: q<DB_Schools>("school.byId", `SELECT * FROM schools WHERE id = $1`),
 
-  userByEmail: q<DB_Users>(
-    "user.byEmail",
-    `SELECT * FROM users WHERE email = $1`,
-  ),
+  userByEmail: q<DB_Users>("user.byEmail", `SELECT * FROM users WHERE email = $1`),
 
   userById: q<DB_Users>("user.byId", `SELECT * FROM users WHERE id = $1`),
 
@@ -108,10 +96,7 @@ export const queries = {
     LIMIT $2 OFFSET $3`,
   ),
 
-  listingById: q<DB_Listings>(
-    "listings.byId",
-    `SELECT * FROM listings WHERE id = $1`,
-  ),
+  listingById: q<DB_Listings>("listings.byId", `SELECT * FROM listings WHERE id = $1`),
 
   deleteListingById: q<DB_Listings>(
     "listings.deleteById",
@@ -123,10 +108,7 @@ export const queries = {
     `SELECT * FROM listing_media WHERE listing_id = $1`,
   ),
 
-  categoryById: q<DB_Categories>(
-    "categories.byId",
-    `SELECT * FROM categories WHERE id = $1`,
-  ),
+  categoryById: q<DB_Categories>("categories.byId", `SELECT * FROM categories WHERE id = $1`),
 
   categoriesByParentId: q<DB_Categories>(
     "categories.byParentId",
@@ -183,10 +165,7 @@ export const queries = {
     ) sub`,
   ),
 
-  messageById: q<DB_Messages>(
-    "messages.byId",
-    `SELECT * FROM messages WHERE id = $1`,
-  ),
+  messageById: q<DB_Messages>("messages.byId", `SELECT * FROM messages WHERE id = $1`),
 
   searchUsers: ({ sort, order }: { sort: string; order: string }) =>
     q<DB_Users & DB_Pagination>(
@@ -280,10 +259,7 @@ export const queries = {
     VALUES ($1, $2);`,
   ),
 
-  getListingById: q<DB_Listings>(
-    "listing.getById",
-    `SELECT * FROM listings WHERE id = $1::UUID;`,
-  ),
+  getListingById: q<DB_Listings>("listing.getById", `SELECT * FROM listings WHERE id = $1::UUID;`),
 
   updateListingById: q<void>(
     "listing.updateById",
@@ -514,10 +490,10 @@ export const queries = {
     "admin.createSchool",
     `INSERT INTO schools (name, media_id) VALUES ($1, $2) RETURNING *`,
   ),
-    updateSchool: q<DB_Schools>(
-      "admin.updateSchool",
-      `UPDATE schools SET name = $1, media_id = $2 WHERE id = $3 RETURNING *`,
-    ),
+  updateSchool: q<DB_Schools>(
+    "admin.updateSchool",
+    `UPDATE schools SET name = $1, media_id = $2 WHERE id = $3 RETURNING *`,
+  ),
   createCategory: q<DB_Categories>(
     "admin.createCategory",
     `INSERT INTO categories (name, description, parent_id, icon, min_price_credits, max_price_credits, stat_kg_waste, stat_kg_co2, stat_l_h2o)
@@ -528,10 +504,7 @@ export const queries = {
     `UPDATE categories SET name = $1, description = $2, parent_id = $3, icon = $4, min_price_credits = $5, max_price_credits = $6, stat_kg_waste = $7, stat_kg_co2 = $8, stat_l_h2o = $9
     WHERE id = $10 RETURNING *`,
   ),
-  getGlobalStats: q<DB_GlobalStats>(
-    "admin.getGlobalStats",
-    `SELECT * FROM global_stats`,
-  ),
+  getGlobalStats: q<DB_GlobalStats>("admin.getGlobalStats", `SELECT * FROM global_stats`),
   getSchoolStats: q<DB_Schools>(
     "admin.getSchoolStats",
     `SELECT id, name, stat_kg_waste, stat_kg_co2, stat_l_h2o FROM schools ORDER BY name ASC`,
@@ -550,10 +523,7 @@ export const queries = {
     "userWishes.byUserId",
     `SELECT * FROM users_wishes WHERE user_id = $1`,
   ),
-  userWishById: q<DB_UsersWishes>(
-    "userWishes.byId",
-    `SELECT * FROM users_wishes WHERE id = $1`,
-  ),
+  userWishById: q<DB_UsersWishes>("userWishes.byId", `SELECT * FROM users_wishes WHERE id = $1`),
   createUserWish: q<DB_UsersWishes>(
     "userWishes.create",
     `INSERT INTO users_wishes (user_id, category_id, comment) VALUES ($1, $2, $3) RETURNING *`,

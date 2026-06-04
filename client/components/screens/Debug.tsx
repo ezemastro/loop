@@ -25,10 +25,7 @@ export default function DebugPage() {
       });
   }, []);
   return (
-    <View
-      className="flex-1"
-      style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
-    >
+    <View className="flex-1" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
       <MainView className="p-4 gap-4">
         <View className="flex-row justify-between items-center">
           <BackButton />

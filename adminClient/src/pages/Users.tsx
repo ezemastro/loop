@@ -13,10 +13,8 @@ export default function Users() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [selectedUserForCredits, setSelectedUserForCredits] =
-    useState<PrivateUser | null>(null);
-  const [selectedUserForPassword, setSelectedUserForPassword] =
-    useState<PrivateUser | null>(null);
+  const [selectedUserForCredits, setSelectedUserForCredits] = useState<PrivateUser | null>(null);
+  const [selectedUserForPassword, setSelectedUserForPassword] = useState<PrivateUser | null>(null);
 
   const loadUsers = useCallback(async () => {
     try {
@@ -77,11 +75,7 @@ export default function Users() {
           </button>
         </form>
 
-        {error && (
-          <div className="bg-red-100 text-red-700 p-4 rounded mb-4">
-            {error}
-          </div>
-        )}
+        {error && <div className="bg-red-100 text-red-700 p-4 rounded mb-4">{error}</div>}
 
         <UsersTable
           users={users}

@@ -38,13 +38,9 @@ export const useOptimizedImagePicker = () => {
   };
 
   const isAllowedMimeType = (mimeType: string) =>
-    ALLOWED_IMAGE_MIME_TYPES.includes(
-      mimeType as (typeof ALLOWED_IMAGE_MIME_TYPES)[number],
-    );
+    ALLOWED_IMAGE_MIME_TYPES.includes(mimeType as (typeof ALLOWED_IMAGE_MIME_TYPES)[number]);
 
-  const getImageSize = (
-    uri: string,
-  ): Promise<{ width: number; height: number }> =>
+  const getImageSize = (uri: string): Promise<{ width: number; height: number }> =>
     new Promise((resolve) => {
       Image.getSize(
         uri,
@@ -91,9 +87,7 @@ export const useOptimizedImagePicker = () => {
     return { assets, invalidCount };
   };
 
-  const optimizeImage = async (
-    asset: PickedImageAsset,
-  ): Promise<OptimizedImage> => {
+  const optimizeImage = async (asset: PickedImageAsset): Promise<OptimizedImage> => {
     try {
       const context = ImageManipulator.manipulate(asset.uri);
       if (asset.width > 0 && asset.height > 0) {

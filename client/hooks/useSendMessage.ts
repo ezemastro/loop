@@ -12,10 +12,7 @@ const fetchSendMessage = async ({
   userId: PostMessageRequest["params"]["userId"];
 }) => {
   try {
-    const response = await api.post<PostMessageResponse>(
-      `/messages/${userId}`,
-      params,
-    );
+    const response = await api.post<PostMessageResponse>(`/messages/${userId}`, params);
 
     if (!response.data.success) {
       throw new Error(response.data.error || "Error desconocido");
@@ -33,11 +30,7 @@ const fetchSendMessage = async ({
   }
 };
 
-export const useSendMessage = ({
-  userId,
-}: {
-  userId: PostMessageRequest["params"]["userId"];
-}) => {
+export const useSendMessage = ({ userId }: { userId: PostMessageRequest["params"]["userId"] }) => {
   return useMutation({
     mutationFn: (params: Params) => fetchSendMessage({ params, userId }),
   });
