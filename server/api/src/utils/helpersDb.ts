@@ -35,8 +35,10 @@ const NOTIFICATION_RECOVERABLE_ERRORS = new Set<string>([
 ]);
 
 const isRecoverableNotificationError = (error: unknown): boolean => {
-  if (!(error instanceof InternalServerError)) return false;
-  return NOTIFICATION_RECOVERABLE_ERRORS.has(error.message);
+  if (error instanceof InternalServerError || error instanceof NotFoundError) {
+    return NOTIFICATION_RECOVERABLE_ERRORS.has(error.message);
+  }
+  return false;
 };
 
 // ── Media ──
