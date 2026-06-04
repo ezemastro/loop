@@ -43,6 +43,7 @@ export const VALID_EMAIL_DOMAINS = [
   "colegiodelfaro.edu.ar",
   "southcreekschool.com.ar",
   "northschools.uy",
+  "theglobalschool.com.ar",
 ];
 
 export const PRODUCT_STATUSES = {
