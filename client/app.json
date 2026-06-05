@@ -34,7 +34,17 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/icon.png"
+      "favicon": "./assets/icon.png",
+      "name": "Loop",
+      "shortName": "Loop",
+      "description": "Marketplace escolar - comprá y vendé entre alumnos",
+      "lang": "es-AR",
+      "themeColor": "#FF5900",
+      "backgroundColor": "#F0F0F0",
+      "display": "standalone",
+      "orientation": "portrait",
+      "startUrl": "/",
+      "scope": "/"
     },
     "plugins": [
       "expo-notifications",

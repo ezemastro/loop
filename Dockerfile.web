@@ -34,5 +34,9 @@ RUN npm install -g serve
 # OJO: Metro exporta a la carpeta 'dist', no a 'web-build'
 COPY --from=build /app/client/dist ./dist
 
+# Inyectar metatags PWA en el HTML estático
+RUN sed -i 's|<head>|<head><link rel="manifest" href="/manifest.json"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Loop"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><meta name="theme-color" content="#FF5900">|' dist/index.html
+RUN sed -i 's|lang="en"|lang="es"|' dist/index.html
+
 EXPOSE 3000
 CMD ["serve", "-s", "dist", "-l", "3000"]
