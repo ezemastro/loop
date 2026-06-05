@@ -202,7 +202,7 @@ export class AuthModel {
 
       // Usuario nuevo — requiere schoolIds
       if (!schoolIds || schoolIds.length === 0) {
-        throw new StepRequired(ERROR_MESSAGES.SCHOOL_IDS_REQUIRED_FOR_GOOGLE_SIGNUP);
+        throw new StepRequired(ERROR_MESSAGES.SCHOOL_IDS_REQUIRED_FOR_GOOGLE_SIGNUP, "SCHOOL_IDS_REQUIRED");
       }
 
       // Crear usuario con transacción

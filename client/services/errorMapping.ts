@@ -9,7 +9,6 @@ const ERROR_CODE_MESSAGES: Record<string, string> = {
   UNAUTHORIZED: "No tienes autorización para realizar esta acción.",
   NOT_FOUND: "El recurso solicitado no fue encontrado.",
   INTERNAL_ERROR: "Ocurrió un error interno. Inténtalo más tarde.",
-  STEP_REQUIRED: "Se requiere un paso adicional.",
   USER_ALREADY_EXISTS: "El correo electrónico ya está registrado.",
   USER_NOT_FOUND: "No encontramos una cuenta con ese correo electrónico.",
   INVALID_CREDENTIALS: "Correo electrónico o contraseña incorrectos.",
