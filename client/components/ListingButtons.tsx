@@ -6,6 +6,8 @@ import { useListingDeleteOffer } from "@/hooks/useListingDeleteOffer";
 import { useSelf } from "@/hooks/useSelf";
 import { useListingMarkReceived } from "@/hooks/useListingMarkReceived";
 import { useRouter } from "expo-router";
+import { useToast } from "@/components/ToastProvider";
+import { getUserFriendlyErrorMessage } from "@/services/errorMapping";
 
 export default function ListingButtons({
   listing,
@@ -17,7 +19,7 @@ export default function ListingButtons({
   const { user } = useAuth();
   const router = useRouter();
   const { refetch: userRefetch } = useSelf();
-  // TODO - Implementar elección de precio de oferta
+  const { showToast } = useToast();
   const { mutateAsync: createOffer } = useListingNewOffer({
     listingId: listing.id,
     price: listing.price,
@@ -35,7 +37,7 @@ export default function ListingButtons({
       userRefetch();
       onMutate();
     } catch (error) {
-      console.error("Error creating offer:", error);
+      showToast(getUserFriendlyErrorMessage(error), "error");
     }
   };
   const handleDeleteOffer = async () => {
@@ -44,7 +46,7 @@ export default function ListingButtons({
       userRefetch();
       onMutate();
     } catch (error) {
-      console.error("Error deleting offer:", error);
+      showToast(getUserFriendlyErrorMessage(error), "error");
     }
   };
   const handleMarkReceived = async () => {
@@ -53,7 +55,7 @@ export default function ListingButtons({
       userRefetch();
       onMutate();
     } catch (error) {
-      console.error("Error marking as received:", error);
+      showToast(getUserFriendlyErrorMessage(error), "error");
     }
   };
   switch (listing.listingStatus) {

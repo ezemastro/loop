@@ -1,6 +1,5 @@
 import { api } from "@/api/loop";
-import { AxiosError } from "axios";
-import { ApiError, parseErrorName } from "../services/errors";
+import { parseApiError } from "../services/errors";
 import { useMutation } from "@tanstack/react-query";
 import { Platform } from "react-native";
 
@@ -38,18 +37,11 @@ const fetchUploadFile = async ({ uri, type }: { uri: string; type: string }) => 
     );
 
     if (!response.data.success) {
-      throw new Error(response.data.error || "Error desconocido");
+      throw { message: response.data.error || "Error desconocido", errorCode: response.data.errorCode };
     }
     return response.data.data;
   } catch (err) {
-    if (err instanceof AxiosError) {
-      const errName = parseErrorName({ status: err.response?.status || 500 });
-      throw {
-        name: errName,
-        message: err.message,
-      } as ApiError;
-    }
-    throw err;
+    throw parseApiError(err);
   }
 };
 

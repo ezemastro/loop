@@ -11,6 +11,8 @@ import { formatNumber } from "@/utils/formatNumber";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserDonate } from "@/hooks/useDonate";
 import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/components/ToastProvider";
+import { getUserFriendlyErrorMessage } from "@/services/errorMapping";
 import Error from "../Error";
 
 export default function DonateModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -19,6 +21,7 @@ export default function DonateModal({ isOpen, onClose }: { isOpen: boolean; onCl
   const [amount, setAmount] = useState<number | null>(null);
   const { user } = useAuth();
   const { mutate: donate } = useUserDonate();
+  const { showToast } = useToast();
 
   const handleDonate = () => {
     if (
@@ -37,6 +40,9 @@ export default function DonateModal({ isOpen, onClose }: { isOpen: boolean; onCl
           setAmount(null);
           onClose();
           queryClient.invalidateQueries({ queryKey: ["self"] });
+        },
+        onError: (error) => {
+          showToast(getUserFriendlyErrorMessage(error), "error");
         },
       },
     );

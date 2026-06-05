@@ -15,6 +15,8 @@ import Loader from "../Loader";
 import { useListingRejectOffer } from "@/hooks/useListingRejectOffer";
 import { useQueryClient } from "@tanstack/react-query";
 import BackButton from "../BackButton";
+import { useToast } from "@/components/ToastProvider";
+import { getUserFriendlyErrorMessage } from "@/services/errorMapping";
 
 interface Section {
   key: string;
@@ -73,6 +75,7 @@ export default function Offer() {
   const { listingId } = useLocalSearchParams();
   const { user } = useAuth();
   const router = useRouter();
+  const { showToast } = useToast();
   const { data: listingData, isLoading: isLoadingListing } = useListing({
     listingId: listingId as string,
   });
@@ -107,11 +110,19 @@ export default function Offer() {
   const selectableListings =
     buyerListings?.filter((listing) => selectedListings.every((l) => l.id !== listing.id)) || [];
   const handleSubmit = () => {
-    acceptOffer(undefined, { onSuccess });
+    acceptOffer(undefined, {
+      onSuccess,
+      onError: (error) => {
+        showToast(getUserFriendlyErrorMessage(error), "error");
+      },
+    });
   };
   const handleReject = () => {
     rejectOffer(undefined, {
       onSuccess,
+      onError: (error) => {
+        showToast(getUserFriendlyErrorMessage(error), "error");
+      },
     });
   };
   const onSuccess = () => {

@@ -6,16 +6,23 @@ import Loader from "../Loader";
 import { useReadNotifications } from "@/hooks/useReadNotifications";
 import { useQueryClient } from "@tanstack/react-query";
 import CustomRefresh from "../CustomRefresh";
+import { useToast } from "@/components/ToastProvider";
+import { getUserFriendlyErrorMessage } from "@/services/errorMapping";
 
 export default function Notifications() {
   const queryClient = useQueryClient();
   const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetching } = useNotifications();
   const { mutateAsync: readAllNotifications, isPending: isReading } = useReadNotifications();
+  const { showToast } = useToast();
   const notifications = data?.pages.flatMap((page) => page.data!.notifications) || [];
 
   const handleMarkAllRead = async () => {
-    await readAllNotifications();
-    queryClient.invalidateQueries({ queryKey: ["unreadNotifications"] });
+    try {
+      await readAllNotifications();
+      queryClient.invalidateQueries({ queryKey: ["unreadNotifications"] });
+    } catch (error) {
+      showToast(getUserFriendlyErrorMessage(error), "error");
+    }
   };
 
   return (

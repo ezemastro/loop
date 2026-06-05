@@ -42,8 +42,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
         try {
           await savePushToken({ notificationToken: token });
         } catch (err) {
-          // TODO - Manejar error al guardar el token
-          console.log("Error saving push token:", err);
+          console.error("Error saving push token:", err);
         }
       })
       .catch((error) => setError(error));

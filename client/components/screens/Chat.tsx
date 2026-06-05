@@ -20,6 +20,8 @@ import { useMessageRead } from "@/hooks/useMessageRead";
 import DroppablePendingWithUser from "../DroppablePendingWithUser";
 import ChatInput from "../ChatInput";
 import { minutesDifference } from "@/utils/minutesDifference";
+import { useToast } from "@/components/ToastProvider";
+import { getUserFriendlyErrorMessage } from "@/services/errorMapping";
 
 export default function Chat() {
   const queryClient = useQueryClient();
@@ -33,6 +35,7 @@ export default function Chat() {
     });
   const { mutate: sendMessage } = useSendMessage({ userId: userId });
   const { mutate: markMessagesAsRead } = useMessageRead({ userId: userId });
+  const { showToast } = useToast();
 
   const user = userData?.user;
   const messages = data?.pages.flatMap((page) => page!.data!.messages) ?? [];
@@ -78,8 +81,9 @@ export default function Chat() {
           });
           queryClient.invalidateQueries({ queryKey: ["chats"] });
         },
-        onError: () => {
+        onError: (error) => {
           queryClient.invalidateQueries({ queryKey: ["messages", userId] });
+          showToast(getUserFriendlyErrorMessage(error), "error");
         },
       },
     );
@@ -143,19 +147,27 @@ export default function Chat() {
           )}
           ListFooterComponent={
             messages.length && !hasNextPage ? (
-              <Text className="text-secondary-text text-center p-4">No hay más mensajes</Text>
+              <View style={{ transform: [{ scaleY: -1 }] }}>
+                <Text className="text-secondary-text text-center p-4">No hay más mensajes</Text>
+              </View>
             ) : null
           }
           ListHeaderComponent={
             !messages.length ? (
               isError ? (
-                <Error>Ocurrió un error</Error>
+                <View style={{ transform: [{ scaleY: -1 }] }}>
+                  <Error>Ocurrió un error</Error>
+                </View>
               ) : isLoading ? (
-                <Loader />
+                <View style={{ transform: [{ scaleY: -1 }] }}>
+                  <Loader />
+                </View>
               ) : (
-                <Text className="text-secondary-text text-center p-4">
-                  No hay mensajes aún, envía el primer mensaje
-                </Text>
+                <View style={{ transform: [{ scaleY: -1 }] }}>
+                  <Text className="text-secondary-text text-center p-4">
+                    No hay mensajes aún, envía el primer mensaje
+                  </Text>
+                </View>
               )
             ) : null
           }

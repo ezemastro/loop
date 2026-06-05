@@ -10,6 +10,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import Error from "./Error";
 import { IMAGE_FORMAT_ERROR_MESSAGE } from "@/config";
 import { useOptimizedImagePicker } from "@/hooks/useOptimizedImagePicker";
+import { useToast } from "@/components/ToastProvider";
+import { getUserFriendlyErrorMessage } from "@/services/errorMapping";
 
 export default function ProfileImage({
   user,
@@ -25,6 +27,7 @@ export default function ProfileImage({
   const [uploadError, setUploadError] = useState<string | null>(null);
   const { mutate: modifyUser } = useModifySelf();
   const { mutate: uploadImages } = useUploadFiles();
+  const { showToast } = useToast();
 
   const [cameraStatus, cameraRequestPermission] = ImagePicker.useCameraPermissions();
   const [mediaLibraryStatus, mediaLibraryRequestPermission] =
@@ -54,8 +57,7 @@ export default function ProfileImage({
         if (mediaLibraryStatus?.status !== ImagePicker.PermissionStatus.GRANTED) {
           const permission = await mediaLibraryRequestPermission();
           if (!permission.granted) {
-            // TODO - mostrar error
-            console.log("Permission to access media library was denied");
+            showToast("Permiso para acceder a la galería denegado", "warning");
             return;
           }
         }
@@ -73,8 +75,7 @@ export default function ProfileImage({
       if (cameraStatus?.status !== ImagePicker.PermissionStatus.GRANTED) {
         const permission = await cameraRequestPermission();
         if (!permission.granted) {
-          // TODO - mostrar error
-          console.log("Permission to access camera was denied");
+          showToast("Permiso para acceder a la cámara denegado", "warning");
           return;
         }
       }
@@ -122,8 +123,14 @@ export default function ProfileImage({
             onSettled: () => {
               queryClient.invalidateQueries({ queryKey: ["self"] });
             },
+            onError: (error) => {
+              showToast(getUserFriendlyErrorMessage(error), "error");
+            },
           },
         );
+      },
+      onError: (error) => {
+        showToast(getUserFriendlyErrorMessage(error), "error");
       },
     });
   };

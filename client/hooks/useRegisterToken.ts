@@ -1,8 +1,7 @@
 import { api } from "@/api/loop";
-import { ApiError, parseErrorName } from "@/services/errors";
+import { parseApiError } from "@/services/errors";
 import { useSessionStore } from "@/stores/session";
 import { useMutation } from "@tanstack/react-query";
-import { AxiosError } from "axios";
 
 const fetchRegisterToken = async (body: PostSelfNotificationTokenRequest["body"]) => {
   try {
@@ -16,24 +15,11 @@ const fetchRegisterToken = async (body: PostSelfNotificationTokenRequest["body"]
     }
 
     if (response.data && !response.data.success) {
-      throw new Error(response.data.error || "Error desconocido");
+      throw { message: response.data.error || "Error desconocido", errorCode: response.data.errorCode };
     }
     return response.data.data;
   } catch (err) {
-    console.log("Error en fetchRegisterToken:", err);
-    if (err instanceof AxiosError) {
-      const errName = parseErrorName({ status: err.response?.status || 500 });
-      const errorMessage =
-        err.response?.data?.error ||
-        err.response?.data?.message ||
-        err.message ||
-        "Error al registrar token de notificación";
-      throw {
-        name: errName,
-        message: errorMessage,
-      } as ApiError;
-    }
-    throw err;
+    throw parseApiError(err);
   }
 };
 
