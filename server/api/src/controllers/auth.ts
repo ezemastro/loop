@@ -16,7 +16,7 @@ export class AuthController {
     try {
       await validateRegister(req.body);
     } catch {
-      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT, "VALIDATION_ERROR"));
     }
     // Registrar el usuario
     const { password, firstName, lastName, schoolIds, email } = req.body;
@@ -37,7 +37,7 @@ export class AuthController {
     try {
       token = generateToken({ userId: user.id });
     } catch {
-      return next(new InternalServerError(ERROR_MESSAGES.TOKEN_GENERATION_FAILED));
+      return next(new InternalServerError(ERROR_MESSAGES.TOKEN_GENERATION_FAILED, "TOKEN_GENERATION_FAILED"));
     }
     res.cookie(COOKIE_NAMES.TOKEN, token, cookieOptions);
 
@@ -50,7 +50,7 @@ export class AuthController {
     try {
       await validateLogin(req.body);
     } catch {
-      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT, "VALIDATION_ERROR"));
     }
     // Iniciar sesión
     const { email, password } = req.body;
@@ -65,7 +65,7 @@ export class AuthController {
     try {
       token = generateToken({ userId: user.id });
     } catch {
-      return next(new InternalServerError(ERROR_MESSAGES.TOKEN_GENERATION_FAILED));
+      return next(new InternalServerError(ERROR_MESSAGES.TOKEN_GENERATION_FAILED, "TOKEN_GENERATION_FAILED"));
     }
     res.cookie(COOKIE_NAMES.TOKEN, token, cookieOptions);
 
@@ -78,13 +78,13 @@ export class AuthController {
     try {
       await validateUserGoogleLogin(req.body);
     } catch {
-      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT, "VALIDATION_ERROR"));
     }
 
     const { credential, schoolIds } = req.body as PostAuthGoogleLoginRequest["body"];
 
     if (!credential) {
-      return next(new InvalidInputError(ERROR_MESSAGES.GOOGLE_CREDENTIAL_INVALID));
+      return next(new InvalidInputError(ERROR_MESSAGES.GOOGLE_CREDENTIAL_INVALID, "GOOGLE_CREDENTIAL_INVALID"));
     }
 
     let user: PrivateUser;

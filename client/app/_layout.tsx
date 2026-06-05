@@ -7,6 +7,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useSessionStore } from "@/stores/session";
 import { configureGoogleSignIn } from "@/services/googleOauth";
+import { ToastProvider } from "@/components/ToastProvider";
 
 const queryClient = new QueryClient();
 
@@ -22,25 +23,27 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <GestureHandlerRootView>
         <SafeAreaProvider>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Protected guard={!isLoggedIn}>
-              <Stack.Screen name="(auth)"></Stack.Screen>
-            </Stack.Protected>
-            <Stack.Protected guard={isLoggedIn}>
-              <Stack.Protected guard={hasAcceptedTerms}>
-                <Stack.Screen name="(main)"></Stack.Screen>
+          <ToastProvider>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Protected guard={!isLoggedIn}>
+                <Stack.Screen name="(auth)"></Stack.Screen>
               </Stack.Protected>
-              <Stack.Protected guard={!hasAcceptedTerms}>
-                <Stack.Screen
-                  name="terms"
-                  options={{
-                    statusBarStyle: "dark",
-                  }}
-                />
+              <Stack.Protected guard={isLoggedIn}>
+                <Stack.Protected guard={hasAcceptedTerms}>
+                  <Stack.Screen name="(main)"></Stack.Screen>
+                </Stack.Protected>
+                <Stack.Protected guard={!hasAcceptedTerms}>
+                  <Stack.Screen
+                    name="terms"
+                    options={{
+                      statusBarStyle: "dark",
+                    }}
+                  />
+                </Stack.Protected>
               </Stack.Protected>
-            </Stack.Protected>
-            <Stack.Screen name="debug" />
-          </Stack>
+              <Stack.Screen name="debug" />
+            </Stack>
+          </ToastProvider>
         </SafeAreaProvider>
       </GestureHandlerRootView>
     </QueryClientProvider>

@@ -13,29 +13,39 @@ import multer from "multer";
 export const errorMiddleware = (err: Error, _req: Request, res: Response, _next: NextFunction) => {
   if (err instanceof multer.MulterError) {
     if (err.code === "LIMIT_FILE_SIZE") {
-      return res.status(400).json({ success: false, error: ERROR_MESSAGES.FILE_TOO_LARGE });
+      return res.status(400).json({
+        success: false,
+        error: ERROR_MESSAGES.FILE_TOO_LARGE,
+        errorCode: "FILE_TOO_LARGE",
+      });
     }
-    return res.status(400).json({ success: false, error: ERROR_MESSAGES.INVALID_INPUT });
+    return res.status(400).json({
+      success: false,
+      error: ERROR_MESSAGES.INVALID_INPUT,
+      errorCode: "INVALID_INPUT",
+    });
   }
   if (err instanceof InvalidInputError) {
-    return res.status(400).json({ success: false, error: err.message });
+    return res.status(400).json({ success: false, error: err.message, errorCode: err.code });
   }
   if (err instanceof ConflictError) {
-    return res.status(409).json({ success: false, error: err.message });
+    return res.status(409).json({ success: false, error: err.message, errorCode: err.code });
   }
   if (err instanceof NotFoundError) {
-    return res.status(404).json({ success: false, error: err.message });
+    return res.status(404).json({ success: false, error: err.message, errorCode: err.code });
   }
   if (err instanceof UnauthorizedError) {
-    return res.status(401).json({ success: false, error: err.message });
+    return res.status(401).json({ success: false, error: err.message, errorCode: err.code });
   }
   if (err instanceof InternalServerError) {
     console.error("Error en la aplicación:", err);
-    return res.status(500).json({ success: false, error: err.message });
+    return res.status(500).json({ success: false, error: err.message, errorCode: err.code });
   }
   if (err instanceof StepRequired) {
-    return res.status(200).json({ success: false, error: err.message });
+    return res.status(200).json({ success: false, error: err.message, errorCode: err.code });
   }
   console.error("Error no manejado:", err);
-  return res.status(500).json({ success: false, error: "Error interno del servidor" });
+  return res
+    .status(500)
+    .json({ success: false, error: "Error interno del servidor", errorCode: "INTERNAL_ERROR" });
 };

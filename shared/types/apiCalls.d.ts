@@ -5,12 +5,14 @@ interface ApiResponseBase<T> {
 interface ApiResponseError {
   success: false;
   error: string;
+  errorCode?: string;
 }
 // type ApiResponse<T> = ApiResponseBase<T> | ApiResponseError;
 interface ApiResponse<T> {
   success: boolean;
   data?: T;
   error?: string;
+  errorCode?: string;
 }
 interface Pagination {
   totalRecords: number;

@@ -41,7 +41,7 @@ export class AuthModel {
 
         const query = await client.query(queries.userExists, [email]);
         if (query[0]?.user_exists) {
-          throw new ConflictError(ERROR_MESSAGES.USER_ALREADY_EXISTS);
+          throw new ConflictError(ERROR_MESSAGES.USER_ALREADY_EXISTS, "USER_ALREADY_EXISTS");
         }
 
         const emailLower = email.toLowerCase();
@@ -49,7 +49,7 @@ export class AuthModel {
           emailLower.endsWith(`@${domain}`),
         );
         if (!isValidEmail) {
-          throw new InvalidInputError(ERROR_MESSAGES.EMAIL_NOT_AUTHORIZED);
+          throw new InvalidInputError(ERROR_MESSAGES.EMAIL_NOT_AUTHORIZED, "EMAIL_NOT_AUTHORIZED");
         }
 
         const schools = await getSchoolsByIds({ client, schoolIds });
@@ -100,16 +100,16 @@ export class AuthModel {
     return withClient(async (client) => {
       const [userDb] = await client.query(queries.userByEmail, [email]);
       if (!userDb) {
-        throw new UnauthorizedError(ERROR_MESSAGES.USER_NOT_FOUND);
+        throw new UnauthorizedError(ERROR_MESSAGES.USER_NOT_FOUND, "USER_NOT_FOUND");
       }
 
       if (!userDb.password) {
-        throw new UnauthorizedError(ERROR_MESSAGES.INCORRECT_LOGIN_METHOD);
+        throw new UnauthorizedError(ERROR_MESSAGES.INCORRECT_LOGIN_METHOD, "INCORRECT_LOGIN_METHOD");
       }
 
       const isPasswordCorrect = await comparePasswords(password, userDb.password);
       if (!isPasswordCorrect) {
-        throw new UnauthorizedError(ERROR_MESSAGES.INVALID_CREDENTIALS);
+        throw new UnauthorizedError(ERROR_MESSAGES.INVALID_CREDENTIALS, "INVALID_CREDENTIALS");
       }
 
       let profileMedia = null;
@@ -144,7 +144,7 @@ export class AuthModel {
 
     const payload = ticket.getPayload();
     if (!payload) {
-      throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_CREDENTIAL_INVALID);
+      throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_CREDENTIAL_INVALID, "GOOGLE_CREDENTIAL_INVALID");
     }
 
     const googleId = payload.sub;
@@ -155,13 +155,13 @@ export class AuthModel {
     const familyName = payload.family_name;
 
     if (!emailVerified) {
-      throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_EMAIL_NOT_VERIFIED);
+      throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_EMAIL_NOT_VERIFIED, "GOOGLE_EMAIL_NOT_VERIFIED");
     }
 
     const emailLower = email!.toLowerCase();
     const isValidEmail = VALID_EMAIL_DOMAINS.some((domain) => emailLower.endsWith(`@${domain}`));
     if (!isValidEmail) {
-      throw new InvalidInputError(ERROR_MESSAGES.EMAIL_NOT_AUTHORIZED);
+      throw new InvalidInputError(ERROR_MESSAGES.EMAIL_NOT_AUTHORIZED, "EMAIL_NOT_AUTHORIZED");
     }
 
     // Buscar usuario existente primero (sin DB)
@@ -180,7 +180,7 @@ export class AuthModel {
       // Usuario existente — login normal
       if (userDb) {
         if (userDb.google_id !== googleId) {
-          throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_ID_MISMATCH);
+          throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_ID_MISMATCH, "GOOGLE_ID_MISMATCH");
         }
 
         let profileMedia = null;
@@ -216,7 +216,7 @@ export class AuthModel {
           ]);
 
           if (!newUserDb) {
-            throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
+            throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR, "DATABASE_QUERY_ERROR");
           }
 
           await txClient.query(queries.insertUserSchools(schoolIds.length), [

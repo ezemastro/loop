@@ -1,4 +1,4 @@
-import { Text, View, Alert, ActivityIndicator } from "react-native";
+import { Text, View, ActivityIndicator } from "react-native";
 import { MainView } from "../bases/MainView";
 import { useState, useEffect } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -12,6 +12,7 @@ import {
   getStoredGoogleCredential,
   clearStoredGoogleData,
 } from "@/components/buttons/GoogleSignInButton";
+import { useToast } from "@/components/ToastProvider";
 import BackButton from "@/components/BackButton";
 
 export default function SchoolSelection() {
@@ -21,24 +22,23 @@ export default function SchoolSelection() {
   const [credential, setCredential] = useState<string | null>(null);
   const [isLoadingCredential, setIsLoadingCredential] = useState(true);
   const googleLoginMutation = useGoogleLogin();
+  const { showToast } = useToast();
 
-  // Cargar el credential guardado al montar el componente
   useEffect(() => {
     const loadCredential = async () => {
       try {
         const storedCredential = await getStoredGoogleCredential();
         if (!storedCredential) {
-          Alert.alert(
-            "Error",
+          showToast(
             "No se encontró información de autenticación. Por favor, inicia sesión nuevamente.",
+            "error",
           );
           router.replace("/(auth)/login");
           return;
         }
         setCredential(storedCredential);
       } catch (error) {
-        console.error("Error al cargar credential:", error);
-        Alert.alert("Error", "Hubo un problema al cargar la sesión.");
+        showToast("Hubo un problema al cargar la sesión.", "error");
         router.replace("/(auth)/login");
       } finally {
         setIsLoadingCredential(false);
@@ -50,23 +50,19 @@ export default function SchoolSelection() {
 
   const handleCompleteSignIn = async () => {
     if (!credential) {
-      Alert.alert(
-        "Error",
+      showToast(
         "No se encontró información de autenticación. Por favor, inicia sesión nuevamente.",
+        "error",
       );
       router.replace("/(auth)/login");
       return;
     }
 
     if (selectedSchools.length === 0) {
-      Alert.alert(
-        "Selección requerida",
-        "Por favor selecciona al menos una escuela para continuar.",
-      );
+      showToast("Por favor selecciona al menos una escuela para continuar.", "warning");
       return;
     }
 
-    // Extraer los IDs de las escuelas seleccionadas
     const schoolIds = selectedSchools.map((school) => school.id);
 
     googleLoginMutation.mutate(
@@ -76,21 +72,16 @@ export default function SchoolSelection() {
       },
       {
         onError: async (error: any) => {
-          console.error("Error al completar registro:", error);
-          const errorMessage = error?.message || "Error al completar el registro con Google";
-          Alert.alert("Error", errorMessage);
+          const message = error?.message || "Error al completar el registro con Google";
+          showToast(message, "error");
         },
         onSuccess: async () => {
-          // Limpiar datos guardados después del éxito
           await clearStoredGoogleData();
-          console.log("Registro completado exitosamente");
-          // La navegación se manejará automáticamente por el cambio en el estado de sesión
         },
       },
     );
   };
 
-  // Mostrar loading mientras se carga el credential
   if (isLoadingCredential) {
     return (
       <MainView>

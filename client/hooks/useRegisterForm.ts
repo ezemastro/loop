@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useRegister } from "./useRegister";
 import { validateRegisterForm } from "@/services/validations";
 import { z } from "zod";
+import { getUserFriendlyErrorMessage } from "@/services/errorMapping";
 
 interface FormData {
   firstName: string;
@@ -70,6 +71,9 @@ export const useRegisterForm = () => {
       });
     }
   };
+
+  const displayError = isRegisterError ? getUserFriendlyErrorMessage(registerError) : undefined;
+
   return {
     formData,
     setFormData,
@@ -77,6 +81,7 @@ export const useRegisterForm = () => {
     handleSubmit,
     isRegisterError,
     registerError,
+    displayError,
     isLoading,
   };
 };
