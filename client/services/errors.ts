@@ -42,10 +42,16 @@ export const parseApiError = (error: unknown): ApiError => {
     };
   }
 
-  if (error instanceof Error) {
+  if (
+    error &&
+    typeof error === "object" &&
+    "message" in (error as Record<string, unknown>)
+  ) {
+    const err = error as Record<string, unknown>;
     return {
       name: "Error",
-      message: error.message,
+      message: String(err.message),
+      errorCode: typeof err.errorCode === "string" ? err.errorCode : undefined,
     };
   }
 
