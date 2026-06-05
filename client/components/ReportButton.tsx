@@ -4,6 +4,7 @@ import {
   Alert,
   Linking,
   Modal,
+  Platform,
   ScrollView,
   Share,
   Text,
@@ -119,16 +120,24 @@ export default function ReportButton({
 
     const { subject, body } = reportData;
 
-    const mailtoUrl = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const reportUrl =
+      Platform.OS === "web"
+        ? `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+        : `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
-    const canOpen = await Linking.canOpenURL(mailtoUrl);
+    if (Platform.OS === "web") {
+      window.open(reportUrl, "_blank");
+      return;
+    }
+
+    const canOpen = await Linking.canOpenURL(reportUrl);
     if (!canOpen) {
       showManualFallback(to, subject, body);
       return;
     }
 
     try {
-      await Linking.openURL(mailtoUrl);
+      await Linking.openURL(reportUrl);
     } catch {
       showManualFallback(to, subject, body);
     }

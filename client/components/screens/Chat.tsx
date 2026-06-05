@@ -1,6 +1,6 @@
 import { addNewMessageToCache, replaceMessageInCache, useMessages } from "@/hooks/useMessages";
 import { useLocalSearchParams } from "expo-router";
-import { View, Text, Image, FlatList, RefreshControl } from "react-native";
+import { View, Text, Image, FlatList, Platform, RefreshControl } from "react-native";
 import { MainView } from "../bases/MainView";
 import BackButton from "../BackButton";
 import { getProfileImageSource, getUrl } from "@/services/getUrl";
@@ -132,6 +132,7 @@ export default function Chat() {
           data={messages}
           className="flex-1 mt-3 bg-white"
           contentContainerClassName="flex-grow gap-1"
+          contentContainerStyle={Platform.OS === "web" ? { transform: [{ scaleY: -1 }] } : undefined}
           renderItem={({ item, index }) => (
             <>
               {!messages[index - 1] ||
@@ -147,27 +148,19 @@ export default function Chat() {
           )}
           ListFooterComponent={
             messages.length && !hasNextPage ? (
-              <View style={{ transform: [{ scaleY: -1 }] }}>
-                <Text className="text-secondary-text text-center p-4">No hay más mensajes</Text>
-              </View>
+              <Text className="text-secondary-text text-center p-4">No hay más mensajes</Text>
             ) : null
           }
           ListHeaderComponent={
             !messages.length ? (
               isError ? (
-                <View style={{ transform: [{ scaleY: -1 }] }}>
-                  <Error>Ocurrió un error</Error>
-                </View>
+                <Error>Ocurrió un error</Error>
               ) : isLoading ? (
-                <View style={{ transform: [{ scaleY: -1 }] }}>
-                  <Loader />
-                </View>
+                <Loader />
               ) : (
-                <View style={{ transform: [{ scaleY: -1 }] }}>
-                  <Text className="text-secondary-text text-center p-4">
-                    No hay mensajes aún, envía el primer mensaje
-                  </Text>
-                </View>
+                <Text className="text-secondary-text text-center p-4">
+                  No hay mensajes aún, envía el primer mensaje
+                </Text>
               )
             ) : null
           }
