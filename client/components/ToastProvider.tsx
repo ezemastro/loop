@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { View } from "react-native";
+import { View, Platform } from "react-native";
 import { onGlobalApiError } from "@/api/loop";
 import { getUserFriendlyErrorMessage } from "@/services/errorMapping";
 import Toast, { type ToastData, type ToastType } from "./Toast";
@@ -36,7 +36,19 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <View style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 9999 }}>
+      <View
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 99999,
+          ...Platform.select({
+            android: { elevation: 99999 },
+          }),
+        }}
+        pointerEvents="box-none"
+      >
         {toasts.map((toast) => (
           <Toast key={toast.id} toast={toast} onDismiss={dismissToast} />
         ))}

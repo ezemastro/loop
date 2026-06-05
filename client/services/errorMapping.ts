@@ -24,6 +24,16 @@ const ERROR_CODE_MESSAGES: Record<string, string> = {
   UNEXPECTED_ERROR: "Ocurrió un error inesperado. Inténtalo más tarde.",
 };
 
+const GENERIC_AXIOS_MESSAGES = [
+  "request failed with status code",
+  "network error",
+];
+
+const isGenericAxiosMessage = (msg: string): boolean => {
+  const lower = msg.toLowerCase();
+  return GENERIC_AXIOS_MESSAGES.some((pattern) => lower.includes(pattern));
+};
+
 export const getUserFriendlyErrorMessage = (error: unknown): string => {
   if (!error) return "Ocurrió un error inesperado.";
 
@@ -33,14 +43,19 @@ export const getUserFriendlyErrorMessage = (error: unknown): string => {
 
   if (typeof error === "object" && error !== null) {
     const err = error as Record<string, unknown>;
+    const message = typeof err.message === "string" ? err.message : undefined;
+
+    if (message && !isGenericAxiosMessage(message)) {
+      return message;
+    }
 
     if (err.errorCode && typeof err.errorCode === "string") {
       const mapped = ERROR_CODE_MESSAGES[err.errorCode];
       if (mapped) return mapped;
     }
 
-    if (err.message && typeof err.message === "string") {
-      return err.message;
+    if (message) {
+      return message;
     }
 
     if (err.error && typeof err.error === "string") {

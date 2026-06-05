@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Animated, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Animated, Text, TouchableOpacity, StyleSheet, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export type ToastType = "error" | "success" | "warning" | "info";
@@ -100,8 +100,11 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    zIndex: 9999,
+    zIndex: 99999,
     paddingHorizontal: 16,
+    ...Platform.select({
+      android: { elevation: 99999 },
+    }),
   },
   container: {
     borderRadius: 12,
@@ -109,9 +112,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 99999,
   },
   message: {
     color: "#FFFFFF",

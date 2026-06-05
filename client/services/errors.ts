@@ -25,6 +25,21 @@ export interface ApiError {
   errorCode?: string;
 }
 
+const extractServerMessage = (data: unknown): string | undefined => {
+  if (!data || typeof data !== "object") return undefined;
+  const d = data as Record<string, unknown>;
+  if (typeof d.error === "string" && d.error) return d.error;
+  if (typeof d.message === "string" && d.message) return d.message;
+  return undefined;
+};
+
+const extractServerErrorCode = (data: unknown): string | undefined => {
+  if (!data || typeof data !== "object") return undefined;
+  const d = data as Record<string, unknown>;
+  if (typeof d.errorCode === "string" && d.errorCode) return d.errorCode;
+  return undefined;
+};
+
 export const parseApiError = (error: unknown): ApiError => {
   if (
     error &&
@@ -34,11 +49,12 @@ export const parseApiError = (error: unknown): ApiError => {
   ) {
     const err = error as any;
     const status = err.response?.status || 500;
+    const serverMessage = extractServerMessage(err.response?.data);
 
     return {
       name: parseErrorName({ status }),
-      message: err.response?.data?.error || err.message || "Error desconocido",
-      errorCode: err.response?.data?.errorCode || undefined,
+      message: serverMessage || err.message || "Error desconocido",
+      errorCode: extractServerErrorCode(err.response?.data) || undefined,
     };
   }
 
