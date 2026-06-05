@@ -437,6 +437,10 @@ export const queries = {
     "admin.addValidEmail",
     `INSERT INTO admin_valid_emails (email) VALUES (lower($1))`,
   ),
+  ensureAuthorizedAdminEmail: q<void>(
+    "admin.ensureAuthorized",
+    `INSERT INTO admin_valid_emails (email) VALUES (lower($1)) ON CONFLICT (email) DO NOTHING`,
+  ),
   isValidEmailForAdminRegistration: q<{ exists: boolean }>(
     "admin.isValidEmail",
     `SELECT EXISTS(SELECT 1 FROM admin_valid_emails WHERE lower(email) = lower($1)) AS exists`,

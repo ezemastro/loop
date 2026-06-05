@@ -1,5 +1,5 @@
 import express from "express";
-import { FRONTEND_URL, NODE_ENV, PORT, ADMIN_FRONTEND_URL } from "./config.js";
+import { FRONTEND_URL, NODE_ENV, PORT, ADMIN_FRONTEND_URL, AUTHORIZED_ADMIN_EMAIL } from "./config.js";
 import cookieParser from "cookie-parser";
 import { tokenMiddleware } from "./middlewares/parseToken.js";
 import { authRouter } from "./routes/auth.js";
@@ -16,6 +16,8 @@ import { safeNumber } from "./utils/safeNumber.js";
 import cors from "cors";
 import { trimBody } from "./middlewares/trimBody.js";
 import { statsRouter } from "./routes/stats.js";
+import { withClient } from "./services/postgresClient.js";
+import { queries } from "./services/queries.js";
 
 import { SelfController } from "./controllers/self.js";
 
@@ -60,6 +62,18 @@ app.use("/admin", trimBody, adminRouter);
 app.use("/stats", trimBody, statsRouter);
 
 app.use(errorMiddleware);
+
+// Asegurar que el email de admin autorizado por env esté en admin_valid_emails
+if (AUTHORIZED_ADMIN_EMAIL) {
+  withClient(async (client) => {
+    try {
+      await client.query(queries.ensureAuthorizedAdminEmail, [AUTHORIZED_ADMIN_EMAIL]);
+      console.log(`Admin autorizado por env asegurado: ${AUTHORIZED_ADMIN_EMAIL}`);
+    } catch (err) {
+      console.error("No se pudo asegurar el admin autorizado por env:", err);
+    }
+  });
+}
 
 // Iniciar el servidor
 export const server = app.listen(safeNumber(PORT) || 3000, "0.0.0.0", () => {

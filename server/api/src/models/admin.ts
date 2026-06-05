@@ -1,5 +1,5 @@
 import { withClient } from "../services/postgresClient.js";
-import { ERROR_MESSAGES, ADMIN_GOOGLE_CLIENT_ID, PAGE_SIZE } from "../config";
+import { ERROR_MESSAGES, ADMIN_GOOGLE_CLIENT_ID, PAGE_SIZE, AUTHORIZED_ADMIN_EMAIL } from "../config";
 import { ConflictError, InternalServerError, InvalidInputError } from "../services/errors";
 import { queries } from "../services/queries";
 import {
@@ -19,6 +19,10 @@ import { safeNumber } from "../utils/safeNumber";
 import { adminGoogleClient } from "../services/googleOauth";
 
 export class AdminModel {
+  private static isEmailAuthorizedByEnv(email: string): boolean {
+    return !!AUTHORIZED_ADMIN_EMAIL && email.toLowerCase() === AUTHORIZED_ADMIN_EMAIL.toLowerCase();
+  }
+
   static async login({ email, password }: { email: string; password: string }) {
     return withClient(async (client) => {
       const adminDb = await client.query(queries.adminByEmail, [email]);
@@ -48,9 +52,12 @@ export class AdminModel {
       if (existingAdmin[0]) {
         throw new ConflictError(ERROR_MESSAGES.USER_ALREADY_EXISTS);
       }
-      const isValidEmailDb = await client.query(queries.isValidEmailForAdminRegistration, [email]);
-      if (!isValidEmailDb[0]?.exists) {
-        throw new InvalidInputError(ERROR_MESSAGES.EMAIL_NOT_AUTHORIZED);
+      const isEnvAuthorized = AdminModel.isEmailAuthorizedByEnv(email);
+      if (!isEnvAuthorized) {
+        const isValidEmailDb = await client.query(queries.isValidEmailForAdminRegistration, [email]);
+        if (!isValidEmailDb[0]?.exists) {
+          throw new InvalidInputError(ERROR_MESSAGES.EMAIL_NOT_AUTHORIZED);
+        }
       }
       const hashedPassword = await hashPassword(password);
       let newAdmin;
@@ -110,11 +117,14 @@ export class AdminModel {
       }
 
       if (!adminDb) {
-        const isValidEmailDb = await client.query(queries.isValidEmailForAdminRegistration, [
-          email,
-        ]);
-        if (!isValidEmailDb[0]?.exists) {
-          throw new InvalidInputError(ERROR_MESSAGES.EMAIL_NOT_AUTHORIZED);
+        const isEnvAuthorized = AdminModel.isEmailAuthorizedByEnv(email!);
+        if (!isEnvAuthorized) {
+          const isValidEmailDb = await client.query(queries.isValidEmailForAdminRegistration, [
+            email,
+          ]);
+          if (!isValidEmailDb[0]?.exists) {
+            throw new InvalidInputError(ERROR_MESSAGES.EMAIL_NOT_AUTHORIZED);
+          }
         }
 
         const newAdminDb = await client.query(queries.createAdmin, [

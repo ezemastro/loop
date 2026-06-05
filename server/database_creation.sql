@@ -143,6 +143,8 @@ CREATE TABLE "admin_valid_emails"(
     "id" UUID default gen_random_uuid() primary key,
     "email" TEXT NOT NULL unique
 );
+-- Admin autorizado por defecto para arrancar el chain of trust
+INSERT INTO "admin_valid_emails" ("email") VALUES ('mastropietroezequiel@gmail.com') ON CONFLICT (email) DO NOTHING;
 CREATE TABLE "global_stats" (
     "id" UUID default gen_random_uuid() primary key,
     "stat_name" TEXT NOT NULL,

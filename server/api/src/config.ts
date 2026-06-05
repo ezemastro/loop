@@ -30,6 +30,7 @@ export const {
   IOS_GOOGLE_CLIENT_ID,
   WEB_GOOGLE_CLIENT_ID,
   ADMIN_FRONTEND_URL,
+  AUTHORIZED_ADMIN_EMAIL,
 } = process.env;
 export const INITIAL_CREDITS = 0;
 
