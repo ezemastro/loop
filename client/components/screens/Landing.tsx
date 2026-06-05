@@ -2,12 +2,20 @@ import ButtonText from "@/components/bases/ButtonText";
 import CustomButton from "@/components/bases/CustomButton";
 import { MainView } from "@/components/bases/MainView";
 import { GoogleSignInButton } from "@/components/buttons/GoogleSignInButton";
+import AllowedDomainsNotice from "@/components/AllowedDomainsNotice";
 import { GOOGLE_OAUTH_READY } from "@/config";
+import { useToast } from "@/components/ToastProvider";
 import { useRouter } from "expo-router";
 import { View, Text, Image, ScrollView } from "react-native";
 
 export default function Landing() {
   const router = useRouter();
+  const { showToast } = useToast();
+
+  const handleGoogleError = (error: string) => {
+    showToast(error, "error");
+  };
+
   return (
     <MainView>
       <ScrollView className="flex-1">
@@ -31,12 +39,13 @@ export default function Landing() {
             ¡Únete a nuestra comunidad y descubre cómo puedes contribuir a un mundo más sostenible
             mientras encuentras tesoros ocultos en la comunidad!
           </Text>
+          <AllowedDomainsNotice />
           {GOOGLE_OAUTH_READY && (
             <>
               <Text className="text-main-text w-96 mx-auto text-center my-2 pt-2 mt-auto">
                 Accede con un solo clic usando tu cuenta de Google
               </Text>
-              <GoogleSignInButton />
+              <GoogleSignInButton onError={handleGoogleError} />
             </>
           )}
           <Text className="text-main-text w-96 mx-auto text-center my-2 mt-4">

@@ -3,14 +3,15 @@ import { MainView } from "../bases/MainView";
 import CustomButton from "../bases/CustomButton";
 import type { ReactNode } from "react";
 import Error from "../Error";
-import { ERROR_NAMES } from "@/services/errors";
 import { useLoginForm } from "@/hooks/useLoginForm";
 import Loader from "../Loader";
 import ButtonText from "../bases/ButtonText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AvoidingKeyboard from "../AvoidingKeyboard";
 import { GoogleSignInButton } from "@/components/buttons/GoogleSignInButton";
+import AllowedDomainsNotice from "@/components/AllowedDomainsNotice";
 import { GOOGLE_OAUTH_READY, NODE_ENV } from "@/config";
+import { useToast } from "@/components/ToastProvider";
 
 const TextLabel = ({ children }: { children: string }) => (
   <Text className="color-main-text text-xl">{children}</Text>
@@ -35,6 +36,12 @@ export default function Login() {
     loginErrorMessage,
     isLoginLoading,
   } = useLoginForm();
+  const { showToast } = useToast();
+
+  const handleGoogleError = (error: string) => {
+    showToast(error, "error");
+  };
+
   const fields: Field[] = [
     {
       key: "email",
@@ -85,9 +92,10 @@ export default function Login() {
               <Text className="text-3xl p-3 text-center font-bold color-main-text">
                 Iniciar sesión
               </Text>
-              <Text className="color-main-text/80 text-center">
+              <Text className="color-main-text/80 text-center mb-4">
                 Introduce tus datos o inicia sesión con Google
               </Text>
+              <AllowedDomainsNotice />
             </View>
           }
           renderItem={({ item }) => (
@@ -113,7 +121,7 @@ export default function Login() {
               <View className="w-full h-0.5 bg-secondary-text/30 my-6" />
               {GOOGLE_OAUTH_READY || NODE_ENV !== "production" ? (
                 <View>
-                  <GoogleSignInButton />
+                  <GoogleSignInButton onError={handleGoogleError} />
                 </View>
               ) : null}
             </>

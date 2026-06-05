@@ -4,13 +4,14 @@ import SchoolSelector from "../selectors/SchoolSelector";
 import CustomButton from "../bases/CustomButton";
 import type { ReactNode } from "react";
 import Error from "../Error";
-import { ERROR_NAMES } from "@/services/errors";
 import { useRegisterForm } from "@/hooks/useRegisterForm";
 import ButtonText from "../bases/ButtonText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AvoidingKeyboard from "../AvoidingKeyboard";
 import { GoogleSignInButton } from "@/components/buttons/GoogleSignInButton";
+import AllowedDomainsNotice from "@/components/AllowedDomainsNotice";
 import { GOOGLE_OAUTH_READY, NODE_ENV } from "@/config";
+import { useToast } from "@/components/ToastProvider";
 
 const TextLabel = ({ children }: { children: string }) => (
   <Text className="color-main-text text-xl">{children}</Text>
@@ -25,8 +26,14 @@ type Field = {
 
 export default function Register() {
   const insets = useSafeAreaInsets();
-  const { formData, setFormData, errors, handleSubmit, isRegisterError, registerError } =
+  const { formData, setFormData, errors, handleSubmit, isRegisterError, displayError } =
     useRegisterForm();
+  const { showToast } = useToast();
+
+  const handleGoogleError = (error: string) => {
+    showToast(error, "error");
+  };
+
   const fields: Field[] = [
     {
       key: "firstName",
@@ -128,7 +135,12 @@ export default function Register() {
             paddingTop: insets.top + 25,
           }}
           ListHeaderComponent={
-            <Text className="text-3xl py-3 text-center font-bold color-main-text">Registrarse</Text>
+            <View>
+              <Text className="text-3xl py-3 text-center font-bold color-main-text">
+                Registrarse
+              </Text>
+              <AllowedDomainsNotice />
+            </View>
           }
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
@@ -142,11 +154,10 @@ export default function Register() {
           )}
           ListFooterComponent={
             <>
-              {registerError?.name === ERROR_NAMES.CONFLICT && (
-                <Error>El correo electrónico ya está en uso</Error>
-              )}
-              {isRegisterError && registerError?.name !== ERROR_NAMES.CONFLICT && (
-                <Error>Ocurrió un error al registrarse</Error>
+              {isRegisterError && displayError && (
+                <Error textClassName="text-alert" className="my-2">
+                  {displayError}
+                </Error>
               )}
               <CustomButton onPress={handleSubmit} className={isRegisterError ? "mt-2" : "mt-6"}>
                 <ButtonText>Registrarse</ButtonText>
@@ -154,7 +165,7 @@ export default function Register() {
               <View className="w-full h-0.5 bg-secondary-text/30 my-6" />
               {GOOGLE_OAUTH_READY || NODE_ENV !== "production" ? (
                 <View>
-                  <GoogleSignInButton />
+                  <GoogleSignInButton onError={handleGoogleError} />
                 </View>
               ) : null}
             </>

@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ActivityIndicator,
   View,
-  Alert,
   Platform,
 } from "react-native";
 import { GoogleSignin, statusCodes } from "@react-native-google-signin/google-signin";
@@ -16,6 +15,7 @@ import { useRouter } from "expo-router";
 import { useGoogleLogin } from "@/hooks/useGoogleLogin";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { VALID_EMAIL_DOMAINS, WEB_GOOGLE_CLIENT_ID } from "@/config";
+import { getUserFriendlyErrorMessage, isNetworkError } from "@/services/errorMapping";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -27,25 +27,6 @@ interface GoogleSignInButtonProps {
 }
 
 const ALLOWED_DOMAINS_TEXT = VALID_EMAIL_DOMAINS.map((domain) => `@${domain}`).join(", ");
-
-const formatGoogleLoginError = (error: any): string => {
-  const fallbackError = "Error al iniciar sesión con Google";
-  const rawError = String(error?.message || error || "").trim();
-  const normalizedError = rawError.toLowerCase();
-
-  if (!rawError) {
-    return fallbackError;
-  }
-
-  if (
-    normalizedError.includes("correo electrónico no está autorizado") ||
-    normalizedError.includes("email no está autorizado")
-  ) {
-    return `Tu correo no pertenece a un dominio permitido. Dominios válidos: ${ALLOWED_DOMAINS_TEXT}`;
-  }
-
-  return rawError;
-};
 
 export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
   onError,
@@ -78,29 +59,22 @@ const GoogleSignInButtonInner: React.FC<GoogleSignInButtonProps> = ({
   }, []);
 
   const loginWithGoogleCredential = async (credential: string) => {
-    // Guardar el credential temporalmente por si hay que completar signup.
     await AsyncStorage.setItem(GOOGLE_CREDENTIAL_KEY, credential);
 
     try {
       await googleLoginMutation.mutateAsync({ credential });
       await AsyncStorage.removeItem(GOOGLE_CREDENTIAL_KEY);
-      console.log("Login con Google completado exitosamente");
     } catch (error: any) {
-      console.log("Error en login:", error);
+      const errorCode = error?.errorCode;
 
-      const errorMessage = error?.message?.toLowerCase() || error?.toString()?.toLowerCase() || "";
-
-      if (errorMessage.includes("signup") || errorMessage.includes("register")) {
-        console.log("Usuario nuevo detectado, redirigiendo a school selection");
+      if (errorCode === "SCHOOL_IDS_REQUIRED") {
         router.push("/(auth)/schoolSelection");
         return;
       }
 
-      const displayError = formatGoogleLoginError(error);
+      const displayError = getUserFriendlyErrorMessage(error);
       onError?.(displayError);
-      Alert.alert("Error", displayError);
       await AsyncStorage.removeItem(GOOGLE_CREDENTIAL_KEY);
-      throw error;
     }
   };
 
@@ -111,7 +85,6 @@ const GoogleSignInButtonInner: React.FC<GoogleSignInButtonProps> = ({
           const configError =
             "Falta EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID para iniciar sesión con Google en web.";
           onError?.(configError);
-          Alert.alert("Configuración incompleta", configError);
           return;
         }
 
@@ -135,15 +108,12 @@ const GoogleSignInButtonInner: React.FC<GoogleSignInButtonProps> = ({
 
       setIsLoading(true);
 
-      // Verificar disponibilidad de Google Play Services (Android)
       await GoogleSignin.hasPlayServices({
         showPlayServicesUpdateDialog: true,
       });
 
-      // Obtener información del usuario de Google
       const userInfo = (await GoogleSignin.signIn()).data;
 
-      // Verificar que recibimos el token
       if (!userInfo?.idToken) {
         throw new Error("No se recibió el token de Google");
       }
@@ -152,20 +122,19 @@ const GoogleSignInButtonInner: React.FC<GoogleSignInButtonProps> = ({
     } catch (err: any) {
       let errorMessage = "Error desconocido al iniciar sesión";
 
-      // Manejar errores específicos de Google Sign-In
       if (err.code === statusCodes.SIGN_IN_CANCELLED) {
         errorMessage = "Inicio de sesión cancelado";
       } else if (err.code === statusCodes.IN_PROGRESS) {
         errorMessage = "Inicio de sesión en progreso";
       } else if (err.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
         errorMessage = "Google Play Services no disponible";
+      } else if (isNetworkError(err)) {
+        errorMessage = "Error de conexión. Revisa tu conexión a internet.";
       } else if (err.message) {
         errorMessage = err.message;
       }
 
-      console.error("Error en Google Sign-In:", err);
       onError?.(errorMessage);
-      Alert.alert("Error", errorMessage);
       await AsyncStorage.removeItem(GOOGLE_CREDENTIAL_KEY);
     } finally {
       if (isMountedRef.current) {
@@ -192,7 +161,6 @@ const GoogleSignInButtonInner: React.FC<GoogleSignInButtonProps> = ({
           <ActivityIndicator color="#fff" size="small" />
         ) : (
           <View style={styles.buttonContent}>
-            {/* Icono de Google */}
             <View style={styles.iconContainer}>
               <GoogleIcon />
             </View>
@@ -200,12 +168,10 @@ const GoogleSignInButtonInner: React.FC<GoogleSignInButtonProps> = ({
           </View>
         )}
       </TouchableOpacity>
-      <Text style={styles.hintText}>Dominios permitidos: {ALLOWED_DOMAINS_TEXT}</Text>
     </View>
   );
 };
 
-// Componente simple del ícono de Google
 const GoogleIcon = () => (
   <View style={styles.googleIcon}>
     <Text style={styles.googleIconText}>G</Text>
@@ -274,7 +240,6 @@ const styles = StyleSheet.create({
   },
 });
 
-// Helper functions para acceder al credential guardado desde otras pantallas
 export const getStoredGoogleCredential = async (): Promise<string | null> => {
   try {
     return await AsyncStorage.getItem(GOOGLE_CREDENTIAL_KEY);
