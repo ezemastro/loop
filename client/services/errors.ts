@@ -6,17 +6,10 @@ export const ERROR_NAMES = {
 };
 
 export const parseErrorName = ({ status }: { status: number }) => {
-  let errName;
-  if (status === 400) {
-    errName = ERROR_NAMES.INVALID_INPUT;
-  } else if (status === 409) {
-    errName = ERROR_NAMES.CONFLICT;
-  } else if (status === 401) {
-    errName = ERROR_NAMES.UNAUTHORIZED;
-  } else {
-    errName = ERROR_NAMES.INTERNAL_SERVER;
-  }
-  return errName;
+  if (status === 400) return ERROR_NAMES.INVALID_INPUT;
+  if (status === 409) return ERROR_NAMES.CONFLICT;
+  if (status === 401) return ERROR_NAMES.UNAUTHORIZED;
+  return ERROR_NAMES.INTERNAL_SERVER;
 };
 
 export interface ApiError {
@@ -25,19 +18,33 @@ export interface ApiError {
   errorCode?: string;
 }
 
-const extractServerMessage = (data: unknown): string | undefined => {
-  if (!data || typeof data !== "object") return undefined;
-  const d = data as Record<string, unknown>;
-  if (typeof d.error === "string" && d.error) return d.error;
-  if (typeof d.message === "string" && d.message) return d.message;
-  return undefined;
+const tryParseJson = (data: unknown): Record<string, unknown> | null => {
+  if (!data) return null;
+  if (typeof data === "object" && !Array.isArray(data)) return data as Record<string, unknown>;
+  if (typeof data === "string") {
+    try {
+      const parsed = JSON.parse(data);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return parsed;
+    } catch {
+      // no es JSON
+    }
+  }
+  return null;
 };
 
-const extractServerErrorCode = (data: unknown): string | undefined => {
-  if (!data || typeof data !== "object") return undefined;
-  const d = data as Record<string, unknown>;
-  if (typeof d.errorCode === "string" && d.errorCode) return d.errorCode;
-  return undefined;
+const extractServerError = (data: unknown): { message?: string; errorCode?: string } | null => {
+  const obj = tryParseJson(data);
+  if (!obj) return null;
+  const error = typeof obj.error === "string" && obj.error ? obj.error : undefined;
+  const message = typeof obj.message === "string" && obj.message ? obj.message : undefined;
+  const errorCode = typeof obj.errorCode === "string" && obj.errorCode ? obj.errorCode : undefined;
+  const serverMessage = error || message;
+  return serverMessage || errorCode ? { message: serverMessage, errorCode } : null;
+};
+
+const isGenericAxiosMessage = (msg: string): boolean => {
+  const lower = msg.toLowerCase();
+  return lower.includes("request failed with status code") || lower.includes("network error");
 };
 
 export const parseApiError = (error: unknown): ApiError => {
@@ -49,12 +56,17 @@ export const parseApiError = (error: unknown): ApiError => {
   ) {
     const err = error as any;
     const status = err.response?.status || 500;
-    const serverMessage = extractServerMessage(err.response?.data);
+    const server = extractServerError(err.response?.data);
+
+    const message =
+      (server?.message && !isGenericAxiosMessage(server.message) ? server.message : undefined) ||
+      err.message ||
+      "Error desconocido";
 
     return {
       name: parseErrorName({ status }),
-      message: serverMessage || err.message || "Error desconocido",
-      errorCode: extractServerErrorCode(err.response?.data) || undefined,
+      message,
+      errorCode: server?.errorCode || undefined,
     };
   }
 
@@ -64,18 +76,16 @@ export const parseApiError = (error: unknown): ApiError => {
     "message" in (error as Record<string, unknown>)
   ) {
     const err = error as Record<string, unknown>;
+    const server = extractServerError(err);
     return {
       name: "Error",
-      message: String(err.message),
-      errorCode: typeof err.errorCode === "string" ? err.errorCode : undefined,
+      message: server?.message || String(err.message),
+      errorCode: server?.errorCode || (typeof err.errorCode === "string" ? err.errorCode : undefined),
     };
   }
 
   if (typeof error === "string") {
-    return {
-      name: "Error",
-      message: error,
-    };
+    return { name: "Error", message: error };
   }
 
   return {

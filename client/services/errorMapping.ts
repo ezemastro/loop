@@ -24,43 +24,59 @@ const ERROR_CODE_MESSAGES: Record<string, string> = {
   UNEXPECTED_ERROR: "Ocurrió un error inesperado. Inténtalo más tarde.",
 };
 
-const GENERIC_AXIOS_MESSAGES = [
-  "request failed with status code",
-  "network error",
-];
+const GENERIC_AXIOS_PATTERNS = ["request failed with status code", "network error"];
 
-const isGenericAxiosMessage = (msg: string): boolean => {
+const isGenericMessage = (msg: string): boolean => {
   const lower = msg.toLowerCase();
-  return GENERIC_AXIOS_MESSAGES.some((pattern) => lower.includes(pattern));
+  return GENERIC_AXIOS_PATTERNS.some((p) => lower.includes(p));
 };
 
+const ERROR_CODE_OVERRIDES: Record<string, true> = {
+  INVALID_INPUT: true,
+  VALIDATION_ERROR: true,
+  INTERNAL_ERROR: true,
+  UNEXPECTED_ERROR: true,
+  CONFLICT: true,
+  UNAUTHORIZED: true,
+  NOT_FOUND: true,
+};
+
+/**
+ * Devuelve el mensaje más amigable posible.
+ * - Si hay un mensaje del servidor que no sea genérico de Axios, se usa ese.
+ * - Si no, se intenta usar el errorCode mapeado.
+ * - Si no, se usa el mensaje genérico.
+ */
 export const getUserFriendlyErrorMessage = (error: unknown): string => {
   if (!error) return "Ocurrió un error inesperado.";
 
-  if (typeof error === "string") {
-    return error;
-  }
+  if (typeof error === "string") return error;
 
   if (typeof error === "object" && error !== null) {
     const err = error as Record<string, unknown>;
     const message = typeof err.message === "string" ? err.message : undefined;
+    const errorCode = typeof err.errorCode === "string" ? err.errorCode : undefined;
 
-    if (message && !isGenericAxiosMessage(message)) {
+    // Si el mensaje del servidor es específico (no genérico de Axios), mostrarlo
+    if (message && !isGenericMessage(message)) {
       return message;
     }
 
-    if (err.errorCode && typeof err.errorCode === "string") {
-      const mapped = ERROR_CODE_MESSAGES[err.errorCode];
-      if (mapped) return mapped;
+    // Si hay errorCode y no es un código genérico que prefiera el mensaje del servidor,
+    // usar el mapeo. Pero si el código ES genérico y hay mensaje, preferir mensaje.
+    if (errorCode && ERROR_CODE_MESSAGES[errorCode]) {
+      // Si el código es genérico y tenemos mensaje del servidor, usar el mensaje
+      if (ERROR_CODE_OVERRIDES[errorCode] && message) {
+        return message;
+      }
+      return ERROR_CODE_MESSAGES[errorCode];
     }
 
-    if (message) {
-      return message;
-    }
+    // Si no se pudo mapear, usar el mensaje que haya
+    if (message) return message;
 
-    if (err.error && typeof err.error === "string") {
-      return err.error;
-    }
+    // Último intento: el campo "error" directo
+    if (typeof err.error === "string" && err.error) return err.error;
   }
 
   return "Ocurrió un error inesperado.";
