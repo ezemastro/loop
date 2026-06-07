@@ -12,6 +12,7 @@ import { GoogleSignInButton } from "@/components/buttons/GoogleSignInButton";
 import AllowedDomainsNotice from "@/components/AllowedDomainsNotice";
 import { GOOGLE_OAUTH_READY, NODE_ENV } from "@/config";
 import { useToast } from "@/components/ToastProvider";
+import { useEffect } from "react";
 
 const TextLabel = ({ children }: { children: string }) => (
   <Text className="color-main-text text-xl">{children}</Text>
@@ -35,8 +36,22 @@ export default function Login() {
     isLoginError,
     loginErrorMessage,
     isLoginLoading,
+    loginError,
   } = useLoginForm();
   const { showToast } = useToast();
+
+  useEffect(() => {
+    if (loginError) {
+      const err = loginError as unknown as Record<string, unknown>;
+      if (err.errorCode === "EMAIL_NOT_VERIFIED") {
+        showToast(
+          loginErrorMessage || "Revisá tu email para verificar tu cuenta antes de iniciar sesión.",
+          "error",
+          6000,
+        );
+      }
+    }
+  }, [loginError, loginErrorMessage, showToast]);
 
   const handleGoogleError = (error: string) => {
     showToast(error, "error");

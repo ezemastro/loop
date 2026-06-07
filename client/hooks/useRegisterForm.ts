@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "expo-router";
 import { useRegister } from "./useRegister";
 import { validateRegisterForm } from "@/services/validations";
 import { z } from "zod";
 import { getUserFriendlyErrorMessage } from "@/services/errorMapping";
+import { useToast } from "@/components/ToastProvider";
 
 interface FormData {
   firstName: string;
@@ -23,11 +25,15 @@ const INITIAL_ERRORS: FormErrors = {
 };
 
 export const useRegisterForm = () => {
+  const router = useRouter();
+  const { showToast } = useToast();
   const {
     mutate: register,
     isError: isRegisterError,
     error: registerError,
     isPending: isLoading,
+    isSuccess,
+    data,
   } = useRegister();
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
@@ -38,6 +44,26 @@ export const useRegisterForm = () => {
     schools: null,
   });
   const [errors, setErrors] = useState<FormErrors>(INITIAL_ERRORS);
+
+  useEffect(() => {
+    if (isSuccess && data) {
+      showToast(data.message || "Cuenta creada. Revisá tu email para verificarla.", "success");
+      router.replace("/");
+    }
+  }, [isSuccess, data, showToast, router]);
+
+  useEffect(() => {
+    if (isRegisterError && registerError) {
+      const err = registerError as unknown as Record<string, unknown>;
+      if (err.errorCode === "USER_ALREADY_EXISTS") {
+        showToast(
+          "Ese correo ya está registrado. Si no verificaste tu email, revisá tu bandeja de entrada.",
+          "error",
+          6000,
+        );
+      }
+    }
+  }, [isRegisterError, registerError, showToast]);
 
   const handleSubmit = () => {
     const parsedFromData = {
@@ -83,5 +109,6 @@ export const useRegisterForm = () => {
     registerError,
     displayError,
     isLoading,
+    isSuccess,
   };
 };

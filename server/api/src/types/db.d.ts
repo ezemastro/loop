@@ -38,6 +38,8 @@ interface DB_Users {
   stat_kg_co2: DbNumber | null;
   stat_l_h2o: DbNumber | null;
   google_id: string | null;
+  email_verified: boolean;
+  email_verification_token: string | null;
 }
 interface DB_UserSchools {
   id: UUID;

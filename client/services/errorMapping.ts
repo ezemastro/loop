@@ -22,6 +22,8 @@ const ERROR_CODE_MESSAGES: Record<string, string> = {
   DATABASE_ERROR: "Error de conexión. Inténtalo más tarde.",
   FILE_TOO_LARGE: "El archivo es demasiado grande.",
   UNEXPECTED_ERROR: "Ocurrió un error inesperado. Inténtalo más tarde.",
+  EMAIL_NOT_VERIFIED: "Tu email no ha sido verificado. Revisá tu bandeja de entrada y hacé clic en el enlace de verificación.",
+  EMAIL_VERIFICATION_TOKEN_INVALID: "El enlace de verificación no es válido o ya fue usado.",
 };
 
 const GENERIC_AXIOS_PATTERNS = ["request failed with status code", "network error"];

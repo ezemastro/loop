@@ -25,7 +25,9 @@ CREATE TABLE "users"(
     "stat_kg_waste" FLOAT(53) default 0 NOT NULL,
     "stat_kg_co2" FLOAT(53) default 0 NOT NULL,
     "stat_l_h2o" FLOAT(53) default 0 NOT NULL,
-    "google_id" TEXT UNIQUE
+    "google_id" TEXT UNIQUE,
+    "email_verified" BOOLEAN DEFAULT FALSE NOT NULL,
+    "email_verification_token" TEXT
 );
 CREATE TABLE "user_schools"(
     "id" UUID default gen_random_uuid() primary key,

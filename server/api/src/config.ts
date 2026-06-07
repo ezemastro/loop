@@ -4,8 +4,10 @@ import path from "path";
 try {
   if (process.env.NODE_ENV !== "production") {
     const dotenv = require("dotenv");
+    dotenv.config({ path: path.resolve(process.cwd(), "../.env") });
     dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });
     console.log("Variables de entorno locales cargadas.");
+    console.log("[DEBUG] RESEND_API_KEY presente:", process.env.RESEND_API_KEY ? "SI" : "NO");
   }
 } catch {
   // Silencioso en prod o si dotenv no está disponible
@@ -31,8 +33,13 @@ export const {
   WEB_GOOGLE_CLIENT_ID,
   ADMIN_FRONTEND_URL,
   AUTHORIZED_ADMIN_EMAIL,
+  RESEND_API_KEY,
 } = process.env;
 export const INITIAL_CREDITS = 0;
+export const EMAIL_FROM =
+  process.env.NODE_ENV === "production"
+    ? "Loop <noreply@loop.reditinere.com>"
+    : "Loop <onboarding@resend.dev>";
 
 export const ERROR_MESSAGES = {
   USER_NOT_FOUND: "Usuario no encontrado",
@@ -77,6 +84,9 @@ export const ERROR_MESSAGES = {
   // Incluir palabra signup para saber que se trata de un usuario nuevo
   SCHOOL_IDS_REQUIRED_FOR_GOOGLE_SIGNUP: "signup requiere schoolIds",
   TOKEN_GENERATION_FAILED: "Error al generar el token de autenticación",
+  EMAIL_NOT_VERIFIED: "El email no ha sido verificado. Revisa tu bandeja de entrada.",
+  EMAIL_VERIFICATION_TOKEN_INVALID: "El token de verificación es inválido o ha expirado",
+  EMAIL_VERIFICATION_SEND_FAILED: "Error al enviar el email de verificación",
 };
 
 export const cookieOptions: CookieOptions = {

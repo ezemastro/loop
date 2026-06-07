@@ -26,21 +26,26 @@ export const queries = {
 
   insertUser: q<{ id: UUID }>(
     "user.insert",
-    `INSERT INTO users (email, first_name, last_name, password)
-       VALUES ($1, $2, $3, $4)
+    `INSERT INTO users (email, first_name, last_name, password, email_verification_token)
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING id`,
+  ),
+
+  verifyUserEmail: q<{ id: UUID }>(
+    "user.verifyEmail",
+    `UPDATE users SET email_verified = TRUE, email_verification_token = NULL WHERE email_verification_token = $1 RETURNING id`,
   ),
 
   createUserWithGoogle: q<DB_Users>(
     "user.createWithGoogle",
-    `INSERT INTO users (email, first_name, last_name, password, google_id)
-       VALUES ($1, $2, $3, NULL, $4)
+    `INSERT INTO users (email, first_name, last_name, password, google_id, email_verified)
+       VALUES ($1, $2, $3, NULL, $4, TRUE)
        RETURNING *`,
   ),
 
   updateUserGoogleId: q<void>(
     "user.updateGoogleId",
-    `UPDATE users SET google_id = $1 WHERE id = $2`,
+    `UPDATE users SET google_id = $1, email_verified = TRUE WHERE id = $2`,
   ),
 
   userByGoogleId: q<DB_Users>("user.byGoogleId", `SELECT * FROM users WHERE google_id = $1`),

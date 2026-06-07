@@ -1,6 +1,5 @@
 import { api } from "@/api/loop";
 import { parseApiError } from "@/services/errors";
-import { useSessionStore } from "@/stores/session";
 import { useMutation } from "@tanstack/react-query";
 
 const fetchRegister = async (body: PostAuthRegisterRequest["body"]) => {
@@ -17,12 +16,7 @@ const fetchRegister = async (body: PostAuthRegisterRequest["body"]) => {
 };
 
 export const useRegister = () => {
-  const login = useSessionStore((state) => state.login);
-
   return useMutation({
     mutationFn: fetchRegister,
-    onSuccess: (result) => {
-      login(result!.user, result!.token);
-    },
   });
 };

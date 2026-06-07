@@ -26,6 +26,8 @@ import {
   parsePrivateUserFromBase,
 } from "../utils/parseDb.js";
 import { webGoogleClient } from "../services/googleOauth.js";
+import { sendVerificationEmail } from "../services/email.js";
+import crypto from "crypto";
 
 export class AuthModel {
   static registerUser = async ({
@@ -35,7 +37,9 @@ export class AuthModel {
     schoolIds,
     email,
   }: AuthRegisterPayload) => {
-    return withClient(
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+
+    const result = await withClient(
       async (client) => {
         await client.begin();
 
@@ -61,6 +65,7 @@ export class AuthModel {
           firstName,
           lastName,
           hashedPassword,
+          verificationToken,
         ]);
 
         if (!newUser) {
@@ -94,6 +99,13 @@ export class AuthModel {
       },
       { transaction: true },
     );
+
+    // Enviar email de verificación después de confirmar la transacción
+    sendVerificationEmail({ to: email, token: verificationToken }).catch((err) =>
+      console.error("Error al enviar email de verificación:", err),
+    );
+
+    return result;
   };
 
   static loginUser = async ({ email, password }: AuthLoginPayload) => {
@@ -105,6 +117,10 @@ export class AuthModel {
 
       if (!userDb.password) {
         throw new UnauthorizedError(ERROR_MESSAGES.INCORRECT_LOGIN_METHOD, "INCORRECT_LOGIN_METHOD");
+      }
+
+      if (!userDb.email_verified) {
+        throw new UnauthorizedError(ERROR_MESSAGES.EMAIL_NOT_VERIFIED, "EMAIL_NOT_VERIFIED");
       }
 
       const isPasswordCorrect = await comparePasswords(password, userDb.password);
@@ -127,6 +143,21 @@ export class AuthModel {
       });
 
       return { user };
+    });
+  };
+
+  static verifyEmail = async (token: string) => {
+    return withClient(async (client) => {
+      const result = await client.query(queries.verifyUserEmail, [token]);
+
+      if (result.length === 0) {
+        throw new InvalidInputError(
+          ERROR_MESSAGES.EMAIL_VERIFICATION_TOKEN_INVALID,
+          "EMAIL_VERIFICATION_TOKEN_INVALID",
+        );
+      }
+
+      return { verified: true };
     });
   };
 

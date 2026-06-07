@@ -49,8 +49,17 @@ interface PostAuthRegisterRequest {
   };
 }
 type PostAuthRegisterResponse = ApiResponse<{
-  user: PrivateUser;
-  token: string;
+  message: string;
+}>;
+
+// GET /auth/verify-email
+interface GetAuthVerifyEmailRequest {
+  query: {
+    token: string;
+  };
+}
+type GetAuthVerifyEmailResponse = ApiResponse<{
+  message: string;
 }>;
 
 // POST /auth/login
