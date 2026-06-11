@@ -94,11 +94,12 @@ export default function UserPage({
     },
     {
       key: "contact",
+      show: !!(user as PrivateUser).email,
       title: "Contacto:",
       component: () => (
         <View className="px-2 flex-row items-center gap-2">
           <EmailIcon className="text-main-text" size={26} />
-          <Text className="text-main-text text-lg">{user.email}</Text>
+          <Text className="text-main-text text-lg">{(user as PrivateUser).email}</Text>
           {/* TODO - Poder modificar mail propio */}
         </View>
       ),
