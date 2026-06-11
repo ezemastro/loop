@@ -1,0 +1,47 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Dev: API (Docker)",
+      "type": "shell",
+      "command": "cd server && docker compose up -d && docker compose watch api",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "dev"
+      }
+    },
+    {
+      "label": "Dev: Client (Expo)",
+      "type": "shell",
+      "command": "npm start --prefix client",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "dev"
+      }
+    },
+    {
+      "label": "Dev: Admin (Vite)",
+      "type": "shell",
+      "command": "npm run dev --prefix adminClient",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "dev"
+      }
+    },
+    {
+      "label": "Dev: All (Split Terminals)",
+      "dependsOn": ["Dev: API (Docker)", "Dev: Client (Expo)", "Dev: Admin (Vite)"],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
+    }
+  ]
+}
