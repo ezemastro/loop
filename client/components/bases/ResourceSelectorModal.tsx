@@ -112,7 +112,7 @@ export default function ResourceSelectorModal<T>({
           onDebounce={handleDebouncedSearch}
           onSubmit={handleDebouncedSearch}
         />
-        <View className="flex-1 justify-center items-center">
+        <View className="flex-1">
           <FlatList
             data={filteredItems}
             className="w-full"
