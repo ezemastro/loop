@@ -28,7 +28,7 @@ export default function AllowedDomainsNotice() {
           <CloseModalButton onClose={() => setIsModalVisible(false)} />
           <TextTitle>¿No tenés mail institucional?</TextTitle>
           <Text className="text-main-text text-base">
-            Podés usar el mail institucional de tus hijos para registrarte. Si no lo sabés,
+            Podés usar el mail institucional de tus hijos para registrarte. Si no lo sabés, podés
             preguntaselo a tus hijos.
           </Text>
           {INSTITUTIONAL_EMAIL_FORM_URL ? (
