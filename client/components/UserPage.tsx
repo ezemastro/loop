@@ -1,5 +1,6 @@
 import { View, Text, FlatList, TextInput } from "react-native";
 import React, { useState } from "react";
+import { useRouter } from "expo-router";
 import { MainView } from "./bases/MainView";
 import AvoidingKeyboard from "./AvoidingKeyboard";
 import BackButton from "./BackButton";
@@ -42,6 +43,7 @@ export default function UserPage({
   const wishes = wishesData?.userWishes || [];
   const [isModalOpen, setIsModalOpen] = useState(false);
   const logout = useSessionStore((state) => state.logout);
+  const router = useRouter();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteEmailConfirm, setDeleteEmailConfirm] = useState("");
   const {
@@ -102,6 +104,23 @@ export default function UserPage({
           <Text className="text-main-text text-lg">{(user as PrivateUser).email}</Text>
           {/* TODO - Poder modificar mail propio */}
         </View>
+      ),
+    },
+    {
+      key: "message",
+      show: !isCurrentUser,
+      component: () => (
+        <CustomButton
+          className="bg-secondary self-center"
+          onPress={() =>
+            router.push({
+              pathname: "/(main)/(tabs)/messages/[userId]",
+              params: { userId: user.id },
+            })
+          }
+        >
+          <ButtonText>Enviar mensaje</ButtonText>
+        </CustomButton>
       ),
     },
     {
