@@ -1,5 +1,7 @@
 # List of TODOs
 
+- [ ] Eliminar usaurio TEST
+
 - [ ] add functionality for admins to modify schools (media and name)
   - [ ] add the route
   - [ ] add the types
