@@ -33,6 +33,7 @@ export const ANDROID_GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_ANDROID_GOOGLE_C
 export const IOS_GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_IOS_GOOGLE_CLIENT_ID;
 export const WEB_GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID;
 export const REPORT_EMAIL = process.env.EXPO_PUBLIC_REPORT_EMAIL;
+export const INSTITUTIONAL_EMAIL_FORM_URL = process.env.EXPO_PUBLIC_INSTITUTIONAL_EMAIL_FORM_URL;
 export const GOOGLE_OAUTH_READY = process.env.GOOGLE_OAUTH_READY !== "false";
 export const NODE_ENV = process.env.NODE_ENV;
 
