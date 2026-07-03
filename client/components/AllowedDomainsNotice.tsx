@@ -28,27 +28,9 @@ export default function AllowedDomainsNotice() {
           <CloseModalButton onClose={() => setIsModalVisible(false)} />
           <TextTitle>¿No tenés mail institucional?</TextTitle>
           <Text className="text-main-text text-base">
-            Podés usar el mail institucional de tus hijos para registrarte. Si no lo sabés, podés
-            preguntaselo a tus hijos.
+            Si no tenés un mail institucional, te pedimos que te contactes con la sede a la que
+            perteneces para que te comenten la situacion sobre el mail de tu hijo/a.
           </Text>
-          {INSTITUTIONAL_EMAIL_FORM_URL ? (
-            <View className="gap-2">
-              <Text className="text-main-text text-base">
-                También podés consultar el mail de tus hijos completando el siguiente formulario:
-              </Text>
-              <Pressable
-                onPress={() => {
-                  if (INSTITUTIONAL_EMAIL_FORM_URL) {
-                    Linking.openURL(INSTITUTIONAL_EMAIL_FORM_URL);
-                  }
-                }}
-              >
-                <Text className="text-secondary text-base underline">
-                  Consultar mail institucional
-                </Text>
-              </Pressable>
-            </View>
-          ) : null}
           <CustomButton onPress={() => setIsModalVisible(false)}>
             <ButtonText>Entendido</ButtonText>
           </CustomButton>
