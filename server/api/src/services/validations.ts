@@ -9,7 +9,7 @@ const firstNameSchema = z.string().min(2).max(100);
 const lastNameSchema = z.string().min(2).max(100);
 const emailSchema = z.email();
 const phoneSchema = z.string().min(10).max(20);
-const passwordSchema = z.string().min(8).max(100);
+const passwordSchema = z.string().min(6).max(100);
 const orderSchema = z.enum(["asc", "desc"]);
 const sortSchema = z.enum(SORT_OPTIONS);
 
