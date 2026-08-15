@@ -1,0 +1,142 @@
+# Compose de desarrollo para todos los módulos: db, api, web (Expo), admin (Vite) y landing (Astro)
+# Uso: docker compose -f docker-compose.dev.yml up --build --watch
+# OJO: el daemon Docker es externo (docker-outside-of-docker): los bind mounts del host no funcionan,
+# por eso el código viaja dentro de las imágenes y los cambios se sincronizan con `watch` (sync).
+services:
+  # --- BASE DE DATOS ---
+  db:
+    image: postgres:16
+    container_name: loop-dev-db
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    env_file:
+      - ./server/.env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+      - POSTGRES_DB=${POSTGRES_DB:-db}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-db}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # --- BACKEND (API) ---
+  api:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.api
+      target: development
+    container_name: loop-dev-api
+    ports:
+      - "${API_PORT:-3000}:3000"
+    env_file:
+      - ./server/.env
+    environment:
+      - NODE_ENV=development
+      # POSTGRES_USER es el dueño de las tablas y superusuario: la API no lo usa para consultar,
+      # solo el runner de migraciones. Las consultas van por DB_APP_USER / DB_UNSCOPED_USER.
+      - PGHOST=db
+      - DB_APP_USER=${DB_APP_USER:-loop_app}
+      - DB_APP_PASSWORD=${DB_APP_PASSWORD:-}
+      - DB_UNSCOPED_USER=${DB_UNSCOPED_USER:-loop_app_unscoped}
+      - DB_UNSCOPED_PASSWORD=${DB_UNSCOPED_PASSWORD:-}
+      - APP_BASE_URL=${APP_BASE_URL:-http://localhost:8081}
+    volumes:
+      - /app/server/api/node_modules
+      - ./server/uploads:/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    develop:
+      watch:
+        - action: sync
+          path: ./server/api/src
+          target: /app/server/api/src
+          ignore:
+            - node_modules/
+        - action: sync
+          path: ./shared
+          target: /app/shared
+        - action: rebuild
+          path: ./server/api/package.json
+
+  # --- FRONTEND WEB (Expo / React Native) ---
+  web:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.web.dev
+    container_name: loop-dev-web
+    ports:
+      - "8081:8081"
+    environment:
+      - EXPO_PUBLIC_API_URL=http://localhost:3000
+      - EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID=${EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID:-}
+      - EXPO_NO_TELEMETRY=1
+    volumes:
+      - /app/client/node_modules
+    develop:
+      watch:
+        - action: sync
+          path: ./client
+          target: /app/client
+          ignore:
+            - node_modules/
+            - .expo/
+            - dist/
+            - .git/
+        - action: rebuild
+          path: ./client/package.json
+
+  # --- PANEL ADMIN (Vite) ---
+  admin:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.admin.dev
+    container_name: loop-dev-admin
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:3000
+      - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID:-}
+    volumes:
+      - /app/adminClient/node_modules
+    develop:
+      watch:
+        - action: sync
+          path: ./adminClient
+          target: /app/adminClient
+          ignore:
+            - node_modules/
+            - dist/
+            - .git/
+        - action: rebuild
+          path: ./adminClient/package.json
+
+  # --- LANDING (Astro) ---
+  landing:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.landing.dev
+    container_name: loop-dev-landing
+    ports:
+      - "4321:4321"
+    volumes:
+      - /app/landing/node_modules
+    develop:
+      watch:
+        - action: sync
+          path: ./landing
+          target: /app/landing
+          ignore:
+            - node_modules/
+            - dist/
+            - .astro/
+            - .git/
+        - action: rebuild
+          path: ./landing/package.json
+
+volumes:
+  postgres-data:

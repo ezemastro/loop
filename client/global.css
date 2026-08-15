@@ -1,3 +1,22 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/**
+ * Paleta por defecto, en canales RGB sueltos para que `rgb(var(--x) / <alpha-value>)` funcione.
+ * Existe para que la app renderice bien antes de que se resuelva ninguna comunidad (primer
+ * arranque, usuario deslogueado, tema incompleto). El ThemeProvider pisa estas variables más
+ * abajo en el árbol. Espejo de `DEFAULT_COLORS` en `config.ts`.
+ */
+:root {
+  --color-primary: 255 89 0;
+  --color-secondary: 76 159 56;
+  --color-tertiary: 0 158 124;
+  --color-main-text: 66 66 66;
+  --color-secondary-text: 158 158 158;
+  --color-credits: 132 54 209;
+  --color-credits-light: 143 76 209;
+  --color-stroke: 228 228 228;
+  --color-background: 240 240 240;
+  --color-alert: 255 59 48;
+}

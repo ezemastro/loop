@@ -1,3 +1,16 @@
+-- ⚠️  Este archivo es el ESQUEMA BASE, no el esquema actual.
+--
+-- Todo lo posterior a las comunidades vive en `server/migrations/*.sql`, que se aplican con
+-- `npm run migrate` desde `server/api`. Para una base nueva:
+--
+--     psql ... < server/database_creation.sql     # este archivo
+--     psql ... < server/create_categories.sql     # catálogo de categorías
+--     cd server/api && npm run migrate            # el resto, en orden
+--
+-- No agregues cambios de esquema acá: agregá una migración. Mantener este archivo a mano fue
+-- justamente lo que hizo que producción y desarrollo se desincronizaran (los TODO que había en
+-- las líneas 135 y 141 los cierra `0000_baseline_reconcile.sql`).
+
 ALTER DATABASE loop_db SET timezone TO 'America/Argentina/Buenos_Aires';
 
 CREATE TABLE "schools"(

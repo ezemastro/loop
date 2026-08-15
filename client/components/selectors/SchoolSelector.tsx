@@ -3,13 +3,23 @@ import { View, Text, Pressable } from "react-native";
 import SchoolSelectorModal from "../modals/SchoolSelectorModal";
 import School from "../cards/School";
 
-type SchoolSelectorSingleProps = {
+type SchoolSelectorCommonProps = {
+  /**
+   * Comunidad por la que filtrar los colegios. `undefined` deja que mande la sesión; `null` es
+   * "todavía no sabemos cuál", y en ese caso el selector queda deshabilitado.
+   */
+  communityId?: UUID | null;
+  /** Texto a mostrar mientras el selector está deshabilitado. */
+  disabledText?: string;
+};
+
+type SchoolSelectorSingleProps = SchoolSelectorCommonProps & {
   multiple?: false;
   value: School | null;
   onChange?: (school: School) => void;
 };
 
-type SchoolSelectorMultipleProps = {
+type SchoolSelectorMultipleProps = SchoolSelectorCommonProps & {
   multiple: true;
   value: School[];
   onChange?: (schools: School[]) => void;
@@ -17,10 +27,18 @@ type SchoolSelectorMultipleProps = {
 
 type SchoolSelectorProps = SchoolSelectorSingleProps | SchoolSelectorMultipleProps;
 
-export default function SchoolSelector({ onChange, value, multiple = false }: SchoolSelectorProps) {
+export default function SchoolSelector({
+  onChange,
+  value,
+  multiple = false,
+  communityId,
+  disabledText,
+}: SchoolSelectorProps) {
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const isDisabled = communityId === null;
 
   const openModal = () => {
+    if (isDisabled) return;
     setIsModalVisible(true);
   };
   const closeModal = () => {
@@ -31,17 +49,21 @@ export default function SchoolSelector({ onChange, value, multiple = false }: Sc
     closeModal();
   };
 
+  const hasValue = value !== null && (!Array.isArray(value) || value.length > 0);
+
   return (
     <View>
       <Pressable
         onPress={openModal}
+        disabled={isDisabled}
         className={
           "rounded border border-stroke gap-0.5 " +
+          (isDisabled ? "bg-stroke/40 opacity-60 " : "") +
           (Array.isArray(value) ? (value?.length && value.length > 0 ? "" : "bg-white") : "")
         }
       >
         {/* Si es null o array con 0 elementos */}
-        {value !== null && (!Array.isArray(value) || value.length > 0) ? (
+        {hasValue ? (
           <>
             {Array.isArray(value) ? (
               value.map((school) => <School key={school.id} school={school} />)
@@ -50,8 +72,10 @@ export default function SchoolSelector({ onChange, value, multiple = false }: Sc
             )}
           </>
         ) : (
-          <View className="h-16 justify-center items-center">
-            <Text className="text-secondary-text text-lg">Seleccionar escuela</Text>
+          <View className="h-16 justify-center items-center px-3">
+            <Text className="text-secondary-text text-center text-base">
+              {isDisabled ? (disabledText ?? "Seleccionar escuela") : "Seleccionar escuela"}
+            </Text>
           </View>
         )}
       </Pressable>
@@ -60,6 +84,7 @@ export default function SchoolSelector({ onChange, value, multiple = false }: Sc
         onSelect={handleSelect}
         onClose={closeModal}
         multiple={multiple}
+        communityId={communityId}
       />
     </View>
   );

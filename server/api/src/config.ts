@@ -34,6 +34,29 @@ export const {
 } = process.env;
 export const INITIAL_CREDITS = 0;
 
+/** URL pública de la app, usada para armar los links de invitación. */
+export const APP_BASE_URL = process.env.APP_BASE_URL || FRONTEND_URL || "http://localhost:8081";
+
+/**
+ * Roles de base de datos de la aplicación.
+ *
+ * `DB_USER` (POSTGRES_USER) es el dueño de las tablas y en la imagen oficial de Postgres es
+ * SUPERUSER — y los superusuarios **ignoran Row-Level Security por completo**. Por eso la API
+ * nunca se conecta con él: usa dos roles sin privilegios de superusuario.
+ *
+ * - `DB_APP_USER`: sujeto a RLS. Es el que atiende todo el tráfico de usuarios.
+ * - `DB_UNSCOPED_USER`: tiene BYPASSRLS. Solo para los caminos que por definición no pueden estar
+ *   scopeados a una comunidad (login, resolución de comunidad por dominio, panel de admin).
+ *
+ * Que sean dos roles distintos y no un flag es deliberado: la conexión scopeada no tiene ningún
+ * SQL disponible para salirse de su comunidad.
+ */
+export const DB_APP_USER = process.env.DB_APP_USER || "loop_app";
+export const DB_APP_PASSWORD = process.env.DB_APP_PASSWORD || DB_PASSWORD || "loop_app_dev";
+export const DB_UNSCOPED_USER = process.env.DB_UNSCOPED_USER || "loop_app_unscoped";
+export const DB_UNSCOPED_PASSWORD =
+  process.env.DB_UNSCOPED_PASSWORD || DB_PASSWORD || "loop_unscoped_dev";
+
 export const ERROR_MESSAGES = {
   USER_NOT_FOUND: "Usuario no encontrado",
   USER_ALREADY_EXISTS: "El usuario ya existe",
@@ -77,6 +100,19 @@ export const ERROR_MESSAGES = {
   // Incluir palabra signup para saber que se trata de un usuario nuevo
   SCHOOL_IDS_REQUIRED_FOR_GOOGLE_SIGNUP: "signup requiere schoolIds",
   TOKEN_GENERATION_FAILED: "Error al generar el token de autenticación",
+  COMMUNITY_NOT_FOUND: "Comunidad no encontrada",
+  COMMUNITY_REQUIRED: "Se requiere indicar una comunidad",
+  COMMUNITY_INACTIVE: "La comunidad no está activa",
+  SCHOOLS_NOT_IN_COMMUNITY: "Los colegios seleccionados no pertenecen a tu comunidad",
+  COMMUNITY_SLUG_ALREADY_EXISTS: "Ya existe una comunidad con ese identificador",
+  DOMAIN_ALREADY_TAKEN: "Ese dominio ya pertenece a otra comunidad",
+  CANNOT_CHANGE_COMMUNITY: "No se puede cambiar la comunidad de una cuenta",
+  CANNOT_MOVE_USER_WITH_CONTENT:
+    "No se puede mover de comunidad a un usuario que ya tiene actividad",
+  SUPER_ADMIN_REQUIRED: "Se requieren permisos de super administrador",
+  INVITATION_INVALID: "La invitación no es válida",
+  INVITATION_ALREADY_USED: "Esta invitación ya fue utilizada",
+  DELETE_REQUEST_INVALID: "El enlace de borrado no es válido o expiró",
 };
 
 export const cookieOptions: CookieOptions = {

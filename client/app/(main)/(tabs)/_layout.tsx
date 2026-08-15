@@ -7,10 +7,10 @@ import {
   PublishIcon,
   WishlistIcon,
 } from "@/components/Icons";
-import { COLORS } from "@/config";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSelf } from "@/hooks/useSelf";
 import { useHideOnKeyboard } from "@/hooks/useHideOnKeyboard";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 export default function TabsLayout() {
   // Agregar esto al main layout autenticado
@@ -18,16 +18,17 @@ export default function TabsLayout() {
 
   // Ocultar tab bar al mostrar el teclado
   const { visible } = useHideOnKeyboard();
+  const colors = useThemeColors();
 
   const insets = useSafeAreaInsets();
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.SECONDARY} />
+      <StatusBar barStyle="light-content" backgroundColor={colors.SECONDARY} />
       <Tabs
         screenOptions={{
           headerShown: false,
-          tabBarInactiveTintColor: COLORS.SECONDARY_TEXT,
-          tabBarActiveTintColor: COLORS.PRIMARY,
+          tabBarInactiveTintColor: colors.SECONDARY_TEXT,
+          tabBarActiveTintColor: colors.PRIMARY,
           tabBarLabelStyle: {
             fontSize: 11.5,
             fontWeight: "600",

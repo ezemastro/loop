@@ -19,31 +19,32 @@ import { safeNumber } from "../utils/safeNumber";
 
 export class SelfController {
   static getSelf = async (req: Request, res: Response, next: NextFunction) => {
+    const { userId, communityId } = req.session!;
     let user: PrivateUser;
     try {
-      ({ user } = await SelfModel.getSelf({
-        userId: req.session!.userId,
-      }));
+      ({ user } = await SelfModel.getSelf({ userId, communityId: communityId! }));
     } catch (err) {
       return next(err);
     }
     res.status(200).json(successResponse({ data: { user } }));
   };
   static updateSelf = async (req: Request, res: Response, next: NextFunction) => {
-    const { userId } = req.session!;
+    const { userId, communityId } = req.session!;
     try {
       await validateUpdateSelf(req.body);
     } catch {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
-    const { email, firstName, lastName, phone, profileMediaId, password, schoolIds } =
+    // `email` no se lee del body a propósito: el dominio del correo es lo que decide a qué
+    // comunidad pertenece la cuenta, así que cambiarlo por acá las dejaría en desacuerdo.
+    const { firstName, lastName, phone, profileMediaId, password, schoolIds } =
       req.body as PatchSelfRequest["body"];
 
     let user: PrivateUser;
     try {
       ({ user } = await SelfModel.updateSelf({
         userId,
-        email,
+        communityId: communityId!,
         firstName,
         lastName,
         phone,
@@ -59,7 +60,7 @@ export class SelfController {
   };
 
   static getSelfListings = async (req: Request, res: Response, next: NextFunction) => {
-    const { userId } = req.session!;
+    const { userId, communityId } = req.session!;
     const parsedQuery: GetSelfListingsRequest["query"] = {
       ...parseQuery(req.query),
       page: safeNumber(req.query.page),
@@ -86,6 +87,7 @@ export class SelfController {
     try {
       ({ listings, pagination } = await SelfModel.getSelfListings({
         userId,
+        communityId: communityId!,
         page,
         order,
         sort,
@@ -103,10 +105,10 @@ export class SelfController {
   };
 
   static getSelfMissions = async (req: Request, res: Response, next: NextFunction) => {
-    const { userId } = req.session!;
+    const { userId, communityId } = req.session!;
     let missions: UserMission[];
     try {
-      ({ missions } = await SelfModel.getSelfMissions({ userId }));
+      ({ missions } = await SelfModel.getSelfMissions({ userId, communityId: communityId! }));
     } catch (err) {
       return next(err);
     }
@@ -114,7 +116,7 @@ export class SelfController {
   };
 
   static getSelfNotifications = async (req: Request, res: Response, next: NextFunction) => {
-    const { userId } = req.session!;
+    const { userId, communityId } = req.session!;
     const parsedQuery: GetSelfNotificationsRequest["query"] = {
       ...parseQuery(req.query),
       page: safeNumber(req.query.page),
@@ -130,6 +132,7 @@ export class SelfController {
     try {
       ({ notifications, pagination } = await SelfModel.getSelfNotifications({
         userId,
+        communityId: communityId!,
         page: parsedQuery.page,
       }));
     } catch (err) {
@@ -139,11 +142,12 @@ export class SelfController {
   };
 
   static getSelfNotificationsUnread = async (req: Request, res: Response, next: NextFunction) => {
-    const { userId } = req.session!;
+    const { userId, communityId } = req.session!;
     let unreadNotificationsCount: number;
     try {
       ({ unreadNotificationsCount } = await SelfModel.getSelfUnreadNotificationsCount({
         userId,
+        communityId: communityId!,
       }));
     } catch (err) {
       return next(err);
@@ -152,9 +156,9 @@ export class SelfController {
   };
 
   static readAllNotifications = async (req: Request, res: Response, next: NextFunction) => {
-    const { userId } = req.session!;
+    const { userId, communityId } = req.session!;
     try {
-      await SelfModel.setAllSelfNotificationsRead({ userId });
+      await SelfModel.setAllSelfNotificationsRead({ userId, communityId: communityId! });
     } catch (err) {
       return next(err);
     }
@@ -162,7 +166,7 @@ export class SelfController {
   };
 
   static getSelfChats = async (req: Request, res: Response, next: NextFunction) => {
-    const { userId } = req.session!;
+    const { userId, communityId } = req.session!;
     const parsedQuery: GetSelfMessagesRequest["query"] = {
       ...parseQuery(req.query),
       page: safeNumber(req.query.page),
@@ -174,16 +178,18 @@ export class SelfController {
     }
     const { chats, pagination } = await SelfModel.getSelfChats({
       userId,
+      communityId: communityId!,
       page: parsedQuery.page,
     });
     res.status(200).json(successResponse({ data: { chats }, pagination }));
   };
   static getSelfChatsUnread = async (req: Request, res: Response, next: NextFunction) => {
-    const { userId } = req.session!;
+    const { userId, communityId } = req.session!;
     let unreadChatsCount: number;
     try {
       ({ unreadChatsCount } = await SelfModel.getSelfUnreadChatsCount({
         userId,
+        communityId: communityId!,
       }));
     } catch (err) {
       return next(err);
@@ -191,7 +197,7 @@ export class SelfController {
     res.status(200).json(successResponse({ data: { unreadChatsCount } }));
   };
   static updateNotificationToken = async (req: Request, res: Response, next: NextFunction) => {
-    const { userId } = req.session!;
+    const { userId, communityId } = req.session!;
     const { notificationToken } = req.body as PostSelfNotificationTokenRequest["body"];
     try {
       await validateUpdateTokenRequest(req.body);
@@ -199,7 +205,11 @@ export class SelfController {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     try {
-      await SelfModel.updateNotificationToken({ userId, notificationToken });
+      await SelfModel.updateNotificationToken({
+        userId,
+        communityId: communityId!,
+        notificationToken,
+      });
     } catch (err) {
       return next(err);
     }
@@ -207,7 +217,7 @@ export class SelfController {
   };
 
   static createSelfWish = async (req: Request, res: Response, next: NextFunction) => {
-    const { userId } = req.session!;
+    const { userId, communityId } = req.session!;
     const { categoryId, comment } = req.body as PostSelfWishRequest["body"];
     // Validar categoryId
     try {
@@ -219,6 +229,7 @@ export class SelfController {
     try {
       ({ userWish } = await SelfModel.createSelfWish({
         userId,
+        communityId: communityId!,
         categoryId,
         comment,
       }));
@@ -229,7 +240,7 @@ export class SelfController {
   };
 
   static deleteSelfWish = async (req: Request, res: Response, next: NextFunction) => {
-    const { userId } = req.session!;
+    const { userId, communityId } = req.session!;
     const { categoryId } = req.params as DeleteSelfWishRequest["params"];
     // Validar categoryId
     try {
@@ -239,7 +250,7 @@ export class SelfController {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     try {
-      await SelfModel.deleteSelfWish({ userId, categoryId });
+      await SelfModel.deleteSelfWish({ userId, communityId: communityId!, categoryId });
     } catch (err) {
       return next(err);
     }
@@ -247,10 +258,10 @@ export class SelfController {
   };
 
   static getSelfWishes = async (req: Request, res: Response, next: NextFunction) => {
-    const { userId } = req.session!;
+    const { userId, communityId } = req.session!;
     let userWishes: UserWish[];
     try {
-      ({ userWishes } = await SelfModel.getSelfWishes({ userId }));
+      ({ userWishes } = await SelfModel.getSelfWishes({ userId, communityId: communityId! }));
     } catch (err) {
       return next(err);
     }
@@ -258,7 +269,7 @@ export class SelfController {
   };
 
   static modifySelfWish = async (req: Request, res: Response, next: NextFunction) => {
-    const { userId } = req.session!;
+    const { userId, communityId } = req.session!;
     const { wishId } = req.params as PutSelfWishRequest["params"];
     const { comment, categoryId } = req.body as PutSelfWishRequest["body"];
     try {
@@ -269,6 +280,7 @@ export class SelfController {
     try {
       await SelfModel.modifyWish({
         userId,
+        communityId: communityId!,
         wishId,
         comment,
         categoryId,
@@ -280,11 +292,12 @@ export class SelfController {
   };
 
   static modifySelfPassword = async (req: Request, res: Response, next: NextFunction) => {
-    const { userId } = req.session!;
+    const { userId, communityId } = req.session!;
     const { oldPassword, newPassword } = req.body as PostSelfChangePasswordRequest["body"];
     try {
       await SelfModel.modifyUserPassword({
         userId,
+        communityId: communityId!,
         oldPassword,
         newPassword,
       });
@@ -295,27 +308,15 @@ export class SelfController {
   };
 
   static deleteSelf = async (req: Request, res: Response, next: NextFunction) => {
-    const { userId } = req.session!;
+    const { userId, communityId } = req.session!;
     try {
-      await SelfModel.deleteSelf({ userId });
+      await SelfModel.deleteSelf({ userId, communityId: communityId! });
     } catch (err) {
       return next(err);
     }
     res.status(204).send(successResponse());
   };
 
-  static deleteSelfRequest = async (req: Request, res: Response, next: NextFunction) => {
-    const { email } = req.body as PostSelfDeleteRequest["body"];
-    try {
-      await safeValidateEmail(email);
-    } catch {
-      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
-    }
-    try {
-      await SelfModel.deleteSelfByEmail({ email });
-    } catch (err) {
-      return next(err);
-    }
-    res.status(204).send(successResponse());
-  };
+  // `deleteSelfRequest` se movió a `controllers/accountDeletion.ts`. Ver la nota en
+  // `models/self.ts`: el endpoint público ya no borra nada.
 }

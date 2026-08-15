@@ -9,6 +9,7 @@ import { parseQuery } from "../utils/parseQuery";
 
 export class UsersController {
   static getUsers = async (req: Request, res: Response, next: NextFunction) => {
+    const { communityId } = req.session!;
     const parsedQuery: GetUsersRequest["query"] = {
       ...parseQuery(req.query),
       page: safeNumber(req.query.page),
@@ -31,6 +32,7 @@ export class UsersController {
     let pagination: Pagination;
     try {
       ({ users, pagination } = await UsersModel.getUsers({
+        communityId: communityId!,
         page,
         sort,
         order,
@@ -45,6 +47,7 @@ export class UsersController {
   };
 
   static getUserById = async (req: Request, res: Response, next: NextFunction) => {
+    const { communityId } = req.session!;
     const userId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
     try {
       await validateId(userId);
@@ -53,7 +56,7 @@ export class UsersController {
     }
     let user: PublicUser;
     try {
-      ({ user } = await UsersModel.getUserById({ userId: userId! }));
+      ({ user } = await UsersModel.getUserById({ userId: userId!, communityId: communityId! }));
     } catch (err) {
       return next(err);
     }
@@ -62,7 +65,7 @@ export class UsersController {
 
   static donate = async (req: Request, res: Response, next: NextFunction) => {
     const toUserId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
-    const userId = req.session!.userId!;
+    const { userId, communityId } = req.session!;
     const { amount } = req.body;
     try {
       await validateId(toUserId);
@@ -74,9 +77,10 @@ export class UsersController {
     }
     try {
       await UsersModel.donate({
-        fromUserId: userId!,
+        fromUserId: userId,
         toUserId: toUserId!,
         amount,
+        communityId: communityId!,
       });
     } catch (err) {
       return next(err);
@@ -85,6 +89,7 @@ export class UsersController {
   };
 
   static getUserWishes = async (req: Request, res: Response, next: NextFunction) => {
+    const { communityId } = req.session!;
     const { userId } = req.params as GetUserWishesRequest["params"];
     try {
       await validateId(userId);
@@ -93,7 +98,7 @@ export class UsersController {
     }
     let userWishes: UserWish[];
     try {
-      ({ userWishes } = await UsersModel.getUserWishes({ userId }));
+      ({ userWishes } = await UsersModel.getUserWishes({ userId, communityId: communityId! }));
     } catch (err) {
       return next(err);
     }

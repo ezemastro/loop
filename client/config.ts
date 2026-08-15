@@ -1,4 +1,10 @@
-export const COLORS = {
+/**
+ * Paleta de respaldo. Se usa mientras no hay comunidad resuelta y como fallback por clave cuando
+ * una comunidad trae el tema incompleto. Los mismos valores están duplicados en `global.css`
+ * (como canales RGB) porque el CSS es estático y no puede importar de acá: si se toca uno, tocar
+ * el otro.
+ */
+export const DEFAULT_COLORS = {
   PRIMARY: "#FF5900",
   SECONDARY: "#4C9F38",
   TERTIARY: "#009E7C",
@@ -10,6 +16,15 @@ export const COLORS = {
   BACKGROUND: "#F0F0F0",
   ALERT: "#FF3B30",
 };
+
+export type ThemeColorKey = keyof typeof DEFAULT_COLORS;
+export type ThemeColors = Record<ThemeColorKey, string>;
+
+/**
+ * Alias histórico. Los componentes deben usar `useThemeColors()`, que respeta la comunidad activa;
+ * `COLORS` siempre devuelve la paleta por defecto.
+ */
+export const COLORS = DEFAULT_COLORS;
 export const MAX_LISTING_IMAGES = 7;
 export const MAX_LISTING_TITLE_LENGTH = 50;
 export const MAX_LISTING_DESCRIPTION_LENGTH = 150;
@@ -33,19 +48,8 @@ export const ANDROID_GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_ANDROID_GOOGLE_C
 export const IOS_GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_IOS_GOOGLE_CLIENT_ID;
 export const WEB_GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID;
 export const REPORT_EMAIL = process.env.EXPO_PUBLIC_REPORT_EMAIL;
-export const INSTITUTIONAL_EMAIL_FORM_URL = process.env.EXPO_PUBLIC_INSTITUTIONAL_EMAIL_FORM_URL;
 export const GOOGLE_OAUTH_READY = process.env.GOOGLE_OAUTH_READY !== "false";
 export const NODE_ENV = process.env.NODE_ENV;
-
-export const VALID_EMAIL_DOMAINS = [
-  "northfield.edu.ar",
-  // "gmail.com",
-  "reditinere.com",
-  "colegiodelfaro.edu.ar",
-  "southcreekschool.com.ar",
-  "northschools.uy",
-  "theglobalschool.com.ar",
-];
 
 export const PRODUCT_STATUSES = {
   LIKE_NEW: "like_new" as ProductStatus,

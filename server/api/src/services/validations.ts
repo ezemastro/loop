@@ -222,6 +222,8 @@ const registerSchema = z.object({
   lastName: lastNameSchema,
   schoolIds: z.array(z.uuid()).min(1),
   email: emailSchema,
+  // Quien tiene correo institucional se registra sin esto, exactamente como antes.
+  invitationToken: z.string().min(1).max(200).optional(),
 });
 export const validateRegister = (data: unknown) => registerSchema.parseAsync(data);
 
@@ -231,15 +233,24 @@ const loginSchema = z.object({
 });
 export const validateLogin = (data: unknown) => loginSchema.parseAsync(data);
 
-const updateSelfSchema = z.object({
-  email: emailSchema.optional(),
-  firstName: firstNameSchema.optional(),
-  lastName: lastNameSchema.optional(),
-  phone: phoneSchema.optional(),
-  profileMediaId: z.uuid().nullable().optional(),
-  password: passwordSchema.optional(),
-  schoolIds: z.array(z.uuid()).min(1).optional(),
-});
+/**
+ * `.strict()` es deliberado: rechaza cualquier campo inesperado en vez de ignorarlo en silencio.
+ * En particular deja afuera a `communityId`, que nunca se puede actualizar — la comunidad de una
+ * cuenta la fija el dominio de su correo al registrarse.
+ *
+ * `email` tampoco está: si se pudiera cambiar libremente, el correo y la comunidad quedarían en
+ * desacuerdo para siempre. No hay UI que lo use.
+ */
+const updateSelfSchema = z
+  .object({
+    firstName: firstNameSchema.optional(),
+    lastName: lastNameSchema.optional(),
+    phone: phoneSchema.optional(),
+    profileMediaId: z.uuid().nullable().optional(),
+    password: passwordSchema.optional(),
+    schoolIds: z.array(z.uuid()).min(1).optional(),
+  })
+  .strict();
 export const validateUpdateSelf = (data: unknown) => updateSelfSchema.parseAsync(data);
 
 const paginatedQuery = z.object({
@@ -262,6 +273,10 @@ const getUsersRequestQuery = paginatedQuery.extend({
 export const validateGetUsersRequest = (data: unknown) => getUsersRequestQuery.parseAsync(data);
 const getSchoolsRequestQuery = paginatedQuery.extend({
   searchTerm: z.string().max(100).optional(),
+  // Para la pantalla de registro, que todavía no tiene sesión. Si hay sesión, se ignoran: la
+  // comunidad del usuario siempre gana.
+  communityId: z.uuid().optional(),
+  domain: z.string().max(255).optional(),
 });
 export const validateGetSchoolsRequest = (data: unknown) => getSchoolsRequestQuery.parseAsync(data);
 const getListingsRequestQuery = paginatedQuery.extend({
@@ -355,8 +370,81 @@ export const validateAdminRegister = (data: unknown) => adminRegisterSchema.pars
 const userGoogleLoginSchema = z.object({
   credential: z.string().min(1),
   schoolIds: z.array(z.uuid()).min(1).optional(),
+  invitationToken: z.string().min(1).max(200).optional(),
 });
 export const validateUserGoogleLogin = (data: unknown) => userGoogleLoginSchema.parseAsync(data);
+
+// ─── Comunidades ────────────────────────────────────────────────────────────
+
+const hexColorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/, "Debe ser un color hexadecimal #RRGGBB");
+
+/**
+ * El tema se valida al escribirlo y nunca al leerlo: una comunidad guardada con una versión vieja
+ * del esquema tiene que seguir renderizando, y el cliente ya cae a la paleta por defecto para las
+ * claves que falten.
+ */
+const communityThemeSchema = z.object({
+  colors: z.object({
+    primary: hexColorSchema,
+    secondary: hexColorSchema,
+    tertiary: hexColorSchema,
+    mainText: hexColorSchema,
+    secondaryText: hexColorSchema,
+    credits: hexColorSchema,
+    creditsLight: hexColorSchema,
+    stroke: hexColorSchema,
+    background: hexColorSchema,
+    alert: hexColorSchema,
+  }),
+});
+
+const domainSchema = z
+  .string()
+  .min(3)
+  .max(255)
+  .regex(/^[a-z0-9]([a-z0-9.-]*[a-z0-9])?\.[a-z]{2,}$/i, "Dominio inválido")
+  .transform((value) => value.toLowerCase());
+
+const createCommunitySchema = z.object({
+  // El slug es inmutable después de crearse: se usa en URLs.
+  slug: z
+    .string()
+    .min(2)
+    .max(50)
+    .regex(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/, "Solo minúsculas, números y guiones"),
+  name: z.string().min(2).max(100),
+  mediaId: z.uuid().nullable().optional(),
+  theme: communityThemeSchema.optional(),
+  domains: z.array(domainSchema).optional(),
+});
+export const validateCreateCommunity = (data: unknown) => createCommunitySchema.parseAsync(data);
+
+const updateCommunitySchema = z
+  .object({
+    name: z.string().min(2).max(100).optional(),
+    mediaId: z.uuid().nullable().optional(),
+    theme: communityThemeSchema.optional(),
+    active: z.boolean().optional(),
+  })
+  .strict();
+export const validateUpdateCommunity = (data: unknown) => updateCommunitySchema.parseAsync(data);
+
+const communityDomainSchema = z.object({ domain: domainSchema });
+export const validateCommunityDomain = (data: unknown) => communityDomainSchema.parseAsync(data);
+
+const createInvitationSchema = z.object({
+  communityId: z.uuid().optional(),
+  note: z.string().max(200).optional(),
+  expiresInDays: z.number().int().min(1).max(365).optional(),
+});
+export const validateCreateInvitation = (data: unknown) => createInvitationSchema.parseAsync(data);
+
+const moveUserCommunitySchema = z.object({
+  communityId: z.uuid(),
+  schoolIds: z.array(z.uuid()).min(1),
+});
+export const validateMoveUserCommunity = (data: unknown) =>
+  moveUserCommunitySchema.parseAsync(data);
 
 const createMissionTemplateSchema = z.object({
   key: z.string().min(1).max(100),

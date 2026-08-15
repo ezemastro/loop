@@ -20,11 +20,18 @@ services:
     restart: unless-stopped
     environment:
       - NODE_ENV=production
+      # POSTGRES_USER es el dueño de las tablas y superusuario: la API no lo usa para consultar,
+      # solo el runner de migraciones. Las consultas van por DB_APP_USER / DB_UNSCOPED_USER.
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
       - PGHOST=db
       - API_PORT=3000
+      - DB_APP_USER=${DB_APP_USER:-loop_app}
+      - DB_APP_PASSWORD=${DB_APP_PASSWORD}
+      - DB_UNSCOPED_USER=${DB_UNSCOPED_USER:-loop_app_unscoped}
+      - DB_UNSCOPED_PASSWORD=${DB_UNSCOPED_PASSWORD}
+      - APP_BASE_URL=${APP_BASE_URL}
     env_file:
       - .env
     volumes:

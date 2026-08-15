@@ -19,7 +19,7 @@ export class AuthController {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT, "VALIDATION_ERROR"));
     }
     // Registrar el usuario
-    const { password, firstName, lastName, schoolIds, email } = req.body;
+    const { password, firstName, lastName, schoolIds, email, invitationToken } = req.body;
     let user: PrivateUser;
     try {
       ({ user } = await AuthModel.registerUser({
@@ -28,6 +28,7 @@ export class AuthController {
         password,
         schoolIds,
         email,
+        invitationToken,
       }));
     } catch (err) {
       return next(err);
@@ -35,7 +36,7 @@ export class AuthController {
     // Agregar las cookies de sesión
     let token: string;
     try {
-      token = generateToken({ userId: user.id });
+      token = generateToken({ userId: user.id, communityId: user.communityId });
     } catch {
       return next(new InternalServerError(ERROR_MESSAGES.TOKEN_GENERATION_FAILED, "TOKEN_GENERATION_FAILED"));
     }
@@ -63,7 +64,7 @@ export class AuthController {
     // Agregar las cookies de sesión
     let token: string;
     try {
-      token = generateToken({ userId: user.id });
+      token = generateToken({ userId: user.id, communityId: user.communityId });
     } catch {
       return next(new InternalServerError(ERROR_MESSAGES.TOKEN_GENERATION_FAILED, "TOKEN_GENERATION_FAILED"));
     }
@@ -81,7 +82,8 @@ export class AuthController {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT, "VALIDATION_ERROR"));
     }
 
-    const { credential, schoolIds } = req.body as PostAuthGoogleLoginRequest["body"];
+    const { credential, schoolIds, invitationToken } =
+      req.body as PostAuthGoogleLoginRequest["body"];
 
     if (!credential) {
       return next(new InvalidInputError(ERROR_MESSAGES.GOOGLE_CREDENTIAL_INVALID, "GOOGLE_CREDENTIAL_INVALID"));
@@ -91,7 +93,8 @@ export class AuthController {
     try {
       ({ user } = await AuthModel.googleLogin({
         credential,
-        schoolIds,
+        ...(schoolIds ? { schoolIds } : {}),
+        ...(invitationToken ? { invitationToken } : {}),
       }));
     } catch (error) {
       return next(error);
@@ -100,7 +103,7 @@ export class AuthController {
     // Agregar las cookies de sesión
     let token: string;
     try {
-      token = generateToken({ userId: user.id });
+      token = generateToken({ userId: user.id, communityId: user.communityId });
     } catch (err) {
       return next(err);
     }
@@ -108,5 +111,23 @@ export class AuthController {
 
     // Devolver la respuesta
     return res.status(200).json(successResponse({ data: { user, token } }));
+  };
+
+  /**
+   * Endpoint público que consulta si un link de invitación sirve. No expone quién lo creó ni nada
+   * del admin: solo el id y la comunidad, que es lo que el registro necesita para filtrar los
+   * colegios y pintarse con los colores correctos.
+   */
+  static getInvitation = async (req: Request, res: Response, next: NextFunction) => {
+    const { token } = req.params as unknown as GetAuthInvitationRequest["params"];
+    if (!token) {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVITATION_INVALID, "INVITATION_INVALID"));
+    }
+    try {
+      const result = await AuthModel.getInvitation({ token });
+      return res.status(200).json(successResponse({ data: result }));
+    } catch (err) {
+      return next(err);
+    }
   };
 }

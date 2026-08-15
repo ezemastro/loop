@@ -1,6 +1,6 @@
 import { API_URL } from "@/config";
 import { useSessionStore } from "@/stores/session";
-import axios from "axios";
+import axios, { type AxiosResponse } from "axios";
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -27,11 +27,29 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+/**
+ * El servidor puede rotar el token en cualquier respuesta autenticada (por ejemplo para reemitir
+ * los emitidos antes de las comunidades). Si no lo guardamos, esos usuarios se quedan afuera
+ * cuando el viejo caduque.
+ */
+const applyRefreshedToken = (response?: AxiosResponse) => {
+  const token = response?.headers?.["x-refreshed-token"];
+  if (typeof token === "string" && token) {
+    useSessionStore.getState().setAuthToken(token);
+  }
+};
+
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    applyRefreshedToken(response);
+    return response;
+  },
   (error) => {
     if (error.response?.status === 401) {
       useSessionStore.getState().logout();
+    } else {
+      // En un 401 el token ya no vale; en cualquier otro error la respuesta pudo venir autenticada.
+      applyRefreshedToken(error.response);
     }
 
     if (error.response?.status && error.response.status >= 500) {

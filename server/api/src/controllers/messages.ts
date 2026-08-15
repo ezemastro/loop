@@ -34,6 +34,7 @@ export class MessagesController {
         senderId: userId,
         recipientId: req.session!.userId,
         page: page ?? 0,
+        communityId: req.session!.communityId!,
       }));
     } catch (err) {
       return next(err);
@@ -59,6 +60,7 @@ export class MessagesController {
         recipientId: userId,
         text,
         attachedListingId,
+        communityId: req.session!.communityId!,
       }));
     } catch (err) {
       return next(err);
@@ -67,7 +69,7 @@ export class MessagesController {
   };
 
   static readAllMessages = async (req: Request, res: Response, next: NextFunction) => {
-    const { userId } = req.session!;
+    const { userId, communityId } = req.session!;
     const { userId: senderId } = req.params as PostMessageReadRequest["params"];
     try {
       await validateId(senderId);
@@ -78,6 +80,7 @@ export class MessagesController {
       await MessagesModel.markMessagesAsRead({
         senderId,
         userId,
+        communityId: communityId!,
       });
     } catch (err) {
       return next(err);

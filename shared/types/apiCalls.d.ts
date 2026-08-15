@@ -46,6 +46,8 @@ interface PostAuthRegisterRequest {
     email: string;
     password: string;
     schoolIds: UUID[];
+    /** Solo para registrarse con un correo fuera de los dominios de la comunidad. */
+    invitationToken?: string;
   };
 }
 type PostAuthRegisterResponse = ApiResponse<{
@@ -70,11 +72,17 @@ interface PostAuthGoogleLoginRequest {
   body: {
     credential: string;
     schoolIds?: UUID[];
+    invitationToken?: string;
   };
 }
+/**
+ * Cuando falta `schoolIds` la respuesta es el error `SCHOOL_IDS_REQUIRED`, pero incluye la
+ * comunidad ya resuelta para que el cliente pueda filtrar los colegios y previsualizar su tema.
+ */
 type PostAuthGoogleLoginResponse = ApiResponse<{
   user: PrivateUser;
   token: string;
+  community?: Community;
 }>;
 
 // GET /me
@@ -248,9 +256,16 @@ interface PostUserDonateRequest extends AuthApiRequest {
 type PostUserDonateResponse = ApiResponse;
 
 // GET /schools
+/**
+ * Público (el selector de colegios corre antes del registro), pero exige saber de qué comunidad.
+ * Si hay sesión, su comunidad **siempre** gana sobre lo que venga por query: así un usuario
+ * logueado nunca puede enumerar los colegios de otra comunidad.
+ */
 interface GetSchoolsRequest {
   query?: PaginationParams & {
     searchTerm?: string;
+    communityId?: UUID;
+    domain?: string;
   };
 }
 type GetSchoolsResponse = PaginatedApiResponse<{
@@ -646,3 +661,176 @@ interface PatchAdminMissionTemplateRequest {
 type PatchAdminMissionTemplateResponse = ApiResponse<{
   missionTemplate: MissionTemplate;
 }>;
+
+// ─── Comunidades (público) ─────────────────────────────────────────────────
+
+// GET /communities/resolve?domain=… | ?email=…
+// Resuelve a qué comunidad pertenece un correo. Es lo que reemplaza a la constante
+// VALID_EMAIL_DOMAINS: el cliente ya no decide qué dominios son válidos, pregunta.
+interface GetCommunityResolveRequest {
+  query: {
+    domain?: string;
+    email?: string;
+  };
+}
+type GetCommunityResolveResponse = ApiResponse<{
+  community: Community | null;
+}>;
+
+// GET /communities/:slug
+interface GetCommunityBySlugRequest {
+  params: {
+    slug: string;
+  };
+}
+type GetCommunityBySlugResponse = ApiResponse<{
+  community: Community;
+}>;
+
+// ─── Invitaciones ─────────────────────────────────────────────────────────
+
+// GET /auth/invitations/:token — público; solo confirma si el link sirve.
+interface GetAuthInvitationRequest {
+  params: {
+    token: string;
+  };
+}
+type GetAuthInvitationResponse = ApiResponse<{
+  invitation: {
+    id: UUID;
+    community: Community;
+  };
+}>;
+
+// POST /admin/invitations
+interface PostAdminInvitationRequest extends AuthApiRequest {
+  body: {
+    /** Solo lo manda un super admin; un community_admin siempre genera para la suya. */
+    communityId?: UUID;
+    note?: string;
+    expiresInDays?: number;
+  };
+}
+type PostAdminInvitationResponse = ApiResponse<{
+  invitation: Invitation;
+}>;
+
+// GET /admin/invitations
+interface GetAdminInvitationsRequest extends AuthApiRequest {
+  query?: PaginationParams & {
+    communityId?: UUID;
+  };
+}
+type GetAdminInvitationsResponse = PaginatedApiResponse<{
+  invitations: Invitation[];
+}>;
+
+// DELETE /admin/invitations/:invitationId — revoca una invitación sin usar.
+interface DeleteAdminInvitationRequest extends AuthApiRequest {
+  params: {
+    invitationId: UUID;
+  };
+}
+type DeleteAdminInvitationResponse = ApiResponse<undefined>;
+
+// ─── Comunidades (admin) ──────────────────────────────────────────────────
+
+// GET /admin/communities — solo super admin
+type GetAdminCommunitiesResponse = ApiResponse<{
+  communities: (Community & {
+    stats: { users: number; listings: number; schools: number };
+    domains: CommunityEmailDomain[];
+  })[];
+}>;
+
+// POST /admin/communities — solo super admin
+interface PostAdminCommunityRequest extends AuthApiRequest {
+  body: {
+    slug: string;
+    name: string;
+    mediaId?: UUID | null;
+    theme?: CommunityTheme;
+    domains?: string[];
+  };
+}
+type PostAdminCommunityResponse = ApiResponse<{
+  community: Community;
+}>;
+
+// PATCH /admin/communities/:communityId — solo super admin
+interface PatchAdminCommunityRequest extends AuthApiRequest {
+  params: {
+    communityId: UUID;
+  };
+  body: {
+    name?: string;
+    mediaId?: UUID | null;
+    theme?: CommunityTheme;
+    active?: boolean;
+  };
+}
+type PatchAdminCommunityResponse = ApiResponse<{
+  community: Community;
+}>;
+
+// POST /admin/communities/:communityId/domains — solo super admin
+interface PostAdminCommunityDomainRequest extends AuthApiRequest {
+  params: {
+    communityId: UUID;
+  };
+  body: {
+    domain: string;
+  };
+}
+type PostAdminCommunityDomainResponse = ApiResponse<{
+  domain: CommunityEmailDomain;
+}>;
+
+// DELETE /admin/communities/:communityId/domains/:domainId — solo super admin
+interface DeleteAdminCommunityDomainRequest extends AuthApiRequest {
+  params: {
+    communityId: UUID;
+    domainId: UUID;
+  };
+}
+type DeleteAdminCommunityDomainResponse = ApiResponse<undefined>;
+
+// ─── Borrado de cuenta ────────────────────────────────────────────────────
+
+// POST /me/delete-request (declarado más arriba) dejó de borrar en el acto: ahora solo registra
+// una solicitud pendiente, que un admin ejecuta desde el panel. Responde 204 siempre, exista o no
+// la cuenta, para no filtrar qué correos están registrados.
+
+interface AccountDeletionRequest {
+  id: UUID;
+  userId: UUID;
+  communityId: UUID;
+  email: string;
+  status: "pending" | "completed" | "rejected";
+  createdAt: Date;
+  resolvedAt: Date | null;
+  user: PublicUser | null;
+}
+
+// GET /admin/deletion-requests
+interface GetAdminDeletionRequestsRequest extends AuthApiRequest {
+  query?: PaginationParams & {
+    status?: "pending" | "completed" | "rejected";
+    communityId?: UUID;
+  };
+}
+type GetAdminDeletionRequestsResponse = PaginatedApiResponse<{
+  deletionRequests: AccountDeletionRequest[];
+}>;
+
+// POST /admin/deletion-requests/:requestId/resolve
+interface PostAdminResolveDeletionRequest extends AuthApiRequest {
+  params: {
+    requestId: UUID;
+  };
+  body: {
+    /** `completed` borra la cuenta de verdad; `rejected` solo cierra la solicitud. */
+    action: "completed" | "rejected";
+  };
+}
+type PostAdminResolveDeletionResponse = ApiResponse<undefined>;

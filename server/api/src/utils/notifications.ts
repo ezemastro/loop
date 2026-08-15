@@ -12,6 +12,27 @@ interface NotificationBase {
   disablePush?: boolean;
 }
 
+/**
+ * Comunidad con la que se guarda la notificación.
+ *
+ * Normalmente es la de la conexión, pero las notificaciones que manda el panel de admin viajan por
+ * una conexión sin scope: en ese caso se toma la del destinatario. Sin esto el INSERT violaría el
+ * NOT NULL de `notifications.community_id`.
+ *
+ * Es un caso que el compilador no puede vigilar, porque `client.query` recibe `unknown[]`.
+ */
+const notificationCommunityId = async ({
+  client,
+  userId,
+}: {
+  client: DatabaseClient;
+  userId: UUID;
+}): Promise<UUID | null> => {
+  if (client.communityId) return client.communityId;
+  const [userDb] = await client.query(queries.userById, [userId, null]);
+  return userDb?.community_id ?? null;
+};
+
 export const sendMissionNotification = async ({
   client,
   userId,
@@ -24,7 +45,12 @@ export const sendMissionNotification = async ({
   const payload: MissionNotificationPayloadBase = {
     userMissionId: missionId,
   };
-  await client.query(queries.createNotification, [userId, "mission" as NotificationType, payload]);
+  await client.query(queries.createNotification, [
+    userId,
+    "mission" as NotificationType,
+    payload,
+    await notificationCommunityId({ client, userId }),
+  ]);
   if (!notificationToken || disablePush) return;
   await sendNotification({
     notificationToken,
@@ -57,7 +83,12 @@ export const sendLoopNotification = async ({
     toOfferedCredits,
     type,
   };
-  await client.query(queries.createNotification, [userId, "loop" as NotificationType, payload]);
+  await client.query(queries.createNotification, [
+    userId,
+    "loop" as NotificationType,
+    payload,
+    await notificationCommunityId({ client, userId }),
+  ]);
   if (!notificationToken || disablePush) return;
   await sendNotification({
     notificationToken,
@@ -84,7 +115,12 @@ export const sendDonationNotification = async ({
     donorUserId,
     message,
   };
-  await client.query(queries.createNotification, [userId, "donation" as NotificationType, payload]);
+  await client.query(queries.createNotification, [
+    userId,
+    "donation" as NotificationType,
+    payload,
+    await notificationCommunityId({ client, userId }),
+  ]);
   if (!notificationToken || disablePush) return;
   await sendNotification({
     notificationToken,
@@ -117,7 +153,12 @@ export const sendAdminNotification = async ({
     referenceId,
     target,
   };
-  await client.query(queries.createNotification, [userId, "admin" as NotificationType, payload]);
+  await client.query(queries.createNotification, [
+    userId,
+    "admin" as NotificationType,
+    payload,
+    await notificationCommunityId({ client, userId }),
+  ]);
   if (!notificationToken || disablePush) return;
   await sendNotification({
     notificationToken,

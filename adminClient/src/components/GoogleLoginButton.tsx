@@ -29,7 +29,8 @@ export default function GoogleLoginButton({ onSuccess, onError }: GoogleLoginBut
       const response = await adminApi.googleLogin(credentialResponse.credential);
 
       if (response.success && response.data?.admin) {
-        login(response.data?.admin.email, response.data?.admin.fullName);
+        // El admin entero: la sesión necesita el rol y la comunidad para saber qué puede ver.
+        login(response.data.admin);
       } else {
         throw new Error("Error al iniciar sesión con Google");
       }

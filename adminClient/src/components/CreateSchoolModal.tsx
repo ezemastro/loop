@@ -7,9 +7,20 @@ interface CreateSchoolModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  /**
+   * Comunidad a la que va a pertenecer el colegio. Un admin de comunidad podría omitirla (el
+   * backend la saca del token), pero mandarla siempre deja un solo camino y evita que un super
+   * admin cree un colegio sin comunidad.
+   */
+  communityId: UUID | null;
 }
 
-export default function CreateSchoolModal({ isOpen, onClose, onSuccess }: CreateSchoolModalProps) {
+export default function CreateSchoolModal({
+  isOpen,
+  onClose,
+  onSuccess,
+  communityId,
+}: CreateSchoolModalProps) {
   const [schoolName, setSchoolName] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -93,7 +104,11 @@ export default function CreateSchoolModal({ isOpen, onClose, onSuccess }: Create
 
     try {
       setCreating(true);
-      const response = await adminApi.createSchool(schoolName, uploadedMediaId);
+      const response = await adminApi.createSchool(
+        schoolName,
+        uploadedMediaId,
+        communityId ?? undefined,
+      );
 
       if (response.success) {
         setFeedback({ type: "success", message: "Escuela creada exitosamente" });

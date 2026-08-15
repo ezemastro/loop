@@ -1,6 +1,22 @@
 import { api } from "@/api/loop";
 
 /**
+ * Comunidad tal como la devuelve el panel: con sus dominios y sus métricas. Se deriva del tipo de
+ * la respuesta para que no se despegue del contrato.
+ */
+export type AdminCommunity = NonNullable<
+  GetAdminCommunitiesResponse["data"]
+>["communities"][number];
+
+/**
+ * El backend acepta `?communityId=` en todas las rutas scopeadas, pero lo ignora salvo que quien
+ * pregunte sea super admin. Por eso el cliente puede mandarlo siempre sin ramificar por rol.
+ */
+interface CommunityScope {
+  communityId?: UUID;
+}
+
+/**
  * Cliente API para operaciones de administración
  * Todas las funciones requieren autenticación de administrador excepto login y register
  */
@@ -40,11 +56,17 @@ export const adminApi = {
     return response.data;
   },
   /**
-   * Validar un nuevo email para registro de administradores
+   * Validar un nuevo email para registro de administradores.
+   * `role: "super_admin"` solo lo acepta el backend si quien autoriza ya es super admin.
    */
-  addValidEmailForRegistration: async (email: string) => {
+  addValidEmailForRegistration: async (
+    email: string,
+    options?: { role?: AdminRole; communityId?: UUID },
+  ) => {
     const response = await api.post<PostAdminAuthorizeEmailResponse>("/admin/authorize-email", {
       email,
+      role: options?.role,
+      communityId: options?.communityId,
     });
     return response.data;
   },
@@ -53,7 +75,7 @@ export const adminApi = {
   /**
    * Obtener lista de usuarios con paginación y búsqueda opcional
    */
-  getUsers: async (params?: { page?: number; search?: string }) => {
+  getUsers: async (params?: { page?: number; search?: string } & CommunityScope) => {
     const response = await api.get<GetAdminUsersResponse>("/admin/users", {
       params,
     });
@@ -80,14 +102,27 @@ export const adminApi = {
     return response.data;
   },
 
+  /**
+   * Mover un usuario a otra comunidad (solo super admin). Los colegios se reasignan de cero porque
+   * los de la comunidad vieja no existen en la nueva.
+   */
+  moveUserCommunity: async (userId: UUID, communityId: UUID, schoolIds: UUID[]) => {
+    const response = await api.post<ApiResponse<{ user: PrivateUser }>>(
+      `/admin/users/${userId}/community`,
+      { communityId, schoolIds },
+    );
+    return response.data;
+  },
+
   // Gestión de escuelas
   /**
-   * Crear una nueva escuela
+   * Crear una nueva escuela. Un super admin tiene que indicar en qué comunidad nace.
    */
-  createSchool: async (name: string, mediaId: UUID) => {
+  createSchool: async (name: string, mediaId: UUID, communityId?: UUID) => {
     const response = await api.post<PostAdminSchoolsResponse>("/admin/schools", {
       name,
       mediaId,
+      communityId,
     });
     return response.data;
   },
@@ -167,16 +202,16 @@ export const adminApi = {
   /**
    * Obtener estadísticas globales del sistema
    */
-  getStats: async () => {
-    const response = await api.get<GetAdminStatsResponse>("/admin/stats");
+  getStats: async (params?: CommunityScope) => {
+    const response = await api.get<GetAdminStatsResponse>("/admin/stats", { params });
     return response.data;
   },
 
   /**
    * Obtener estadísticas por escuela
    */
-  getSchoolStats: async () => {
-    const response = await api.get<GetAdminSchoolStatsResponse>("/admin/schools/stats");
+  getSchoolStats: async (params?: CommunityScope) => {
+    const response = await api.get<GetAdminSchoolStatsResponse>("/admin/schools/stats", { params });
     return response.data;
   },
 
@@ -232,6 +267,125 @@ export const adminApi = {
       {
         newPassword,
       },
+    );
+    return response.data;
+  },
+
+  // Gestión de comunidades (solo super admin)
+  /**
+   * Listar todas las comunidades con sus dominios y métricas
+   */
+  getCommunities: async () => {
+    const response = await api.get<GetAdminCommunitiesResponse>("/admin/communities");
+    return response.data;
+  },
+
+  /**
+   * Crear una comunidad. El slug es inmutable después de crearla.
+   */
+  createCommunity: async (data: {
+    slug: string;
+    name: string;
+    mediaId?: UUID | null;
+    theme?: CommunityTheme;
+    domains?: string[];
+  }) => {
+    const response = await api.post<PostAdminCommunityResponse>("/admin/communities", data);
+    return response.data;
+  },
+
+  /**
+   * Actualizar una comunidad. El slug no se puede cambiar.
+   */
+  updateCommunity: async (
+    communityId: UUID,
+    data: {
+      name?: string;
+      mediaId?: UUID | null;
+      theme?: CommunityTheme;
+      active?: boolean;
+    },
+  ) => {
+    const response = await api.patch<PatchAdminCommunityResponse>(
+      `/admin/communities/${communityId}`,
+      data,
+    );
+    return response.data;
+  },
+
+  /**
+   * Agregar un dominio de correo a una comunidad
+   */
+  addCommunityDomain: async (communityId: UUID, domain: string) => {
+    const response = await api.post<PostAdminCommunityDomainResponse>(
+      `/admin/communities/${communityId}/domains`,
+      { domain },
+    );
+    return response.data;
+  },
+
+  /**
+   * Quitar un dominio de correo de una comunidad
+   */
+  removeCommunityDomain: async (communityId: UUID, domainId: UUID) => {
+    const response = await api.delete<DeleteAdminCommunityDomainResponse>(
+      `/admin/communities/${communityId}/domains/${domainId}`,
+    );
+    return response.data;
+  },
+
+  // Invitaciones
+  /**
+   * Listar invitaciones (paginado)
+   */
+  getInvitations: async (params?: { page?: number } & CommunityScope) => {
+    const response = await api.get<GetAdminInvitationsResponse>("/admin/invitations", { params });
+    return response.data;
+  },
+
+  /**
+   * Generar una invitación de un solo uso
+   */
+  createInvitation: async (data?: {
+    communityId?: UUID;
+    note?: string;
+    expiresInDays?: number;
+  }) => {
+    const response = await api.post<PostAdminInvitationResponse>("/admin/invitations", data ?? {});
+    return response.data;
+  },
+
+  /**
+   * Revocar una invitación sin usar
+   */
+  deleteInvitation: async (invitationId: UUID, params?: CommunityScope) => {
+    const response = await api.delete<DeleteAdminInvitationResponse>(
+      `/admin/invitations/${invitationId}`,
+      { params },
+    );
+    return response.data;
+  },
+
+  // Solicitudes de borrado de cuenta
+  /**
+   * Listar solicitudes de borrado de cuenta
+   */
+  getDeletionRequests: async (
+    params?: { page?: number; status?: "pending" | "completed" | "rejected" } & CommunityScope,
+  ) => {
+    const response = await api.get<GetAdminDeletionRequestsResponse>("/admin/deletion-requests", {
+      params,
+    });
+    return response.data;
+  },
+
+  /**
+   * Resolver una solicitud: `completed` borra la cuenta de verdad, `rejected` solo la cierra.
+   */
+  resolveDeletionRequest: async (requestId: UUID, action: "completed" | "rejected") => {
+    const response = await api.post<PostAdminResolveDeletionResponse>(
+      `/admin/deletion-requests/${requestId}/resolve`,
+      { action },
     );
     return response.data;
   },

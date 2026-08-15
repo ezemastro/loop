@@ -14,21 +14,25 @@ import {
 } from "@/components/buttons/GoogleSignInButton";
 import { useToast } from "@/components/ToastProvider";
 import BackButton from "@/components/BackButton";
+import { useThemeStore } from "@/stores/theme";
 
 export default function SchoolSelection() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [selectedSchools, setSelectedSchools] = useState<School[]>([]);
   const [credential, setCredential] = useState<string | null>(null);
+  const [invitationToken, setInvitationToken] = useState<string | undefined>(undefined);
+  const [community, setCommunity] = useState<Community | null>(null);
   const [isLoadingCredential, setIsLoadingCredential] = useState(true);
   const googleLoginMutation = useGoogleLogin();
   const { showToast } = useToast();
+  const setPreview = useThemeStore((state) => state.setPreview);
 
   useEffect(() => {
     const loadCredential = async () => {
       try {
-        const storedCredential = await getStoredGoogleCredential();
-        if (!storedCredential) {
+        const stored = await getStoredGoogleCredential();
+        if (!stored.credential) {
           showToast(
             "No se encontró información de autenticación. Por favor, inicia sesión nuevamente.",
             "error",
@@ -36,7 +40,11 @@ export default function SchoolSelection() {
           router.replace("/(auth)/login");
           return;
         }
-        setCredential(storedCredential);
+        setCredential(stored.credential);
+        setInvitationToken(stored.invitationToken);
+        setCommunity(stored.community);
+        // La comunidad ya la resolvió el servidor en el primer paso: pintar con sus colores.
+        setPreview(stored.community);
       } catch (error) {
         showToast("Hubo un problema al cargar la sesión.", "error");
         router.replace("/(auth)/login");
@@ -69,6 +77,7 @@ export default function SchoolSelection() {
       {
         credential,
         schoolIds,
+        invitationToken,
       },
       {
         onError: async (error: any) => {
@@ -113,7 +122,17 @@ export default function SchoolSelection() {
             <Text className="color-main-text text-lg text-center">
               Para terminar de crear su cuenta seleccione la o las escuelas a las que pertenece
             </Text>
-            <SchoolSelector value={selectedSchools} multiple onChange={setSelectedSchools} />
+            {community ? (
+              <Text className="text-secondary-text text-center">
+                Colegios de <Text className="font-bold text-primary">{community.name}</Text>
+              </Text>
+            ) : null}
+            <SchoolSelector
+              value={selectedSchools}
+              multiple
+              communityId={community?.id}
+              onChange={setSelectedSchools}
+            />
             <CustomButton onPress={handleCompleteSignIn} disabled={isButtonDisabled}>
               {googleLoginMutation.isPending ? (
                 <ActivityIndicator color="#fff" size="small" />

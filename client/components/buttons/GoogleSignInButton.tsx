@@ -14,34 +14,44 @@ import * as WebBrowser from "expo-web-browser";
 import { useRouter } from "expo-router";
 import { useGoogleLogin } from "@/hooks/useGoogleLogin";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { VALID_EMAIL_DOMAINS, WEB_GOOGLE_CLIENT_ID } from "@/config";
+import { WEB_GOOGLE_CLIENT_ID } from "@/config";
 import { getUserFriendlyErrorMessage, isNetworkError } from "@/services/errorMapping";
 
 WebBrowser.maybeCompleteAuthSession();
 
 const GOOGLE_CREDENTIAL_KEY = "@google_credential";
+const GOOGLE_INVITATION_KEY = "@google_invitation_token";
+const GOOGLE_COMMUNITY_KEY = "@google_community";
 
 interface GoogleSignInButtonProps {
   onError?: (error: string) => void;
   disabled?: boolean;
+  /** Token de `/register?invite=…`, para entrar a la comunidad del admin que generó el link. */
+  invitationToken?: string;
 }
-
-const ALLOWED_DOMAINS_TEXT = VALID_EMAIL_DOMAINS.map((domain) => `@${domain}`).join(", ");
 
 export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
   onError,
   disabled = false,
+  invitationToken,
 }) => {
   if (Platform.OS === "web" && !WEB_GOOGLE_CLIENT_ID) {
     return null;
   }
 
-  return <GoogleSignInButtonInner onError={onError} disabled={disabled} />;
+  return (
+    <GoogleSignInButtonInner
+      onError={onError}
+      disabled={disabled}
+      invitationToken={invitationToken}
+    />
+  );
 };
 
 const GoogleSignInButtonInner: React.FC<GoogleSignInButtonProps> = ({
   onError,
   disabled = false,
+  invitationToken,
 }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -60,21 +70,35 @@ const GoogleSignInButtonInner: React.FC<GoogleSignInButtonProps> = ({
 
   const loginWithGoogleCredential = async (credential: string) => {
     await AsyncStorage.setItem(GOOGLE_CREDENTIAL_KEY, credential);
+    // La invitación viaja junto al credential porque el registro con Google es en dos pasos y el
+    // segundo ocurre en otra pantalla, que tiene que reenviar exactamente lo mismo.
+    if (invitationToken) {
+      await AsyncStorage.setItem(GOOGLE_INVITATION_KEY, invitationToken);
+    } else {
+      await AsyncStorage.removeItem(GOOGLE_INVITATION_KEY);
+    }
+    await AsyncStorage.removeItem(GOOGLE_COMMUNITY_KEY);
 
     try {
-      await googleLoginMutation.mutateAsync({ credential });
-      await AsyncStorage.removeItem(GOOGLE_CREDENTIAL_KEY);
+      await googleLoginMutation.mutateAsync({ credential, invitationToken });
+      await clearStoredGoogleData();
     } catch (error: any) {
       const errorCode = error?.errorCode;
 
       if (errorCode === "SCHOOL_IDS_REQUIRED") {
+        // El servidor ya resolvió la comunidad: guardarla evita tener que volver a deducirla en el
+        // segundo paso, donde no hay ni correo tipeado ni sesión.
+        const community = (error?.data as { community?: Community } | undefined)?.community;
+        if (community) {
+          await AsyncStorage.setItem(GOOGLE_COMMUNITY_KEY, JSON.stringify(community));
+        }
         router.push("/(auth)/schoolSelection");
         return;
       }
 
       const displayError = getUserFriendlyErrorMessage(error);
       onError?.(displayError);
-      await AsyncStorage.removeItem(GOOGLE_CREDENTIAL_KEY);
+      await clearStoredGoogleData();
     }
   };
 
@@ -135,7 +159,7 @@ const GoogleSignInButtonInner: React.FC<GoogleSignInButtonProps> = ({
       }
 
       onError?.(errorMessage);
-      await AsyncStorage.removeItem(GOOGLE_CREDENTIAL_KEY);
+      await clearStoredGoogleData();
     } finally {
       if (isMountedRef.current) {
         setIsLoading(false);
@@ -240,18 +264,47 @@ const styles = StyleSheet.create({
   },
 });
 
-export const getStoredGoogleCredential = async (): Promise<string | null> => {
+export interface StoredGoogleSignIn {
+  credential: string | null;
+  invitationToken?: string;
+  community: Community | null;
+}
+
+/**
+ * Devuelve todo lo que dejó el primer paso del alta con Google: el credential, la invitación con la
+ * que se inició y la comunidad que el servidor resolvió al pedir los colegios.
+ */
+export const getStoredGoogleCredential = async (): Promise<StoredGoogleSignIn> => {
   try {
-    return await AsyncStorage.getItem(GOOGLE_CREDENTIAL_KEY);
+    const [credential, invitationToken, rawCommunity] = await Promise.all([
+      AsyncStorage.getItem(GOOGLE_CREDENTIAL_KEY),
+      AsyncStorage.getItem(GOOGLE_INVITATION_KEY),
+      AsyncStorage.getItem(GOOGLE_COMMUNITY_KEY),
+    ]);
+
+    let community: Community | null = null;
+    if (rawCommunity) {
+      try {
+        community = JSON.parse(rawCommunity) as Community;
+      } catch {
+        // Un stash corrupto no debe romper el alta: se sigue sin filtrar por comunidad.
+      }
+    }
+
+    return { credential, invitationToken: invitationToken ?? undefined, community };
   } catch (error) {
     console.error("Error al obtener credential guardado:", error);
-    return null;
+    return { credential: null, community: null };
   }
 };
 
 export const clearStoredGoogleData = async (): Promise<void> => {
   try {
-    await AsyncStorage.removeItem(GOOGLE_CREDENTIAL_KEY);
+    await AsyncStorage.multiRemove([
+      GOOGLE_CREDENTIAL_KEY,
+      GOOGLE_INVITATION_KEY,
+      GOOGLE_COMMUNITY_KEY,
+    ]);
   } catch (error) {
     console.error("Error al limpiar datos de Google guardados:", error);
   }

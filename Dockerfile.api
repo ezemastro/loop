@@ -9,10 +9,11 @@ RUN npm install
 WORKDIR /app/server/api
 RUN npm install --include=dev
 
-# Copiamos código del API y tipos compartidos
+# Copiamos código del API, tipos compartidos y migraciones (el runner `npm run migrate` las busca en ../migrations)
 WORKDIR /app
 COPY shared ./shared
 COPY server/api ./server/api
+COPY server/migrations ./server/migrations
 
 WORKDIR /app/server/api
 EXPOSE 3000

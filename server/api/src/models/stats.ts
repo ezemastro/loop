@@ -1,13 +1,18 @@
-import { withClient } from "../services/postgresClient.js";
+import { inCommunity, withClient } from "../services/postgresClient.js";
 import { queries } from "../services/queries";
+import type { GetGlobalStatsPayload } from "../types/models";
 import { parseGlobalStatsFromDb } from "../utils/parseDb";
 
 export class StatsModel {
-  static async getGlobalStats() {
-    return withClient(async (client) => {
-      const globalStatsDb = await client.query(queries.getGlobalStats);
-      const globalStats = parseGlobalStatsFromDb(globalStatsDb);
-      return { globalStats };
-    });
+  /** `global_stats` pasó a tener una fila por estadística **y por comunidad**. */
+  static async getGlobalStats({ communityId }: GetGlobalStatsPayload) {
+    return withClient(
+      async (client) => {
+        const globalStatsDb = await client.query(queries.getGlobalStats, [client.communityId]);
+        const globalStats = parseGlobalStatsFromDb(globalStatsDb);
+        return { globalStats };
+      },
+      { scope: inCommunity(communityId) },
+    );
   }
 }

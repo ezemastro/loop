@@ -16,6 +16,11 @@ export interface ApiError {
   name: string;
   message: string;
   errorCode?: string;
+  /**
+   * Cuerpo `data` de la respuesta de error. Algunos códigos traen contexto útil: por ejemplo
+   * `SCHOOL_IDS_REQUIRED` viene con la comunidad ya resuelta por el servidor.
+   */
+  data?: unknown;
 }
 
 const tryParseJson = (data: unknown): Record<string, unknown> | null => {
@@ -67,20 +72,18 @@ export const parseApiError = (error: unknown): ApiError => {
       name: parseErrorName({ status }),
       message,
       errorCode: server?.errorCode || undefined,
+      data: tryParseJson(err.response?.data)?.data,
     };
   }
 
-  if (
-    error &&
-    typeof error === "object" &&
-    "message" in (error as Record<string, unknown>)
-  ) {
+  if (error && typeof error === "object" && "message" in (error as Record<string, unknown>)) {
     const err = error as Record<string, unknown>;
     const server = extractServerError(err);
     return {
       name: "Error",
       message: server?.message || String(err.message),
-      errorCode: server?.errorCode || (typeof err.errorCode === "string" ? err.errorCode : undefined),
+      errorCode:
+        server?.errorCode || (typeof err.errorCode === "string" ? err.errorCode : undefined),
     };
   }
 

@@ -10,13 +10,21 @@ export class UploadsController {
     if (!req.file) {
       return next(new InvalidInputError(ERROR_MESSAGES.FILE_NOT_FOUND));
     }
+    const { userId, communityId, isAdmin } = req.session!;
+    // Un usuario sin comunidad resuelta no puede subir nada: la media quedaría huérfana de scope.
+    if (!isAdmin && !communityId) {
+      deleteFile(req.file.filename);
+      return next(new InvalidInputError(ERROR_MESSAGES.COMMUNITY_REQUIRED, "COMMUNITY_REQUIRED"));
+    }
     let media: Media;
     try {
       ({ media } = await UploadModel.saveFile({
         filename: req.file.filename,
         mimetype: req.file.mimetype,
-        userId: req.session!.userId,
-        isAdmin: req.session!.isAdmin || false,
+        userId,
+        isAdmin: isAdmin || false,
+        // Las subidas del panel de admin son media compartida: van sin comunidad.
+        communityId: isAdmin ? null : communityId!,
       }));
     } catch (error) {
       // Eliminar el archivo subido en caso de error

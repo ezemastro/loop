@@ -1,7 +1,3 @@
-import { VALID_EMAIL_DOMAINS } from "@/config";
-
-const ALLOWED_DOMAINS_TEXT = VALID_EMAIL_DOMAINS.map((domain) => `@${domain}`).join(", ");
-
 const ERROR_CODE_MESSAGES: Record<string, string> = {
   VALIDATION_ERROR: "Revisa los datos ingresados e inténtalo de nuevo.",
   INVALID_INPUT: "Revisa los datos ingresados e inténtalo de nuevo.",
@@ -12,10 +8,18 @@ const ERROR_CODE_MESSAGES: Record<string, string> = {
   USER_ALREADY_EXISTS: "El correo electrónico ya está registrado.",
   USER_NOT_FOUND: "No encontramos una cuenta con ese correo electrónico.",
   INVALID_CREDENTIALS: "Correo electrónico o contraseña incorrectos.",
-  INCORRECT_LOGIN_METHOD: "Este usuario no puede iniciar sesión con este método. Prueba con Google.",
-  EMAIL_NOT_AUTHORIZED: `Tu correo no pertenece a un dominio permitido. Dominios válidos: ${ALLOWED_DOMAINS_TEXT}`,
+  INCORRECT_LOGIN_METHOD:
+    "Este usuario no puede iniciar sesión con este método. Prueba con Google.",
+  EMAIL_NOT_AUTHORIZED:
+    "Tu correo no pertenece a ninguna comunidad de Loop. Usá tu correo institucional.",
+  INVITATION_INVALID: "El link de invitación no es válido o ya expiró.",
+  INVITATION_ALREADY_USED: "Este link de invitación ya fue utilizado.",
+  SCHOOLS_NOT_IN_COMMUNITY: "Alguno de los colegios elegidos no pertenece a tu comunidad.",
+  COMMUNITY_REQUIRED:
+    "Primero indicá tu correo institucional para saber a qué comunidad perteneces.",
   GOOGLE_CREDENTIAL_INVALID: "No se pudo verificar tu cuenta de Google. Inténtalo de nuevo.",
-  GOOGLE_EMAIL_NOT_VERIFIED: "Tu correo de Google no está verificado. Verifícalo e inténtalo de nuevo.",
+  GOOGLE_EMAIL_NOT_VERIFIED:
+    "Tu correo de Google no está verificado. Verifícalo e inténtalo de nuevo.",
   GOOGLE_ID_MISMATCH: "No se pudo vincular tu cuenta de Google. Contacta con soporte.",
   SCHOOL_IDS_REQUIRED: "Debes seleccionar al menos una escuela para continuar.",
   TOKEN_GENERATION_FAILED: "Error al iniciar sesión. Inténtalo de nuevo.",

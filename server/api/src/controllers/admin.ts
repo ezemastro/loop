@@ -6,12 +6,33 @@ import {
   validateCreateMissionTemplate,
   validateId,
   validateUpdateMissionTemplate,
-} from "../services/validations";
-import { InvalidInputError } from "../services/errors";
-import { adminCookieOptions, COOKIE_NAMES, ERROR_MESSAGES } from "../config";
-import { AdminModel } from "../models/admin";
-import { generateAdminToken } from "../services/jwt";
-import { successResponse } from "../utils/responses";
+} from "../services/validations.js";
+import { InvalidInputError, UnauthorizedError } from "../services/errors.js";
+import { adminCookieOptions, COOKIE_NAMES, ERROR_MESSAGES } from "../config.js";
+import { AdminModel } from "../models/admin.js";
+import { generateAdminToken } from "../services/jwt.js";
+import { successResponse } from "../utils/responses.js";
+import { adminScopeCommunityId } from "../middlewares/parseAdminToken.js";
+
+/** Un valor de query string utilizable, o `undefined`. Express admite arrays y objetos anidados. */
+const queryString = (value: unknown): string | undefined =>
+  typeof value === "string" && value.length > 0 ? value : undefined;
+
+const requireAdminId = (req: Request): UUID => {
+  const adminId = req.session?.adminId;
+  if (!adminId) throw new UnauthorizedError(ERROR_MESSAGES.USER_NOT_AUTHORIZED);
+  return adminId;
+};
+
+/**
+ * Comunidad sobre la que **escribir**. A diferencia de la de lectura, no puede ser null: un
+ * super admin tiene que decir explícitamente en qué comunidad está creando.
+ */
+const requireScopeCommunityId = (req: Request, requested?: UUID | null): UUID => {
+  const communityId = adminScopeCommunityId(req, requested);
+  if (!communityId) throw new InvalidInputError(ERROR_MESSAGES.COMMUNITY_REQUIRED);
+  return communityId;
+};
 
 export class AdminController {
   static login = async (req: Request, res: Response, next: NextFunction) => {
@@ -33,8 +54,12 @@ export class AdminController {
       return;
     }
 
-    // Generar un token JWT
-    const token = generateAdminToken({ id: admin.id });
+    // Generar un token JWT: el rol y la comunidad viajan en el token, y de ahí sale el scope.
+    const token = generateAdminToken({
+      id: admin.id,
+      role: admin.role,
+      communityId: admin.communityId,
+    });
     res.cookie(COOKIE_NAMES.ADMIN_TOKEN, token, adminCookieOptions);
     return res.status(200).json(successResponse({ data: { admin } }));
   };
@@ -48,7 +73,7 @@ export class AdminController {
       next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
       return;
     }
-    // Registrar el nuevo administrador
+    // Registrar el nuevo administrador. El rol y la comunidad se heredan de la allowlist.
     let admin: Admin;
     try {
       ({ admin } = await AdminModel.register({
@@ -61,7 +86,11 @@ export class AdminController {
       return;
     }
     // Generar un token JWT
-    const token = generateAdminToken({ id: admin.id });
+    const token = generateAdminToken({
+      id: admin.id,
+      role: admin.role,
+      communityId: admin.communityId,
+    });
     res.cookie(COOKIE_NAMES.ADMIN_TOKEN, token, adminCookieOptions);
     return res.status(201).json(successResponse({ data: { admin } }));
   };
@@ -89,15 +118,41 @@ export class AdminController {
       return;
     }
     // Generar un token JWT
-    const token = generateAdminToken({ id: admin.id });
+    const token = generateAdminToken({
+      id: admin.id,
+      role: admin.role,
+      communityId: admin.communityId,
+    });
     res.cookie(COOKIE_NAMES.ADMIN_TOKEN, token, adminCookieOptions);
     return res.status(200).json(successResponse({ data: { admin } }));
   };
 
+  /**
+   * Autorizar un correo es delegar permisos, así que se limita al alcance del que autoriza:
+   * un community_admin solo puede sumar admins a su comunidad, y solo un super admin puede
+   * crear otro super admin.
+   */
   static addValidEmailForRegistration = async (req: Request, res: Response, next: NextFunction) => {
-    const { email } = req.body as PostAdminAuthorizeEmailRequest["body"];
+    const { email, role, communityId } = req.body as PostAdminAuthorizeEmailRequest["body"] & {
+      role?: AdminRole;
+      communityId?: UUID;
+    };
+    const requestedRole: AdminRole = role === "super_admin" ? "super_admin" : "community_admin";
+    if (requestedRole === "super_admin" && req.session?.adminRole !== "super_admin") {
+      return res.status(403).json({
+        success: false,
+        error: ERROR_MESSAGES.SUPER_ADMIN_REQUIRED,
+        errorCode: "SUPER_ADMIN_REQUIRED",
+      });
+    }
     try {
-      await AdminModel.addValidEmailForRegistration({ email });
+      await AdminModel.addValidEmailForRegistration({
+        email,
+        role: requestedRole,
+        // super_admin ⇔ sin comunidad (lo exige un CHECK en la base).
+        communityId:
+          requestedRole === "super_admin" ? null : requireScopeCommunityId(req, communityId),
+      });
       return res.status(201).json(successResponse({}));
     } catch (error) {
       next(error);
@@ -106,11 +161,12 @@ export class AdminController {
 
   // Gestión de usuarios
   static getUsers = async (req: Request, res: Response, next: NextFunction) => {
-    const { page, search } = req.query;
+    const { page, search, communityId } = req.query;
     try {
       const { users, total } = await AdminModel.getUsers({
         page: page ? Number(page) : 1,
-        search: search as string | undefined,
+        search: queryString(search),
+        communityId: adminScopeCommunityId(req, queryString(communityId)),
       });
       return res.status(200).json(successResponse({ data: { users, total } }));
     } catch (error) {
@@ -130,7 +186,56 @@ export class AdminController {
         amount,
         positive,
         meta,
+        communityId: adminScopeCommunityId(req, queryString(req.query.communityId)),
       });
+      return res.status(200).json(successResponse({ data: { user } }));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  static resetUserPassword = async (req: Request, res: Response, next: NextFunction) => {
+    const { newPassword } = req.body as PostAdminUserResetPasswordRequest["body"];
+    const { userId } = req.params as PostAdminUserResetPasswordRequest["params"];
+    try {
+      await validateId(userId);
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    // No hay validaciones porque es administrador
+    try {
+      await AdminModel.resetUserPassword({
+        userId,
+        newPassword,
+        communityId: adminScopeCommunityId(req, queryString(req.query.communityId)),
+      });
+      return res.status(200).json(successResponse({ data: { userId } }));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * Mueve una cuenta de comunidad. Solo super admin: es la única operación del panel que cruza
+   * la frontera de aislamiento.
+   */
+  static moveUserToCommunity = async (req: Request, res: Response, next: NextFunction) => {
+    const { userId } = req.params as { userId: UUID };
+    const { communityId, schoolIds } = req.body as {
+      communityId?: UUID;
+      schoolIds?: UUID[];
+    };
+    if (!communityId || !Array.isArray(schoolIds)) {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    try {
+      await validateId(userId);
+      await validateId(communityId);
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    try {
+      const { user } = await AdminModel.moveUserToCommunity({ userId, communityId, schoolIds });
       return res.status(200).json(successResponse({ data: { user } }));
     } catch (error) {
       next(error);
@@ -139,9 +244,16 @@ export class AdminController {
 
   // Gestión de escuelas
   static createSchool = async (req: Request, res: Response, next: NextFunction) => {
-    const { name, mediaId } = req.body;
+    const { name, mediaId, communityId } = req.body as PostAdminSchoolsRequest["body"] & {
+      communityId?: UUID;
+    };
     try {
-      const { school } = await AdminModel.createSchool({ name, mediaId });
+      const { school } = await AdminModel.createSchool({
+        name,
+        mediaId,
+        // Un colegio nace en una comunidad concreta: un super admin tiene que indicarla.
+        communityId: requireScopeCommunityId(req, communityId),
+      });
       return res.status(201).json(successResponse({ data: { school } }));
     } catch (error) {
       next(error);
@@ -163,6 +275,7 @@ export class AdminController {
         schoolId,
         name,
         mediaId,
+        communityId: adminScopeCommunityId(req, queryString(req.query.communityId)),
       });
       return res.status(200).json(successResponse({ data: { school } }));
     } catch (error) {
@@ -170,7 +283,7 @@ export class AdminController {
     }
   };
 
-  // Gestión de categorías
+  // Gestión de categorías (catálogo compartido: solo super admin, ver routes/admin.ts)
   static createCategory = async (req: Request, res: Response, next: NextFunction) => {
     const {
       name,
@@ -246,6 +359,7 @@ export class AdminController {
         userId,
         type,
         payload,
+        communityId: adminScopeCommunityId(req, queryString(req.query.communityId)),
       });
       return res.status(201).json(successResponse({ data: { notification } }));
     } catch (error) {
@@ -254,25 +368,29 @@ export class AdminController {
   };
 
   // Estadísticas
-  static getStats = async (_req: Request, res: Response, next: NextFunction) => {
+  static getStats = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { stats } = await AdminModel.getStats();
+      const { stats } = await AdminModel.getStats({
+        communityId: adminScopeCommunityId(req, queryString(req.query.communityId)),
+      });
       return res.status(200).json(successResponse({ data: { stats } }));
     } catch (error) {
       next(error);
     }
   };
 
-  static getSchoolStats = async (_req: Request, res: Response, next: NextFunction) => {
+  static getSchoolStats = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { schools } = await AdminModel.getSchoolStats();
+      const { schools } = await AdminModel.getSchoolStats({
+        communityId: adminScopeCommunityId(req, queryString(req.query.communityId)),
+      });
       return res.status(200).json(successResponse({ data: { schools } }));
     } catch (error) {
       next(error);
     }
   };
 
-  // Gestión de mission templates
+  // Gestión de mission templates (catálogo compartido: solo super admin, ver routes/admin.ts)
   static getMissionTemplates = async (_req: Request, res: Response, next: NextFunction) => {
     try {
       const { missionTemplates } = await AdminModel.getMissionTemplates();
@@ -341,21 +459,137 @@ export class AdminController {
     }
   };
 
-  static resetUserPassword = async (req: Request, res: Response, next: NextFunction) => {
-    const { newPassword } = req.body as PostAdminUserResetPasswordRequest["body"];
-    const { userId } = req.params as PostAdminUserResetPasswordRequest["params"];
+  // ── Comunidades (solo super admin, ver routes/admin.ts) ──
+
+  static getCommunities = async (_req: Request, res: Response, next: NextFunction) => {
     try {
-      await validateId(userId);
+      const { communities } = await AdminModel.getCommunities();
+      return res.status(200).json(successResponse({ data: { communities } }));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  static createCommunity = async (req: Request, res: Response, next: NextFunction) => {
+    const { slug, name, mediaId, theme, domains } = req.body as PostAdminCommunityRequest["body"];
+    if (!slug || !name) {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    try {
+      const { community } = await AdminModel.createCommunity({
+        slug,
+        name,
+        mediaId,
+        theme,
+        domains,
+      });
+      return res.status(201).json(successResponse({ data: { community } }));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  static updateCommunity = async (req: Request, res: Response, next: NextFunction) => {
+    const { communityId } = req.params as PatchAdminCommunityRequest["params"];
+    const { name, mediaId, theme, active } = req.body as PatchAdminCommunityRequest["body"];
+    try {
+      await validateId(communityId);
     } catch {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
-    // No hay validaciones porque es administrador
     try {
-      await AdminModel.resetUserPassword({
-        userId,
-        newPassword,
+      const { community } = await AdminModel.updateCommunity({
+        communityId,
+        name,
+        mediaId,
+        theme,
+        active,
       });
-      return res.status(200).json(successResponse({ data: { userId } }));
+      return res.status(200).json(successResponse({ data: { community } }));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  static addCommunityDomain = async (req: Request, res: Response, next: NextFunction) => {
+    const { communityId } = req.params as PostAdminCommunityDomainRequest["params"];
+    const { domain } = req.body as PostAdminCommunityDomainRequest["body"];
+    if (!domain) {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    try {
+      await validateId(communityId);
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    try {
+      const result = await AdminModel.addCommunityDomain({ communityId, domain });
+      return res.status(201).json(successResponse({ data: { domain: result.domain } }));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  static removeCommunityDomain = async (req: Request, res: Response, next: NextFunction) => {
+    const { communityId, domainId } = req.params as DeleteAdminCommunityDomainRequest["params"];
+    try {
+      await validateId(communityId);
+      await validateId(domainId);
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    try {
+      await AdminModel.removeCommunityDomain({ communityId, domainId });
+      return res.status(200).json(successResponse({}));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // ── Invitaciones ──
+
+  static createInvitation = async (req: Request, res: Response, next: NextFunction) => {
+    const { communityId, note, expiresInDays } = req.body as PostAdminInvitationRequest["body"];
+    try {
+      const { invitation } = await AdminModel.createInvitation({
+        // La comunidad de la invitación sale del admin, nunca del body de un community_admin.
+        communityId: requireScopeCommunityId(req, communityId),
+        adminId: requireAdminId(req),
+        note,
+        expiresInDays: expiresInDays ? Number(expiresInDays) : undefined,
+      });
+      return res.status(201).json(successResponse({ data: { invitation } }));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  static getInvitations = async (req: Request, res: Response, next: NextFunction) => {
+    const { page, communityId } = req.query;
+    try {
+      const { invitations, pagination } = await AdminModel.getInvitations({
+        communityId: adminScopeCommunityId(req, queryString(communityId)),
+        page: page ? Number(page) : 1,
+      });
+      return res.status(200).json(successResponse({ data: { invitations }, pagination }));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  static deleteInvitation = async (req: Request, res: Response, next: NextFunction) => {
+    const { invitationId } = req.params as DeleteAdminInvitationRequest["params"];
+    try {
+      await validateId(invitationId);
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    try {
+      await AdminModel.deleteInvitation({
+        invitationId,
+        communityId: adminScopeCommunityId(req, queryString(req.query.communityId)),
+      });
+      return res.status(200).json(successResponse({}));
     } catch (error) {
       next(error);
     }

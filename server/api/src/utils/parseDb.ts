@@ -28,11 +28,51 @@ export const parsePagination = ({
   };
 };
 
+export const parseCommunityFromDb = (row: DB_Communities): CommunityBase => {
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    mediaId: row.media_id,
+    // El tema se valida al escribirlo (ver validations.ts), nunca al leerlo: una comunidad vieja
+    // con claves faltantes tiene que seguir renderizando, y el cliente ya cae a la paleta default.
+    theme: (row.theme ?? {}) as unknown as CommunityTheme,
+    meta: row.meta,
+    active: row.active,
+  };
+};
+export const parseCommunityFromBase = ({
+  community,
+  media,
+}: {
+  community: CommunityBase;
+  media: Media | null;
+}): Community => {
+  return {
+    ...community,
+    media,
+  };
+};
+
+export const parseInvitationFromDb = (row: DB_Invitations): InvitationBase => {
+  return {
+    id: row.id,
+    token: row.token,
+    communityId: row.community_id,
+    usedByUserId: row.used_by_user_id,
+    usedAt: row.used_at ? parseDateFromDb(row.used_at) : null,
+    expiresAt: row.expires_at ? parseDateFromDb(row.expires_at) : null,
+    note: row.note,
+    createdAt: parseDateFromDb(row.created_at),
+  };
+};
+
 export const parseSchoolFromDb = (row: DB_Schools): SchoolBase => {
   return {
     id: row.id,
     name: row.name,
     mediaId: row.media_id,
+    communityId: row.community_id,
     meta: row.meta,
   };
 };
@@ -56,13 +96,22 @@ export const parseMediaFromDb = (row: DB_Media): Media => {
     mime: row.mime,
   };
 };
-export const parseMediaToDb = ({ media, userId }: { media: Media; userId: UUID }): DB_Media => {
+export const parseMediaToDb = ({
+  media,
+  userId,
+  communityId,
+}: {
+  media: Media;
+  userId: UUID;
+  communityId: UUID | null;
+}): DB_Media => {
   return {
     id: media.id,
     url: media.url,
     media_type: media.mediaType,
     mime: media.mime,
     uploaded_by: userId,
+    community_id: communityId,
   };
 };
 export const parseUserBaseFromDb = (row: DB_Users): UserBase => {
@@ -85,16 +134,19 @@ export const parseUserBaseFromDb = (row: DB_Users): UserBase => {
     notificationToken: row.notification_token,
     googleId: row.google_id,
     password: row.password,
+    communityId: row.community_id,
   };
 };
 export const parsePrivateUserFromBase = ({
   user,
   profileMedia,
   schools,
+  community,
 }: {
   user: Omit<UserBase, "password" | "googleId">;
   profileMedia: Media | null;
   schools: School[];
+  community: Community;
 }): PrivateUser => {
   return {
     id: user.id,
@@ -105,8 +157,10 @@ export const parsePrivateUserFromBase = ({
     credits: user.credits,
     stats: user.stats,
     profileMediaId: user.profileMediaId,
+    communityId: user.communityId,
     profileMedia,
     schools,
+    community,
   };
 };
 
@@ -124,6 +178,7 @@ export const parsePublicUserFromBase = ({
     firstName: user.firstName,
     lastName: user.lastName,
     profileMediaId: user.profileMediaId,
+    communityId: user.communityId,
     stats: user.stats,
     profileMedia,
     schools,
@@ -320,9 +375,10 @@ export const parseNotificationFromBase = ({
   };
 };
 
-export const parseListingToDb = (listing: Listing): DB_Listings => {
+export const parseListingToDb = (listing: Listing, communityId: UUID): DB_Listings => {
   return {
     id: listing.id,
+    community_id: communityId,
     title: listing.title,
     description: listing.description,
     price_credits: listing.price.toString() as DbNumber,
@@ -373,11 +429,33 @@ export const parseMessageFromBase = ({
   };
 };
 
-export const parseAdminFromDb = (row: DB_Admin): Admin => {
+export const parseAdminFromDb = (row: DB_Admin, community: Community | null = null): Admin => {
   return {
     id: row.id,
     email: row.email,
     fullName: row.full_name,
+    role: row.role,
+    communityId: row.community_id,
+    community,
+  };
+};
+
+export const parseInvitationFromBase = ({
+  invitation,
+  community,
+  usedByUser,
+  appBaseUrl,
+}: {
+  invitation: InvitationBase;
+  community: Community | null;
+  usedByUser: PublicUser | null;
+  appBaseUrl: string;
+}): Invitation => {
+  return {
+    ...invitation,
+    url: `${appBaseUrl}/register?invite=${encodeURIComponent(invitation.token)}`,
+    community,
+    usedByUser,
   };
 };
 

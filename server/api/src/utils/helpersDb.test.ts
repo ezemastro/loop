@@ -1,16 +1,28 @@
 import { randomUUID } from "node:crypto";
 import { queries } from "../services/queries";
 import { validateCategory } from "../services/validations";
-import { databaseQueryMock, MOCK_CATEGORIES_DB, MOCK_USER_DB } from "../tests/utils";
+import {
+  databaseQueryMock,
+  MOCK_CATEGORIES_DB,
+  MOCK_COMMUNITY_DB,
+  MOCK_USER_DB,
+} from "../tests/utils";
 import type { DatabaseClient } from "../types/dbClient";
 import { getCategoryById, getNotificationsByUserId } from "./helpersDb";
 
+/**
+ * Los mocks imitan una conexión **ya scopeada** a `MOCK_COMMUNITY`: los helpers leen
+ * `client.communityId` para armar el último parámetro de cada query, así que sin esto pasarían
+ * `undefined` y el mock no matchearía.
+ */
 const client = {
   query: jest.fn().mockImplementation(databaseQueryMock),
   begin: jest.fn(),
   commit: jest.fn(),
   rollback: jest.fn(),
   release: jest.fn(),
+  scope: { mode: "community", communityId: MOCK_COMMUNITY_DB.id },
+  communityId: MOCK_COMMUNITY_DB.id,
 } as DatabaseClient;
 describe("Database Helpers", () => {
   describe("Category Helpers", () => {
@@ -116,6 +128,8 @@ describe("Database Helpers", () => {
         commit: jest.fn(),
         rollback: jest.fn(),
         release: jest.fn(),
+        scope: { mode: "community", communityId: MOCK_COMMUNITY_DB.id },
+        communityId: MOCK_COMMUNITY_DB.id,
       } as DatabaseClient;
 
       const { notifications, pagination } = await getNotificationsByUserId({

@@ -50,10 +50,10 @@ export default function Register() {
     setFormErrors(null);
     try {
       const registerResponse = await adminApi.register(email, fullName, password);
-      if (registerResponse.success) {
-        // Almacenar sesión
-        login(email, fullName);
-        // Redirigir a la página principal
+      if (registerResponse.success && registerResponse.data?.admin) {
+        // Se guarda el admin que devuelve el servidor, no lo que se tipeó: el rol y la comunidad
+        // los hereda de su fila en la allowlist, así que solo el backend los conoce.
+        login(registerResponse.data.admin);
         navigate("/");
       }
     } catch (error) {

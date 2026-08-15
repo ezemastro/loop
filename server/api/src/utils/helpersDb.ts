@@ -2,6 +2,7 @@ import { ERROR_MESSAGES, PAGE_SIZE } from "../config";
 import { InternalServerError, NotFoundError } from "../services/errors";
 import { queries } from "../services/queries";
 import type { DatabaseClient } from "../types/dbClient";
+import { getCommunityByIdWithClient } from "./communities.js";
 import { sendMissionNotification } from "./notifications";
 import {
   parseCategoryBaseFromDb,
@@ -50,7 +51,7 @@ export const getMediaById = async ({
   client: DatabaseClient;
   mediaId: UUID;
 }) => {
-  const [mediaDb] = await client.query(queries.mediaById, [mediaId]);
+  const [mediaDb] = await client.query(queries.mediaById, [mediaId, client.communityId]);
   if (!mediaDb) throw new NotFoundError(ERROR_MESSAGES.MEDIA_NOT_FOUND);
   return parseMediaFromDb(mediaDb);
 };
@@ -63,7 +64,7 @@ export const getMediasByIds = async ({
   mediaIds: UUID[];
 }): Promise<Media[]> => {
   if (mediaIds.length === 0) return [];
-  const mediaDb = await client.query(queries.mediaByIds(mediaIds), [mediaIds]);
+  const mediaDb = await client.query(queries.mediaByIds(mediaIds), [mediaIds, client.communityId]);
   return mediaDb.map(parseMediaFromDb);
 };
 
@@ -74,7 +75,10 @@ export const getMediasByListingId = async ({
   client: DatabaseClient;
   listingId: UUID;
 }) => {
-  const listingMediasDb = await client.query(queries.listingMediasByListingId, [listingId]);
+  const listingMediasDb = await client.query(queries.listingMediasByListingId, [
+    listingId,
+    client.communityId,
+  ]);
   if (listingMediasDb.length === 0) return [];
   const mediaIds = listingMediasDb.map((m) => m.media_id);
   return getMediasByIds({ client, mediaIds });
@@ -90,10 +94,10 @@ export const getMediasByListingIds = async ({
   const map = new Map<UUID, Media[]>();
   listingIds.forEach((id) => map.set(id, []));
   if (listingIds.length === 0) return map;
-  const listingMediasDb = await client.query(
-    queries.listingMediasByListingIds(listingIds),
-    [listingIds],
-  );
+  const listingMediasDb = await client.query(queries.listingMediasByListingIds(listingIds), [
+    listingIds,
+    client.communityId,
+  ]);
   if (listingMediasDb.length === 0) return map;
   const mediaIds = [...new Set(listingMediasDb.map((lm) => lm.media_id))];
   const media = await getMediasByIds({ client, mediaIds });
@@ -115,10 +119,13 @@ export const getSchoolsByIds = async ({
   schoolIds: UUID[];
 }): Promise<School[]> => {
   if (schoolIds.length === 0) return [];
-  const schoolsDb = await client.query(queries.schoolsByIds(schoolIds), [schoolIds]);
+  const schoolsDb = await client.query(queries.schoolsByIds(schoolIds), [
+    schoolIds,
+    client.communityId,
+  ]);
   if (schoolsDb.length === 0) return [];
   const mediaIds = [...new Set(schoolsDb.map((s) => s.media_id))];
-  const mediaDb = await client.query(queries.mediaByIds(mediaIds), [mediaIds]);
+  const mediaDb = await client.query(queries.mediaByIds(mediaIds), [mediaIds, client.communityId]);
   const mediaMap = new Map(mediaDb.map((m) => [m.id, parseMediaFromDb(m)]));
   return schoolsDb
     .map((schoolDb) => {
@@ -137,7 +144,10 @@ export const getUserSchools = async ({
   client: DatabaseClient;
   userId: UUID;
 }): Promise<School[]> => {
-  const userSchoolsDb = await client.query(queries.userSchoolsByUserId, [userId]);
+  const userSchoolsDb = await client.query(queries.userSchoolsByUserId, [
+    userId,
+    client.communityId,
+  ]);
   if (userSchoolsDb.length === 0) return [];
   return getSchoolsByIds({
     client,
@@ -152,7 +162,7 @@ export const getSchoolById = async ({
   client: DatabaseClient;
   schoolId: UUID;
 }) => {
-  const [schoolDb] = await client.query(queries.schoolById, [schoolId]);
+  const [schoolDb] = await client.query(queries.schoolById, [schoolId, client.communityId]);
   if (!schoolDb) throw new NotFoundError(ERROR_MESSAGES.SCHOOL_NOT_FOUND);
   const schoolBase = parseSchoolFromDb(schoolDb);
   const schoolMedia = await getMediaById({
@@ -171,7 +181,7 @@ export const getPrivateUserById = async ({
   client: DatabaseClient;
   userId: UUID;
 }): Promise<PrivateUser> => {
-  const [userDb] = await client.query(queries.userById, [userId]);
+  const [userDb] = await client.query(queries.userById, [userId, client.communityId]);
   if (!userDb) throw new NotFoundError(ERROR_MESSAGES.USER_NOT_FOUND);
   const userBase = parseUserBaseFromDb(userDb);
   const schools = await getUserSchools({ client, userId });
@@ -183,22 +193,23 @@ export const getPrivateUserById = async ({
       if (!(err instanceof NotFoundError)) throw err;
     }
   }
+  // El perfil propio incluye la comunidad porque el cliente la usa para el tema y el branding.
+  const community = await getCommunityByIdWithClient({
+    client,
+    communityId: userBase.communityId,
+  });
+  if (!community) throw new NotFoundError(ERROR_MESSAGES.COMMUNITY_NOT_FOUND);
   const user = parsePrivateUserFromBase({
     user: userBase,
     profileMedia,
     schools,
+    community,
   });
   return user;
 };
 
-export const getUserById = async ({
-  client,
-  userId,
-}: {
-  client: DatabaseClient;
-  userId: UUID;
-}) => {
-  const [userDb] = await client.query(queries.userById, [userId]);
+export const getUserById = async ({ client, userId }: { client: DatabaseClient; userId: UUID }) => {
+  const [userDb] = await client.query(queries.userById, [userId, client.communityId]);
   if (!userDb) throw new NotFoundError(ERROR_MESSAGES.USER_NOT_FOUND);
   const userBase = parseUserBaseFromDb(userDb);
   const schools = await getUserSchools({ client, userId });
@@ -227,19 +238,20 @@ export const getUsersByIds = async ({
 }): Promise<Map<UUID, PublicUser>> => {
   const map = new Map<UUID, PublicUser>();
   if (userIds.length === 0) return map;
-  const usersDb = await client.query(queries.usersByIds(userIds), [userIds]);
+  const usersDb = await client.query(queries.usersByIds(userIds), [userIds, client.communityId]);
   if (usersDb.length === 0) return map;
   // Batch fetch all school memberships for these users
-  const allUserSchoolsDb = await client.query(
-    queries.userSchoolsByUserIds(userIds),
-    [userIds],
-  );
+  const allUserSchoolsDb = await client.query(queries.userSchoolsByUserIds(userIds), [
+    userIds,
+    client.communityId,
+  ]);
   // Collect all unique school IDs
-  const allSchoolIds = [...new Set(allUserSchoolsDb.map((us: { school_id: UUID }) => us.school_id))];
+  const allSchoolIds = [
+    ...new Set(allUserSchoolsDb.map((us: { school_id: UUID }) => us.school_id)),
+  ];
   // Batch fetch all schools
-  const allSchools = allSchoolIds.length > 0
-    ? await getSchoolsByIds({ client, schoolIds: allSchoolIds })
-    : [];
+  const allSchools =
+    allSchoolIds.length > 0 ? await getSchoolsByIds({ client, schoolIds: allSchoolIds }) : [];
   const schoolMap = new Map(allSchools.map((s) => [s.id, s]));
   // Group schools by user
   const userSchoolsMap = new Map<UUID, School[]>();
@@ -249,12 +261,11 @@ export const getUsersByIds = async ({
     if (school) userSchoolsMap.get(us.user_id)!.push(school);
   }
   // Batch fetch all profile media
-  const profileMediaIds = [...new Set(
-    usersDb.map((u) => u.profile_media_id).filter(Boolean) as UUID[],
-  )];
-  const profileMedia = profileMediaIds.length > 0
-    ? await getMediasByIds({ client, mediaIds: profileMediaIds })
-    : [];
+  const profileMediaIds = [
+    ...new Set(usersDb.map((u) => u.profile_media_id).filter(Boolean) as UUID[]),
+  ];
+  const profileMedia =
+    profileMediaIds.length > 0 ? await getMediasByIds({ client, mediaIds: profileMediaIds }) : [];
   const profileMediaMap = new Map(profileMedia.map((m) => [m.id, m]));
   // Assemble
   for (const userDb of usersDb) {
@@ -262,7 +273,7 @@ export const getUsersByIds = async ({
     const user = parsePublicUserFromBase({
       user: userBase,
       profileMedia: userBase.profileMediaId
-        ? profileMediaMap.get(userBase.profileMediaId) ?? null
+        ? (profileMediaMap.get(userBase.profileMediaId) ?? null)
         : null,
       schools: userSchoolsMap.get(userBase.id) ?? [],
     });
@@ -280,14 +291,12 @@ export const getListingById = async ({
   client: DatabaseClient;
   listingId: UUID;
 }) => {
-  const [listingDb] = await client.query(queries.listingById, [listingId]);
+  const [listingDb] = await client.query(queries.listingById, [listingId, client.communityId]);
   if (!listingDb) throw new NotFoundError(ERROR_MESSAGES.LISTING_NOT_FOUND);
   const listingBase = parseListingBaseFromDb(listingDb);
   const listing = parseListingFromBase({
     listing: listingBase,
-    buyer: listingBase.buyerId
-      ? await getUserById({ client, userId: listingBase.buyerId })
-      : null,
+    buyer: listingBase.buyerId ? await getUserById({ client, userId: listingBase.buyerId }) : null,
     media: await getMediasByListingId({ client, listingId }),
     seller: await getUserById({ client, userId: listingBase.sellerId }),
     category: await getCategoryById({
@@ -455,7 +464,7 @@ export const getUserMissionsByUserId = async ({
 }): Promise<UserMission[]> => {
   let userMissionsDb: DB_UserMissions[];
   try {
-    userMissionsDb = await client.query(queries.userMissionsByUserId, [userId]);
+    userMissionsDb = await client.query(queries.userMissionsByUserId, [userId, client.communityId]);
   } catch {
     throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
   }
@@ -465,9 +474,7 @@ export const getUserMissionsByUserId = async ({
   );
   const templateIds = [...new Set(userMissionsBase.map((m) => m.missionTemplateId))];
   const templatesDb = await client.query(queries.missionTemplatesByIds(templateIds), [templateIds]);
-  const templateMap = new Map(
-    templatesDb.map((t) => [t.id, parseMissionTemplateFromDb(t)]),
-  );
+  const templateMap = new Map(templatesDb.map((t) => [t.id, parseMissionTemplateFromDb(t)]));
   return userMissionsBase.map((userMission) =>
     parseUserMissionFromBase({
       userMission,
@@ -495,7 +502,10 @@ export const getUserMissionById = async ({
   client: DatabaseClient;
   userMissionId: UUID;
 }) => {
-  const [missionDb] = await client.query(queries.userMissionsById, [userMissionId]);
+  const [missionDb] = await client.query(queries.userMissionsById, [
+    userMissionId,
+    client.communityId,
+  ]);
   if (!missionDb) throw new NotFoundError(ERROR_MESSAGES.MISSION_NOT_FOUND);
   const missionBase = parseUserMissionBaseFromDb(missionDb);
   const missionTemplate = await getMissionTemplateById({
@@ -525,6 +535,7 @@ export const getNotificationsByUserId = async ({
       userId,
       PAGE_SIZE,
       PAGE_SIZE * ((page ?? 1) - 1),
+      client.communityId,
     ]);
   } catch {
     throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);
@@ -611,7 +622,7 @@ export const getMessageById = async ({
   client: DatabaseClient;
   messageId: UUID;
 }) => {
-  const [messageDb] = await client.query(queries.messageById, [messageId]);
+  const [messageDb] = await client.query(queries.messageById, [messageId, client.communityId]);
   if (!messageDb) throw new NotFoundError(ERROR_MESSAGES.MESSAGE_NOT_FOUND);
   const messageBase = parseMessageBaseFromDb(messageDb);
   return parseMessageFromBase({
@@ -643,6 +654,7 @@ export const progressMission = async ({
   const userMissionDb = await client.query(queries.userMissionsByUserIdAndTemplateId, [
     userId,
     missionTemplate.id,
+    client.communityId,
   ]);
   if (userMissionDb.length === 0) return;
   const userMissionBase = parseUserMissionBaseFromDb(userMissionDb[0]!);
@@ -654,11 +666,16 @@ export const progressMission = async ({
   const current = userMission.progress.current + 1;
   const completed = current >= userMission.progress.total;
   if (completed && !userMission.completed) {
-    const userDb = await client.query(queries.userById, [userId]);
+    const userDb = await client.query(queries.userById, [userId, client.communityId]);
     if (userDb.length === 0) return;
     const userBase = parseUserBaseFromDb(userDb[0]!);
     const newCredits = (userBase.credits.balance ?? 0) + missionTemplate.rewardCredits;
-    await client.query(queries.updateUserBalance, [newCredits, userBase.credits.locked, userId]);
+    await client.query(queries.updateUserBalance, [
+      newCredits,
+      userBase.credits.locked,
+      userId,
+      client.communityId,
+    ]);
     await sendMissionNotification({
       client,
       userId,
@@ -670,6 +687,7 @@ export const progressMission = async ({
     { current, total: userMission.progress.total },
     completed,
     userMission.id,
+    client.communityId,
   ]);
 };
 
@@ -688,6 +706,7 @@ export const assignMissionToUser = async ({
   const userMissionDb = await client.query(queries.userMissionsByUserIdAndTemplateId, [
     userId,
     missionTemplate.id,
+    client.communityId,
   ]);
   if (userMissionDb.length > 0) return;
   const total = safeNumber(missionKey.split("-")[missionKey.split("-").length - 1]) ?? 1;
@@ -696,9 +715,15 @@ export const assignMissionToUser = async ({
     missionTemplate.id,
     { current: 0, total },
     false,
+    client.communityId,
   ]);
 };
 
+/**
+ * Se llama durante el registro. El `withClient` del alta ya está scopeado a la comunidad del
+ * usuario nuevo, así que `client.communityId` es la comunidad correcta para las misiones que se
+ * insertan acá.
+ */
 export const assignAllMissionsToUser = async ({
   client,
   userId,
@@ -713,6 +738,7 @@ export const assignAllMissionsToUser = async ({
     const userMissionDb = await client.query(queries.userMissionsByUserIdAndTemplateId, [
       userId,
       missionTemplate.id,
+      client.communityId,
     ]);
     if (userMissionDb.length > 0) continue;
     await client.query(queries.assignMissionToUser, [
@@ -725,10 +751,21 @@ export const assignAllMissionsToUser = async ({
           1,
       },
       false,
+      client.communityId,
     ]);
   }
 };
 
+/**
+ * TODO: reescribir como un solo `INSERT INTO user_missions (...) SELECT ... FROM users WHERE ...
+ * ON CONFLICT DO NOTHING`. Hoy recorre todos los usuarios de la comunidad haciendo dos queries por
+ * cabeza (N+1), y encima la ventana entre el SELECT y el INSERT permite duplicados si dos admins
+ * lo disparan a la vez. No se reescribe en esta migración para no mezclar cambios de aislamiento
+ * con cambios de comportamiento.
+ *
+ * `client.communityId` es `null` para un super admin, y en ese caso `getAllUsersAdmin` devuelve
+ * los usuarios de todas las comunidades: eso es intencional, es una acción de panel.
+ */
 export const assignMissionToAllUsers = async ({
   client,
   missionTemplateId,
@@ -741,7 +778,7 @@ export const assignMissionToAllUsers = async ({
     throw new NotFoundError(ERROR_MESSAGES.MISSION_TEMPLATE_NOT_FOUND);
   }
   const missionTemplate = parseMissionTemplateFromDb(missionTemplateDb[0]!);
-  const usersDb = await client.query(queries.getAllUsersAdmin);
+  const usersDb = await client.query(queries.getAllUsersAdmin, [client.communityId]);
   if (usersDb.length === 0) return;
   const total =
     safeNumber(missionTemplate.key.split("-")[missionTemplate.key.split("-").length - 1]) ?? 1;
@@ -750,6 +787,8 @@ export const assignMissionToAllUsers = async ({
     const userMissionDb = await client.query(queries.userMissionsByUserIdAndTemplateId, [
       userId,
       missionTemplate.id,
+      // La misión se inserta en la comunidad del usuario, que no siempre es la del client.
+      userDb.community_id,
     ]);
     if (userMissionDb.length > 0) continue;
     await client.query(queries.assignMissionToUser, [
@@ -757,6 +796,7 @@ export const assignMissionToAllUsers = async ({
       missionTemplate.id,
       { current: 0, total },
       false,
+      userDb.community_id,
     ]);
   }
 };

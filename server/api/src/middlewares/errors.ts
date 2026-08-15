@@ -42,7 +42,12 @@ export const errorMiddleware = (err: Error, _req: Request, res: Response, _next:
     return res.status(500).json({ success: false, error: err.message, errorCode: err.code });
   }
   if (err instanceof StepRequired) {
-    return res.status(200).json({ success: false, error: err.message, errorCode: err.code });
+    return res.status(200).json({
+      success: false,
+      error: err.message,
+      errorCode: err.code,
+      ...(err.data ? { data: err.data } : {}),
+    });
   }
   console.error("Error no manejado:", err);
   return res

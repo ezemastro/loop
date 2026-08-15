@@ -24,11 +24,13 @@ export const commonApi = {
   },
 
   /**
-   * Obtener lista de escuelas
-   * @param params - Parámetros de paginación y búsqueda opcionales
+   * Obtener lista de escuelas.
+   *
+   * `communityId` es obligatorio: el endpoint es público (corre antes del registro) y los colegios
+   * viven dentro de una comunidad, así que sin ella no hay nada que listar.
    * @returns Lista de escuelas con paginación
    */
-  getSchools: async (params?: { page?: number; searchTerm?: string }) => {
+  getSchools: async (params: { communityId: UUID; page?: number; searchTerm?: string }) => {
     const response = await api.get<GetSchoolsResponse>("/schools", {
       params,
     });

@@ -1,9 +1,4 @@
-import {
-  ERROR_MESSAGES,
-  INITIAL_CREDITS,
-  VALID_EMAIL_DOMAINS,
-  WEB_GOOGLE_CLIENT_ID,
-} from "../config.js";
+import { ERROR_MESSAGES, INITIAL_CREDITS, WEB_GOOGLE_CLIENT_ID } from "../config.js";
 import {
   ConflictError,
   InternalServerError,
@@ -12,20 +7,126 @@ import {
   UnauthorizedError,
 } from "../services/errors.js";
 import { comparePasswords, hashPassword } from "../services/hash.js";
-import { withClient } from "../services/postgresClient.js";
+import { inCommunity, unscoped, withClient } from "../services/postgresClient.js";
 import { queries } from "../services/queries.js";
+import type { DatabaseClient } from "../types/dbClient.js";
 import type { AuthLoginPayload, AuthRegisterPayload } from "../types/models.js";
 import {
-  assignAllMissionsToUser,
-  getSchoolsByIds,
-  getUserSchools,
-} from "../utils/helpersDb.js";
-import {
-  parseUserBaseFromDb,
-  parseMediaFromDb,
-  parsePrivateUserFromBase,
-} from "../utils/parseDb.js";
+  areSchoolsInCommunity,
+  emailBelongsToCommunity,
+  getCommunityByIdWithClient,
+  resolveCommunityByEmail,
+} from "../utils/communities.js";
+import { assignAllMissionsToUser, getUserSchools } from "../utils/helpersDb.js";
+import { consumeInvitation, lockInvitation } from "../utils/invitations.js";
+import { parseMediaFromDb, parsePrivateUserFromBase, parseUserBaseFromDb } from "../utils/parseDb.js";
 import { webGoogleClient } from "../services/googleOauth.js";
+
+/**
+ * Arma el `PrivateUser` de la respuesta: perfil, colegios y comunidad.
+ *
+ * La comunidad viaja hidratada porque es de donde el cliente saca la paleta y el logo con los que
+ * se pinta la app; es el único usuario del que se manda ese objeto completo.
+ */
+const buildPrivateUser = async ({
+  client,
+  userDb,
+}: {
+  client: DatabaseClient;
+  userDb: DB_Users;
+}): Promise<PrivateUser> => {
+  let profileMedia: Media | null = null;
+  if (userDb.profile_media_id) {
+    const [profileMediaDb] = await client.query(queries.mediaById, [
+      userDb.profile_media_id,
+      client.communityId,
+    ]);
+    if (profileMediaDb) profileMedia = parseMediaFromDb(profileMediaDb);
+  }
+
+  const schools = await getUserSchools({ client, userId: userDb.id });
+
+  const community = await getCommunityByIdWithClient({
+    client,
+    communityId: userDb.community_id,
+  });
+  if (!community) {
+    throw new InternalServerError(ERROR_MESSAGES.COMMUNITY_NOT_FOUND, "COMMUNITY_NOT_FOUND");
+  }
+
+  return parsePrivateUserFromBase({
+    user: parseUserBaseFromDb(userDb),
+    profileMedia,
+    schools,
+    community,
+  });
+};
+
+/**
+ * Regla de dominio en el login.
+ *
+ * Hasta ahora el login **no validaba el dominio en absoluto** (era un TODO pendiente): alcanzaba con
+ * haberse registrado alguna vez. Ahora se valida contra los dominios de la comunidad del usuario,
+ * salvo que haya entrado por invitación (`domain_exempt`), que es precisamente el caso para el que
+ * existen las invitaciones.
+ */
+const assertUserMayLogIn = async ({
+  client,
+  userDb,
+}: {
+  client: DatabaseClient;
+  userDb: DB_Users;
+}) => {
+  if (userDb.domain_exempt) return;
+
+  const belongs = await emailBelongsToCommunity({
+    client,
+    email: userDb.email,
+    communityId: userDb.community_id,
+  });
+  if (!belongs) {
+    throw new UnauthorizedError(ERROR_MESSAGES.EMAIL_NOT_AUTHORIZED, "EMAIL_NOT_AUTHORIZED");
+  }
+};
+
+/**
+ * Decide a qué comunidad entra alguien que se está registrando.
+ *
+ * Con invitación manda la comunidad del admin que la generó; sin invitación, el dominio del correo.
+ * Devuelve también el id de la invitación, que se guarda en el usuario para auditoría.
+ */
+const resolveSignupCommunity = async ({
+  email,
+  invitationToken,
+}: {
+  email: string;
+  invitationToken?: string | undefined;
+}): Promise<{ communityId: UUID; invitationId: UUID | null }> => {
+  if (invitationToken) {
+    // Lectura preliminar, solo para saber con qué comunidad abrir la transacción. La verificación
+    // que cuenta —la que bloquea la fila y garantiza el uso único— se hace adentro, con FOR UPDATE.
+    const invitation = await withClient(
+      async (client) => {
+        const [row] = await client.query(queries.invitationByToken, [invitationToken]);
+        return row ?? null;
+      },
+      { scope: unscoped("token-lookup") },
+    );
+    if (!invitation) {
+      throw new InvalidInputError(ERROR_MESSAGES.INVITATION_INVALID, "INVITATION_INVALID");
+    }
+    if (invitation.used_by_user_id) {
+      throw new ConflictError(ERROR_MESSAGES.INVITATION_ALREADY_USED, "INVITATION_ALREADY_USED");
+    }
+    return { communityId: invitation.community_id, invitationId: invitation.id };
+  }
+
+  const community = await resolveCommunityByEmail(email);
+  if (!community) {
+    throw new InvalidInputError(ERROR_MESSAGES.EMAIL_NOT_AUTHORIZED, "EMAIL_NOT_AUTHORIZED");
+  }
+  return { communityId: community.id, invitationId: null };
+};
 
 export class AuthModel {
   static registerUser = async ({
@@ -34,25 +135,35 @@ export class AuthModel {
     password,
     schoolIds,
     email,
+    invitationToken,
   }: AuthRegisterPayload) => {
+    // El email es único a nivel global: como los dominios son disjuntos entre comunidades, no
+    // existe el caso legítimo de la misma dirección en dos comunidades distintas.
+    const exists = await withClient(
+      async (client) => {
+        const [row] = await client.query(queries.userExists, [email]);
+        return !!row?.user_exists;
+      },
+      { scope: unscoped("auth:lookup-user") },
+    );
+    if (exists) {
+      throw new ConflictError(ERROR_MESSAGES.USER_ALREADY_EXISTS, "USER_ALREADY_EXISTS");
+    }
+
+    const { communityId } = await resolveSignupCommunity({ email, invitationToken });
+
     return withClient(
       async (client) => {
-        await client.begin();
+        // Reserva definitiva de la invitación: bloquea la fila hasta el commit.
+        const invitation = await lockInvitation({ client, token: invitationToken });
 
-        const query = await client.query(queries.userExists, [email]);
-        if (query[0]?.user_exists) {
-          throw new ConflictError(ERROR_MESSAGES.USER_ALREADY_EXISTS, "USER_ALREADY_EXISTS");
+        const schoolsOk = await areSchoolsInCommunity({ client, schoolIds, communityId });
+        if (!schoolsOk) {
+          throw new InvalidInputError(
+            ERROR_MESSAGES.SCHOOLS_NOT_IN_COMMUNITY,
+            "SCHOOLS_NOT_IN_COMMUNITY",
+          );
         }
-
-        const emailLower = email.toLowerCase();
-        const isValidEmail = VALID_EMAIL_DOMAINS.some((domain) =>
-          emailLower.endsWith(`@${domain}`),
-        );
-        if (!isValidEmail) {
-          throw new InvalidInputError(ERROR_MESSAGES.EMAIL_NOT_AUTHORIZED, "EMAIL_NOT_AUTHORIZED");
-        }
-
-        const schools = await getSchoolsByIds({ client, schoolIds });
 
         const hashedPassword = await hashPassword(password);
 
@@ -61,18 +172,32 @@ export class AuthModel {
           firstName,
           lastName,
           hashedPassword,
+          communityId,
+          invitation?.id ?? null,
+          !!invitation,
         ]);
-
         if (!newUser) {
           throw new InternalServerError(ERROR_MESSAGES.UNEXPECTED_ERROR);
+        }
+
+        if (invitation) {
+          await consumeInvitation({ client, invitationId: invitation.id, userId: newUser.id });
         }
 
         await client.query(queries.insertUserSchools(schoolIds.length), [
           newUser.id,
           ...schoolIds,
+          communityId,
         ]);
 
         await assignAllMissionsToUser({ client, userId: newUser.id });
+
+        const community = await getCommunityByIdWithClient({ client, communityId });
+        if (!community) {
+          throw new InternalServerError(ERROR_MESSAGES.COMMUNITY_NOT_FOUND, "COMMUNITY_NOT_FOUND");
+        }
+
+        const schools = await getUserSchools({ client, userId: newUser.id });
 
         const user: PrivateUser = parsePrivateUserFromBase({
           user: {
@@ -82,60 +207,62 @@ export class AuthModel {
             lastName,
             phone: null,
             profileMediaId: null,
+            communityId,
             credits: { balance: INITIAL_CREDITS, locked: 0 },
             stats: { kgWaste: 0, kgCo2: 0, lH2o: 0 },
             notificationToken: null,
           },
           profileMedia: null,
           schools,
+          community,
         });
 
         return { user };
       },
-      { transaction: true },
+      { scope: inCommunity(communityId), transaction: true },
     );
   };
 
   static loginUser = async ({ email, password }: AuthLoginPayload) => {
-    return withClient(async (client) => {
-      const [userDb] = await client.query(queries.userByEmail, [email]);
-      if (!userDb) {
-        throw new UnauthorizedError(ERROR_MESSAGES.USER_NOT_FOUND, "USER_NOT_FOUND");
-      }
+    // Búsqueda sin scope: todavía no sabemos de qué comunidad es.
+    const userDb = await withClient(
+      async (client) => {
+        const [row] = await client.query(queries.userByEmail, [email]);
+        return row ?? null;
+      },
+      { scope: unscoped("auth:lookup-user") },
+    );
 
-      if (!userDb.password) {
-        throw new UnauthorizedError(ERROR_MESSAGES.INCORRECT_LOGIN_METHOD, "INCORRECT_LOGIN_METHOD");
-      }
+    if (!userDb) {
+      throw new UnauthorizedError(ERROR_MESSAGES.USER_NOT_FOUND, "USER_NOT_FOUND");
+    }
+    if (!userDb.password) {
+      throw new UnauthorizedError(ERROR_MESSAGES.INCORRECT_LOGIN_METHOD, "INCORRECT_LOGIN_METHOD");
+    }
 
-      const isPasswordCorrect = await comparePasswords(password, userDb.password);
-      if (!isPasswordCorrect) {
-        throw new UnauthorizedError(ERROR_MESSAGES.INVALID_CREDENTIALS, "INVALID_CREDENTIALS");
-      }
+    const isPasswordCorrect = await comparePasswords(password, userDb.password);
+    if (!isPasswordCorrect) {
+      throw new UnauthorizedError(ERROR_MESSAGES.INVALID_CREDENTIALS, "INVALID_CREDENTIALS");
+    }
 
-      let profileMedia = null;
-      if (userDb.profile_media_id) {
-        const [profileMediaDb] = await client.query(queries.mediaById, [userDb.profile_media_id]);
-        if (profileMediaDb) profileMedia = parseMediaFromDb(profileMediaDb);
-      }
-
-      const schools = await getUserSchools({ client, userId: userDb.id });
-
-      const user: PrivateUser = parsePrivateUserFromBase({
-        user: parseUserBaseFromDb(userDb),
-        profileMedia,
-        schools,
-      });
-
-      return { user };
-    });
+    // A partir de acá ya sabemos la comunidad, así que se trabaja scopeado.
+    return withClient(
+      async (client) => {
+        await assertUserMayLogIn({ client, userDb });
+        return { user: await buildPrivateUser({ client, userDb }) };
+      },
+      { scope: inCommunity(userDb.community_id) },
+    );
   };
 
   static googleLogin = async ({
     credential,
     schoolIds,
+    invitationToken,
   }: {
     credential: string;
     schoolIds?: UUID[];
+    invitationToken?: string;
   }) => {
     const ticket = await webGoogleClient.verifyIdToken({
       idToken: credential,
@@ -144,7 +271,10 @@ export class AuthModel {
 
     const payload = ticket.getPayload();
     if (!payload) {
-      throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_CREDENTIAL_INVALID, "GOOGLE_CREDENTIAL_INVALID");
+      throw new InvalidInputError(
+        ERROR_MESSAGES.GOOGLE_CREDENTIAL_INVALID,
+        "GOOGLE_CREDENTIAL_INVALID",
+      );
     }
 
     const googleId = payload.sub;
@@ -154,90 +284,140 @@ export class AuthModel {
     const givenName = payload.given_name;
     const familyName = payload.family_name;
 
-    if (!emailVerified) {
-      throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_EMAIL_NOT_VERIFIED, "GOOGLE_EMAIL_NOT_VERIFIED");
-    }
-
-    const emailLower = email!.toLowerCase();
-    const isValidEmail = VALID_EMAIL_DOMAINS.some((domain) => emailLower.endsWith(`@${domain}`));
-    if (!isValidEmail) {
-      throw new InvalidInputError(ERROR_MESSAGES.EMAIL_NOT_AUTHORIZED, "EMAIL_NOT_AUTHORIZED");
-    }
-
-    // Buscar usuario existente primero (sin DB)
-    return withClient(async (client) => {
-      let userDb: DB_Users | undefined;
-      [userDb] = await client.query(queries.userByGoogleId, [googleId]);
-
-      if (!userDb) {
-        [userDb] = await client.query(queries.userByEmail, [email]);
-        if (userDb) {
-          await client.query(queries.updateUserGoogleId, [googleId, userDb.id]);
-          userDb.google_id = googleId;
-        }
-      }
-
-      // Usuario existente — login normal
-      if (userDb) {
-        if (userDb.google_id !== googleId) {
-          throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_ID_MISMATCH, "GOOGLE_ID_MISMATCH");
-        }
-
-        let profileMedia = null;
-        if (userDb.profile_media_id) {
-          const [profileMediaDb] = await client.query(queries.mediaById, [userDb.profile_media_id]);
-          if (profileMediaDb) profileMedia = parseMediaFromDb(profileMediaDb);
-        }
-
-        const schools = await getUserSchools({ client, userId: userDb.id });
-
-        const user = parsePrivateUserFromBase({
-          user: parseUserBaseFromDb(userDb),
-          profileMedia,
-          schools,
-        });
-
-        return { user };
-      }
-
-      // Usuario nuevo — requiere schoolIds
-      if (!schoolIds || schoolIds.length === 0) {
-        throw new StepRequired(ERROR_MESSAGES.SCHOOL_IDS_REQUIRED_FOR_GOOGLE_SIGNUP, "SCHOOL_IDS_REQUIRED");
-      }
-
-      // Crear usuario con transacción
-      return withClient(
-        async (txClient) => {
-          const [newUserDb] = await txClient.query(queries.createUserWithGoogle, [
-            email,
-            givenName || fullName,
-            familyName || "",
-            googleId,
-          ]);
-
-          if (!newUserDb) {
-            throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR, "DATABASE_QUERY_ERROR");
-          }
-
-          await txClient.query(queries.insertUserSchools(schoolIds.length), [
-            newUserDb.id,
-            ...schoolIds,
-          ]);
-
-          await assignAllMissionsToUser({ client: txClient, userId: newUserDb.id });
-
-          const schools = await getSchoolsByIds({ client: txClient, schoolIds });
-
-          return {
-            user: parsePrivateUserFromBase({
-              user: parseUserBaseFromDb(newUserDb),
-              profileMedia: null,
-              schools,
-            }),
-          };
-        },
-        { transaction: true },
+    if (!emailVerified || !email) {
+      throw new InvalidInputError(
+        ERROR_MESSAGES.GOOGLE_EMAIL_NOT_VERIFIED,
+        "GOOGLE_EMAIL_NOT_VERIFIED",
       );
-    });
+    }
+
+    // Antes la validación de dominio estaba acá arriba, antes de tocar la base. Eso hacía imposible
+    // que entrara un usuario exento (invitado), así que ahora se valida más abajo, una vez que
+    // sabemos si el usuario ya existe y si está exento.
+    const existingUserDb = await withClient(
+      async (client) => {
+        const [byGoogleId] = await client.query(queries.userByGoogleId, [googleId]);
+        if (byGoogleId) return byGoogleId;
+
+        const [byEmail] = await client.query(queries.userByEmail, [email]);
+        if (byEmail) {
+          await client.query(queries.updateUserGoogleId, [googleId, byEmail.id]);
+          return { ...byEmail, google_id: googleId };
+        }
+        return null;
+      },
+      { scope: unscoped("auth:lookup-user") },
+    );
+
+    // ── Usuario existente: login normal ──────────────────────────────────────
+    if (existingUserDb) {
+      if (existingUserDb.google_id !== googleId) {
+        throw new InvalidInputError(ERROR_MESSAGES.GOOGLE_ID_MISMATCH, "GOOGLE_ID_MISMATCH");
+      }
+      // La comunidad de un usuario existente es la que tiene guardada, no la que diga su dominio
+      // ahora: si un dominio se reasigna a otra comunidad, los usuarios ya creados no se mueven.
+      return withClient(
+        async (client) => {
+          await assertUserMayLogIn({ client, userDb: existingUserDb });
+          return { user: await buildPrivateUser({ client, userDb: existingUserDb }) };
+        },
+        { scope: inCommunity(existingUserDb.community_id) },
+      );
+    }
+
+    // ── Usuario nuevo ────────────────────────────────────────────────────────
+    const { communityId } = await resolveSignupCommunity({ email, invitationToken });
+
+    if (!schoolIds || schoolIds.length === 0) {
+      // Falta elegir colegios. Se devuelve la comunidad ya resuelta para que el cliente pueda
+      // filtrar la lista y previsualizar sus colores sin pedirla de nuevo.
+      const community = await withClient(
+        async (client) => getCommunityByIdWithClient({ client, communityId }),
+        { scope: unscoped("public:communities") },
+      );
+      throw new StepRequired(
+        ERROR_MESSAGES.SCHOOL_IDS_REQUIRED_FOR_GOOGLE_SIGNUP,
+        "SCHOOL_IDS_REQUIRED",
+        community ? ({ community } as unknown as JsonObject) : undefined,
+      );
+    }
+
+    return withClient(
+      async (client) => {
+        const invitation = await lockInvitation({ client, token: invitationToken });
+
+        const schoolsOk = await areSchoolsInCommunity({ client, schoolIds, communityId });
+        if (!schoolsOk) {
+          throw new InvalidInputError(
+            ERROR_MESSAGES.SCHOOLS_NOT_IN_COMMUNITY,
+            "SCHOOLS_NOT_IN_COMMUNITY",
+          );
+        }
+
+        const [newUserDb] = await client.query(queries.createUserWithGoogle, [
+          email,
+          givenName || fullName,
+          familyName || "",
+          googleId,
+          communityId,
+          invitation?.id ?? null,
+          !!invitation,
+        ]);
+        if (!newUserDb) {
+          throw new InternalServerError(
+            ERROR_MESSAGES.DATABASE_QUERY_ERROR,
+            "DATABASE_QUERY_ERROR",
+          );
+        }
+
+        if (invitation) {
+          await consumeInvitation({ client, invitationId: invitation.id, userId: newUserDb.id });
+        }
+
+        await client.query(queries.insertUserSchools(schoolIds.length), [
+          newUserDb.id,
+          ...schoolIds,
+          communityId,
+        ]);
+
+        await assignAllMissionsToUser({ client, userId: newUserDb.id });
+
+        return { user: await buildPrivateUser({ client, userDb: newUserDb }) };
+      },
+      { scope: inCommunity(communityId), transaction: true },
+    );
+  };
+
+  /** Datos públicos de una invitación: solo confirma que el link sirve. */
+  static getInvitation = async ({ token }: { token: string }) => {
+    return withClient(
+      async (client) => {
+        const [invitation] = await client.query(queries.invitationByToken, [token]);
+        if (!invitation) {
+          throw new InvalidInputError(ERROR_MESSAGES.INVITATION_INVALID, "INVITATION_INVALID");
+        }
+        if (invitation.used_by_user_id) {
+          throw new ConflictError(
+            ERROR_MESSAGES.INVITATION_ALREADY_USED,
+            "INVITATION_ALREADY_USED",
+          );
+        }
+        if (invitation.expires_at && new Date(invitation.expires_at) < new Date()) {
+          throw new InvalidInputError(ERROR_MESSAGES.INVITATION_INVALID, "INVITATION_INVALID");
+        }
+
+        const community = await getCommunityByIdWithClient({
+          client,
+          communityId: invitation.community_id,
+        });
+        if (!community) {
+          throw new InvalidInputError(ERROR_MESSAGES.INVITATION_INVALID, "INVITATION_INVALID");
+        }
+
+        // Se devuelve el id y la comunidad, nunca quién la creó ni el resto de los datos.
+        return { invitation: { id: invitation.id, community } };
+      },
+      { scope: unscoped("token-lookup") },
+    );
   };
 }

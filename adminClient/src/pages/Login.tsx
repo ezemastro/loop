@@ -3,10 +3,11 @@ import Layout from "@/components/Layout";
 import { adminLoginSchema } from "@/services/validations";
 import { treeifyError } from "zod";
 import adminApi from "@/api/adminApi";
-import { AxiosError } from "axios";
 import { useSessionStore } from "@/stores/session";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import GoogleLoginButton from "@/components/GoogleLoginButton";
+import { Alert, Button, Field, Input } from "@/components/ui";
+import { getErrorMessage } from "@/services/errors";
 
 interface FormErrors {
   email?: string;
@@ -18,18 +19,16 @@ export default function Login() {
   const login = useSessionStore((state) => state.login);
   const navigate = useNavigate();
   const [formErrors, setFormErrors] = useState<FormErrors | null>(null);
+  const [loading, setLoading] = useState(false);
+
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
-    // Aquí iría la lógica para manejar el registro del administrador
     const form = event.target as HTMLFormElement;
     const email = form.email.value;
     const password = form.password.value;
 
     const errors: FormErrors = {};
-    const result = await adminLoginSchema.safeParseAsync({
-      email,
-      password,
-    });
+    const result = await adminLoginSchema.safeParseAsync({ email, password });
     if (!result.success) {
       const tree = treeifyError(result.error);
       errors.email = tree.properties?.email?.errors?.[0];
@@ -39,65 +38,67 @@ export default function Login() {
     }
     setFormErrors(null);
     try {
+      setLoading(true);
       const loginResponse = await adminApi.login(email, password);
-      if (loginResponse.success) {
-        // Almacenar sesión
-        login(email, loginResponse.data?.admin.fullName || "");
-        // Redirigir a la página principal
-        navigate("/");
+      const admin = loginResponse.data?.admin;
+      if (loginResponse.success && admin) {
+        // La sesión guarda rol y comunidad: de ahí sale todo el alcance del panel.
+        login(admin);
+        navigate("/dashboard");
       }
     } catch (error) {
-      if (error instanceof AxiosError) {
-        console.log(error);
-        setFormErrors({ error: error.response?.data.error || error.message });
-      } else {
-        setFormErrors({ error: "Ha ocurrido un error inesperado." });
-      }
+      setFormErrors({ error: getErrorMessage(error, "Ha ocurrido un error inesperado.") });
+    } finally {
+      setLoading(false);
     }
   };
+
   return (
     <Layout>
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-        <h1 className="text-3xl font-bold mb-6">Inicio de Sesión</h1>
-        <div className="gap-4 flex flex-col">
-          <form onSubmit={handleLogin}>
-            <div className="mb-4">
-              <label htmlFor="email">Email:</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                className="border border-gray-300 rounded px-3 py-2 w-full"
-                required
-              />
-              {formErrors?.email && <div className="text-red-500 text-sm">{formErrors.email}</div>}
+      <div className="flex min-h-screen items-center justify-center px-4 py-12">
+        <div className="w-full max-w-sm">
+          <div className="mb-6 text-center">
+            <p className="text-xs font-semibold tracking-[0.2em] text-slate-500 uppercase">Loop</p>
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">
+              Panel de administración
+            </h1>
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <form onSubmit={handleLogin} className="space-y-4">
+              <Field label="Email" htmlFor="email" error={formErrors?.email} required>
+                <Input id="email" name="email" type="email" autoComplete="email" required />
+              </Field>
+              <Field label="Contraseña" htmlFor="password" error={formErrors?.password} required>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                />
+              </Field>
+              {formErrors?.error && <Alert tone="error">{formErrors.error}</Alert>}
+              <Button type="submit" size="lg" loading={loading} className="w-full">
+                Iniciar sesión
+              </Button>
+            </form>
+
+            <div className="my-5 flex items-center gap-3 text-xs text-slate-400">
+              <span className="h-px flex-1 bg-slate-200" />o<span className="h-px flex-1 bg-slate-200" />
             </div>
-            <div className="mb-4">
-              <label htmlFor="password">Contraseña:</label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                className="border border-gray-300 rounded px-3 py-2 w-full"
-                required
-              />
-              {formErrors?.password && (
-                <div className="text-red-500 text-sm">{formErrors.password}</div>
-              )}
+
+            <div className="flex justify-center">
+              <GoogleLoginButton onError={(err) => setFormErrors({ error: err })} />
             </div>
-            <button
-              type="submit"
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full"
-            >
-              Iniciar Sesión
-            </button>
-            {formErrors?.error && (
-              <div className="text-red-500 text-sm mt-3">{formErrors.error}</div>
-            )}
-          </form>
-          <div className="w-full h-0.5 bg-gray-300"></div>
-          {/* Continuar con Google */}
-          <GoogleLoginButton onError={(err) => console.log(err)} />
+          </div>
+
+          <p className="mt-5 text-center text-sm text-slate-500">
+            ¿Tenés un email autorizado?{" "}
+            <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-700">
+              Registrate
+            </Link>
+          </p>
         </div>
       </div>
     </Layout>

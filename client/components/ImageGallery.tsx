@@ -1,4 +1,4 @@
-import { COLORS } from "@/config";
+import { useThemeColors } from "@/hooks/useThemeColors";
 import { getUrl } from "@/services/getUrl";
 import { useRef, useState } from "react";
 import { View, Image, Dimensions } from "react-native";
@@ -11,6 +11,7 @@ export default function ImageGallery({ images }: { images: Media[] }) {
   const progress = useSharedValue(0);
   const ref = useRef<ICarouselInstance>(null);
   const [containerWidth, setContainerWidth] = useState(width);
+  const colors = useThemeColors();
 
   const onPressPagination = (index: number) => {
     ref.current?.scrollTo({
@@ -57,12 +58,12 @@ export default function ImageGallery({ images }: { images: Media[] }) {
           dotStyle={{
             width: 8,
             height: 8,
-            backgroundColor: COLORS.STROKE,
+            backgroundColor: colors.STROKE,
             borderRadius: 4,
           }}
           activeDotStyle={{
             borderRadius: 4,
-            backgroundColor: COLORS.SECONDARY_TEXT,
+            backgroundColor: colors.SECONDARY_TEXT,
           }}
           onPress={onPressPagination}
         />

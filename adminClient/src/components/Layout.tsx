@@ -20,10 +20,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     return null;
   }
 
+  // Fuera de sesión las pantallas son pantallas completas (login, registro): no llevan chrome.
+  if (!isLoggedIn) {
+    return <div className="min-h-screen bg-slate-100 text-slate-900">{children}</div>;
+  }
+
   return (
-    <div className={"min-h-screen grid-cols-[200px_1fr] " + (isLoggedIn ? "grid" : "")}>
-      {isLoggedIn && <Aside />}
-      {children}
+    <div className="flex min-h-screen bg-slate-50 text-slate-900">
+      <Aside />
+      {/* `min-w-0` es lo que permite que una tabla ancha scrollee en vez de estirar la página. */}
+      <main className="min-w-0 flex-1">
+        <div className="mx-auto w-full max-w-7xl px-6 py-8">{children}</div>
+      </main>
     </div>
   );
 }

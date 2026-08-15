@@ -3,9 +3,11 @@ import { StatsModel } from "../models/stats";
 import { successResponse } from "../utils/responses";
 
 export class StatsController {
-  static async getGlobalStats(_req: Request, res: Response, next: NextFunction) {
+  static async getGlobalStats(req: Request, res: Response, next: NextFunction) {
+    // Las estadísticas ambientales son por comunidad, así que el endpoint pasó a requerir sesión.
+    const { communityId } = req.session!;
     try {
-      const { globalStats } = await StatsModel.getGlobalStats();
+      const { globalStats } = await StatsModel.getGlobalStats({ communityId: communityId! });
       res.status(200).json(successResponse({ data: { globalStats } }));
     } catch (error) {
       next(error);

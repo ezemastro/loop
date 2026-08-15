@@ -1,25 +1,26 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/javascript-node
 {
   "name": "Node.js",
-  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
   "image": "node:24-bookworm",
 
-  // Features to add to the dev container. More info: https://containers.dev/features.
   "features": {
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
     "ghcr.io/postfinance/devcontainer-features/opencode:1": {}
   },
 
-  // Use 'forwardPorts' to make a list of ports inside the container available locally.
-  // "forwardPorts": [],
+  // 👇 Esto monta tu config global de opencode del host dentro del container
+  "mounts": [
+    "source=${localEnv:HOME}/.config/opencode,target=/home/node/.config/opencode,type=bind"
+  ],
 
-  // Use 'postCreateCommand' to run commands after the container is created.
-  // "postCreateCommand": "yarn install",
+  // 👇 Si tenés skills externas de Claude Code, también las montás
+  // "mounts": [
+  //   "source=${localEnv:HOME}/.config/opencode,target=/home/node/.config/opencode,type=bind",
+  //   "source=${localEnv:HOME}/.claude/skills,target=/home/node/.claude/skills,type=bind"
+  // ],
 
-  // Configure tool-specific properties.
-  "customizations": { "vscode": { "extensions": ["esbenp.prettier-vscode"] } }
-
-  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-  // "remoteUser": "root"
+  "customizations": {
+    "vscode": {
+      "extensions": ["esbenp.prettier-vscode"]
+    }
+  }
 }

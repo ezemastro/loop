@@ -3,7 +3,8 @@ import * as ImagePicker from "expo-image-picker";
 import { useRef, useState } from "react";
 import Carousel, { ICarouselInstance, Pagination } from "react-native-reanimated-carousel";
 import { useSharedValue } from "react-native-reanimated";
-import { COLORS, IMAGE_FORMAT_ERROR_MESSAGE, MAX_LISTING_IMAGES } from "@/config";
+import { IMAGE_FORMAT_ERROR_MESSAGE, MAX_LISTING_IMAGES } from "@/config";
+import { useThemeColors } from "@/hooks/useThemeColors";
 import { CameraIcon, CrossIcon } from "../Icons";
 import { twMerge } from "tailwind-merge";
 import { getUrl } from "@/services/getUrl";
@@ -26,6 +27,7 @@ export default function ImagesSelector({
 }) {
   const DRAG_THRESHOLD_PX = 8;
   const isWeb = Platform.OS === "web";
+  const colors = useThemeColors();
   const progress = useSharedValue(0);
   const carouselRef = useRef<ICarouselInstance>(null);
   const addPressStartRef = useRef<{ x: number; y: number } | null>(null);
@@ -238,12 +240,12 @@ export default function ImagesSelector({
             dotStyle={{
               width: 8,
               height: 8,
-              backgroundColor: COLORS.STROKE,
+              backgroundColor: colors.STROKE,
               borderRadius: 4,
             }}
             activeDotStyle={{
               borderRadius: 4,
-              backgroundColor: COLORS.SECONDARY_TEXT,
+              backgroundColor: colors.SECONDARY_TEXT,
             }}
             onPress={onPressPagination}
           />

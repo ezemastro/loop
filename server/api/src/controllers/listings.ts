@@ -39,6 +39,7 @@ export class ListingsController {
         productStatus,
         schoolId,
         sellerId,
+        communityId: req.session!.communityId!,
       }));
     } catch (err) {
       return next(err);
@@ -68,6 +69,7 @@ export class ListingsController {
         userId: req.session!.userId,
         productStatus,
         mediaIds,
+        communityId: req.session!.communityId!,
       }));
     } catch (err) {
       return next(err);
@@ -100,6 +102,7 @@ export class ListingsController {
         userId: req.session!.userId,
         productStatus,
         mediaIds,
+        communityId: req.session!.communityId!,
       }));
     } catch (err) {
       return next(err);
@@ -119,6 +122,7 @@ export class ListingsController {
       await ListingsModel.deleteListing({
         listingId,
         userId: req.session!.userId,
+        communityId: req.session!.communityId!,
       });
     } catch (err) {
       return next(err);
@@ -136,7 +140,10 @@ export class ListingsController {
 
     let listing: Listing;
     try {
-      ({ listing } = await ListingsModel.getListingById({ listingId }));
+      ({ listing } = await ListingsModel.getListingById({
+        listingId,
+        communityId: req.session!.communityId!,
+      }));
     } catch (err) {
       return next(err);
     }
@@ -162,6 +169,7 @@ export class ListingsController {
         listingId,
         userId: req.session!.userId,
         offeredCredits: price,
+        communityId: req.session!.communityId!,
       }));
     } catch (err) {
       return next(err);
@@ -181,6 +189,7 @@ export class ListingsController {
       await ListingsModel.deleteOffer({
         listingId,
         userId: req.session!.userId,
+        communityId: req.session!.communityId!,
       });
     } catch (err) {
       return next(err);
@@ -200,6 +209,7 @@ export class ListingsController {
       await ListingsModel.rejectOffer({
         listingId,
         userId: req.session!.userId,
+        communityId: req.session!.communityId!,
       });
     } catch (err) {
       return next(err);
@@ -224,6 +234,7 @@ export class ListingsController {
         listingId,
         tradingListingIds: tradingListingIds || [],
         userId: req.session!.userId,
+        communityId: req.session!.communityId!,
       });
     } catch (err) {
       return next(err);
@@ -243,6 +254,7 @@ export class ListingsController {
       await ListingsModel.receiveListing({
         listingId,
         userId: req.session!.userId,
+        communityId: req.session!.communityId!,
       });
     } catch (err) {
       return next(err);

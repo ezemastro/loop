@@ -16,6 +16,9 @@
     "test:watch": "npm run test -- --watch",
     "docker:test": "docker compose run --rm api npm run test",
     "check-types": "tsc --noEmit",
+    "migrate": "tsx src/scripts/migrate.ts",
+    "migrate:status": "tsx src/scripts/migrate.ts --status",
+    "check-sql": "python3 ../scripts/check-sql-arity.py",
     "deploy": "node publish.js"
   },
   "dependencies": {

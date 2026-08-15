@@ -2,7 +2,6 @@ import {
   MAX_LISTING_DESCRIPTION_LENGTH,
   MAX_LISTING_TITLE_LENGTH,
   PRODUCT_STATUSES,
-  VALID_EMAIL_DOMAINS,
 } from "@/config";
 import { z } from "zod";
 
@@ -15,10 +14,9 @@ const registerFormSchema = z.object({
     .string()
     .min(2, "El apellido es demasiado corto")
     .max(100, "El apellido es demasiado largo"),
-  email: z.email("El correo electrónico no es válido").refine((email) => {
-    const domain = email.split("@")[1];
-    return VALID_EMAIL_DOMAINS.includes(domain);
-  }, "El correo electrónico debe pertenecer a Reditinere"),
+  // El dominio ya no se valida acá: la comunidad la resuelve el servidor (y con invitación el
+  // dominio ni siquiera importa), así que cliente y servidor no pueden discrepar.
+  email: z.email("El correo electrónico no es válido"),
   password: z
     .string()
     .min(6, "La contraseña es demasiado corta")

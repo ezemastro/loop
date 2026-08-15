@@ -29,14 +29,17 @@ describe("SelfModel", () => {
 
   describe("getSelf", () => {
     it("Should return user data", async () => {
-      const result = await SelfModel.getSelf({ userId: MOCK_USER.id });
+      const result = await SelfModel.getSelf({
+        userId: MOCK_USER.id,
+        communityId: MOCK_USER.communityId,
+      });
       await expect(validatePrivateUser(result.user)).resolves.not.toThrow();
     });
     it("Should handle database error", async () => {
       dbConnection.connect = jest.fn().mockRejectedValue(new Error("DB Error"));
-      await expect(SelfModel.getSelf({ userId: MOCK_USER.id })).rejects.toThrow(
-        new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR),
-      );
+      await expect(
+        SelfModel.getSelf({ userId: MOCK_USER.id, communityId: MOCK_USER.communityId }),
+      ).rejects.toThrow(new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR));
     });
   });
 
@@ -82,7 +85,7 @@ describe("SelfModel", () => {
       const result = await SelfModel.updateSelf({
         ...MOCK_USER,
         userId: MOCK_USER.id,
-        email: "invalid-email",
+        // `email` ya no es parte del payload: `PATCH /me` no puede cambiar el correo.
         phone: "inv",
         firstName: "i",
         lastName: "i",
@@ -99,9 +102,9 @@ describe("SelfModel", () => {
     });
     it("Should handle database error", async () => {
       dbConnection.connect = jest.fn().mockRejectedValue(new Error("DB Error"));
-      await expect(SelfModel.updateSelf({ userId: MOCK_USER.id })).rejects.toThrow(
-        new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR),
-      );
+      await expect(
+        SelfModel.updateSelf({ userId: MOCK_USER.id, communityId: MOCK_USER.communityId }),
+      ).rejects.toThrow(new InternalServerError(ERROR_MESSAGES.DATABASE_ERROR));
     });
   });
 });

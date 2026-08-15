@@ -7,9 +7,9 @@ describe("Auth tests", () => {
       password: MOCK_USER.password,
       firstName: MOCK_USER.firstName,
       lastName: MOCK_USER.lastName,
-      roleId: MOCK_USER.roleId,
-      schoolId: MOCK_USER.schoolId,
+      schoolIds: MOCK_USER.schoolIds,
     } as PostAuthRegisterRequest["body"]);
-    // Agregar GET de Role y de School para poder obtener los datos necesarios para el registro
+    // TODO: sembrar una comunidad con su dominio y un colegio antes de este test; hoy el registro
+    // depende de que el dominio del correo resuelva a alguna comunidad de la base.
   });
 });

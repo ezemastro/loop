@@ -75,7 +75,29 @@ npm run build             # astro build
 ### Database
 - PostgreSQL 16, raw `pg` client (no ORM)
 - Connection in `server/api/src/services/postgresClient.ts`
-- SQL migration/seed files in `server/` root: `database_creation.sql`, `create_categories.sql`, `assignMissionsToAllUsers.sql`, `google_oauth_migration.sql`
+- **Migrations**: `server/migrations/*.sql`, applied in order by `npm run migrate` (from `server/api`).
+  `npm run migrate:status` lists pending ones. The runner tracks applied migrations in
+  `schema_migrations` and verifies checksums — never edit an applied migration, add a new one.
+- Base schema + seeds in `server/` root: `database_creation.sql` (base tables only — everything
+  after multi-tenancy lives in `server/migrations/`), `create_categories.sql`
+
+### Multi-tenancy (communities)
+The app is multi-tenant: a `communities` table groups schools, and every user belongs to exactly
+one community, determined by their email domain at signup. **See `MIGRACION-COMUNIDADES.md` for the
+full picture** — it is the reference document for this part of the system.
+
+Three things to know before touching any DB code:
+
+1. `withClient(fn, options)` **requires** a scope: `inCommunity(id)` or `unscoped(reason)`. There is
+   no safe default for "which community is this data from".
+2. Queries carry `AND ($n::uuid IS NULL OR community_id = $n::uuid)` with the community parameter
+   **last**; call sites pass `client.communityId`.
+3. The API connects as `DB_APP_USER` / `DB_UNSCOPED_USER`, never as `POSTGRES_USER` — that one is a
+   superuser and superusers bypass Row-Level Security entirely.
+
+`npm run check-sql` (from `server/api`) cross-checks every call site against its query's parameter
+count. It exists because `client.query` takes `unknown[]`, so TypeScript cannot catch a mismatch —
+it only shows up at runtime.
 
 ### Shared Types
 - `shared/types/app.d.ts` - domain models (User, Listing, Category, School, etc.)

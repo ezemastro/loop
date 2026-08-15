@@ -1,4 +1,5 @@
-import { COLORS, PRODUCT_STATUSES, STATUS_TRANSLATIONS } from "@/config";
+import { PRODUCT_STATUSES, STATUS_TRANSLATIONS } from "@/config";
+import { useThemeColors } from "@/hooks/useThemeColors";
 import { Picker } from "@react-native-picker/picker";
 import { cssInterop } from "nativewind";
 import { useState } from "react";
@@ -22,6 +23,7 @@ export default function ProductStatusSelector({
   emptyLabel?: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const colors = useThemeColors();
   const options: { label: string; value: ProductStatus | null }[] = [
     { label: emptyLabel || "Cualquier estado", value: null },
     {
@@ -96,8 +98,8 @@ export default function ProductStatusSelector({
         selectedValue={value}
         onValueChange={onChange}
         className="px-4"
-        itemStyle={{ color: COLORS.MAIN_TEXT }}
-        selectionColor={COLORS.SECONDARY_TEXT}
+        itemStyle={{ color: colors.MAIN_TEXT }}
+        selectionColor={colors.SECONDARY_TEXT}
         mode="dropdown"
       >
         {options.map((option) => (
@@ -105,7 +107,7 @@ export default function ProductStatusSelector({
             key={option.value || "any"}
             label={option.label}
             value={option.value}
-            color={option.value === null ? COLORS.SECONDARY_TEXT : COLORS.MAIN_TEXT}
+            color={option.value === null ? colors.SECONDARY_TEXT : colors.MAIN_TEXT}
           />
         ))}
       </Picker>

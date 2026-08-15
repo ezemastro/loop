@@ -30,10 +30,53 @@ interface Media {
   mediaType: MediaType;
 }
 
+/**
+ * Paleta de una comunidad. Las claves son exactamente las de `COLORS` en `client/config.ts`, así
+ * el mapeo a las variables CSS de NativeWind es uno a uno.
+ */
+interface CommunityThemeColors {
+  primary: string;
+  secondary: string;
+  tertiary: string;
+  mainText: string;
+  secondaryText: string;
+  credits: string;
+  creditsLight: string;
+  stroke: string;
+  background: string;
+  alert: string;
+}
+interface CommunityTheme {
+  colors: CommunityThemeColors;
+}
+
+/**
+ * Una comunidad agrupa colegios y es la unidad de aislamiento: un usuario pertenece a exactamente
+ * una, determinada por el dominio de su correo al registrarse, e inmutable después.
+ */
+interface CommunityBase {
+  id: UUID;
+  slug: string;
+  name: string;
+  mediaId: UUID | null;
+  theme: CommunityTheme;
+  meta: JsonObject | null;
+  active: boolean;
+}
+interface Community extends CommunityBase {
+  media: Media | null;
+}
+interface CommunityEmailDomain {
+  id: UUID;
+  communityId: UUID;
+  domain: string;
+}
+
 interface SchoolBase {
   id: UUID;
   name: string;
   mediaId: UUID;
+  communityId: UUID;
   meta: JsonObject | null;
 }
 interface School extends SchoolBase {
@@ -47,6 +90,7 @@ interface UserBase {
   firstName: string;
   lastName: string;
   profileMediaId: UUID | null;
+  communityId: UUID;
   credits: { balance: number; locked: number };
   stats: Stats;
   notificationToken: string | null;
@@ -58,8 +102,21 @@ interface User extends UserBase {
   schools: School[];
 }
 
-type PrivateUser = Omit<User, "notificationToken" | "password" | "googleId">;
-type PublicUser = Omit<PrivateUser, "phone" | "credits" | "email">;
+type UserWithoutSecrets = Omit<User, "notificationToken" | "password" | "googleId">;
+
+/**
+ * El usuario de la sesión. Es el único que viaja con la comunidad hidratada, porque es de donde
+ * el cliente saca la paleta y el logo con los que se pinta la app.
+ */
+interface PrivateUser extends UserWithoutSecrets {
+  community: Community;
+}
+
+/**
+ * Otro usuario visto desde la app. No lleva `community` a propósito: por definición es la misma
+ * que la de quien lo está mirando, así que hidratarla en cada vendedor y cada chat sería puro peso.
+ */
+type PublicUser = Omit<UserWithoutSecrets, "phone" | "credits" | "email">;
 
 interface CategoryBase {
   id: UUID;
@@ -233,10 +290,38 @@ interface UserMessage extends UserMessageBase {
   user: PublicUser;
 }
 
+/** `super_admin` administra todas las comunidades; `community_admin` solo la suya. */
+type AdminRole = "super_admin" | "community_admin";
+
 interface Admin {
   id: UUID;
   email: string;
   fullName: string;
+  role: AdminRole;
+  /** null ⇔ super_admin */
+  communityId: UUID | null;
+  community: Community | null;
+}
+
+/**
+ * Enlace de un solo uso que permite registrarse con un correo que no pertenece a los dominios de
+ * la comunidad. Quien lo use entra a la comunidad del admin que lo generó.
+ */
+interface InvitationBase {
+  id: UUID;
+  token: string;
+  communityId: UUID;
+  usedByUserId: UUID | null;
+  usedAt: Date | null;
+  expiresAt: Date | null;
+  note: string | null;
+  createdAt: Date;
+}
+interface Invitation extends InvitationBase {
+  /** Link listo para compartir, armado con APP_BASE_URL. */
+  url: string;
+  community: Community | null;
+  usedByUser: PublicUser | null;
 }
 
 interface UserWishBase {

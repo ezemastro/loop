@@ -4,9 +4,15 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 const fetchSchools = async (
   params: GetSchoolsRequest["query"],
 ): Promise<{ schools: School[]; pagination: Pagination }> => {
-  const { page = 1, searchTerm = "" } = params || {};
+  const { page = 1, searchTerm = "", communityId, domain } = params || {};
+  // El servidor exige saber la comunidad (si hay sesión, la de la sesión gana igual).
   const response = await api.get<GetSchoolsResponse>("/schools", {
-    params: { page, searchTerm },
+    params: {
+      page,
+      searchTerm,
+      ...(communityId ? { communityId } : {}),
+      ...(domain ? { domain } : {}),
+    },
   });
   return {
     schools: response.data.data!.schools,
@@ -14,7 +20,10 @@ const fetchSchools = async (
   };
 };
 
-export const useSchools = (params?: GetSchoolsRequest["query"]) => {
+export const useSchools = (
+  params?: GetSchoolsRequest["query"],
+  options?: { enabled?: boolean },
+) => {
   return useInfiniteQuery({
     queryKey: ["schools", params],
     queryFn: ({ pageParam }) => fetchSchools({ ...params, page: pageParam }),
@@ -22,5 +31,6 @@ export const useSchools = (params?: GetSchoolsRequest["query"]) => {
       return lastPage.pagination.nextPage;
     },
     initialPageParam: 1,
+    enabled: options?.enabled ?? true,
   });
 };

@@ -1,4 +1,4 @@
-import { Text, TextInput, View, FlatList } from "react-native";
+import { Text, TextInput, View, FlatList, ActivityIndicator } from "react-native";
 import { MainView } from "../bases/MainView";
 import SchoolSelector from "../selectors/SchoolSelector";
 import CustomButton from "../bases/CustomButton";
@@ -24,15 +24,32 @@ type Field = {
   render: () => ReactNode;
 };
 
-export default function Register() {
+export default function Register({ invite }: { invite?: string }) {
   const insets = useSafeAreaInsets();
-  const { formData, setFormData, errors, handleSubmit, isRegisterError, displayError } =
-    useRegisterForm();
+  const {
+    formData,
+    setFormData,
+    errors,
+    handleSubmit,
+    isRegisterError,
+    displayError,
+    community,
+    invitation,
+    isResolvingCommunity,
+    isCommunityNotFound,
+  } = useRegisterForm(invite);
   const { showToast } = useToast();
 
   const handleGoogleError = (error: string) => {
     showToast(error, "error");
   };
+
+  // Sin comunidad no hay colegios que listar; el motivo cambia según en qué punto esté la búsqueda.
+  const schoolsDisabledText = isResolvingCommunity
+    ? "Buscando tu comunidad…"
+    : isCommunityNotFound
+      ? "No reconocemos ese dominio de correo"
+      : "Escribí tu correo institucional para ver los colegios disponibles";
 
   const fields: Field[] = [
     {
@@ -112,6 +129,9 @@ export default function Register() {
       render: () => (
         <SchoolSelector
           multiple
+          // `null` mantiene el selector deshabilitado hasta saber a qué comunidad pertenece.
+          communityId={community?.id ?? null}
+          disabledText={schoolsDisabledText}
           value={formData.schools ?? []}
           onChange={(value) => setFormData({ ...formData, schools: value })}
         />
@@ -139,7 +159,33 @@ export default function Register() {
               <Text className="text-3xl py-3 text-center font-bold color-main-text">
                 Registrarse
               </Text>
-              <AllowedDomainsNotice />
+              {invitation.isLoading ? (
+                <View className="mx-4 py-3">
+                  <ActivityIndicator size="small" />
+                </View>
+              ) : invitation.community ? (
+                <View className="bg-tertiary/10 border border-tertiary/30 rounded-lg p-3 mx-4 gap-1">
+                  <Text className="color-main-text text-center text-base font-semibold">
+                    Invitación válida: podés registrarte con cualquier correo
+                  </Text>
+                  <Text className="text-secondary-text text-center text-sm">
+                    Vas a entrar a la comunidad
+                  </Text>
+                  <Text className="text-tertiary text-center text-lg font-bold">
+                    {invitation.community.name}
+                  </Text>
+                </View>
+              ) : (
+                <>
+                  {/* Con un token roto seguimos con el registro normal, o sea con restricción de dominio. */}
+                  {invitation.isError && invitation.errorMessage ? (
+                    <Error textClassName="text-alert" className="mx-4 mb-2">
+                      {invitation.errorMessage}
+                    </Error>
+                  ) : null}
+                  <AllowedDomainsNotice email={formData.email} />
+                </>
+              )}
             </View>
           }
           showsVerticalScrollIndicator={false}
@@ -165,7 +211,11 @@ export default function Register() {
               <View className="w-full h-0.5 bg-secondary-text/30 my-6" />
               {GOOGLE_OAUTH_READY || NODE_ENV !== "production" ? (
                 <View>
-                  <GoogleSignInButton onError={handleGoogleError} />
+                  <GoogleSignInButton
+                    onError={handleGoogleError}
+                    // Solo se manda si la invitación resultó válida; si no, alta normal por dominio.
+                    invitationToken={invitation.community ? invitation.token : undefined}
+                  />
                 </View>
               ) : null}
             </>

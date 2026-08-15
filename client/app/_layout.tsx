@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "@/api/queryClient";
 import { useEffect } from "react";
 import { Platform } from "react-native";
 import "../global.css";
@@ -10,8 +11,7 @@ import { useSessionStore } from "@/stores/session";
 import { configureGoogleSignIn } from "@/services/googleOauth";
 import { ToastProvider } from "@/components/ToastProvider";
 import PwaInstallPrompt from "@/components/PwaInstallPrompt";
-
-const queryClient = new QueryClient();
+import ThemeProvider from "@/components/ThemeProvider";
 
 export default function RootLayout() {
   const { isLoggedIn } = useAuth();
@@ -70,28 +70,31 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <GestureHandlerRootView>
         <SafeAreaProvider>
-          <ToastProvider>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Protected guard={!isLoggedIn}>
-                <Stack.Screen name="(auth)"></Stack.Screen>
-              </Stack.Protected>
-              <Stack.Protected guard={isLoggedIn}>
-                <Stack.Protected guard={hasAcceptedTerms}>
-                  <Stack.Screen name="(main)"></Stack.Screen>
+          {/* Por fuera del Stack para que todas las pantallas hereden las variables de color. */}
+          <ThemeProvider>
+            <ToastProvider>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Protected guard={!isLoggedIn}>
+                  <Stack.Screen name="(auth)"></Stack.Screen>
                 </Stack.Protected>
-                <Stack.Protected guard={!hasAcceptedTerms}>
-                  <Stack.Screen
-                    name="terms"
-                    options={{
-                      statusBarStyle: "dark",
-                    }}
-                  />
+                <Stack.Protected guard={isLoggedIn}>
+                  <Stack.Protected guard={hasAcceptedTerms}>
+                    <Stack.Screen name="(main)"></Stack.Screen>
+                  </Stack.Protected>
+                  <Stack.Protected guard={!hasAcceptedTerms}>
+                    <Stack.Screen
+                      name="terms"
+                      options={{
+                        statusBarStyle: "dark",
+                      }}
+                    />
+                  </Stack.Protected>
                 </Stack.Protected>
-              </Stack.Protected>
-              <Stack.Screen name="debug" />
-            </Stack>
-            <PwaInstallPrompt />
-          </ToastProvider>
+                <Stack.Screen name="debug" />
+              </Stack>
+              <PwaInstallPrompt />
+            </ToastProvider>
+          </ThemeProvider>
         </SafeAreaProvider>
       </GestureHandlerRootView>
     </QueryClientProvider>
