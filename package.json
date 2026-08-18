@@ -32,7 +32,8 @@
     "docker:push": "node scripts/docker-push.js",
     "start": "docker compose -f docker-compose.prod.yml up",
     "docker:deploy": "docker compose up -d --pull always",
-    "dev": "concurrently -n api,client,admin -c green,blue,yellow \"cd server && docker compose up -d && docker compose watch api\" \"npm start --prefix client\" \"npm run dev --prefix adminClient\""
+    "dev:old": "concurrently -n api,client,admin -c green,blue,yellow \"cd server && docker compose up -d && docker compose watch api\" \"npm start --prefix client\" \"npm run dev --prefix adminClient\"",
+    "dev": "docker compose -f docker-compose.dev.yml up --build --watch"
   },
   "devDependencies": {
     "concurrently": "^10.0.3",

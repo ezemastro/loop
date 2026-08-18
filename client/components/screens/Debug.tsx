@@ -7,13 +7,29 @@ import { HomeIcon } from "../Icons";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { API_URL, FILE_BASE_URL } from "@/config";
+import { disableDemoMode, enableDemoMode, isDemoModeEnabled } from "@/demo";
+import { queryClient } from "@/api/queryClient";
 
 export default function DebugPage() {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const [demoMode, setDemoMode] = useState(isDemoModeEnabled());
   const [debugFetchResult, setDebugFetchResult] = useState("");
   const [errors, setErrors] = useState<string[]>([]);
+
+  const toggleDemoMode = () => {
+    if (isDemoModeEnabled()) {
+      disableDemoMode();
+      setDemoMode(false);
+    } else {
+      enableDemoMode();
+      setDemoMode(true);
+    }
+    // El modo demo no debe convivir con data cacheada de la API real (ni al revés).
+    queryClient.clear();
+  };
+
   useEffect(() => {
     fetch(process.env.EXPO_PUBLIC_API_URL + "/status")
       .then((res) => res.text())
@@ -34,6 +50,20 @@ export default function DebugPage() {
           </Pressable>
         </View>
         <Text>Debug</Text>
+        <View className="flex-row items-center justify-between gap-2">
+          <Text className="flex-1">
+            Modo demo: {demoMode ? "ACTIVADO (no hay llamadas a la API)" : "desactivado"}
+          </Text>
+          <Pressable
+            onPress={toggleDemoMode}
+            className={
+              "rounded-lg px-3 py-1.5 active:opacity-70 " +
+              (demoMode ? "bg-alert" : "bg-primary")
+            }
+          >
+            <Text className="font-semibold text-white">{demoMode ? "Apagar" : "Encender"}</Text>
+          </Pressable>
+        </View>
         <Text>ENV API URL: {process.env.EXPO_PUBLIC_API_URL}</Text>
         <Text>CONFIG API URL: {API_URL}</Text>
         <Text>Images URL: {FILE_BASE_URL}</Text>

@@ -10,7 +10,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AvoidingKeyboard from "../AvoidingKeyboard";
 import { GoogleSignInButton } from "@/components/buttons/GoogleSignInButton";
 import AllowedDomainsNotice from "@/components/AllowedDomainsNotice";
-import { GOOGLE_OAUTH_READY, NODE_ENV } from "@/config";
+import { GOOGLE_OAUTH_READY, NODE_ENV, DEMO_MODE } from "@/config";
 import { useToast } from "@/components/ToastProvider";
 
 const TextLabel = ({ children }: { children: string }) => (
@@ -82,7 +82,7 @@ export default function Login() {
         <FlatList
           data={fields}
           keyExtractor={(item) => item.key}
-          className="flex-1 p-4"
+          className="flex-1 w-full max-w-xl mx-auto p-4"
           style={{
             paddingTop: insets.top,
           }}
@@ -95,6 +95,13 @@ export default function Login() {
               <Text className="color-main-text/80 text-center mb-4">
                 Introduce tus datos o inicia sesión con Google
               </Text>
+              {DEMO_MODE && (
+                <View className="rounded-lg border border-secondary/50 bg-secondary/10 p-3 mb-2">
+                  <Text className="text-secondary text-center font-semibold">
+                    Estás en modo demo: entrá con cualquier correo (ej. ana@demo.edu) y contraseña.
+                  </Text>
+                </View>
+              )}
               <AllowedDomainsNotice />
             </View>
           }

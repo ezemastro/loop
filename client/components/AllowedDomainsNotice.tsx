@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { View, Text, Pressable, Image, ActivityIndicator } from "react-native";
+import { Alert, View, Text, Pressable, Image, ActivityIndicator } from "react-native";
 import { useDebounce } from "use-debounce";
+import * as Clipboard from "expo-clipboard";
 import CustomModal from "./bases/CustomModal";
 import CloseModalButton from "./CloseModalButton";
 import TextTitle from "./bases/TextTitle";
@@ -9,6 +10,8 @@ import ButtonText from "./bases/ButtonText";
 import { useResolveCommunity } from "@/hooks/useResolveCommunity";
 import { resolveThemeColors } from "@/stores/theme";
 import { getUrl } from "@/services/getUrl";
+import { CONTACT_EMAIL } from "@/config";
+import { openMailComposer } from "@/services/emailComposer";
 
 /** Mismo debounce que el del formulario para que ambos compartan la entrada de caché de react-query. */
 const RESOLVE_DEBOUNCE_MS = 400;
@@ -24,6 +27,24 @@ const hasResolvableDomain = (email: string) => {
  */
 export default function AllowedDomainsNotice({ email }: { email?: string }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+
+  const handleContactPress = async () => {
+    const opened = await openMailComposer(CONTACT_EMAIL);
+    if (opened) return;
+
+    Alert.alert("No se pudo abrir la app de correo", `Escribinos a ${CONTACT_EMAIL}`, [
+      {
+        text: "Copiar mail",
+        onPress: async () => {
+          await Clipboard.setStringAsync(CONTACT_EMAIL);
+          setIsCopied(true);
+          setTimeout(() => setIsCopied(false), 2000);
+        },
+      },
+      { text: "Cerrar", style: "cancel" },
+    ]);
+  };
 
   const [debouncedEmail] = useDebounce(email?.trim() ?? "", RESOLVE_DEBOUNCE_MS);
   const emailToResolve = hasResolvableDomain(debouncedEmail) ? debouncedEmail : undefined;
@@ -80,9 +101,13 @@ export default function AllowedDomainsNotice({ email }: { email?: string }) {
           <CloseModalButton onClose={() => setIsModalVisible(false)} />
           <TextTitle>¿No tenés mail institucional?</TextTitle>
           <Text className="text-main-text text-base">
-            Si no tenés un mail institucional, te pedimos que te contactes con la sede a la que
-            perteneces para que te comenten la situacion sobre el mail de tu hijo/a.
+            Si no tenés un mail institucional, escribinos a{" "}
+            <Pressable onPress={handleContactPress}>
+              <Text className="text-primary underline">{CONTACT_EMAIL}</Text>
+            </Pressable>{" "}
+            y te enviaremos un enlace para que puedas registrarte con tu mail personal.
           </Text>
+          {isCopied ? <Text className="text-secondary-text text-sm">Mail copiado.</Text> : null}
           <CustomButton onPress={() => setIsModalVisible(false)}>
             <ButtonText>Entendido</ButtonText>
           </CustomButton>

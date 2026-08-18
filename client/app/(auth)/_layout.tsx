@@ -24,6 +24,7 @@ export default function AuthLayout() {
         options={{
           href: null,
           headerShown: false,
+          tabBarStyle: { display: "none" },
         }}
       />
       <Tabs.Screen

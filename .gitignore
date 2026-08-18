@@ -4,6 +4,7 @@
 /server/**/package-lock.json
 node_modules
 server/uploads
+logs/
 .env.prod
 # Comentar los siguientes dos
 .env

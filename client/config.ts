@@ -44,10 +44,16 @@ export const FILE_BASE_URL = API_URL + "/uploads/";
 console.log("API_URL:", API_URL);
 console.log(".env working: ", process.env.EXPO_PUBLIC_ENV_WORKING);
 
+/** Modo demo: intercepta las llamadas a la API con datos simulados (no toca la red). */
+export const DEMO_MODE = process.env.EXPO_PUBLIC_DEMO_MODE === "true";
+
 export const ANDROID_GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_ANDROID_GOOGLE_CLIENT_ID;
 export const IOS_GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_IOS_GOOGLE_CLIENT_ID;
 export const WEB_GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID;
 export const REPORT_EMAIL = process.env.EXPO_PUBLIC_REPORT_EMAIL;
+
+/** Mail de contacto general: aparece donde el usuario necesita escribirnos (ej. sin mail institucional). */
+export const CONTACT_EMAIL = "loop@reditinere.com";
 export const GOOGLE_OAUTH_READY = process.env.GOOGLE_OAUTH_READY !== "false";
 export const NODE_ENV = process.env.NODE_ENV;
 

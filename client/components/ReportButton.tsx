@@ -1,18 +1,9 @@
 import { REPORT_EMAIL } from "@/config";
 import { useState } from "react";
-import {
-  Alert,
-  Linking,
-  Modal,
-  Platform,
-  ScrollView,
-  Share,
-  Text,
-  View,
-  type PressableProps,
-} from "react-native";
+import { Alert, Modal, ScrollView, Share, Text, View, type PressableProps } from "react-native";
 import ButtonText from "./bases/ButtonText";
 import CustomButton from "./bases/CustomButton";
+import { openMailComposer } from "@/services/emailComposer";
 
 type ReportButtonProps = PressableProps & {
   label?: string;
@@ -120,25 +111,8 @@ export default function ReportButton({
 
     const { subject, body } = reportData;
 
-    const reportUrl =
-      Platform.OS === "web"
-        ? `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-        : `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
-    if (Platform.OS === "web") {
-      window.open(reportUrl, "_blank");
-      return;
-    }
-
-    const canOpen = await Linking.canOpenURL(reportUrl);
+    const canOpen = await openMailComposer(to, subject, body);
     if (!canOpen) {
-      showManualFallback(to, subject, body);
-      return;
-    }
-
-    try {
-      await Linking.openURL(reportUrl);
-    } catch {
       showManualFallback(to, subject, body);
     }
   };

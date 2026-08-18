@@ -1,36 +1,53 @@
-import ButtonText from "@/components/bases/ButtonText";
 import CustomButton from "@/components/bases/CustomButton";
-import { MainView } from "@/components/bases/MainView";
-import TextTitle from "@/components/bases/TextTitle";
+import Error from "@/components/Error";
 import { GoogleSignInButton } from "@/components/buttons/GoogleSignInButton";
-import AllowedDomainsNotice from "@/components/AllowedDomainsNotice";
-import { CO2Icon, CreditIcon, H20Icon, WasteIcon } from "@/components/Icons";
-import { GOOGLE_OAUTH_READY } from "@/config";
+import {
+  EmailIcon,
+  EyeIcon,
+  LeafIcon,
+  LockIcon,
+  RepeatIcon,
+  StarIcon,
+  TagIcon,
+} from "@/components/Icons";
+import Loader from "@/components/Loader";
 import { useToast } from "@/components/ToastProvider";
+import { GOOGLE_OAUTH_READY } from "@/config";
+import { useLoginForm } from "@/hooks/useLoginForm";
 import { useThemeColors } from "@/hooks/useThemeColors";
-import { useThemeStore } from "@/stores/theme";
-import { getUrl } from "@/services/getUrl";
 import { useRouter } from "expo-router";
+import { useState } from "react";
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { View, Text, Image, ScrollView } from "react-native";
 
 const STEPS = [
   {
-    title: "Publicá lo que ya no usás",
-    description: "Útiles, uniformes y libros que quedaron chicos vuelven a circular.",
+    title: "Publicá",
+    description: "lo que ya no usás",
+    icon: TagIcon,
   },
   {
     title: "Ganá loopies",
-    description: "Cada entrega te suma la moneda virtual de Loop. No se mueve dinero real.",
+    description: "por cada entrega",
+    icon: StarIcon,
   },
   {
-    title: "Conseguí lo que necesitás",
-    description: "Canjeá tus loopies por lo que otras familias de tu comunidad publicaron.",
+    title: "Canjeá",
+    description: "por lo que necesitás",
+    icon: RepeatIcon,
   },
 ];
 
-const SectionLabel = ({ children }: { children: string }) => (
-  <Text className="text-secondary-text text-xs text-center uppercase tracking-widest">
+const ActionLabel = ({ children, color = "#FFFFFF" }: { children: string; color?: string }) => (
+  <Text className="text-center text-sm font-bold" style={{ color }}>
     {children}
   </Text>
 );
@@ -38,149 +55,262 @@ const SectionLabel = ({ children }: { children: string }) => (
 export default function Landing() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { showToast } = useToast();
   const colors = useThemeColors();
-  // La comunidad tentativa: puesta por el registro al tipear el correo o por un link de invitación.
-  const previewCommunity = useThemeStore((state) => state.previewCommunity);
+  const { width } = useWindowDimensions();
+  const { showToast } = useToast();
+  const isNarrow = width < 640;
+  const [showPassword, setShowPassword] = useState(false);
+  const {
+    formData,
+    setFormData,
+    errors,
+    handleSubmit,
+    isLoginError,
+    loginErrorMessage,
+    isLoginLoading,
+  } = useLoginForm();
 
   const handleGoogleError = (error: string) => {
     showToast(error, "error");
   };
 
-  const impacts = [
-    { label: "Menos residuos", icon: <WasteIcon color={colors.PRIMARY} size={26} /> },
-    { label: "Menos CO₂", icon: <CO2Icon color={colors.SECONDARY} size={26} /> },
-    { label: "Menos agua", icon: <H20Icon color={colors.TERTIARY} size={26} /> },
-  ];
+  const googleButton = GOOGLE_OAUTH_READY ? (
+    <GoogleSignInButton appearance="light" onError={handleGoogleError} />
+  ) : null;
+
+  const registerButton = (
+    <CustomButton
+      onPress={() => router.push("/register")}
+      className="rounded-lg border bg-white py-4"
+      style={{ borderColor: colors.PRIMARY }}
+    >
+      <ActionLabel color={colors.PRIMARY}>Registrarse</ActionLabel>
+    </CustomButton>
+  );
+
+  const loginButton = (
+    <CustomButton
+      onPress={isNarrow ? () => router.push("/login") : handleSubmit}
+      disabled={!isNarrow && isLoginLoading}
+      className="rounded-lg bg-tertiary py-4"
+    >
+      <ActionLabel>Iniciar sesión</ActionLabel>
+    </CustomButton>
+  );
 
   return (
-    <MainView>
+    <View className="flex-1 bg-white">
+      <View pointerEvents="none" className="absolute inset-0 overflow-hidden">
+        <View
+          className="absolute"
+          style={{
+            top: -130,
+            right: -120,
+            width: 360,
+            height: 320,
+            borderRadius: 180,
+            backgroundColor: "#FFF1E8",
+          }}
+        />
+        <LeafIcon
+          color="#F3D4BF"
+          size={78}
+          style={{ position: "absolute", top: 62, right: 50, transform: [{ rotate: "25deg" }] }}
+        />
+        <View
+          className="absolute"
+          style={{
+            bottom: -170,
+            left: -130,
+            width: 380,
+            height: 350,
+            borderRadius: 190,
+            backgroundColor: "#EEF8E9",
+          }}
+        />
+        <LeafIcon
+          color="#C7E0BE"
+          size={96}
+          style={{ position: "absolute", bottom: 72, left: 56, transform: [{ rotate: "-35deg" }] }}
+        />
+      </View>
+
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingTop: insets.top + 24,
-          paddingBottom: insets.bottom + 32,
-          paddingLeft: insets.left,
-          paddingRight: insets.right,
+          flexGrow: 1,
+          alignItems: "center",
+          paddingTop: insets.top + (isNarrow ? 22 : 34),
+          paddingBottom: insets.bottom + (isNarrow ? 30 : 24),
+          paddingLeft: Math.max(insets.left, 20),
+          paddingRight: Math.max(insets.right, 20),
         }}
       >
-        {/* max-w + mx-auto: en web la landing se centra en vez de estirarse a todo el monitor. */}
-        <View className="w-full max-w-xl mx-auto px-5 gap-9">
-          <View className="items-center gap-4">
-            <Image
-              source={require("../../assets/full_logo.png")}
-              // Relativo al ancho disponible para que no desborde en pantallas chicas.
-              className="w-56 max-w-full"
-              style={{ height: 100 }}
-              resizeMode="contain"
-            />
+        <View className="w-full max-w-3xl items-center">
+          <Image
+            source={require("../../assets/full_logo.png")}
+            resizeMode="contain"
+            style={{ width: isNarrow ? 205 : 280, height: isNarrow ? 58 : 76 }}
+          />
 
-            {previewCommunity ? (
-              <View className="items-center gap-2">
-                {previewCommunity.media?.url ? (
-                  <Image
-                    source={{ uri: getUrl(previewCommunity.media.url) }}
-                    style={{ width: 72, height: 72 }}
-                    resizeMode="contain"
-                  />
-                ) : null}
-                <SectionLabel>Tu comunidad</SectionLabel>
-                <Text className="text-2xl font-bold text-center text-primary">
-                  {previewCommunity.name}
-                </Text>
-              </View>
-            ) : (
-              <View className="bg-primary/10 border border-primary/25 rounded-full px-4 py-1.5">
-                <Text className="text-primary text-center text-xs font-semibold">
-                  Una comunidad por colegio
-                </Text>
-              </View>
-            )}
-          </View>
-
-          <View className="items-center gap-3">
-            <TextTitle className="text-3xl font-bold">
-              Dale una segunda vida a los útiles del colegio
-            </TextTitle>
-            <Text className="text-main-text/80 text-base text-center leading-6">
-              {previewCommunity
-                ? `Comprá, vendé y regalá entre las familias de ${previewCommunity.name}, sin gastar dinero real.`
-                : "Loop funciona por comunidades: entrás con el correo que te dio tu colegio y todo lo que ves es de las familias que estudian con vos."}
+          <View className="mt-7 items-center">
+            <Text
+              className="text-center font-bold"
+              style={{
+                color: colors.MAIN_TEXT,
+                fontSize: isNarrow ? 28 : 38,
+                lineHeight: isNarrow ? 34 : 44,
+                maxWidth: 570,
+              }}
+            >
+              Dale una <Text style={{ color: colors.SECONDARY }}>segunda vida</Text>
+              {"\n"}a los <Text style={{ color: colors.PRIMARY }}>útiles</Text> del colegio
             </Text>
-            <View className="flex-row items-center gap-2 bg-credits/10 rounded-full px-4 py-2">
-              <CreditIcon size={18} />
-              <Text className="text-credits text-sm font-semibold">
+            <Text
+              className="mt-3 text-center"
+              style={{ color: colors.SECONDARY_TEXT, fontSize: isNarrow ? 15 : 16 }}
+            >
+              Intercambiá lo que ya no usás por lo que necesitás.
+            </Text>
+            <View className="mt-5 flex-row items-center rounded-full bg-secondary/10 px-4 py-2">
+              <RepeatIcon color={colors.SECONDARY} size={18} />
+              <Text className="ml-2 text-xs font-semibold" style={{ color: colors.SECONDARY }}>
                 Se intercambia con loopies, no con plata
               </Text>
             </View>
           </View>
 
-          <View className="gap-3">
-            <SectionLabel>Cada intercambio suma</SectionLabel>
-            <View className="flex-row gap-2">
-              {impacts.map((impact) => (
-                <View
-                  key={impact.label}
-                  className="flex-1 items-center gap-2 bg-white border border-stroke rounded-xl px-2 py-4"
-                >
-                  {impact.icon}
-                  <Text className="text-main-text text-xs text-center font-semibold">
-                    {impact.label}
+          {isNarrow ? (
+            <View className="mt-9 w-full max-w-sm gap-3">
+              {registerButton}
+              {loginButton}
+              {googleButton}
+            </View>
+          ) : (
+            <View
+              className="mt-6 w-full max-w-md rounded-2xl bg-white p-8"
+              style={{
+                borderWidth: 1,
+                borderColor: "#EEEEEE",
+                shadowColor: "#16352B",
+                shadowOffset: { width: 0, height: 10 },
+                shadowOpacity: 0.1,
+                shadowRadius: 22,
+                elevation: 5,
+              }}
+            >
+              <View className="gap-3">
+                <View>
+                  <View
+                    className="h-14 flex-row items-center rounded-lg border bg-white px-4"
+                    style={{ borderColor: colors.STROKE }}
+                  >
+                    <EmailIcon color={colors.SECONDARY} size={21} />
+                    <TextInput
+                      className="ml-3 flex-1 text-base text-main-text"
+                      placeholder="Correo institucional"
+                      placeholderTextColor={colors.SECONDARY_TEXT}
+                      value={formData.email}
+                      onChangeText={(email) => setFormData({ ...formData, email })}
+                      autoCapitalize="none"
+                      keyboardType="email-address"
+                    />
+                  </View>
+                  {errors.email ? (
+                    <Error textClassName="text-xs text-alert">
+                      Introduce tu correo electrónico
+                    </Error>
+                  ) : null}
+                </View>
+
+                <View>
+                  <View
+                    className="h-14 flex-row items-center rounded-lg border bg-white px-4"
+                    style={{ borderColor: colors.STROKE }}
+                  >
+                    <LockIcon color={colors.PRIMARY} size={21} />
+                    <TextInput
+                      className="ml-3 flex-1 text-base text-main-text"
+                      placeholder="Contraseña"
+                      placeholderTextColor={colors.SECONDARY_TEXT}
+                      value={formData.password}
+                      onChangeText={(password) => setFormData({ ...formData, password })}
+                      secureTextEntry={!showPassword}
+                      autoCapitalize="none"
+                    />
+                    <Pressable
+                      onPress={() => setShowPassword((value) => !value)}
+                      hitSlop={10}
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                      }
+                    >
+                      <EyeIcon color={colors.SECONDARY_TEXT} size={20} />
+                    </Pressable>
+                  </View>
+                  {errors.password ? (
+                    <Error textClassName="text-xs text-alert">Introduce una contraseña</Error>
+                  ) : null}
+                </View>
+
+                {isLoginError && loginErrorMessage ? (
+                  <Error textClassName="text-xs text-alert">{loginErrorMessage}</Error>
+                ) : null}
+                {isLoginLoading ? <Loader /> : null}
+                {loginButton}
+                <View className="my-1 flex-row items-center gap-3">
+                  <View className="h-px flex-1 bg-stroke" />
+                  <Text className="text-xs" style={{ color: colors.SECONDARY_TEXT }}>
+                    o
                   </Text>
+                  <View className="h-px flex-1 bg-stroke" />
+                </View>
+                {googleButton}
+                {registerButton}
+              </View>
+            </View>
+          )}
+
+          {!isNarrow ? (
+            <View className="mt-12 w-full max-w-3xl flex-row items-center">
+              {STEPS.map(({ title, description, icon: Icon }, index) => (
+                <View key={title} className="flex-1 flex-row items-center">
+                  <View className="flex-row items-center gap-3">
+                    <View
+                      className="h-11 w-11 items-center justify-center rounded-full"
+                      style={{ backgroundColor: `${colors.SECONDARY}12` }}
+                    >
+                      <Icon color={colors.SECONDARY} size={20} />
+                    </View>
+                    <View>
+                      <Text className="text-xs font-bold" style={{ color: colors.MAIN_TEXT }}>
+                        {index + 1}. {title}
+                      </Text>
+                      <Text className="mt-1 text-xs" style={{ color: colors.SECONDARY_TEXT }}>
+                        {description}
+                      </Text>
+                    </View>
+                  </View>
+                  {index < STEPS.length - 1 ? (
+                    <View className="mx-4 h-px flex-1 border-t border-dashed border-stroke" />
+                  ) : null}
                 </View>
               ))}
             </View>
-            <Text className="text-secondary-text text-xs text-center">
-              Cada categoría tiene su ahorro estimado de residuos, CO₂ y agua.
-            </Text>
-          </View>
+          ) : null}
 
-          <View className="gap-4">
-            <SectionLabel>Cómo funciona</SectionLabel>
-            {STEPS.map((step, index) => (
-              <View key={step.title} className="flex-row gap-3 items-start">
-                <View className="w-8 h-8 rounded-full bg-tertiary items-center justify-center">
-                  <Text className="text-white font-bold">{index + 1}</Text>
-                </View>
-                <View className="flex-1">
-                  <Text className="text-main-text text-base font-semibold">{step.title}</Text>
-                  <Text className="text-main-text/70 text-sm leading-5">{step.description}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-
-          {/* El aviso trae su propio `mx-4`; se compensa para que quede alineado con el resto. */}
-          <View className="-mx-4">
-            <AllowedDomainsNotice />
-          </View>
-
-          <View className="gap-3">
-            <CustomButton onPress={() => router.push("/register")} className="bg-primary py-4">
-              <ButtonText>Registrarse</ButtonText>
-            </CustomButton>
-            <CustomButton
-              onPress={() => router.push("/login")}
-              className="bg-transparent border border-tertiary py-4"
-            >
-              {/* Inline: `ButtonText` fija `text-white` en su className y no lo mergea. */}
-              <ButtonText style={{ color: colors.TERTIARY }}>Iniciar Sesión</ButtonText>
-            </CustomButton>
-
-            {GOOGLE_OAUTH_READY && (
-              <>
-                <View className="flex-row items-center gap-3 my-1">
-                  <View className="flex-1 h-px bg-stroke" />
-                  <Text className="text-secondary-text text-xs">o</Text>
-                  <View className="flex-1 h-px bg-stroke" />
-                </View>
-                <GoogleSignInButton onError={handleGoogleError} />
-              </>
-            )}
-          </View>
+          {!isNarrow ? (
+            <View className="mt-10 flex-row items-center gap-2">
+              <LeafIcon color={colors.SECONDARY} size={18} />
+              <Text className="text-xs" style={{ color: colors.SECONDARY_TEXT }}>
+                Juntos construimos un colegio más sostenible.
+              </Text>
+            </View>
+          ) : null}
         </View>
       </ScrollView>
-    </MainView>
+    </View>
   );
 }

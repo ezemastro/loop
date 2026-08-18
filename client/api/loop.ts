@@ -1,12 +1,23 @@
-import { API_URL } from "@/config";
+import { API_URL, DEMO_MODE } from "@/config";
 import { useSessionStore } from "@/stores/session";
-import axios, { type AxiosResponse } from "axios";
+import { demoAdapter, enableDemoMode } from "@/demo";
+import axios, { type AxiosAdapter, type AxiosResponse, type InternalAxiosRequestConfig } from "axios";
 
 export const api = axios.create({
   baseURL: API_URL,
   withCredentials: true,
   timeout: 10000,
 });
+
+// El adaptador demo está siempre instalado pero inactivo: si se activa en runtime (debug) no
+// hay que reinstalar nada. En build con EXPO_PUBLIC_DEMO_MODE=true arranca activo.
+const fallbackAdapter = api.defaults.adapter as AxiosAdapter;
+api.defaults.adapter = ((config: InternalAxiosRequestConfig) =>
+  demoAdapter(config, fallbackAdapter)) as AxiosAdapter;
+
+if (DEMO_MODE) {
+  enableDemoMode();
+}
 
 type GlobalErrorHandler = (message: string, errorCode?: string) => void;
 let globalErrorHandlers: GlobalErrorHandler[] = [];

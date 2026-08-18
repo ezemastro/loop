@@ -164,6 +164,54 @@ export const EmailIcon = ({
   <Feather size={24} color={color} className={className} {...props} name="mail" />
 );
 
+export const LockIcon = ({
+  className,
+  color,
+  ...props
+}: Partial<IconProps<string>> & { color?: string }) => (
+  <Feather size={24} color={color} className={className} {...props} name="lock" />
+);
+
+export const EyeIcon = ({
+  className,
+  color,
+  ...props
+}: Partial<IconProps<string>> & { color?: string }) => (
+  <Feather size={22} color={color} className={className} {...props} name="eye" />
+);
+
+export const LeafIcon = ({
+  className,
+  color,
+  ...props
+}: Partial<IconProps<string>> & { color?: string }) => (
+  <Feather size={24} color={color} className={className} {...props} name="feather" />
+);
+
+export const TagIcon = ({
+  className,
+  color,
+  ...props
+}: Partial<IconProps<string>> & { color?: string }) => (
+  <Feather size={24} color={color} className={className} {...props} name="tag" />
+);
+
+export const StarIcon = ({
+  className,
+  color,
+  ...props
+}: Partial<IconProps<string>> & { color?: string }) => (
+  <Feather size={24} color={color} className={className} {...props} name="star" />
+);
+
+export const RepeatIcon = ({
+  className,
+  color,
+  ...props
+}: Partial<IconProps<string>> & { color?: string }) => (
+  <Feather size={24} color={color} className={className} {...props} name="repeat" />
+);
+
 export const HomeIcon = (props: Partial<IconProps<string>>) => (
   <Ionicons size={24} {...props} name="home-outline" />
 );

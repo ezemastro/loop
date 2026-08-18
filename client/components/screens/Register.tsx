@@ -145,7 +145,7 @@ export default function Register({ invite }: { invite?: string }) {
         <FlatList
           data={fields}
           keyExtractor={(item) => item.key}
-          className="flex-1"
+          className="flex-1 w-full max-w-xl mx-auto"
           style={{
             paddingLeft: insets.left,
             paddingRight: insets.right,

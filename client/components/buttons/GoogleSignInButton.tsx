@@ -28,12 +28,14 @@ interface GoogleSignInButtonProps {
   disabled?: boolean;
   /** Token de `/register?invite=…`, para entrar a la comunidad del admin que generó el link. */
   invitationToken?: string;
+  appearance?: "default" | "light";
 }
 
 export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
   onError,
   disabled = false,
   invitationToken,
+  appearance = "default",
 }) => {
   if (Platform.OS === "web" && !WEB_GOOGLE_CLIENT_ID) {
     return null;
@@ -44,6 +46,7 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
       onError={onError}
       disabled={disabled}
       invitationToken={invitationToken}
+      appearance={appearance}
     />
   );
 };
@@ -52,6 +55,7 @@ const GoogleSignInButtonInner: React.FC<GoogleSignInButtonProps> = ({
   onError,
   disabled = false,
   invitationToken,
+  appearance = "default",
 }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -176,7 +180,12 @@ const GoogleSignInButtonInner: React.FC<GoogleSignInButtonProps> = ({
   return (
     <View style={styles.container}>
       <TouchableOpacity
-        style={[styles.button, isButtonDisabled && styles.buttonDisabled]}
+        style={[
+          styles.button,
+          appearance === "light" && styles.buttonLight,
+          isButtonDisabled &&
+            (appearance === "light" ? styles.buttonDisabledLight : styles.buttonDisabled),
+        ]}
         onPress={handleGoogleSignIn}
         disabled={isButtonDisabled}
         activeOpacity={0.8}
@@ -188,7 +197,9 @@ const GoogleSignInButtonInner: React.FC<GoogleSignInButtonProps> = ({
             <View style={styles.iconContainer}>
               <GoogleIcon />
             </View>
-            <Text style={styles.buttonText}>Continuar con Google</Text>
+            <Text style={[styles.buttonText, appearance === "light" && styles.buttonTextLight]}>
+              Continuar con Google
+            </Text>
           </View>
         )}
       </TouchableOpacity>
@@ -228,6 +239,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
     elevation: 0,
   },
+  buttonLight: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E4E4E4",
+    shadowOpacity: 0.08,
+  },
+  buttonDisabledLight: {
+    backgroundColor: "#F5F5F5",
+    shadowOpacity: 0,
+    elevation: 0,
+  },
   buttonContent: {
     flexDirection: "row",
     alignItems: "center",
@@ -237,6 +259,9 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "600",
+  },
+  buttonTextLight: {
+    color: "#424242",
   },
   iconContainer: {
     width: 24,
