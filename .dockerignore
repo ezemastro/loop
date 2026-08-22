@@ -4,5 +4,5 @@ dist
 .env
 **/node_modules
 **/dist
-*/tests/*
 *.test.*
+!e2e/tests/*

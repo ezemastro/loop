@@ -1,0 +1,14 @@
+FROM mcr.microsoft.com/playwright:v1.49.0-jammy
+
+WORKDIR /app
+
+# Cachebuster obligatorio: Docker (legacy builder) NO invalida la capa de COPY cuando cambia
+# .dockerignore/contexto. Sin esto una corrida puede ejecutar helpers/tests viejos (o vacíos).
+# run-e2e.sh pasa `--build-arg CACHEBUST=$(date +%s)`.
+ARG CACHEBUST=0
+ENV CACHEBUST=$CACHEBUST
+
+COPY e2e/package.json e2e/package-lock.json ./
+RUN npm install
+
+COPY e2e/ ./
