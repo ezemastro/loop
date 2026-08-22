@@ -1,0 +1,126 @@
+# Stack E2E autocontenido: DB desechable + bootstrap de schema/categorías + migraciones + API + runner de Playwright.
+#
+# Uso:
+#   bash scripts/run-e2e.sh                                             # recomendado: construye, corre y destruye todo
+#   docker compose -p loop-e2e -f docker-compose.e2e.yml down -v --remove-orphans   # limpieza manual
+#
+# Bootstrap de la DB, en orden:
+#   1. `db` (imagen construida e2e/Dockerfile.db-init, FROM postgres:16): su entrypoint ejecuta
+#      /docker-entrypoint-initdb.d/01-base.sql + 02-categories.sql (database_creation.sql +
+#      create_categories.sql) en el primer arranque con el volumen vacío.
+#   2. `migrate` (Dockerfile.api target development) -> npm run migrate (aplica server/migrations/*.sql
+#      con verificación de checksums; requiere tsx, por eso el target development).
+#   3. `api` (Dockerfile.api target development) -> npm run dev; espera a migrate completado.
+#   4. `e2e` (e2e/Dockerfile.e2e) -> npx playwright test; espera a api healthy (GET /status).
+#
+# El proyecto se aísla con `-p loop-e2e` y `name: loop-e2e`: el volumen de datos se borra con
+# `down -v`, así cada corrida arranca con una base 100% fresca.
+#
+# Sin puertos publicados: todo el tráfico corre dentro de la red del proyecto (api:3000, db:5432)
+# y no pisa los puertos del stack de desarrollo (3000, 5432, 8081, 5173, 4321).
+# El daemon Docker es externo (docker-outside-of-docker): no hay bind mounts del host, todo el
+# código y los SQL viajan dentro de las imágenes en tiempo de build.
+name: loop-e2e
+
+services:
+  db:
+    build:
+      context: .
+      dockerfile: ./e2e/Dockerfile.db-init
+    container_name: loop-e2e-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: e2e_password
+      # Obligatorio: database_creation.sql ejecuta `ALTER DATABASE loop_db SET timezone ...`
+      POSTGRES_DB: loop_db
+    volumes:
+      - loop-e2e-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d loop_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  migrate:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.api
+      target: development
+    command: ["npm", "run", "migrate"]
+    environment:
+      PGHOST: db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: e2e_password
+      POSTGRES_DB: loop_db
+      # La migración 0007 crea los roles de app y RAISEs si estas contraseñas vienen vacías.
+      # El runner las expone como GUCs (app.db_app_password / app.db_unscoped_password).
+      DB_APP_USER: loop_app
+      DB_APP_PASSWORD: e2e_app_password
+      DB_UNSCOPED_USER: loop_app_unscoped
+      DB_UNSCOPED_PASSWORD: e2e_unscoped_password
+      AUTHORIZED_ADMIN_EMAIL: admin@northfield.edu.ar
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.api
+      target: development
+    command: ["sh", "-c", "npm install --include=dev && npm run dev"]
+    environment:
+      NODE_ENV: development
+      PGHOST: db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: e2e_password
+      POSTGRES_DB: loop_db
+      # Mismos valores que `migrate`: la API usa los roles creados por la migración 0007.
+      DB_APP_USER: loop_app
+      DB_APP_PASSWORD: e2e_app_password
+      DB_UNSCOPED_USER: loop_app_unscoped
+      DB_UNSCOPED_PASSWORD: e2e_unscoped_password
+      UPLOAD_DIR: /uploads
+      APP_BASE_URL: http://localhost:3000
+    volumes:
+      - uploads-data:/uploads
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:3000/status').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+      start_period: 15s
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  e2e:
+    profiles: ["run"]
+    build:
+      context: .
+      dockerfile: ./e2e/Dockerfile.e2e
+    # El servicio NO corre los tests con `up`: vive bajo el perfil `run`, así `docker compose up`
+    # no lo arranca (evita que la suite corra dos veces contra la misma DB). `run-e2e.sh` lo
+    # ejecuta con `docker compose run --rm -T --no-deps e2e npx playwright test`.
+    environment:
+      API_URL: http://api:3000
+      PGHOST: db
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: postgres
+      # Superusuario a propósito: la base es efímera y las assertions de los tests necesitan
+      # esquivar RLS (los superusuarios ignoran Row-Level Security).
+      POSTGRES_PASSWORD: e2e_password
+      POSTGRES_DB: loop_db
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  loop-e2e-db-data:
+  uploads-data:

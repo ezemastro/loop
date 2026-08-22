@@ -1,0 +1,10 @@
+FROM postgres:16
+
+# Bootstrap de la DB para el stack E2E.
+# El entrypoint oficial de postgres:16 ejecuta los scripts de /docker-entrypoint-initdb.d/
+# en orden alfabético la PRIMERA vez que arranca con un datadir vacío (volumen recién creado):
+#   01-base.sql       = server/database_creation.sql  (esquema base + ALTER DATABASE loop_db SET timezone)
+#   02-categories.sql = server/create_categories.sql  (catálogo de categorías)
+# El resto de las migraciones las aplica el servicio `migrate` del compose (npm run migrate).
+COPY server/database_creation.sql /docker-entrypoint-initdb.d/01-base.sql
+COPY server/create_categories.sql /docker-entrypoint-initdb.d/02-categories.sql

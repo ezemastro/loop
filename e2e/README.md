@@ -1,184 +1,125 @@
-# Loop E2E Tests
+# Loop E2E — Suite de flujos críticos
 
-End-to-end test suite for the Loop fullstack application. Tests cover API endpoints, Admin Panel UI, Landing page, and cross-package user journeys.
+Suite End-to-End de Playwright que cubre los flujos de negocio críticos de Loop: comunidades,
+escuelas, usuarios, publicaciones, ofertas, intercambios, créditos (loopies), mensajería,
+notificaciones, donaciones y deseos.
 
-## Prerequisites
+## Filosofía
 
-1. **Node.js 22+** installed
-2. **PostgreSQL 16** running (via Docker or locally)
-3. **API server** running on `http://localhost:3000`
-4. **Admin dev server** running on `http://localhost:5173` (for admin UI tests)
-5. **Landing dev server** running on `http://localhost:4321` (for landing tests)
+- **Nivel API + base de datos, no UI.** Los tests ejecutan los ENDPOINTS REALES del backend — los
+  mismos que el cliente consume — y verifican el efecto en la base con un pool de superusuario.
+  Se evita simular el llenado de formularios desde el navegador: lo que se simula es la acción
+  que el botón dispararía (misma llamada HTTP), y después se comprueba en la DB que el resultado
+  fue el correcto. Un fallo de UI no debe fingir un fallo de negocio, ni un fallo de negocio debe
+  esconderse detrás de un selector que cambió.
+- **Base de datos desechable.** Cada corrida arranca en Docker un Postgres 100% nuevo
+  (schema + categorías + migraciones), corre la suite y destruye el volumen automáticamente.
+- **Tests ordenados y seriales.** Un solo worker, `fullyParallel: false`, archivos con prefijo
+  numérico. El journey completo (`01 → 06`) simula el proceso real de negocio en orden.
 
-## Quick Start
+## Cómo correr
 
-### 1. Install dependencies
-
-```bash
-cd e2e
-npm install
-```
-
-### 2. Start the API server
-
-```bash
-# Terminal 1: Start database + API
-cd server/api
-npm run dev
-```
-
-The API should be accessible at `http://localhost:3000/status`.
-
-### 3. (Optional) Start Admin Panel
+Requisito: Docker con la imagen de Playwright (`mcr.microsoft.com/playwright:v1.49.0-jammy`).
 
 ```bash
-# Terminal 2: Start admin dev server
-cd adminClient
-npm run dev
+npm run test:e2e            # sube db+api+runner, corre la suite, destruye todo (down -v)
+npm run test:e2e:down       # limpieza manual del stack e2e (por si quedó algo)
 ```
 
-### 4. (Optional) Start Landing Page
+El script `scripts/run-e2e.sh`:
 
-```bash
-# Terminal 3: Start landing dev server
-cd landing
-npm run dev
-```
+1. Elimina volúmenes previos del proyecto `loop-e2e` (garantiza base fresca).
+2. Construye la imagen del runner e2e con un cache-buster (el daemon Docker externo no invalida
+   el COPY de `.dockerignore`/código por sí solo).
+3. `docker compose -p loop-e2e -f docker-compose.e2e.yml up -d --wait`: levanta `db`, `migrate`
+   (one-shot: schema + migraciones) y `api` y espera healthchecks. El servicio `e2e` vive bajo
+   `profiles: ["run"]`, así `up` NO lo arranca (la suite correría dos veces contra la misma DB).
+4. `docker compose run --rm -T --no-deps e2e npx playwright test --project=e2e`: corre la suite
+   en el runner. `--no-deps` evita que `run` intente re-arrancar/re-migrar los servicios.
+   `--exit-code-from` NO se usa: en Compose v5 implica `--abort-on-container-exit`, que aborta
+   cuando `migrate` termina con éxito y deja el shutdown colgado con api/db vivos.
+5. `trap EXIT` → `down -v --remove-orphans`: la base se elimina SIEMPRE, incluso si falla.
 
-### 5. Install Playwright browsers
+### Arquitectura del stack (`docker-compose.e2e.yml`)
 
-```bash
-cd e2e
-npx playwright install chromium
-```
+| Servicio | Imagen | Rol |
+|---|---|---|
+| `db` | `e2e/Dockerfile.db-init` (postgres:16) | Arranca con `/docker-entrypoint-initdb.d/` corriendo `database_creation.sql` + `create_categories.sql` (base + catálogo). `POSTGRES_DB=loop_db` (requerido por el `ALTER DATABASE` del schema). Volumen nombrado, se borra con `down -v`. |
+| `migrate` | `Dockerfile.api` (target `development`) | `npm run migrate` aplica `server/migrations/*.sql` (0000→0007). Necesita `DB_APP_USER/PASSWORD` y `DB_UNSCOPED_USER/PASSWORD` no vacíos (la migración 0007 los crea y raisea si faltan). |
+| `api` | `Dockerfile.api` (target `development`) | La API real con los roles de aplicación; healthcheck sobre `GET /status`. |
+| `e2e` | `e2e/Dockerfile.e2e` (playwright v1.49) | `npx playwright test --project=e2e`. Conecta a `http://api:3000` y a la DB `loop_db` como superusuario (base efímera: OK y necesario para que las assertions vean todo, incluido lo que RLS escondería). Perfil `run`: no arranca con `up`. |
 
-### 6. Run tests
+Sin puertos publicados: todo el tráfico corre dentro de la red del proyecto. No pisa el stack de
+desarrollo (3000/5432/8081/5173/4321).
 
-```bash
-cd e2e
+## Qué se testea
 
-# Run all tests
-npx playwright test
+Cada test verifica DOS cosas: la respuesta de la API Y el estado real en la base (filas,
+saldos, créditos bloqueados, notificaciones, comunidad). Detalle por archivo:
 
-# Run with UI
-npx playwright test --ui
+| Archivo | Flujo | Assertions clave |
+|---|---|---|
+| `01_onboarding_and_tenant.e2e.spec.ts` | Registro por dominio, escuelas por comunidad, dominios desconocidos, login, `/me`, resolución de comunidad | `users.community_id` = comunidad del dominio; registro con escuela de otra comunidad → `SCHOOLS_NOT_IN_COMMUNITY` y rollback (no queda fila); dominio desconocido → `EMAIL_NOT_AUTHORIZED`; credits 0/0 iniciales; `user_schools` correcto. |
+| `02_listing_journey.e2e.spec.ts` | **Journey completo**: publicar → feed → oferta con trade → notificación → aceptar → recibir → saldos liquidados → re-oferta rechazada | Estados `published→offered→accepted→received` en la base; `listing_trades` (se documenta que `acceptOffer` NO escribe en esa tabla, solo marca como vendido); saldo del comprador `baseline - offer` y locked `offer`; vendedor `baseline + offer`; notificaciones `new_offer`, `offer_accepted`, `listing_received` (van al VENDEDOR, no al comprador). Los baselines se miden después de publicar porque completar la misión `publish-listing-1` otorga créditos (cliente recibe +30.000 al publicar y el seller también). |
+| `03_community_isolation.e2e.spec.ts` | Aislamiento real entre comunidades | El feed scopeado no muestra listings de otra comunidad; `GET /listings/:id` cruzado → `LISTING_NOT_FOUND`; mensaje cruzado → `USER_NOT_FOUND` y cero filas en `messages`; `GET /schools` solo devuelve escuelas de la comunidad; donación cruzada → 400 y saldo del receptor intacto. |
+| `04_offer_negative_cases.e2e.spec.ts` | Casos negativos y autorización de ofertas | Oferta propia → `CANNOT_OFFER_OWN_LISTING`; mayor al precio → `INVALID_OFFER_PRICE`; créditos insuficientes → `INSUFFICIENT_CREDITS`; no-vendedor acepta → 401; no-comprador recibe → 401; cancelar oferta devuelve créditos y notifica `offer_deleted`; rechazar devuelve créditos y notifica `offer_rejected`; oferta sobre listing no publicable → error. |
+| `05_messaging_notifications.e2e.spec.ts` | Mensajería y notificaciones | Persistencia de mensajes (sender/recipient/texto/`is_read`); orden cronológico; contador de no-leídos; marca-como-leído solo afecta los RECIBIDOS; oferta → notificación `new_offer` persistida y visible por API; aceptar → `offer_accepted`; `read-all` (solo marca las propias). |
+| `06_donations_wishes.e2e.spec.ts` | Créditos, donaciones y deseos | Acreditación admin → `wallet_transactions` (type `admin`) + saldo; donación mueve saldos y registra notificación pero **NO** crea `wallet_transactions` (comportamiento real: solo saldos + notificación); donación sin saldo → 400; donación cruzada → rechazada sin tocar saldos; wishes CRUD completo (create/list/update por `:wishId`/delete por `:categoryId`). |
 
-# Run in headed mode (see browser)
-npx playwright test --headed
+## Helpers (`e2e/helpers/`)
 
-# Run specific test suites
-npx playwright test --grep @api        # API only
-npx playwright test --grep @admin      # Admin UI only
-npx playwright test --grep @landing    # Landing only
-npx playwright test --grep @fullstack  # Fullstack flows only
+- `config.ts` — variables de entorno con defaults (API_URL, credenciales DB).
+- `api.ts` — envolturas tipadas de los endpoints reales (register, login, admin credits, upload,
+  listings, offers, accept/reject, receive, messages, wishes, donate, notifications…). El token de
+  admin viaja como cookie `admin_token` (igual que el navegador), no como bearer.
+- `db.ts` — pool de superusuario + helpers de lectura (users, listings, trades, notificaciones,
+  wallet_transactions, mensajes, deseos, escuelas) + siembra de fixtures (school, community,
+  admin email). La siembra es setup de datos de prueba; la lógica de negocio SIEMPRE viaja por API.
+- `fixtures.ts` — `test` extendido con `api` (APIRequestContext), `db` (pool) y `uniqueEmail`.
 
-# Run specific test file
-npx playwright test auth.api.spec.ts
-npx playwright test listings.api.spec.ts
-npx playwright test messages.api.spec.ts
-npx playwright test admin.api.spec.ts
-npx playwright test admin.admin.spec.ts
-npx playwright test landing.landing.spec.ts
-npx playwright test fullstack.fullstack.spec.ts
+## Advertencias de precisión (hallazgos reales del código)
 
-# Run with specific project
-npx playwright test --project api
-npx playwright test --project admin
-npx playwright test --project landing
-npx playwright test --project fullstack
+Los tests verifican el comportamiento REAL, y en el camino documentan varios hallazgos:
 
-# Debug a specific test
-npx playwright test --debug
-```
+1. **`listing_trades` nunca se inserta en `acceptOffer`** (la query `storeTrade` no se usa en
+   ningún modelo). El ítem del comprador se "vende" con `markListingAsSold`. El journey lo
+   verifica así, no esperando una fila en `listing_trades`.
+2. **Las misiones de publicación otorgan créditos** (`publish-listing-1` = +30.000): el journey
+   mide deltas sobre baselines medidos después de publicar.
+3. **Las notificaciones de loop se guardan con `type='loop'`** y el subtipo (`new_offer`,
+   `offer_accepted`, etc.) va en el `payload`. Los tests lo leen del payload.
+4. **`listing_received` notifica al VENDEDOR**, no al comprador.
+5. **Las donaciones no crean `wallet_transactions`**: solo saldos + notificación. Solo
+   acreditaciones admin (y misiones) registran transacciones.
+6. **El admin se autentica por cookie** (`admin_token`), no por bearer.
+7. Los `InvalidInputError` sin código explícito (p.ej. donación sin saldo) devuelven
+   `errorCode: "INVALID_INPUT"` aunque el mensaje sea el de la causa real.
 
-## Test Structure
+## Fuera del alcance (y por qué)
 
-```
-e2e/
-├── package.json              # E2E dependencies
-├── playwright.config.ts      # Playwright configuration
-├── fixtures.ts               # Shared test fixtures (DB, API clients, test data)
-├── global-teardown.ts        # Database cleanup after all tests
-└── tests/
-    ├── auth.api.spec.ts          # Auth API tests (register, login, me)
-    ├── listings.api.spec.ts      # Listings API tests (CRUD, offers)
-    ├── messages.api.spec.ts      # Messages API tests (send, receive, read)
-    ├── admin.api.spec.ts         # Admin API tests (users, schools, categories)
-    ├── admin.admin.spec.ts       # Admin Panel UI tests (login, navigation)
-    ├── landing.landing.spec.ts   # Landing page tests (SEO, a11y, responsive)
-    └── fullstack.fullstack.spec.ts # Cross-package user journeys
-```
+| Área | Motivo |
+|---|---|
+| UI del cliente (Expo web) con Playwright de navegador | No hay `testID`s/selectores estables; la capa de UI no añade valor de negocio y agrega fragilidad. Los tests simulan las llamadas que la UI haría. |
+| Google OAuth real (cliente y admin) | Requiere proveedor externo y credenciales; se cubre el flujo de email/password y el registro por dominio. |
+| Push notifications (Expo) | Requiere dispositivo/tokens de push reales; se verifican las notificaciones PERSISTIDAS en la base y su API. |
+| Admin panel (adminClient) y Landing (landing) | Son otras aplicaciones del monorepo, fuera del alcance de la suite de negocio del cliente. Los specs viejos de admin/landing se eliminaron: dependían de servers y de fixture compartidos insostenibles. |
+| Subida de archivos real (uploads a disco/CDN) | Se sube un PNG mínimo real por `POST /uploads` (el mismo endpoint del cliente); no se prueba la optimización de imágenes ni el storage externo. |
+| Borrado de cuenta, invitaciones, misiones avanzadas, paginación profunda, búsqueda/filtros exhaustivos | Flujos secundarios que no tocan la moneda ni el aislamiento; se priorizaron los flujos que pueden romper el negocio (loopies, intercambios, comunidades, escuelas, usuarios). |
+| Rendimiento, concurrencia, carga | No es el objetivo de esta suite. |
 
-## Environment Variables
+## Notas del runner (lo que aprendimos)
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `API_URL` | `http://localhost:3000` | API server URL |
-| `ADMIN_URL` | `http://localhost:5173` | Admin panel URL |
-| `LANDING_URL` | `http://localhost:4321` | Landing page URL |
-| `PGHOST` | `localhost` | PostgreSQL host |
-| `POSTGRES_PORT` | `5432` | PostgreSQL port |
-| `POSTGRES_USER` | `postgres` | PostgreSQL user |
-| `POSTGRES_PASSWORD` | `password` | PostgreSQL password |
-| `POSTGRES_DB` | `db` | PostgreSQL database |
-
-## Test Data
-
-All tests use email addresses with the `e2e-` prefix (e.g., `e2e-user@loop.test`). The database is cleaned between test files to ensure isolation.
-
-## Database Cleanup
-
-- Tests clean up their own data where possible
-- `global-teardown.ts` runs after all tests to remove any remaining `e2e-*` data
-- Schools and categories created by tests are prefixed with `E2E` for easy identification
-
-## CI Integration
-
-To run in CI:
-
-```bash
-# Install dependencies
-cd e2e && npm install
-
-# Install Playwright browsers + system deps
-npx playwright install --with-deps chromium
-
-# Start API server in background
-cd ../server/api && npm run dev &
-sleep 10  # Wait for API to be ready
-
-# Run tests
-cd ../../e2e
-npx playwright test --reporter=github
-```
-
-## Troubleshooting
-
-### "Connection refused" errors
-- Ensure the API server is running: `curl http://localhost:3000/status`
-- Check PostgreSQL is running: `docker ps | grep postgres`
-
-### "Database cleanup failed" errors
-- Verify database credentials match `server/.env`
-- Ensure the database schema is up to date
-
-### Admin UI tests failing
-- Ensure admin dev server is running on port 5173
-- Check that the API is accessible from the admin server (CORS)
-
-### Landing tests failing
-- Ensure landing dev server is running on port 4321
-- Some tests may skip if dev server is not available
-
-## Coverage
-
-| Area | Tests | Status |
-|------|-------|--------|
-| Auth API | 10 | ✅ |
-| Listings API | 15 | ✅ |
-| Messages API | 8 | ✅ |
-| Admin API | 12 | ✅ |
-| Admin UI | 8 | ✅ |
-| Landing Page | 14 | ✅ |
-| Fullstack Flows | 6 | ✅ |
-| **Total** | **73** | |
+- **Compose v5**: `--exit-code-from` IMPLICA `--abort-on-container-exit`; con `migrate` que sale 0
+  al terminar, se aborta el stack antes de correr los tests. La solución es correr la suite con
+  `docker compose run --rm -T --no-deps e2e` después de un `up -d --wait`.
+- **El servicio e2e necesita `profiles: ["run"]`**: con el command `npx playwright test` directo,
+  `up -d --wait` lo arranca y `run` lo vuelve a correr → la suite se ejecuta DOS veces contra la
+  misma DB (duplicate keys). Bajo perfil, `up` no lo toca.
+- **`e2e/Dockerfile.e2e` tiene `ARG CACHEBUST`** y el script lo setea con `date +%s`: el daemon
+  Docker externo (docker-outside-of-docker) no invalida la capa `COPY e2e/` cuando cambian
+  `.dockerignore` o el contenido; sin esto el runner ejecuta código viejo.
+- **`.dockerignore` raíz excluía `*/tests/*`**: sin la excepción `!e2e/tests/*`, los specs no
+  entraban a la imagen del runner ("No tests found").
+- **Base siempre fresca**: el script baja `-v` el stack al INICIO y al FINAL (trap). Correr
+  `docker compose up` manualmente y dejar el volumen vivo hace que los specs choquen con datos
+  de corridas anteriores (escuelas/dominios duplicados).

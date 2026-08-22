@@ -5,12 +5,8 @@
   "scripts": {
     "e2e": "npx playwright test",
     "e2e:ui": "npx playwright test --ui",
-    "e2e:headed": "npx playwright test --headed",
     "e2e:debug": "npx playwright test --debug",
-    "e2e:api": "npx playwright test --grep @api",
-    "e2e:admin": "npx playwright test --grep @admin",
-    "e2e:landing": "npx playwright test --grep @landing",
-    "e2e:fullstack": "npx playwright test --grep @fullstack"
+    "e2e:headed": "npx playwright test --headed"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.0",
