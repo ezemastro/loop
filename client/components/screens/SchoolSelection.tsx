@@ -1,5 +1,5 @@
 import { Text, View, ActivityIndicator } from "react-native";
-import { MainView } from "../bases/MainView";
+import { MainView, pageContentClassName } from "../bases/MainView";
 import { useState, useEffect } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -27,6 +27,11 @@ export default function SchoolSelection() {
   const googleLoginMutation = useGoogleLogin();
   const { showToast } = useToast();
   const setPreview = useThemeStore((state) => state.setPreview);
+  const loadingContentClassName = pageContentClassName(
+    "narrow",
+    "flex-1 items-center justify-center",
+  );
+  const formContentClassName = pageContentClassName("narrow", "flex-1 justify-center gap-4 p-6");
 
   useEffect(() => {
     const loadCredential = async () => {
@@ -94,7 +99,7 @@ export default function SchoolSelection() {
   if (isLoadingCredential) {
     return (
       <MainView>
-        <View className="flex-1 items-center justify-center">
+        <View className={loadingContentClassName}>
           <ActivityIndicator size="large" />
           <Text className="color-main-text mt-4">Cargando...</Text>
         </View>
@@ -115,7 +120,7 @@ export default function SchoolSelection() {
             paddingTop: insets.top + 25,
           }}
         >
-          <View className="flex-1 justify-center gap-4 p-6">
+          <View className={formContentClassName}>
             <View className="absolute top-5 left-5">
               <BackButton />
             </View>

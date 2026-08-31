@@ -1,7 +1,7 @@
 import { View, Text, BackHandler, FlatList } from "react-native";
 import CustomButton from "../bases/CustomButton";
 import ButtonText from "../bases/ButtonText";
-import { MainView } from "../bases/MainView";
+import { MainView, pageContentClassName } from "../bases/MainView";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSessionStore } from "@/stores/session";
 import TextTitle from "../bases/TextTitle";
@@ -17,6 +17,9 @@ export default function TermsPage() {
   const handleAccept = () => {
     setHasAcceptedTerms(true);
   };
+
+  const termsContentClassName = pageContentClassName("narrow", "py-2 px-2");
+  const actionsRowClassName = pageContentClassName("narrow", "flex-row gap-2");
 
   const handleReject = () => {
     setHasAcceptedTerms(false);
@@ -88,7 +91,7 @@ export default function TermsPage() {
         <FlatList
           className="flex-1"
           data={termsSections}
-          contentContainerClassName="py-2 px-2"
+          contentContainerClassName={termsContentClassName}
           renderItem={({ item }) => (
             <>
               {item.type === "title" && (
@@ -106,7 +109,7 @@ export default function TermsPage() {
             </>
           )}
         />
-        <View className="flex-row gap-2">
+        <View className={actionsRowClassName}>
           <CustomButton onPress={handleReject} className="bg-alert">
             <ButtonText>Rechazar</ButtonText>
           </CustomButton>

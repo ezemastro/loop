@@ -1,6 +1,6 @@
-import { FlatList, Text } from "react-native";
+import { FlatList, Text, View } from "react-native";
 import TextTitle from "../bases/TextTitle";
-import { MainView } from "../bases/MainView";
+import { MainView, pageContentClassName } from "../bases/MainView";
 import { useRemoveWish, useWishes } from "@/hooks/useWishes";
 import Wish from "../cards/Wish";
 import Error from "../Error";
@@ -13,6 +13,8 @@ import { useState } from "react";
 
 export default function WishList() {
   const { data: wishesData, isError, isLoading } = useWishes();
+  const wishListContentClassName = pageContentClassName("wide");
+  const flatListContentClassName = pageContentClassName("wide", "gap-1 pt-2");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedWish, setSelectedWish] = useState<UserWish | null>(null);
   const { mutateAsync: deleteWish } = useRemoveWish();
@@ -36,14 +38,16 @@ export default function WishList() {
         handleClose={() => setIsModalVisible(false)}
         wish={selectedWish}
       />
-      <TextTitle>Tu lista de deseados</TextTitle>
+      <View className={wishListContentClassName}>
+        <TextTitle>Tu lista de deseados</TextTitle>
+      </View>
       <FlatList
         data={wishes}
         renderItem={({ item }) => (
           <Wish wish={item} onEdit={() => handleEdit(item)} onDelete={() => handleDelete(item)} />
         )}
         className="flex-1"
-        contentContainerClassName="gap-1 pt-2"
+        contentContainerClassName={flatListContentClassName}
         refreshControl={<CustomRefresh />}
         ListEmptyComponent={() => (
           <>
@@ -57,9 +61,11 @@ export default function WishList() {
           </>
         )}
       />
-      <CustomButton onPress={handleCreateWish}>
-        <ButtonText>Agregar deseo</ButtonText>
-      </CustomButton>
+      <View className={wishListContentClassName}>
+        <CustomButton onPress={handleCreateWish}>
+          <ButtonText>Agregar deseo</ButtonText>
+        </CustomButton>
+      </View>
     </MainView>
   );
 }

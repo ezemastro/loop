@@ -1,7 +1,7 @@
 import { View, Text, FlatList, TextInput } from "react-native";
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
-import { MainView } from "./bases/MainView";
+import { MainView, pageContentClassName } from "./bases/MainView";
 import AvoidingKeyboard from "./AvoidingKeyboard";
 import BackButton from "./BackButton";
 import ProfileImage from "./ProfileImage";
@@ -41,16 +41,14 @@ export default function UserPage({
 }) {
   const { data: wishesData } = usePublicWishes({ userId: user.id });
   const wishes = wishesData?.userWishes || [];
+  const sectionsContentClassName = pageContentClassName("narrow", "p-4 gap-6");
+  const logoutButtonWrapperClassName = pageContentClassName("narrow", "p-4");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const logout = useSessionStore((state) => state.logout);
   const router = useRouter();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteEmailConfirm, setDeleteEmailConfirm] = useState("");
-  const {
-    mutate: deleteAccount,
-    isPending: isDeleting,
-    error: deleteError,
-  } = useDeleteAccount();
+  const { mutate: deleteAccount, isPending: isDeleting, error: deleteError } = useDeleteAccount();
   const [pendingCount, setPendingCount] = useState<{
     "to-receive": number;
     "to-deliver": number;
@@ -157,7 +155,7 @@ export default function UserPage({
               {formatNumber((user as PrivateUser).credits.balance)}
             </Text>
           </View>
-          <CustomButton className="self-center w-1/2" onPress={() => setIsModalOpen(true)}>
+          <CustomButton className="self-center w-1/2 max-w-xs" onPress={() => setIsModalOpen(true)}>
             <ButtonText>Donar</ButtonText>
           </CustomButton>
         </View>
@@ -245,10 +243,7 @@ export default function UserPage({
       show: isCurrentUser,
       component: () => (
         <View className="items-center">
-          <CustomButton
-            className="bg-alert"
-            onPress={() => setIsDeleteModalOpen(true)}
-          >
+          <CustomButton className="bg-alert" onPress={() => setIsDeleteModalOpen(true)}>
             <ButtonText>Eliminar cuenta</ButtonText>
           </CustomButton>
         </View>
@@ -264,7 +259,7 @@ export default function UserPage({
           data={sections.filter((s) => s.show !== false)}
           className="flex-grow"
           refreshControl={<CustomRefresh />}
-          contentContainerClassName="p-4 gap-6"
+          contentContainerClassName={sectionsContentClassName}
           renderItem={({ item }) => (
             <View className={"gap-2" + (item.hide ? " hidden" : "")}>
               {item.title && <Text className="text-2xl text-main-text">{item.title}</Text>}
@@ -273,7 +268,7 @@ export default function UserPage({
           )}
         />
         {isCurrentUser && (
-          <View className="p-4">
+          <View className={logoutButtonWrapperClassName}>
             <CustomButton onPress={() => logout()} className="bg-main-text">
               <ButtonText>Cerrar sesión</ButtonText>
             </CustomButton>
@@ -296,13 +291,11 @@ export default function UserPage({
           />
           <TextTitle>Eliminar cuenta</TextTitle>
           <Text className="text-main-text text-base">
-            Esta acción es permanente e irreversible. Se eliminarán todos tus datos,
-            incluyendo publicaciones, mensajes, notificaciones y transacciones.
+            Esta acción es permanente e irreversible. Se eliminarán todos tus datos, incluyendo
+            publicaciones, mensajes, notificaciones y transacciones.
           </Text>
           <View className="gap-2">
-            <Text className="text-main-text text-lg">
-              Escribí tu email para confirmar:
-            </Text>
+            <Text className="text-main-text text-lg">Escribí tu email para confirmar:</Text>
             <TextInput
               className="bg-white rounded border border-stroke px-4 py-3 text-main-text"
               placeholder={(user as PrivateUser).email}
@@ -313,18 +306,16 @@ export default function UserPage({
             />
           </View>
           {deleteError && (
-            <Error>{(deleteError as { message?: string })?.message || "Error al eliminar la cuenta"}</Error>
+            <Error>
+              {(deleteError as { message?: string })?.message || "Error al eliminar la cuenta"}
+            </Error>
           )}
           <CustomButton
             className="bg-alert"
-            disabled={
-              deleteEmailConfirm !== (user as PrivateUser).email || isDeleting
-            }
+            disabled={deleteEmailConfirm !== (user as PrivateUser).email || isDeleting}
             onPress={() => deleteAccount()}
           >
-            <ButtonText>
-              {isDeleting ? "Eliminando..." : "Eliminar cuenta"}
-            </ButtonText>
+            <ButtonText>{isDeleting ? "Eliminando..." : "Eliminar cuenta"}</ButtonText>
           </CustomButton>
         </View>
       </CustomModal>

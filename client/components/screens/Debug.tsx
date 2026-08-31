@@ -1,5 +1,5 @@
 import { FlatList, Image, Pressable, Text, View } from "react-native";
-import { MainView } from "../bases/MainView";
+import { MainView, pageContentClassName } from "../bases/MainView";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import BackButton from "../BackButton";
@@ -22,6 +22,8 @@ export default function DebugPage() {
   const logout = useSessionStore((state) => state.logout);
   const [debugFetchResult, setDebugFetchResult] = useState("");
   const [errors, setErrors] = useState<string[]>([]);
+  const debugContentClassName = pageContentClassName("narrow", "p-4 gap-4");
+  const errorsContentClassName = pageContentClassName("narrow", "px-4");
 
   // Salir de la demo es cerrar sesión: la sesión simulada no sobrevive a apagar el modo.
   const toggleDemoMode = () => (demoMode ? logout() : enterDemoMode());
@@ -48,45 +50,48 @@ export default function DebugPage() {
   }, [demoMode, hydrated]);
   return (
     <View className="flex-1" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
-      <MainView className="p-4 gap-4">
-        <View className="flex-row justify-between items-center">
-          <BackButton />
-          <Pressable onPress={() => router.replace("/")}>
-            <HomeIcon className="text-main-text" />
-          </Pressable>
+      <MainView>
+        <View className={debugContentClassName}>
+          <View className="flex-row justify-between items-center">
+            <BackButton />
+            <Pressable onPress={() => router.replace("/")}>
+              <HomeIcon className="text-main-text" />
+            </Pressable>
+          </View>
+          <Text>Debug</Text>
+          <View className="flex-row items-center justify-between gap-2">
+            <Text className="flex-1">
+              Modo demo: {demoMode ? "ACTIVADO (no hay llamadas a la API)" : "desactivado"}
+            </Text>
+            <Pressable
+              onPress={toggleDemoMode}
+              className={
+                "rounded-lg px-3 py-1.5 active:opacity-70 " + (demoMode ? "bg-alert" : "bg-primary")
+              }
+            >
+              <Text className="font-semibold text-white">{demoMode ? "Apagar" : "Encender"}</Text>
+            </Pressable>
+          </View>
+          <Text>ENV API URL: {process.env.EXPO_PUBLIC_API_URL}</Text>
+          <Text>CONFIG API URL: {API_URL}</Text>
+          <Text>Images URL: {FILE_BASE_URL}</Text>
+          <Image
+            source={{
+              uri: FILE_BASE_URL + "test.png",
+            }}
+            className="bg-red-300"
+            style={{ width: 96, height: 96 }}
+            onError={(err) => {
+              const nativeEvent = err.nativeEvent;
+              setErrors((prev) => [...prev, JSON.stringify(nativeEvent)]);
+            }}
+          />
+          <Text>User: {user ? JSON.stringify(user) : "No user logged in"}</Text>
+          <Text>Debug Fetch Result: {debugFetchResult}</Text>
         </View>
-        <Text>Debug</Text>
-        <View className="flex-row items-center justify-between gap-2">
-          <Text className="flex-1">
-            Modo demo: {demoMode ? "ACTIVADO (no hay llamadas a la API)" : "desactivado"}
-          </Text>
-          <Pressable
-            onPress={toggleDemoMode}
-            className={
-              "rounded-lg px-3 py-1.5 active:opacity-70 " + (demoMode ? "bg-alert" : "bg-primary")
-            }
-          >
-            <Text className="font-semibold text-white">{demoMode ? "Apagar" : "Encender"}</Text>
-          </Pressable>
-        </View>
-        <Text>ENV API URL: {process.env.EXPO_PUBLIC_API_URL}</Text>
-        <Text>CONFIG API URL: {API_URL}</Text>
-        <Text>Images URL: {FILE_BASE_URL}</Text>
-        <Image
-          source={{
-            uri: FILE_BASE_URL + "test.png",
-          }}
-          className="bg-red-300"
-          style={{ width: 96, height: 96 }}
-          onError={(err) => {
-            const nativeEvent = err.nativeEvent;
-            setErrors((prev) => [...prev, JSON.stringify(nativeEvent)]);
-          }}
-        />
-        <Text>User: {user ? JSON.stringify(user) : "No user logged in"}</Text>
-        <Text>Debug Fetch Result: {debugFetchResult}</Text>
         <FlatList
           data={errors}
+          contentContainerClassName={errorsContentClassName}
           renderItem={({ item }) => <Text>{item}</Text>}
           keyExtractor={(item, index) => index.toString()}
         />

@@ -1,5 +1,5 @@
 import { Text, TextInput, View, FlatList, ActivityIndicator } from "react-native";
-import { MainView } from "../bases/MainView";
+import { MainView, pageContentClassName } from "../bases/MainView";
 import SchoolSelector from "../selectors/SchoolSelector";
 import CustomButton from "../bases/CustomButton";
 import type { ReactNode } from "react";
@@ -39,6 +39,7 @@ export default function Register({ invite }: { invite?: string }) {
     isCommunityNotFound,
   } = useRegisterForm(invite);
   const { showToast } = useToast();
+  const contentContainerClassName = pageContentClassName("narrow", "gap-1 px-4 pb-6");
 
   const handleGoogleError = (error: string) => {
     showToast(error, "error");
@@ -145,12 +146,12 @@ export default function Register({ invite }: { invite?: string }) {
         <FlatList
           data={fields}
           keyExtractor={(item) => item.key}
-          className="flex-1 w-full max-w-xl mx-auto"
+          className="flex-1"
           style={{
             paddingLeft: insets.left,
             paddingRight: insets.right,
           }}
-          contentContainerClassName="gap-1 px-4 pb-6"
+          contentContainerClassName={contentContainerClassName}
           contentContainerStyle={{
             paddingTop: insets.top + 25,
           }}

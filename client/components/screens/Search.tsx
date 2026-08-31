@@ -8,7 +8,7 @@ import Loader from "../Loader";
 import Listing from "../cards/Listing";
 import ListingSearchSortOptions from "../ListingSearchSortOptions";
 import ListingSearchFilters, { FiltersValue } from "../ListingSearchFilters";
-import { MainView } from "../bases/MainView";
+import { MainView, pageContentClassName } from "../bases/MainView";
 import { GRID_ROW_CLASS, GRID_CELL_CLASS } from "../bases/ListingGrid";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -36,6 +36,8 @@ export default function Search() {
     user: null,
     productStatus: null,
   });
+  const filterRowClassName = pageContentClassName("wide", "flex-row p-4 gap-4 flex-shrink-0");
+  const gridContentClassName = pageContentClassName("wide", GRID_ROW_CLASS);
   const { data, isLoading } = useListings(query);
   const listings = data?.pages.flatMap((page) => page!.data!.listings) || [];
   useEffect(() => {
@@ -65,7 +67,7 @@ export default function Search() {
 
   return (
     <MainView>
-      <View className="flex-row p-4 gap-4 w-full flex-shrink-0">
+      <View className={filterRowClassName}>
         <ListingSearchFilters onChange={handleFiltersChange} value={filters} />
         <ListingSearchSortOptions onDebounce={handleSortChange} />
       </View>
@@ -84,7 +86,7 @@ export default function Search() {
             </View>
           </>
         )}
-        contentContainerClassName={GRID_ROW_CLASS}
+        contentContainerClassName={gridContentClassName}
         CellRendererComponent={GridCell}
         renderItem={({ item }) => <Listing listing={item} />}
       />

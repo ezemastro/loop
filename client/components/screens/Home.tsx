@@ -1,5 +1,5 @@
 import { View, FlatList } from "react-native";
-import { MainView } from "../bases/MainView";
+import { MainView, pageContentClassName } from "../bases/MainView";
 import TextTitle from "../bases/TextTitle";
 import Stats from "../Stats";
 import Missions from "../Missions";
@@ -52,13 +52,14 @@ export default function Home() {
     },
   ];
   const getMore = useRef<() => void>(() => {});
+  const contentContainerClassName = pageContentClassName("wide", "p-4 pt-6");
   return (
     <MainView>
       <FlatList
         className="flex-1"
         data={sections}
         refreshControl={<CustomRefresh />}
-        contentContainerClassName="p-4 pt-6"
+        contentContainerClassName={contentContainerClassName}
         onEndReached={() => {
           getMore.current();
         }}
