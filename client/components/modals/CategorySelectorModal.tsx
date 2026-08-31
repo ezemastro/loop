@@ -38,57 +38,63 @@ export default function CategorySelectorModal({
   };
   return (
     <CustomModal handleClose={onClose} isVisible={isVisible}>
-      <View className="bg-background rounded p-4 py-8 w-full h-3/4 gap-5">
-        <CloseModalButton onClose={onClose} />
-        <TextTitle>Seleccionar categoría</TextTitle>
-        <SearchBar onChange={(text) => setSearchTerm(text)} />
-        <FlatList
-          data={(selectedCategories && selectedCategories.length > 0
-            ? selectedCategories[selectedCategories.length - 1].children
-            : categories
-          )?.filter((category) => category.name.toLowerCase().includes(searchTerm.toLowerCase()))}
-          contentContainerClassName="gap-2"
-          renderItem={({ item }) => (
-            <Pressable
-              className="rounded border border-stroke bg-white"
-              onPress={() => handleSelect(item)}
-            >
-              <Category category={item} />
-            </Pressable>
-          )}
-          ListEmptyComponent={
-            <View className="h-40 justify-center items-center">
-              {isLoading && <Loader />}
-              {!isLoading && (
-                <Text className="text-secondary-text text-center">
-                  No se encontraron categorías
-                </Text>
-              )}
-            </View>
-          }
-          ListHeaderComponent={
-            selectedCategories && (
-              <View className="flex-row items-center gap-4 mb-4">
-                <Pressable>
-                  <BackIcon
-                    className="text-main-text"
-                    onPress={() =>
-                      setSelectedCategories((categories) =>
-                        categories && categories.length > 0 ? categories.slice(0, -1) : null,
-                      )
-                    }
-                  />
-                </Pressable>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  <Text className="text-xl text-main-text text-center">
-                    {selectedCategories.map((category) => category.name).join("/")}
+      {(modalMaxHeight) => (
+        <View
+          className="overflow-hidden bg-background rounded p-4 py-8 w-full gap-5"
+          style={{ maxHeight: modalMaxHeight }}
+        >
+          <CloseModalButton onClose={onClose} />
+          <TextTitle>Seleccionar categoría</TextTitle>
+          <SearchBar onChange={(text) => setSearchTerm(text)} />
+          <FlatList
+            className="flex-1 min-h-0"
+            data={(selectedCategories && selectedCategories.length > 0
+              ? selectedCategories[selectedCategories.length - 1].children
+              : categories
+            )?.filter((category) => category.name.toLowerCase().includes(searchTerm.toLowerCase()))}
+            contentContainerClassName="gap-2"
+            renderItem={({ item }) => (
+              <Pressable
+                className="rounded border border-stroke bg-white"
+                onPress={() => handleSelect(item)}
+              >
+                <Category category={item} />
+              </Pressable>
+            )}
+            ListEmptyComponent={
+              <View className="h-40 justify-center items-center">
+                {isLoading && <Loader />}
+                {!isLoading && (
+                  <Text className="text-secondary-text text-center">
+                    No se encontraron categorías
                   </Text>
-                </ScrollView>
+                )}
               </View>
-            )
-          }
-        />
-      </View>
+            }
+            ListHeaderComponent={
+              selectedCategories && (
+                <View className="flex-row items-center gap-4 mb-4">
+                  <Pressable>
+                    <BackIcon
+                      className="text-main-text"
+                      onPress={() =>
+                        setSelectedCategories((categories) =>
+                          categories && categories.length > 0 ? categories.slice(0, -1) : null,
+                        )
+                      }
+                    />
+                  </Pressable>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <Text className="text-xl text-main-text text-center">
+                      {selectedCategories.map((category) => category.name).join("/")}
+                    </Text>
+                  </ScrollView>
+                </View>
+              )
+            }
+          />
+        </View>
+      )}
     </CustomModal>
   );
 }

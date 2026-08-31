@@ -90,40 +90,43 @@ export default function ListingSearchFiltersModal({
   ];
   return (
     <CustomModal handleClose={onClose} isVisible={isVisible}>
-      <View className="bg-background h-3/4 rounded-lg w-full">
-        <FlatList
-          data={fields}
-          className="p-6"
-          contentContainerClassName="gap-6"
-          renderItem={({ item }) => (
-            <View key={item.key} className="gap-2">
-              <Text className="text-main-text text-xl">{item.label}</Text>
-              <View className="flex-row">
-                <View className="flex-1">{item.selector()}</View>
-                {item.isSelected && (
-                  <Pressable
-                    className="justify-center ml-4"
-                    onPress={() => {
-                      setSelectedFilters((prev) => ({
-                        ...prev,
-                        [item.key]: null,
-                      }));
-                    }}
-                  >
-                    <CrossIcon className="text-main-text" />
-                  </Pressable>
-                )}
+      {(modalMaxHeight) => (
+        <View
+          className="overflow-hidden bg-background rounded-lg w-full p-6 gap-4"
+          style={{ maxHeight: modalMaxHeight }}
+        >
+          <TextTitle>Filtros</TextTitle>
+          <FlatList
+            className="flex-1 min-h-0"
+            data={fields}
+            contentContainerClassName="gap-6"
+            renderItem={({ item }) => (
+              <View key={item.key} className="gap-2">
+                <Text className="text-main-text text-xl">{item.label}</Text>
+                <View className="flex-row">
+                  <View className="flex-1">{item.selector()}</View>
+                  {item.isSelected && (
+                    <Pressable
+                      className="justify-center ml-4"
+                      onPress={() => {
+                        setSelectedFilters((prev) => ({
+                          ...prev,
+                          [item.key]: null,
+                        }));
+                      }}
+                    >
+                      <CrossIcon className="text-main-text" />
+                    </Pressable>
+                  )}
+                </View>
               </View>
-            </View>
-          )}
-          ListHeaderComponent={() => <TextTitle className="mb-4">Filtros</TextTitle>}
-          ListFooterComponent={
-            <CustomButton onPress={() => onSelect(selectedFilters)} className="mt-4">
-              <ButtonText>Aplicar</ButtonText>
-            </CustomButton>
-          }
-        />
-      </View>
+            )}
+          />
+          <CustomButton onPress={() => onSelect(selectedFilters)}>
+            <ButtonText>Aplicar</ButtonText>
+          </CustomButton>
+        </View>
+      )}
     </CustomModal>
   );
 }

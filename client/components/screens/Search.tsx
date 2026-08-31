@@ -69,7 +69,7 @@ export default function Search() {
     <MainView>
       <View className={filterRowClassName}>
         <ListingSearchFilters onChange={handleFiltersChange} value={filters} />
-        <ListingSearchSortOptions onDebounce={handleSortChange} />
+        <ListingSearchSortOptions onSortChange={handleSortChange} />
       </View>
       <FlatList
         className="flex-1 px-4"

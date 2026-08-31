@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import CustomButton from "./bases/CustomButton";
 import { ArrowDownIcon, ArrowUpIcon } from "./Icons";
-import { useDebouncedCallback } from "use-debounce";
 import ButtonText from "./bases/ButtonText";
 
 export interface SortValue {
@@ -23,11 +22,14 @@ interface SortState {
   sortOrder: (typeof SORT_ORDERS)[keyof typeof SORT_ORDERS];
 }
 export default function ListingSearchSortOptions({
-  onDebounce,
+  onSortChange,
 }: {
-  onDebounce: (sort: SortValue) => void;
+  onSortChange: (sort: SortValue) => void;
 }) {
   const [sort, setSort] = useState<SortState | null>(null);
+  // Skip the mount-time effect run: `sort` starts at `null`, and notifying the parent with an
+  // unchanged (still-empty) sort would be a redundant call, not a real user-driven sort change.
+  const isFirstRender = useRef(true);
   const nextSortOption = () => {
     if (sort === null) {
       return setSort({
@@ -51,15 +53,20 @@ export default function ListingSearchSortOptions({
         sort.sortOrder === SORT_ORDERS.DESCENDING ? SORT_ORDERS.ASCENDING : SORT_ORDERS.DESCENDING,
     });
   };
-  const debouncedSort = useDebouncedCallback((newSort: SortState | null) => {
-    onDebounce({
-      sortBy: newSort?.sortBy.key,
-      sortOrder: newSort?.sortOrder,
-    });
-  }, 500);
   useEffect(() => {
-    debouncedSort(sort);
-  }, [sort, debouncedSort]);
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    onSortChange({
+      sortBy: sort?.sortBy.key,
+      sortOrder: sort?.sortOrder,
+    });
+    // `onSortChange` is intentionally excluded: it is recreated on every parent render (it's an
+    // inline arrow function in `Search.tsx`), and this effect must only run when the user actually
+    // changes `sort`, not whenever the parent re-renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sort]);
   return (
     <View className="flex-1">
       {!sort ? (

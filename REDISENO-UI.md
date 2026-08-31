@@ -29,7 +29,7 @@ Las ramas están apiladas: cada una incluye todo lo anterior. Para probar todo j
 | 1 | `feat/ui-1-foundation` | [#2](https://github.com/ezemastro/loop/pull/2) | Listo |
 | 2 | `feat/ui-2-listing-grid` | [#3](https://github.com/ezemastro/loop/pull/3) | Listo |
 | 3 | `feat/ui-3-width-system` | [#4](https://github.com/ezemastro/loop/pull/4) | Listo |
-| 4 | `feat/ui-4-fixes` | — | Pendiente |
+| 4 | `feat/ui-4-fixes` | [#5](https://github.com/ezemastro/loop/pull/5) | Listo |
 | 5 | `feat/ui-5-compact-card` | — | Pendiente |
 | 6 | `feat/ui-6-wide-density` | — | Pendiente |
 | 7 | `feat/ui-7-notifications` | — | Pendiente |
@@ -202,6 +202,72 @@ la grilla.
 
 `refreshEnabled` **no lo pasaba ningún caller**: la rama del `ScrollView` de `MainView` era código
 muerto y las 16 pantallas usaban la otra. Se eliminó.
+
+---
+
+## Rebanada 4 — Cuatro arreglos
+
+### 1. Modales que se rompían con scroll
+
+**Qué pasaba.** No había **ni un solo** `maxHeight`, `max-h-` ni `overflow` en ningún modal del
+repo. Los tres que scrollean se apoyaban en `h-3/4`, que es un porcentaje de un padre con
+`justify-center` — o sea, de una altura indefinida. Y en `CategorySelectorModal` el `FlatList` ni
+siquiera tenía `flex-1`.
+
+**Qué cambió.** El shell (`CustomModal`) pasa a ser dueño del límite de altura: calcula el 85% del
+alto de la ventana y se lo ofrece a cada modal. Cada modal recorta su contenido con
+`overflow-hidden`, así que solo scrollea la lista.
+
+**Qué probar.**
+- Abrí el selector de categorías o el de escuelas con **muchos ítems**: la caja deja de crecer, el
+  título y el buscador quedan fijos y solo scrollea la lista.
+- Abrilo con **pocos ítems**: la caja se achica al contenido, sin la franja en blanco que dejaba el
+  75% forzado.
+- **Achicá la ventana** con un modal abierto: tiene que seguir entrando entero en pantalla.
+- Alcanza con `/publish` → "Seleccionar categoría".
+
+Modales arreglados: categorías, escuelas, usuarios, filtros de búsqueda, modificar deseo y eliminar
+cuenta.
+
+### 2. Outline feo en los inputs
+
+**Qué pasaba.** De los 16 `TextInput` de la app, **solo `ChatInput`** manejaba el foco. Los otros 15
+mostraban el anillo azul crudo del navegador.
+
+**Qué cambió.** Una sola regla en `global.css` reemplaza ese anillo por uno de 2px en el naranja de
+marca. **No se saca el anillo**: es la señal de accesibilidad para quien navega con teclado.
+
+**Qué probar.** Hacé clic en cualquier input en web (login, registro, publicar, donar, buscar): el
+borde tiene que ser naranja, no azul.
+
+### 3. Debounce de Ordenar
+
+Sacado. Ordenar en `/search` responde al instante. La demora de 500ms era solo en avisarle al padre;
+el estado local ya se actualizaba enseguida, y por eso se sentía trabado.
+
+De paso el prop se llamaba `onDebounce`, que ya sería mentira: ahora es `onSortChange`.
+
+El debounce del **texto** de búsqueda no se toca.
+
+**Qué probar.** `/search` → "Ordenar" → cambiá campo y sentido. Tiene que refrescar sin lag.
+
+### 4. `UserBadge`: el tamaño no se podía cambiar
+
+El componente fijaba el avatar en 24×24 con un `style` inline, así que el `imageClassName="size-12"`
+que le pasaba el detalle de publicación **no hacía nada**. Ahora sí, y el nombre trunca con puntos
+suspensivos en vez de desbordar.
+
+**Qué probar.** En `/listing/[id]`, el avatar del vendedor tiene que verse a 48px. En las cards de la
+grilla sigue en 24px.
+
+### Dos cosas que solo aparecieron renderizando
+
+- **El mismo bug de contexto de React de la rebanada 3**, otra vez: el primer intento de pasar la
+  altura del modal usaba un contexto, y el componente que lo consumía era ancestro del Provider. Se
+  reemplazó por un render prop.
+- **Faltaba el recorte.** Con el cap de altura y el scroll interno ya funcionando, los ítems se
+  seguían dibujando *por fuera* del borde inferior del modal. Las mediciones daban todas bien; solo
+  se vio en la captura. Faltaba `overflow-hidden` en las cajas.
 
 ---
 

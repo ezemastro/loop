@@ -104,50 +104,55 @@ export default function ResourceSelectorModal<T>({
   };
   return (
     <CustomModal isVisible={isVisible} handleClose={onClose}>
-      <View className="bg-background rounded p-4 py-6 w-full h-3/4 gap-5">
-        <CloseModalButton onClose={onClose} />
-        <TextTitle>{title}</TextTitle>
-        <SearchBar
-          onChange={handleChangeSearch}
-          onDebounce={handleDebouncedSearch}
-          onSubmit={handleDebouncedSearch}
-        />
-        <View className="flex-1">
-          <FlatList
-            data={filteredItems}
-            className="w-full"
-            refreshControl={<CustomRefresh />}
-            contentContainerClassName="gap-3"
-            onEndReached={() => fetchNextPage()}
-            onEndReachedThreshold={0.5}
-            renderItem={({ item }) => (
-              <Pressable onPress={() => handleSelect(item)}>
-                {renderItem(item, {
-                  isSelected: selectedItems.includes(item),
-                })}
-              </Pressable>
-            )}
-            ListEmptyComponent={() => (
-              <View className="justify-center items-center mt-10">
-                {isError && <Error>Error al cargar {title.toLowerCase()}</Error>}
-                {isLoading && <Loader />}
-                {filteredItems.length === 0 && !isLoading && !isError && (
-                  <TextInfo>No se encontraron resultados</TextInfo>
-                )}
-              </View>
-            )}
+      {(modalMaxHeight) => (
+        <View
+          className="overflow-hidden bg-background rounded p-4 py-6 w-full gap-5"
+          style={{ maxHeight: modalMaxHeight }}
+        >
+          <CloseModalButton onClose={onClose} />
+          <TextTitle>{title}</TextTitle>
+          <SearchBar
+            onChange={handleChangeSearch}
+            onDebounce={handleDebouncedSearch}
+            onSubmit={handleDebouncedSearch}
           />
+          <View className="flex-1 min-h-0">
+            <FlatList
+              data={filteredItems}
+              className="w-full flex-1 min-h-0"
+              refreshControl={<CustomRefresh />}
+              contentContainerClassName="gap-3"
+              onEndReached={() => fetchNextPage()}
+              onEndReachedThreshold={0.5}
+              renderItem={({ item }) => (
+                <Pressable onPress={() => handleSelect(item)}>
+                  {renderItem(item, {
+                    isSelected: selectedItems.includes(item),
+                  })}
+                </Pressable>
+              )}
+              ListEmptyComponent={() => (
+                <View className="justify-center items-center mt-10">
+                  {isError && <Error>Error al cargar {title.toLowerCase()}</Error>}
+                  {isLoading && <Loader />}
+                  {filteredItems.length === 0 && !isLoading && !isError && (
+                    <TextInfo>No se encontraron resultados</TextInfo>
+                  )}
+                </View>
+              )}
+            />
+          </View>
+          {multiple && (
+            <CustomButton
+              className="bg-tertiary rounded p-3"
+              onPress={() => onSelect(selectedItems as any)}
+              disabled={selectedItems.length === 0}
+            >
+              <ButtonText>Seleccionar</ButtonText>
+            </CustomButton>
+          )}
         </View>
-        {multiple && (
-          <CustomButton
-            className="bg-tertiary rounded p-3"
-            onPress={() => onSelect(selectedItems as any)}
-            disabled={selectedItems.length === 0}
-          >
-            <ButtonText>Seleccionar</ButtonText>
-          </CustomButton>
-        )}
-      </View>
+      )}
     </CustomModal>
   );
 }

@@ -20,3 +20,24 @@
   --color-background: 240 240 240;
   --color-alert: 197 37 37;
 }
+
+/**
+ * Web-only focus style for text inputs. Native is unaffected: there is no browser focus ring
+ * there, and this file only ships to the web build.
+ *
+ * The raw browser ring is never removed outright -- that would strip the keyboard-accessibility
+ * affordance. It is replaced with a brand-coloured one instead.
+ *
+ * Note both rules resolve to the same ring for text inputs in practice: per the CSS
+ * selectors spec, an element that accepts keyboard input always matches `:focus-visible` while
+ * focused, whatever the input modality was. The plain `:focus` rule is kept as the fallback for
+ * focusable controls that do NOT always match `:focus-visible` (and for older engines), so no
+ * control can ever fall back to the raw UA ring.
+ */
+input:focus,
+textarea:focus,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid rgb(var(--color-primary));
+  outline-offset: 1px;
+}
