@@ -1,0 +1,226 @@
+# Rediseño de UI — guía de prueba
+
+Documento vivo. Se actualiza con cada rebanada. Pensado para que puedas probar todo de una vez
+cuando esté terminado.
+
+## Cómo levantarlo
+
+```bash
+cd /home/opencode/projects/loop
+git checkout <rama de la rebanada que quieras probar>
+DEV_HOST=192.168.1.37 WEB_PORT=8082 docker compose -f docker-compose.dev.yml up --watch
+```
+
+Las ramas están apiladas: cada una incluye todo lo anterior. Para probar todo junto, usá la última.
+
+**Para deshacer todo:** `git checkout main`.
+
+> **Sobre el header verde en modo demo.** Adentro de la app el header sigue verde a propósito: la
+> comunidad de demo define su propio tema y lo conserva. Es el comportamiento multi-tenant
+> especificado. La paleta Itínere nueva se ve en la **landing, antes de elegir comunidad**.
+
+---
+
+## Estado de las rebanadas
+
+| # | Rama | PR | Estado |
+|---|---|---|---|
+| — | `feat/itinere-brand-refresh` | [#1](https://github.com/ezemastro/loop/pull/1) | Listo |
+| 1 | `feat/ui-1-foundation` | [#2](https://github.com/ezemastro/loop/pull/2) | Listo |
+| 2 | `feat/ui-2-listing-grid` | [#3](https://github.com/ezemastro/loop/pull/3) | Listo |
+| 3 | `feat/ui-3-width-system` | [#4](https://github.com/ezemastro/loop/pull/4) | Listo |
+| 4 | `feat/ui-4-fixes` | — | Pendiente |
+| 5 | `feat/ui-5-compact-card` | — | Pendiente |
+| 6 | `feat/ui-6-wide-density` | — | Pendiente |
+| 7 | `feat/ui-7-notifications` | — | Pendiente |
+| 8 | `feat/ui-8-chat` | — | Pendiente |
+| 9 | `feat/ui-9-detail` | — | Pendiente |
+| 10 | `feat/ui-10-desktop-nav` | — | Pendiente |
+| 11 | `feat/ui-11-settings` | — | Pendiente |
+
+---
+
+## Marca Itínere — `feat/itinere-brand-refresh`
+
+### Qué cambió
+
+La paleta por defecto pasa a ser la institucional de Red Itínere, y se renueva el set de assets.
+
+| Clave | Antes | Ahora | Dónde se ve |
+|---|---|---|---|
+| `PRIMARY` | `#FF5900` | `#E4510B` | tab activa, acentos |
+| `SECONDARY` | `#4C9F38` | `#243B7A` | header, banner demo, burbujas de chat |
+| `TERTIARY` | `#009E7C` | `#209B8A` | botón de acción, enviar, agregar |
+| `CREDITS` | `#8436D1` | `#7D2048` | loopies |
+| `ALERT` | `#FF3B30` | `#C52525` | errores |
+| `MAIN_TEXT` | `#424242` | `#3D3D3D` | texto principal |
+
+Las comunidades con tema propio **no se ven afectadas**: el fallback por clave sigue igual.
+
+### Qué probar
+
+- **Landing (sin login):** logo nuevo, "segunda vida" en azul, "útiles" en naranja, botón de iniciar
+  sesión en teal, botón de registrarse con borde naranja.
+- **Blobs decorativos de la landing:** ya no son pasteles hardcodeados, derivan de la paleta.
+- **Prompt de instalar PWA** (en web, si aparece): tiene que usar los colores del tema, no una copia
+  vieja. Antes tenía la paleta entera hardcodeada.
+- **Chrome del navegador / splash:** color `#243B7A`.
+
+### Detalles que importan
+
+- El verde saliente `#4C9F38` **no pasaba WCAG AA** como texto sobre blanco (3,3:1). El azul nuevo
+  da 10,6:1. `ALERT` también mejora: de ~3,8:1 a 5,7:1.
+- Se subió `CACHE_NAME` del service worker a `v2`. Sin eso, quien ya había visitado la app se
+  quedaba con el manifest y los iconos viejos.
+- **Deuda conocida:** el degradé del logo sigue siendo arcoíris, no la paleta Itínere. Los assets se
+  referencian solo por nombre de archivo, así que reemplazarlo por el definitivo es cambiar el PNG,
+  sin tocar código.
+
+---
+
+## Rebanada 1 — Fundación
+
+### Qué cambió
+
+Deliberadamente **no cambia nada visualmente**. Agrega tokens que las rebanadas siguientes consumen
+y arregla dos bugs.
+
+- `BREAKPOINTS` (md 768, lg 1024, xl 1280), en paridad testeada con Tailwind.
+- `ELEVATION` como tabla de runtime, más `GALLERY_HEIGHT` y `SKELETON_COUNT`.
+- Hook `useBreakpoint` con una función pura `resolveBreakpoint(width)`.
+
+### Bugs arreglados
+
+- **`MainView`** tiraba abajo su tope de ancho dentro de la rama `refreshEnabled` pero lo mantenía
+  fuera, así que el ancho máximo de la página dependía de si la pantalla tenía pull-to-refresh.
+- **`ButtonText`** concatenaba `props.className` como string en vez de usar `twMerge`, así que
+  cualquier override perdía silenciosamente contra las clases base.
+
+### Dos guardianes de código fuente
+
+Ambos verificados plantando archivos trampa y confirmando que fallan, antes de confiar en el verde.
+
+- **Trampa de `display` en nativo.** `react-native-css-interop` solo acepta `display: none`;
+  cualquier otro valor devuelve `undefined`. O sea que el idiomático de Tailwind web
+  `hidden lg:flex` deja el elemento **oculto para siempre** en nativo, sin error visible en review.
+  El idioma correcto es unidireccional: `lg:hidden` y `max-lg:hidden`.
+- **Escala de sombras.** `parseBoxShadow` mapea solo `shadowColor` y `shadowRadius`, alimentado
+  desde `spread`, que Tailwind siempre deja en `0`. Las clases `shadow-*` **no renderizan nada** en
+  nativo. De ahí la tabla `ELEVATION`.
+
+### Qué probar
+
+Nada visual. Si algo se ve distinto, es un bug.
+
+---
+
+## Rebanada 2 — Card con imagen y grilla
+
+### Qué cambió
+
+La card de publicación pasa de fila horizontal con miniatura de 96×112 a **imagen protagonista**,
+dentro de una grilla que adapta las columnas al ancho.
+
+| Ancho | Columnas |
+|---|---|
+| < 768px | 1 |
+| 768–1023px | 2 |
+| 1024–1279px | 3 |
+| ≥ 1280px | 4 |
+
+Un solo componente para todos los anchos. Los cuatro badges (`CategoryBadge`, `ProductStatusBadge`,
+`UserBadge`, `CreditsBadge`) se reutilizan sin tocar.
+
+### Qué probar
+
+- **`/search` y `/home`:** achicá y agrandá la ventana; las columnas tienen que reacomodarse sin
+  saltos y sin perder la posición del scroll.
+- **Alturas:** las cards de una misma fila tienen que terminar alineadas abajo, aunque los títulos
+  ocupen distinta cantidad de líneas.
+- **En celular:** una columna, imagen a ancho completo.
+- **Fotos verticales:** el `resizeMode` pasó de `contain` a `cover`, así que **recorta**. Si te
+  parece muy agresivo, el aspect ratio es una constante con nombre (`CARD_IMAGE_ASPECT_RATIO`) y se
+  cambia en una línea.
+
+### Tres bugs que ningún test podía encontrar
+
+Se encontraron levantando la app en modo demo y renderizándola con Playwright a 390 / 800 / 1100 /
+1440 / 1920 px. Los tres tenían las clases **correctamente escritas**.
+
+1. **El wrapper del `FlatList` rompía la cadena de porcentajes.** react-native-web envuelve cada
+   ítem en su propio `View`, así que la clase de celda quedaba adentro de un nodo que ya era una
+   columna: `w-1/4` se aplicaba dos veces y la card terminaba con **83px** en vez de 345px, con los
+   títulos cortados en "Botel la…". Se resolvió pasando la clase por `CellRendererComponent`.
+2. **Las celdas se comprimían** por el `flex-shrink` por defecto de React Native.
+3. **Las cards de una fila no se alineaban abajo**: la celda se estira, pero la card no la llenaba.
+
+---
+
+## Rebanada 3 — Sistema de anchos
+
+### Qué cambió
+
+Separa **quién scrollea** de **quién limita el ancho**.
+
+Antes el `max-width` estaba en el mismo `View` que contenía al `FlatList` de cada pantalla, así que
+el scroller heredaba la caja capeada y su barra quedaba en el borde de la columna interna. Ahora
+`MainView` no capea: el cap lo aplica cada pantalla en el `contentContainer` de su propio scroller.
+
+| variante | cap | pantallas |
+|---|---|---|
+| `wide` | 1152px / 1400px en `xl` | inicio, buscar, mis loops, deseados, publicar |
+| `narrow` | 768px | perfil, mensajes, chat, notificaciones, detalle, oferta, login, registro, términos |
+| `full` | sin cap | escape hatch |
+
+También se centraron los botones: `CustomButton` traía `max-w-6xl` incrustado y ningún `mx-auto`, así
+que en pantalla ancha quedaba pegado a la izquierda con 248px de aire a la derecha.
+
+### Qué probar
+
+- **Barra de scroll:** en cualquier página que scrollee, tiene que estar pegada al borde derecho de
+  la ventana, no al borde de la columna de contenido.
+- **`/messages`:** mucho más angosta, las tarjetas de chat ya no se estiran a lo ancho.
+- **`/profile`:** más angosta.
+- **`/search` e `/home`:** siguen aprovechando el ancho.
+- **Botones de abajo** (cerrar sesión en `/profile`, agregar deseo en `/wishlist`): centrados.
+- **Botón "Donar"** en `/profile`: dejó de ser un bloque enorme.
+
+### Un bug de React que los tests no vieron
+
+La primera versión usaba un `PageWidthContext`. **No funcionaba**: cada pantalla llamaba al hook en
+el mismo componente que renderizaba el `Provider`, y el contexto solo llega a los descendientes, así
+que leía siempre el default. La variante `narrow` no tenía efecto en **ninguna** pantalla, con los
+tests igual en verde. Se detectó midiendo el DOM. Ahora es una función pura.
+
+### Otro detalle que parece menor y no lo es
+
+El centrado usa `self-center` y **no** `mx-auto`. `tailwind-merge` trata todas las clases `mx-*` como
+un mismo grupo de conflicto, así que `mx-auto` pisaría silenciosamente el `-mx-1.5` de las gutters de
+la grilla.
+
+### Hallazgo
+
+`refreshEnabled` **no lo pasaba ningún caller**: la rama del `ScrollView` de `MainView` era código
+muerto y las 16 pantallas usaban la otra. Se eliminó.
+
+---
+
+## Cómo se verifica esto
+
+Los tests unitarios no alcanzan para un cambio visual. Cada rebanada se verifica además
+**renderizando la app de verdad**: se levanta el cliente en modo demo (sin backend), se navega con
+Playwright y se miden los nodos del DOM a 390 / 768 / 1024 / 1440 / 1920 px.
+
+Los cuatro bugs de layout encontrados hasta ahora (tres en la grilla, uno en el sistema de anchos)
+**pasaban todos los tests**. Ninguno se habría detectado en code review.
+
+## Limitaciones conocidas del entorno
+
+- `npm run lint` está roto de antes: `expo lint` revienta con `ERR_UNSUPPORTED_DIR_IMPORT`
+  resolviendo `eslint-config-expo/flat` bajo Node v24.
+- `npx tsc --noEmit` también, por `@types/jest` faltante más errores preexistentes ajenos a este
+  trabajo.
+- `npm run test` es `jest --watchAll` y nunca termina. Usar siempre
+  `npx jest --ci --watchAll=false`.
+
+Ninguna de las tres se arregla acá: son preexistentes y quedan fuera de un pase de UI.
