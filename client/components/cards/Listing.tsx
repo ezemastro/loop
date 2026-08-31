@@ -37,18 +37,23 @@ export default function Listing({
   listing,
   customButton,
   variant = "grid",
+  onPress: onPressProp,
 }: {
   listing: Listing;
   customButton?: React.ReactNode;
   variant?: "grid" | "compact";
+  /** Overrides the default navigation-to-detail behaviour when provided (e.g. selection flows). */
+  onPress?: () => void;
 }) {
   const router = useRouter();
   const hasImage = listing.media.length > 0;
-  const onPress = () =>
-    router.push({
-      pathname: "/(main)/listing/[listingId]",
-      params: { listingId: listing.id.toString() },
-    });
+  const onPress =
+    onPressProp ??
+    (() =>
+      router.push({
+        pathname: "/(main)/listing/[listingId]",
+        params: { listingId: listing.id.toString() },
+      }));
 
   if (variant === "compact") {
     return (

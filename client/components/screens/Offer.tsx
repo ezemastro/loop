@@ -109,6 +109,14 @@ export default function Offer() {
   const isNegative = totalCredits < 0;
   const selectableListings =
     buyerListings?.filter((listing) => selectedListings.every((l) => l.id !== listing.id)) || [];
+  const handleAddListing = (listingToAdd: Listing) => {
+    setSelectedListings((prev) =>
+      prev.some((l) => l.id === listingToAdd.id) ? prev : [...prev, listingToAdd],
+    );
+  };
+  const handleRemoveListing = (listingId: Listing["id"]) => {
+    setSelectedListings((prev) => prev.filter((l) => l.id !== listingId));
+  };
   const handleSubmit = () => {
     acceptOffer(undefined, {
       onSuccess,
@@ -185,12 +193,11 @@ export default function Offer() {
             <Listing
               key={listing.id}
               listing={listing}
+              onPress={() => handleRemoveListing(listing.id)}
               customButton={
                 <SelectListingButton
                   type="remove"
-                  onPress={() => {
-                    setSelectedListings(selectedListings.filter((l) => l.id !== listing.id));
-                  }}
+                  onPress={() => handleRemoveListing(listing.id)}
                 />
               }
             />
@@ -214,13 +221,9 @@ export default function Offer() {
               <Listing
                 key={listing.id}
                 listing={listing}
+                onPress={() => handleAddListing(listing)}
                 customButton={
-                  <SelectListingButton
-                    type="add"
-                    onPress={() => {
-                      setSelectedListings([...selectedListings, listing]);
-                    }}
-                  />
+                  <SelectListingButton type="add" onPress={() => handleAddListing(listing)} />
                 }
               />
             ))}
@@ -245,11 +248,11 @@ export default function Offer() {
         <View className={actionsRowClassName}>
           {isLoading && <Loader />}
           <View className="flex-row gap-4">
-            <CustomButton className="flex-grow" onPress={handleSubmit}>
+            <CustomButton className="w-auto max-w-none flex-grow" onPress={handleSubmit}>
               <ButtonText>Confirmar</ButtonText>
             </CustomButton>
-            <CustomButton className="bg-alert flex-1" onPress={handleReject}>
-              <ButtonText className="text-alert">Cancelar</ButtonText>
+            <CustomButton className="w-auto max-w-none bg-alert flex-1" onPress={handleReject}>
+              <ButtonText>Cancelar</ButtonText>
             </CustomButton>
           </View>
         </View>

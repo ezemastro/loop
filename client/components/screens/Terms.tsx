@@ -113,7 +113,7 @@ export default function TermsPage() {
           <CustomButton onPress={handleReject} className="bg-alert">
             <ButtonText>Rechazar</ButtonText>
           </CustomButton>
-          <CustomButton onPress={handleAccept} className="flex-grow">
+          <CustomButton onPress={handleAccept} className="w-auto max-w-none flex-grow">
             <ButtonText>Aceptar</ButtonText>
           </CustomButton>
         </View>

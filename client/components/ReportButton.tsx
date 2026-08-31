@@ -157,7 +157,10 @@ export default function ReportButton({
               >
                 <ButtonText className="text-base">Compartir</ButtonText>
               </CustomButton>
-              <CustomButton className="flex-1 bg-main-text" onPress={() => setManualCopyText("")}>
+              <CustomButton
+                className="w-auto max-w-none flex-1 bg-main-text"
+                onPress={() => setManualCopyText("")}
+              >
                 <ButtonText className="text-base">Cerrar</ButtonText>
               </CustomButton>
             </View>

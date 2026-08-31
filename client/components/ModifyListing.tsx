@@ -1,5 +1,6 @@
 import { useEffect, useState, type JSX } from "react";
 import { View, Text, FlatList, TextInput, Pressable } from "react-native";
+import { twMerge } from "tailwind-merge";
 import {
   MAX_LISTING_DESCRIPTION_LENGTH,
   MAX_LISTING_TITLE_LENGTH,
@@ -27,11 +28,27 @@ import ImagesSelector from "./selectors/ImagesSelector";
 import { MainView, pageContentClassName } from "@/components/bases/MainView";
 import { useThemeColors } from "@/hooks/useThemeColors";
 
-interface Section {
+interface Field {
   key: string;
   title?: string;
   isError: boolean;
+  /**
+   * Extra bottom margin below the field, preserved from the original per-field spacing (Images,
+   * Category and Product Status carried their own `mb-4`; Title, Description and Price did not).
+   * Kept as a per-field override rather than a uniform row gap so wide-screen pairing doesn't
+   * change mobile spacing.
+   */
+  spacingClassName?: string;
   component: () => JSX.Element;
+}
+/**
+ * A `Row` holds one field (always full width) or two fields (paired side by side from `md` up,
+ * stacked full width on mobile — see `renderItem` below). Grouping stays adjacent to the
+ * original field order so mobile requires zero reordering.
+ */
+interface Row {
+  key: string;
+  fields: Field[];
 }
 interface FormMedia {
   uri?: string;
@@ -60,7 +77,9 @@ export default function ModifyListing({
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const colors = useThemeColors();
-  const contentContainerClassName = pageContentClassName("wide", "gap-2");
+  // A form column does not benefit from the full "wide" page cap (1400px) — the narrower page
+  // tier keeps fields readable while still leaving room for the md+ side-by-side pairs below.
+  const contentContainerClassName = pageContentClassName("narrow", "gap-2");
 
   const [form, setForm] = useState<FormData>({
     title: initialData?.title || null,
@@ -199,161 +218,188 @@ export default function ModifyListing({
     form.category?.price?.max != null
       ? Math.round(form.category.price.max * priceMultiplier)
       : null;
-  const sections: Section[] = [
-    {
-      key: "Images",
-      component: () => (
-        <ImagesSelector
-          onChange={handleImageChange}
-          initialImages={initialData?.media}
-          className="mb-4"
-        />
-      ),
-      isError: errors.images,
-    },
-    {
-      key: "category",
-      title: "Categoría",
-      isError: errors.category,
-      component: () => (
-        <CategorySelector
-          value={form.category}
-          onChange={(value) => setForm((prev) => ({ ...prev, category: value }))}
-          className="mx-4 mb-4 bg-secondary-text/10 border-0 border-b border-gray-300 rounded-b-none rounded-t"
+  const imagesField: Field = {
+    key: "Images",
+    isError: errors.images,
+    spacingClassName: "mb-4",
+    component: () => (
+      <ImagesSelector onChange={handleImageChange} initialImages={initialData?.media} />
+    ),
+  };
+  const categoryField: Field = {
+    key: "category",
+    title: "Categoría",
+    isError: errors.category,
+    spacingClassName: "mb-4",
+    component: () => (
+      <CategorySelector
+        value={form.category}
+        onChange={(value) => setForm((prev) => ({ ...prev, category: value }))}
+        className="bg-secondary-text/10 border-0 border-b border-gray-300 rounded-b-none rounded-t"
+        placeholderClassName="text-secondary-text"
+      />
+    ),
+  };
+  const titleField: Field = {
+    key: "Title",
+    title: "Título",
+    isError: errors.title,
+    component: () => (
+      <>
+        <TextInput
+          value={form.title || ""}
+          onChangeText={(text) => {
+            if (text.length > MAX_LISTING_TITLE_LENGTH) return;
+            setForm((prev) => ({ ...prev, title: text }));
+          }}
+          placeholder="Escribe un título para tu publicación"
+          placeholderTextColor={colors.SECONDARY_TEXT}
+          className="w-full border-b border-gray-300 p-2 px-3 text-lg bg-secondary-text/10 rounded-t"
+          underlineColorAndroid="#fff0"
           placeholderClassName="text-secondary-text"
         />
-      ),
-    },
-    {
-      key: "Title",
-      title: "Título",
-      isError: errors.title,
-      component: () => (
-        <View className="px-4">
-          <TextInput
-            value={form.title || ""}
-            onChangeText={(text) => {
-              if (text.length > MAX_LISTING_TITLE_LENGTH) return;
-              setForm((prev) => ({ ...prev, title: text }));
-            }}
-            placeholder="Escribe un título para tu publicación"
-            placeholderTextColor={colors.SECONDARY_TEXT}
-            className="w-full border-b border-gray-300 p-2 px-3 text-lg bg-secondary-text/10 rounded-t"
-            underlineColorAndroid="#fff0"
-            placeholderClassName="text-secondary-text"
-          />
-          <Text className="mt-1 text-right text-sm text-secondary-text">
-            {form.title && form.title?.length > MAX_LISTING_TITLE_LENGTH - 10
-              ? `${form.title.length}/${MAX_LISTING_TITLE_LENGTH}`
-              : ""}
-          </Text>
-        </View>
-      ),
-    },
-    {
-      key: "Description",
-      title: "Descripción",
-      isError: errors.description,
-      component: () => (
-        <View className="px-4">
-          <TextInput
-            value={form.description || ""}
-            onChangeText={(text) => {
-              if (text.length > MAX_LISTING_DESCRIPTION_LENGTH) return;
-              // const cleanedText = text
-              //   .replace(/\s+/g, " ")
-              //   .replace(/(\n){2,}/g, "\n");
-              setForm((prev) => ({ ...prev, description: text }));
-            }}
-            placeholder="Escribe una descripción para tu publicación"
-            placeholderTextColor={colors.SECONDARY_TEXT}
-            className="w-full border-b border-gray-300 p-2 px-3 text-lg bg-secondary-text/10 rounded-t"
-            placeholderClassName="text-secondary-text"
-            underlineColorAndroid="#fff0"
-            multiline
-            numberOfLines={5}
-            textAlignVertical="top"
-          />
-          <Text className="mt-1 text-right text-sm text-secondary-text">
-            {form.description && form.description?.length > MAX_LISTING_DESCRIPTION_LENGTH - 50
-              ? `${form.description.length}/${MAX_LISTING_DESCRIPTION_LENGTH}`
-              : ""}
-          </Text>
-        </View>
-      ),
-    },
-    {
-      key: "productStatus",
-      title: "Estado",
-      isError: errors.productStatus,
-      component: () => (
-        <ProductStatusSelector
-          value={form.productStatus}
-          onChange={(value) => setForm((prev) => ({ ...prev, productStatus: value }))}
-          className="mx-4 mb-4 bg-secondary-text/10 border-b border-gray-300 rounded-b-none rounded-t"
+        <Text className="mt-1 text-right text-sm text-secondary-text">
+          {form.title && form.title?.length > MAX_LISTING_TITLE_LENGTH - 10
+            ? `${form.title.length}/${MAX_LISTING_TITLE_LENGTH}`
+            : ""}
+        </Text>
+      </>
+    ),
+  };
+  const descriptionField: Field = {
+    key: "Description",
+    title: "Descripción",
+    isError: errors.description,
+    component: () => (
+      <>
+        <TextInput
+          value={form.description || ""}
+          onChangeText={(text) => {
+            if (text.length > MAX_LISTING_DESCRIPTION_LENGTH) return;
+            // const cleanedText = text
+            //   .replace(/\s+/g, " ")
+            //   .replace(/(\n){2,}/g, "\n");
+            setForm((prev) => ({ ...prev, description: text }));
+          }}
+          placeholder="Escribe una descripción para tu publicación"
+          placeholderTextColor={colors.SECONDARY_TEXT}
+          className="w-full border-b border-gray-300 p-2 px-3 text-lg bg-secondary-text/10 rounded-t"
+          placeholderClassName="text-secondary-text"
+          underlineColorAndroid="#fff0"
+          multiline
+          numberOfLines={5}
+          textAlignVertical="top"
         />
-      ),
-    },
-    {
-      key: "price",
-      title: "Precio",
-      isError: errors.price,
-      component: () => (
-        <View className="px-4">
-          <View className="flex-row gap-2 items-center border-b border-gray-300 bg-secondary-text/10 px-4 rounded-t">
-            <CreditIcon size={32} />
-            <TextInput
-              value={form.price ? formatNumber(form.price) : ""}
-              keyboardType="numeric"
-              onChangeText={(text) => {
-                const number = Number(text.replace(/[.,]/g, ""));
-                if (Number.isNaN(number)) return;
-                setForm((prev) => ({ ...prev, price: number }));
-              }}
-              placeholder={
-                adjustedPriceMin != null && adjustedPriceMax != null
-                  ? `Recomendado: ${formatNumber(adjustedPriceMin)} - ${formatNumber(adjustedPriceMax)}`
-                  : "Introduce un precio para tu publicación"
-              }
-              underlineColorAndroid="transparent"
-              placeholderTextColor={colors.SECONDARY_TEXT}
-              placeholderClassName="text-secondary-text"
-              className="w-full p-2 px-3 text-lg text-credits"
-            />
-          </View>
-          <Text className="mt-1 text-right text-sm text-secondary-text">
-            {form.price && adjustedPriceMax != null && form.price > adjustedPriceMax
-              ? `Recomendado: Max. ${formatNumber(adjustedPriceMax)}`
-              : ""}
-            {form.price && adjustedPriceMin != null && form.price < adjustedPriceMin
-              ? `Recomendado: Min. ${formatNumber(adjustedPriceMin)}`
-              : ""}
-          </Text>
+        <Text className="mt-1 text-right text-sm text-secondary-text">
+          {form.description && form.description?.length > MAX_LISTING_DESCRIPTION_LENGTH - 50
+            ? `${form.description.length}/${MAX_LISTING_DESCRIPTION_LENGTH}`
+            : ""}
+        </Text>
+      </>
+    ),
+  };
+  const productStatusField: Field = {
+    key: "productStatus",
+    title: "Estado",
+    isError: errors.productStatus,
+    spacingClassName: "mb-4",
+    component: () => (
+      <ProductStatusSelector
+        value={form.productStatus}
+        onChange={(value) => setForm((prev) => ({ ...prev, productStatus: value }))}
+        className="bg-secondary-text/10 border-b border-gray-300 rounded-b-none rounded-t"
+      />
+    ),
+  };
+  const priceField: Field = {
+    key: "price",
+    title: "Precio",
+    isError: errors.price,
+    component: () => (
+      <>
+        <View className="flex-row gap-2 items-center border-b border-gray-300 bg-secondary-text/10 px-4 rounded-t">
+          <CreditIcon size={32} />
+          <TextInput
+            value={form.price ? formatNumber(form.price) : ""}
+            keyboardType="numeric"
+            onChangeText={(text) => {
+              const number = Number(text.replace(/[.,]/g, ""));
+              if (Number.isNaN(number)) return;
+              setForm((prev) => ({ ...prev, price: number }));
+            }}
+            placeholder={
+              adjustedPriceMin != null && adjustedPriceMax != null
+                ? `Recomendado: ${formatNumber(adjustedPriceMin)} - ${formatNumber(adjustedPriceMax)}`
+                : "Introduce un precio para tu publicación"
+            }
+            underlineColorAndroid="transparent"
+            placeholderTextColor={colors.SECONDARY_TEXT}
+            placeholderClassName="text-secondary-text"
+            className="w-full p-2 px-3 text-lg text-credits"
+          />
         </View>
-      ),
-    },
+        <Text className="mt-1 text-right text-sm text-secondary-text">
+          {form.price && adjustedPriceMax != null && form.price > adjustedPriceMax
+            ? `Recomendado: Max. ${formatNumber(adjustedPriceMax)}`
+            : ""}
+          {form.price && adjustedPriceMin != null && form.price < adjustedPriceMin
+            ? `Recomendado: Min. ${formatNumber(adjustedPriceMin)}`
+            : ""}
+        </Text>
+      </>
+    ),
+  };
+  // Field order matches the original, unpaired layout exactly (Images, Category, Title,
+  // Description, ProductStatus, Price) so mobile — which always stacks a row's fields full width,
+  // one per line — renders byte-for-byte the same as before. Pairing only changes from `md` up:
+  // Category+Title (both short, filled right after adding photos) and ProductStatus+Price (price's
+  // recommended-range placeholder is literally derived from the selected status, so showing them
+  // side by side reinforces that link). Description stays alone because it is multiline.
+  const rows: Row[] = [
+    { key: "images-row", fields: [imagesField] },
+    { key: "category-title-row", fields: [categoryField, titleField] },
+    { key: "description-row", fields: [descriptionField] },
+    { key: "status-price-row", fields: [productStatusField, priceField] },
   ];
   return (
     <MainView>
       <AvoidingKeyboard>
         <FlatList
-          data={sections}
+          data={rows}
           keyExtractor={(item) => item.key}
           refreshControl={<CustomRefresh />}
           className="flex-1"
           contentContainerClassName={contentContainerClassName}
           contentContainerStyle={{ paddingBottom: insets.bottom }}
-          renderItem={({ item }) => (
-            <View className="w-full gap-2">
-              {item.title && <Text className="px-4 text-2xl">{item.title}</Text>}
-              <View>
-                {item.isError && (
-                  <Error textClassName="text-sm text-alert px-4">
-                    Por favor revisa este campo.
-                  </Error>
-                )}
-                {item.component()}
-              </View>
+          renderItem={({ item: row }) => (
+            <View
+              className={twMerge(
+                "w-full",
+                // A paired row stacks full width on mobile (unchanged from before) and sits
+                // side by side from `md` up; a single-field row is always full width.
+                row.fields.length > 1 ? "flex-col gap-2 md:flex-row md:gap-4" : undefined,
+              )}
+            >
+              {row.fields.map((field) => (
+                <View
+                  key={field.key}
+                  className={twMerge(
+                    row.fields.length > 1 ? "w-full md:flex-1" : "w-full",
+                    "gap-2",
+                    field.spacingClassName,
+                  )}
+                >
+                  {field.title && <Text className="px-4 text-2xl">{field.title}</Text>}
+                  <View>
+                    {field.isError && (
+                      <Error textClassName="text-sm text-alert px-4">
+                        Por favor revisa este campo.
+                      </Error>
+                    )}
+                    <View className="px-4">{field.component()}</View>
+                  </View>
+                </View>
+              ))}
             </View>
           )}
           ListFooterComponent={() => (

@@ -64,7 +64,7 @@ export default function ListingButtons({
         return null;
       }
       return (
-        <CustomButton onPress={() => handleCreateOffer()} className="flex-grow">
+        <CustomButton onPress={() => handleCreateOffer()} className="w-auto max-w-none flex-grow">
           <ButtonText>Loopear</ButtonText>
         </CustomButton>
       );
@@ -72,7 +72,7 @@ export default function ListingButtons({
       if (user?.id === listing.seller.id) {
         return (
           <CustomButton
-            className="flex-grow"
+            className="w-auto max-w-none flex-grow"
             onPress={() => {
               router.push({
                 pathname: "/(main)/listing/[listingId]/offer",
@@ -86,11 +86,15 @@ export default function ListingButtons({
       }
       if (user?.id === listing.buyer?.id) {
         return (
-          <CustomButton className="bg-alert flex-grow" onPress={() => handleDeleteOffer()}>
+          <CustomButton
+            className="w-auto max-w-none bg-alert flex-grow"
+            onPress={() => handleDeleteOffer()}
+          >
             <ButtonText>Cancelar</ButtonText>
           </CustomButton>
         );
       }
+      return null;
     case "accepted":
       if (user?.id === listing.seller.id) {
         return (
@@ -103,7 +107,7 @@ export default function ListingButtons({
                   params: { userId: listing.buyer?.id },
                 })
               }
-              className="flex-grow"
+              className="w-auto max-w-none flex-grow"
             >
               <ButtonText>Mensaje</ButtonText>
             </CustomButton>
@@ -115,10 +119,16 @@ export default function ListingButtons({
       }
       if (user?.id === listing.buyer?.id) {
         return (
-          <CustomButton onPress={() => handleMarkReceived()} className="flex-grow">
+          <CustomButton
+            onPress={() => handleMarkReceived()}
+            className="w-auto max-w-none flex-grow"
+          >
             <ButtonText>Recibido</ButtonText>
           </CustomButton>
         );
       }
+      return null;
+    default:
+      return null;
   }
 }

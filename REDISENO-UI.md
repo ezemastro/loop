@@ -31,7 +31,7 @@ Las ramas están apiladas: cada una incluye todo lo anterior. Para probar todo j
 | 3 | `feat/ui-3-width-system` | [#4](https://github.com/ezemastro/loop/pull/4) | Listo |
 | 4 | `feat/ui-4-fixes` | [#5](https://github.com/ezemastro/loop/pull/5) | Listo |
 | 5 | `feat/ui-5-compact-card` | [#6](https://github.com/ezemastro/loop/pull/6) | Listo |
-| 6 | `feat/ui-6-wide-density` | — | Pendiente |
+| 6 | `feat/ui-6-wide-density` | [#7](https://github.com/ezemastro/loop/pull/7) | Listo |
 | 7 | `feat/ui-7-notifications` | — | Pendiente |
 | 8 | `feat/ui-8-chat` | — | Pendiente |
 | 9 | `feat/ui-9-detail` | — | Pendiente |
@@ -313,6 +313,63 @@ definición y no puede pasar por un contenedor de columnas. Ahora se apila en un
 
 `/listing/[id]/offer` también apila cards completas a lo ancho. Podría querer compacta, pero ahí
 **sí** estás eligiendo qué entregar, así que la imagen importa. Sin tocar hasta que lo decidas.
+
+---
+
+## Rebanada 6 — Densidad en pantalla ancha
+
+### 1. `/offer`: tocar una publicación te sacaba del flujo
+
+**El bug.** La card tenía el `onPress` hardcodeado a "ir al detalle". En `/offer`, tocar el cuerpo
+de una publicación disponible te llevaba al detalle de **esa** publicación, que es del comprador y
+está `published` — así que ahí aparecía el botón **"Loopear"**. Podías arrancar una oferta
+completamente distinta en el medio de estar eligiendo qué recibir. Solo el "+" agregaba de verdad.
+
+**El arreglo.** La card acepta un `onPress` opcional. En `/offer`, tocar la card agrega o quita de
+la selección, igual que el botón. `/offer` **se queda ancho y con la card grande**, como pediste:
+el problema nunca fue el ancho.
+
+De paso, `ListingButtons` tenía un `switch` sin `break`: `case "offered"`, si no coincidías ni con
+el vendedor ni con el comprador, **caía dentro de `case "accepted"`**. Ahora cada caso termina y
+hay un `default`.
+
+### 2 a 4. Densidad
+
+- **Misiones en `/home`:** dos por fila desde `md`. Si son impares, la última ocupa la fila entera
+  en vez de dejar un hueco.
+- **Formulario de `/publish`:** columna más angosta, Categoría + Título de a pares, Descripción a lo
+  largo, Estado + Precio de a pares. **En celular queda idéntico a antes.**
+- **`/wishlist`:** dos por fila en ancho.
+
+### 5. Alineación en `/profile`
+
+Los títulos de sección quedaron consistentes con su contenido.
+
+### Qué probar
+
+- **`/offer`:** tocá el cuerpo de una publicación disponible. Tiene que agregarla a "Recibirás", no
+  navegar a ningún lado. Tocá una ya seleccionada: la saca.
+- **`/publish` a 390px:** idéntico a antes. A 1440px: campos de a pares en columna angosta.
+- **`/home`, `/wishlist`:** dos por fila en ancho.
+- **Botones sueltos** (agregar deseo, cerrar sesión, publicar): ~450px centrados, no bandas.
+- **Botones en fila** (`/offer` Confirmar + Cancelar, detalle de publicación): llenan su fila.
+
+### Tres bugs que introduje y arreglé
+
+Vale documentarlos porque muestran cómo un arreglo destapa otro:
+
+1. **Botones de 1400px.** En la rebanada 3 le saqué el `max-w-6xl` a `CustomButton` para
+   centrarlos. Quedaron centrados y ocupando la columna entera: "Agregar deseo" era una banda de
+   punta a punta. Ahora los sueltos van a 448px.
+2. **El botón "Cancelar" aplastado a un sliver.** Al poner `w-full` en los defaults del botón, en
+   una **fila** los dos hermanos pedían el 100% del ancho y el segundo colapsaba. Las filas ahora
+   optan por salirse con `w-auto max-w-none`.
+3. **Texto rojo sobre fondo rojo.** `<ButtonText className="text-alert">` sobre `bg-alert`. El call
+   site siempre estuvo mal, pero no se veía porque `ButtonText` concatenaba las clases como string
+   y ganaba el `text-white` base. En la rebanada 1 lo pasé a `twMerge`, que es lo correcto — y el
+   override empezó a funcionar de verdad, dejando el texto invisible.
+
+Los tres pasaban los 649 tests.
 
 ---
 
