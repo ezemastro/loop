@@ -1,5 +1,6 @@
 import { View, Text, Pressable } from "react-native";
 import Listing from "../cards/Listing";
+import ListingGrid from "./ListingGrid";
 import Loader from "../Loader";
 import Error from "../Error";
 
@@ -19,9 +20,11 @@ export default function ListingViewList({
   return (
     <View>
       <View className="gap-2">
-        {listings.map((listing) => (
-          <Listing key={listing.id} listing={listing} />
-        ))}
+        <ListingGrid>
+          {listings.map((listing) => (
+            <Listing key={listing.id} listing={listing} />
+          ))}
+        </ListingGrid>
         {isLoading && <Loader />}
         {isError && <Error>Error al cargar las publicaciones</Error>}
         {!isLoading && !isError && listings.length === 0 && (

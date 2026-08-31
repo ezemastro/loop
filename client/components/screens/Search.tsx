@@ -2,13 +2,26 @@ import { useListings } from "@/hooks/useListings";
 import { useSearchStore } from "@/stores/search";
 import { useEffect, useState } from "react";
 import { View, Text, FlatList } from "react-native";
+import type { CellRendererProps } from "react-native";
 import { useDebounce } from "use-debounce";
 import Loader from "../Loader";
 import Listing from "../cards/Listing";
 import ListingSearchSortOptions from "../ListingSearchSortOptions";
 import ListingSearchFilters, { FiltersValue } from "../ListingSearchFilters";
 import { MainView } from "../bases/MainView";
+import { GRID_ROW_CLASS, GRID_CELL_CLASS } from "../bases/ListingGrid";
 import { useAuth } from "@/hooks/useAuth";
+
+/**
+ * react-native-web wraps every FlatList item in its own View. The width fraction must land on
+ * that wrapper — the direct child of the flex-wrap row — or the percentage resolves against an
+ * already-one-column-wide box and compounds (330px cell -> 83px card).
+ */
+const GridCell = ({ children, ...props }: CellRendererProps<Listing>) => (
+  <View {...props} className={GRID_CELL_CLASS}>
+    {children}
+  </View>
+);
 
 export default function Search() {
   const searchTerm = useSearchStore((state) => state.query);
@@ -57,7 +70,7 @@ export default function Search() {
         <ListingSearchSortOptions onDebounce={handleSortChange} />
       </View>
       <FlatList
-        className="flex-1"
+        className="flex-1 px-4"
         data={listings}
         ListEmptyComponent={() => (
           <>
@@ -71,7 +84,8 @@ export default function Search() {
             </View>
           </>
         )}
-        contentContainerClassName="px-4 gap-2"
+        contentContainerClassName={GRID_ROW_CLASS}
+        CellRendererComponent={GridCell}
         renderItem={({ item }) => <Listing listing={item} />}
       />
     </MainView>

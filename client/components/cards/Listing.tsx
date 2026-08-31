@@ -1,11 +1,19 @@
-import { View, Text, Image, Pressable } from "react-native";
+import { View, Text, Image, Pressable, Platform } from "react-native";
 import React from "react";
+import { twMerge } from "tailwind-merge";
 import ProductStatusBadge from "../badges/ProductStatusBadge";
 import UserBadge from "../badges/UserBadge";
 import CreditsBadge from "../badges/CreditsBadge";
 import { useRouter } from "expo-router";
 import { getUrl } from "@/services/getUrl";
 import CategoryBadge from "../CategoryBadge";
+import { ELEVATION } from "@/config";
+
+/**
+ * Card hero image ratio (design.md D3). Kept as a single named constant so the box shape is a
+ * one-line change if portrait product photos read as too cropped after `contain` -> `cover`.
+ */
+const CARD_IMAGE_ASPECT_RATIO = "aspect-[4/3]";
 
 export default function Listing({
   listing,
@@ -17,7 +25,11 @@ export default function Listing({
   const router = useRouter();
   return (
     <Pressable
-      className="flex-row px-2 py-3 bg-white rounded-xl shadow border border-stroke gap-2"
+      className={twMerge(
+        "h-full w-full overflow-hidden rounded-xl border border-stroke bg-white",
+        Platform.OS === "web" ? ELEVATION.raised.class : "",
+      )}
+      style={Platform.OS === "web" ? undefined : ELEVATION.raised.native}
       onPress={() =>
         router.push({
           pathname: "/(main)/listing/[listingId]",
@@ -25,21 +37,22 @@ export default function Listing({
         })
       }
     >
-      <View>
-        <Image
-          source={{ uri: getUrl(listing.media[0].url) }}
-          style={{ width: 96, height: 112 }}
-          resizeMode="contain"
-        />
-      </View>
-      <View className="flex-1 gap-2">
-        <View>
-          <Text className="text-lg font-medium text-main-text">{listing.title}</Text>
-          <CategoryBadge category={listing.category} className="text-sm" />
+      <Image
+        source={{ uri: getUrl(listing.media[0].url) }}
+        className={twMerge(CARD_IMAGE_ASPECT_RATIO, "w-full bg-background")}
+        resizeMode="cover"
+      />
+      <View className="gap-2 p-3">
+        <View className="flex-row items-start justify-between gap-2">
+          <Text numberOfLines={2} className="flex-1 text-lg font-medium text-main-text">
+            {listing.title}
+          </Text>
+          <CreditsBadge credits={listing.price} />
         </View>
+        <CategoryBadge category={listing.category} className="text-sm" numberOfLines={1} />
         <View className="flex-row items-center gap-2">
           <ProductStatusBadge status={listing.productStatus} />
-          <View className="flex-row flex-grow overflow-hidden gap-0.5">
+          <View className="flex-1 flex-row gap-0.5 overflow-hidden">
             {listing.seller.schools.map((school) => (
               <Image
                 key={school.id}
@@ -52,10 +65,7 @@ export default function Listing({
           </View>
         </View>
         <UserBadge user={listing.seller} />
-      </View>
-      <View className="justify-center gap-2">
         {customButton}
-        <CreditsBadge credits={listing.price} />
       </View>
     </Pressable>
   );

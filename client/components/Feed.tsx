@@ -1,6 +1,7 @@
 import { useListings } from "@/hooks/useListings";
 import { Text, View } from "react-native";
 import Listing from "./cards/Listing";
+import ListingGrid from "./bases/ListingGrid";
 import { useEffect } from "react";
 import Loader from "./Loader";
 import Error from "./Error";
@@ -25,11 +26,13 @@ export default function Feed({
   const listings = data?.pages.flatMap((page) => page?.data?.listings) || [];
   return (
     <View className="gap-3">
-      {listings
-        .filter((listing) => !!listing)
-        .map((listing) => (
-          <Listing key={listing.id} listing={listing} />
-        ))}
+      <ListingGrid>
+        {listings
+          .filter((listing) => !!listing)
+          .map((listing) => (
+            <Listing key={listing.id} listing={listing} />
+          ))}
+      </ListingGrid>
       {isLoading && <Loader />}
       {isError && <Error>Ha ocurrido un error</Error>}
       {!isLoading && listings.length === 0 && (
