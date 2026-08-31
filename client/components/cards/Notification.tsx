@@ -69,7 +69,7 @@ function LoopNotification({ payload }: { payload: LoopNotificationPayload }) {
   return (
     <View className="p-4 pb-2 gap-2">
       <Text className="text-main-text text-xl">{label}</Text>
-      <Listing listing={payload.listing} />
+      <Listing listing={payload.listing} variant="compact" />
     </View>
   );
 }

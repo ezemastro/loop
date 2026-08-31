@@ -15,14 +15,83 @@ import { ELEVATION } from "@/config";
  */
 const CARD_IMAGE_ASPECT_RATIO = "aspect-[4/3]";
 
+/** Fixed thumbnail size for the `compact` variant, matching the pre-redesign row layout. */
+const COMPACT_IMAGE_WIDTH = 96;
+const COMPACT_IMAGE_HEIGHT = 112;
+
+const schoolAvatars = (schools: Listing["seller"]["schools"]) => (
+  <View className="flex-1 flex-row gap-0.5 overflow-hidden">
+    {schools.map((school) => (
+      <Image
+        key={school.id}
+        source={{ uri: getUrl(school.media.url) }}
+        className="rounded-full border border-stroke"
+        style={{ width: 24, height: 24 }}
+        resizeMode="contain"
+      />
+    ))}
+  </View>
+);
+
 export default function Listing({
   listing,
   customButton,
+  variant = "grid",
 }: {
   listing: Listing;
   customButton?: React.ReactNode;
+  variant?: "grid" | "compact";
 }) {
   const router = useRouter();
+  const hasImage = listing.media.length > 0;
+  const onPress = () =>
+    router.push({
+      pathname: "/(main)/listing/[listingId]",
+      params: { listingId: listing.id.toString() },
+    });
+
+  if (variant === "compact") {
+    return (
+      <Pressable
+        className={twMerge(
+          "flex-row gap-2 rounded-xl border border-stroke bg-white p-2",
+          Platform.OS === "web" ? ELEVATION.raised.class : "",
+        )}
+        style={Platform.OS === "web" ? undefined : ELEVATION.raised.native}
+        onPress={onPress}
+      >
+        {hasImage ? (
+          <Image
+            source={{ uri: getUrl(listing.media[0].url) }}
+            style={{ width: COMPACT_IMAGE_WIDTH, height: COMPACT_IMAGE_HEIGHT }}
+            className="rounded-lg bg-background"
+            resizeMode="cover"
+          />
+        ) : (
+          <View
+            style={{ width: COMPACT_IMAGE_WIDTH, height: COMPACT_IMAGE_HEIGHT }}
+            className="rounded-lg bg-background"
+          />
+        )}
+        <View className="flex-1 justify-center gap-1">
+          <Text numberOfLines={1} className="text-base font-medium text-main-text">
+            {listing.title}
+          </Text>
+          <CategoryBadge category={listing.category} className="text-sm" numberOfLines={1} />
+          <View className="flex-row items-center gap-2">
+            <ProductStatusBadge status={listing.productStatus} />
+            {schoolAvatars(listing.seller.schools)}
+          </View>
+          <UserBadge user={listing.seller} />
+        </View>
+        <View className="items-end justify-center gap-2">
+          <CreditsBadge credits={listing.price} />
+          {customButton}
+        </View>
+      </Pressable>
+    );
+  }
+
   return (
     <Pressable
       className={twMerge(
@@ -30,18 +99,17 @@ export default function Listing({
         Platform.OS === "web" ? ELEVATION.raised.class : "",
       )}
       style={Platform.OS === "web" ? undefined : ELEVATION.raised.native}
-      onPress={() =>
-        router.push({
-          pathname: "/(main)/listing/[listingId]",
-          params: { listingId: listing.id.toString() },
-        })
-      }
+      onPress={onPress}
     >
-      <Image
-        source={{ uri: getUrl(listing.media[0].url) }}
-        className={twMerge(CARD_IMAGE_ASPECT_RATIO, "w-full bg-background")}
-        resizeMode="cover"
-      />
+      {hasImage ? (
+        <Image
+          source={{ uri: getUrl(listing.media[0].url) }}
+          className={twMerge(CARD_IMAGE_ASPECT_RATIO, "w-full bg-background")}
+          resizeMode="cover"
+        />
+      ) : (
+        <View className={twMerge(CARD_IMAGE_ASPECT_RATIO, "w-full bg-background")} />
+      )}
       <View className="gap-2 p-3">
         <View className="flex-row items-start justify-between gap-2">
           <Text numberOfLines={2} className="flex-1 text-lg font-medium text-main-text">
@@ -52,17 +120,7 @@ export default function Listing({
         <CategoryBadge category={listing.category} className="text-sm" numberOfLines={1} />
         <View className="flex-row items-center gap-2">
           <ProductStatusBadge status={listing.productStatus} />
-          <View className="flex-1 flex-row gap-0.5 overflow-hidden">
-            {listing.seller.schools.map((school) => (
-              <Image
-                key={school.id}
-                source={{ uri: getUrl(school.media.url) }}
-                className="rounded-full border border-stroke"
-                style={{ width: 24, height: 24 }}
-                resizeMode="contain"
-              />
-            ))}
-          </View>
+          {schoolAvatars(listing.seller.schools)}
         </View>
         <UserBadge user={listing.seller} />
         {customButton}

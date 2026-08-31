@@ -11,6 +11,7 @@ export default function MyPendingList({
   setResultsCount,
   resultsCount,
   filterUserId,
+  variant = "compact",
 }: {
   type: PendingType;
   hasResults?: boolean;
@@ -18,6 +19,12 @@ export default function MyPendingList({
   setResultsCount?: (count: number) => void;
   resultsCount?: number;
   filterUserId?: string;
+  /**
+   * Defaults to `compact`: every consumer (home, a profile's pending sections, the chat's
+   * "Loops pendientes" dropdown) only *references* these listings rather than browsing them, so a
+   * full hero image would blow each row up. Overridable if that ever stops holding.
+   */
+  variant?: "grid" | "compact";
 }) {
   const { user } = useAuth();
   const getParams = (): GetSelfListingsRequest["query"] => {
@@ -65,6 +72,7 @@ export default function MyPendingList({
       isError={isError}
       isLoading={isLoading}
       listings={listings}
+      variant={variant}
     />
   );
 }
