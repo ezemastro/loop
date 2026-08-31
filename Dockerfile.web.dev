@@ -4,6 +4,8 @@ COPY client/package*.json ./client/
 WORKDIR /app/client
 RUN npm install
 WORKDIR /app
+# `client/demo/` importa el dataset de `shared/demo-data`: sin esta copia Metro no lo resuelve.
+COPY shared ./shared
 COPY client ./client
 WORKDIR /app/client
 EXPOSE 8081

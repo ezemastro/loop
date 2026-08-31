@@ -1,5 +1,11 @@
 import express from "express";
-import { FRONTEND_URL, NODE_ENV, PORT, ADMIN_FRONTEND_URL, AUTHORIZED_ADMIN_EMAIL } from "./config.js";
+import {
+  FRONTEND_URL,
+  NODE_ENV,
+  PORT,
+  ADMIN_FRONTEND_URL,
+  AUTHORIZED_ADMIN_EMAIL,
+} from "./config.js";
 import cookieParser from "cookie-parser";
 import { optionalTokenMiddleware, tokenMiddleware } from "./middlewares/parseToken.js";
 import { authRouter } from "./routes/auth.js";
@@ -23,6 +29,15 @@ import { queries } from "./services/queries.js";
 
 import { AccountDeletionController } from "./controllers/accountDeletion.js";
 
+/**
+ * En desarrollo el front se abre desde la máquina que corre Docker y también desde otros
+ * dispositivos de la LAN (celular, otra notebook), así que el origen cambia con la IP privada del
+ * host y con el puerto de cada módulo. Enumerarlos a mano dejaba fuera cualquier IP nueva, así que
+ * se acepta localhost y cualquier IPv4 privada en cualquier puerto. Solo aplica a NODE_ENV=development.
+ */
+const DEV_ORIGIN_PATTERN =
+  /^https?:\/\/(localhost|127\.\d{1,3}\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})(?::\d+)?$/;
+
 export const app = express();
 
 app.use(express.json());
@@ -32,7 +47,7 @@ app.use(
     credentials: true,
     origin:
       NODE_ENV === "development"
-        ? ["http://localhost:5173", "http://localhost:8081"]
+        ? DEV_ORIGIN_PATTERN
         : [FRONTEND_URL ?? "", ADMIN_FRONTEND_URL ?? ""],
     allowedHeaders: ["Content-Type", "Authorization"],
     // El cliente de Expo lo lee para renovar en silencio los tokens emitidos antes de que

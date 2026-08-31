@@ -12,6 +12,9 @@ const ERROR_CODE_MESSAGES: Record<string, string> = {
     "Este usuario no puede iniciar sesión con este método. Prueba con Google.",
   EMAIL_NOT_AUTHORIZED:
     "Tu correo no pertenece a ninguna comunidad de Loop. Usá tu correo institucional.",
+  EMAIL_NOT_VERIFIED:
+    "Tu email no fue verificado. Revisá tu bandeja de entrada y hacé clic en el enlace de verificación.",
+  EMAIL_VERIFICATION_TOKEN_INVALID: "El enlace de verificación no es válido o ya fue usado.",
   INVITATION_INVALID: "El link de invitación no es válido o ya expiró.",
   INVITATION_ALREADY_USED: "Este link de invitación ya fue utilizado.",
   SCHOOLS_NOT_IN_COMMUNITY: "Alguno de los colegios elegidos no pertenece a tu comunidad.",
@@ -26,6 +29,7 @@ const ERROR_CODE_MESSAGES: Record<string, string> = {
   DATABASE_ERROR: "Error de conexión. Inténtalo más tarde.",
   FILE_TOO_LARGE: "El archivo es demasiado grande.",
   UNEXPECTED_ERROR: "Ocurrió un error inesperado. Inténtalo más tarde.",
+  DEMO_MODE_READ_ONLY: "Estás en modo demo: podés recorrer toda la app, pero no guardar cambios.",
 };
 
 const GENERIC_AXIOS_PATTERNS = ["request failed with status code", "network error"];

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "expo-router";
 import { useDebounce } from "use-debounce";
 import { useRegister } from "./useRegister";
 import { useInvitation } from "./useInvitation";
@@ -7,6 +8,7 @@ import { validateRegisterForm } from "@/services/validations";
 import { z } from "zod";
 import { getUserFriendlyErrorMessage } from "@/services/errorMapping";
 import { useThemeStore } from "@/stores/theme";
+import { useToast } from "@/components/ToastProvider";
 
 interface FormData {
   firstName: string;
@@ -36,11 +38,15 @@ const hasResolvableDomain = (email: string) => {
 };
 
 export const useRegisterForm = (invitationToken?: string) => {
+  const router = useRouter();
+  const { showToast } = useToast();
   const {
     mutate: register,
     isError: isRegisterError,
     error: registerError,
     isPending: isLoading,
+    isSuccess,
+    data: registerData,
   } = useRegister();
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
@@ -51,6 +57,17 @@ export const useRegisterForm = (invitationToken?: string) => {
     schools: null,
   });
   const [errors, setErrors] = useState<FormErrors>(INITIAL_ERRORS);
+
+  // La cuenta nace sin verificar: avisamos que revise el mail y lo mandamos al login.
+  useEffect(() => {
+    if (isSuccess) {
+      showToast(
+        registerData?.message || "Cuenta creada. Revisá tu email para verificarla.",
+        "success",
+      );
+      router.replace("/login");
+    }
+  }, [isSuccess, registerData, showToast, router]);
 
   const invitation = useInvitation(invitationToken);
   const invitationCommunity = invitation.data?.community ?? null;

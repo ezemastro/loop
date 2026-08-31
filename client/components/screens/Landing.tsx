@@ -68,6 +68,7 @@ export default function Landing() {
     isLoginError,
     loginErrorMessage,
     isLoginLoading,
+    loginAsDemo,
   } = useLoginForm();
 
   const handleGoogleError = (error: string) => {
@@ -96,6 +97,29 @@ export default function Landing() {
     >
       <ActionLabel>Iniciar sesión</ActionLabel>
     </CustomButton>
+  );
+
+  /**
+   * Entrada a la demo. Es un enlace y no un botón a propósito: quien viene a usar Loop tiene que
+   * ver dos caminos (registrarse o entrar), no tres. Esto es una nota al pie para el que solo
+   * quiere espiar — fácil de encontrar si lo buscás, invisible como decisión si no.
+   */
+  const demoLink = (
+    <Pressable
+      onPress={loginAsDemo}
+      disabled={isLoginLoading}
+      hitSlop={10}
+      accessibilityRole="button"
+      accessibilityLabel="Explorar la demo sin crear una cuenta"
+      className="mt-5 self-center"
+    >
+      <Text
+        className="text-center underline"
+        style={{ color: colors.SECONDARY_TEXT, fontSize: 13 }}
+      >
+        Explorar la demo sin crear cuenta
+      </Text>
+    </Pressable>
   );
 
   return (
@@ -272,6 +296,8 @@ export default function Landing() {
               </View>
             </View>
           )}
+
+          {demoLink}
 
           {!isNarrow ? (
             <View className="mt-12 w-full max-w-3xl flex-row items-center">

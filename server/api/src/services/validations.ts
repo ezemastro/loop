@@ -233,6 +233,12 @@ const loginSchema = z.object({
 });
 export const validateLogin = (data: unknown) => loginSchema.parseAsync(data);
 
+const resendVerificationSchema = z.object({
+  email: z.email(),
+});
+export const validateResendVerification = (data: unknown) =>
+  resendVerificationSchema.parseAsync(data);
+
 /**
  * `.strict()` es deliberado: rechaza cualquier campo inesperado en vez de ignorarlo en silencio.
  * En particular deja afuera a `communityId`, que nunca se puede actualizar — la comunidad de una
@@ -376,7 +382,9 @@ export const validateUserGoogleLogin = (data: unknown) => userGoogleLoginSchema.
 
 // ─── Comunidades ────────────────────────────────────────────────────────────
 
-const hexColorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/, "Debe ser un color hexadecimal #RRGGBB");
+const hexColorSchema = z
+  .string()
+  .regex(/^#[0-9a-fA-F]{6}$/, "Debe ser un color hexadecimal #RRGGBB");
 
 /**
  * El tema se valida al escribirlo y nunca al leerlo: una comunidad guardada con una versión vieja

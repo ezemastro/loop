@@ -1,5 +1,13 @@
 import { test, expect, type LoopFixtures } from "../fixtures";
-import { ApiError, getCommunityByEmail, getMe, loginUser, registerUser } from "../helpers/api";
+import {
+  ApiError,
+  getCommunityByEmail,
+  getMe,
+  loginUser,
+  newUserPayload,
+  registerUser,
+  verifyUserEmail,
+} from "../helpers/api";
 import {
   getCommunityBySlug,
   getUserByEmail,
@@ -64,6 +72,23 @@ test.describe.serial("Onboarding y tenancy", () => {
 
     const schools = await getUserSchools(user.id);
     expect(schools.map((s) => s.school_id)).toContain(schoolId);
+  });
+
+  test("la cuenta recién creada no puede entrar hasta verificar el mail", async ({
+    api,
+    uniqueEmail,
+  }: LoopFixtures) => {
+    const email = uniqueEmail("northfield.edu.ar", "e2e-unverified");
+    const res = await api.post("/auth/register", { data: newUserPayload(email, [schoolId]) });
+    expect(res.ok()).toBeTruthy();
+
+    // Sin el clic del mail el login no existe, aunque la contraseña sea la correcta.
+    await expectApiError(loginUser(api, email), 401, "EMAIL_NOT_VERIFIED", "verificado");
+
+    // El clic del mail (endpoint real) destraba el login.
+    await verifyUserEmail(api, email);
+    const { user } = await loginUser(api, email);
+    expect(user.email).toBe(email);
   });
 
   test("registro rechazado con escuela de otra comunidad", async ({

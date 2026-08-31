@@ -1,5 +1,6 @@
 import type { APIRequestContext, APIResponse } from "@playwright/test";
 import { ENV } from "./config";
+import { getVerificationTokenByEmail } from "./db";
 
 /**
  * Helpers de API: envuelven los ENDPOINTS REALES del backend (los mismos que llama el cliente).
@@ -62,10 +63,32 @@ export const newUserPayload = (email: string, schoolIds: string[]) => ({
   schoolIds,
 });
 
-export const registerUser = async (api: APIRequestContext, email: string, schoolIds: string[]) =>
-  expectOk<{ user: ApiUser; token: string }>(
+/**
+ * Completa la verificación de email por el endpoint real (el mismo que abre el link del mail):
+ * lee el token de la base y llama a GET /auth/verify-email, igual que haría el usuario con el clic.
+ */
+export const verifyUserEmail = async (api: APIRequestContext, email: string) => {
+  const [row] = await getVerificationTokenByEmail(email);
+  if (!row?.email_verification_token) {
+    throw new Error(`No hay token de verificación para ${email}`);
+  }
+  const res = await api.get(`/auth/verify-email?token=${row.email_verification_token}`);
+  if (!res.ok()) {
+    throw new ApiError(res.status(), "VERIFY_EMAIL_FAILED", `No se pudo verificar ${email}`);
+  }
+};
+
+/**
+ * El registro ya no devuelve sesión (la cuenta nace sin verificar): este helper recorre el flujo
+ * completo — registrar, verificar el mail, loguear — y devuelve lo mismo que antes, user + token.
+ */
+export const registerUser = async (api: APIRequestContext, email: string, schoolIds: string[]) => {
+  await expectOk<{ message: string }>(
     await api.post("/auth/register", { data: newUserPayload(email, schoolIds) }),
   );
+  await verifyUserEmail(api, email);
+  return loginUser(api, email);
+};
 
 export const loginUser = async (api: APIRequestContext, email: string) =>
   expectOk<{ user: ApiUser; token: string }>(
@@ -176,9 +199,7 @@ export const deleteOffer = async (api: APIRequestContext, token: string, listing
   expectOk(await api.delete(`/listings/${listingId}/offer`, { headers: authHeaders(token) }));
 
 export const rejectOffer = async (api: APIRequestContext, token: string, listingId: string) =>
-  expectOk(
-    await api.post(`/listings/${listingId}/offer/reject`, { headers: authHeaders(token) }),
-  );
+  expectOk(await api.post(`/listings/${listingId}/offer/reject`, { headers: authHeaders(token) }));
 
 export const acceptOffer = async (
   api: APIRequestContext,
@@ -194,9 +215,7 @@ export const acceptOffer = async (
   );
 
 export const receiveListing = async (api: APIRequestContext, token: string, listingId: string) =>
-  expectOk(
-    await api.post(`/listings/${listingId}/receive`, { headers: authHeaders(token) }),
-  );
+  expectOk(await api.post(`/listings/${listingId}/receive`, { headers: authHeaders(token) }));
 
 export const sendMessage = async (
   api: APIRequestContext,
@@ -215,8 +234,7 @@ export const markMessagesRead = async (
   api: APIRequestContext,
   token: string,
   otherUserId: string,
-) =>
-  expectOk(await api.post(`/messages/${otherUserId}/read`, { headers: authHeaders(token) }));
+) => expectOk(await api.post(`/messages/${otherUserId}/read`, { headers: authHeaders(token) }));
 
 export const getUnreadMessages = async (api: APIRequestContext, token: string) =>
   expectOk<{ unreadChatsCount: number }>(
@@ -225,13 +243,23 @@ export const getUnreadMessages = async (api: APIRequestContext, token: string) =
 
 export const getNotifications = async (api: APIRequestContext, token: string) =>
   expectOk<{
-    notifications: { id: string; type: string; isRead: boolean; payload: { type?: string } | null }[];
+    notifications: {
+      id: string;
+      type: string;
+      isRead: boolean;
+      payload: { type?: string } | null;
+    }[];
   }>(await api.get("/me/notifications", { headers: authHeaders(token) }));
 
 export const markNotificationsRead = async (api: APIRequestContext, token: string) =>
   expectOk(await api.post("/me/notifications/read-all", { headers: authHeaders(token) }));
 
-export const donate = async (api: APIRequestContext, token: string, toUserId: string, amount: number) =>
+export const donate = async (
+  api: APIRequestContext,
+  token: string,
+  toUserId: string,
+  amount: number,
+) =>
   expectOk(
     await api.post(`/users/${toUserId}/donate`, {
       headers: authHeaders(token),
@@ -239,7 +267,12 @@ export const donate = async (api: APIRequestContext, token: string, toUserId: st
     }),
   );
 
-export const createWish = async (api: APIRequestContext, token: string, categoryId: string, comment?: string) =>
+export const createWish = async (
+  api: APIRequestContext,
+  token: string,
+  categoryId: string,
+  comment?: string,
+) =>
   expectOk<{ userWish: { id: string } }>(
     await api.post("/me/wishes", {
       headers: authHeaders(token),

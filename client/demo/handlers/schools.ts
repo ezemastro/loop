@@ -9,9 +9,7 @@ export const registerSchoolsHandlers = () => {
     const communityId = ctx.query.communityId ?? null;
     const domain = ctx.query.domain ?? null;
 
-    let schools = db.schools.filter(
-      (s) => !communityId || s.communityId === communityId,
-    );
+    let schools = db.schools.filter((s) => !communityId || s.communityId === communityId);
     if (domain) {
       // En la demo todos los dominios pertenecen a la comunidad demo.
       schools = db.schools.filter((s) => s.communityId === db.users[0].communityId);

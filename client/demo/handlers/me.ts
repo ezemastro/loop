@@ -48,8 +48,8 @@ export const registerMeHandlers = () => {
   });
 
   on("get", "/me/listings", (ctx: DemoContext) => {
-    const user = authUserFromContext(ctx);
-    const mine = applyListingFilters(ctx).filter((l) => l.sellerId === user.id);
+    authUserFromContext(ctx);
+    const mine = applyListingFilters(ctx);
     const page = Number(ctx.query.page ?? 1);
     const { items, pagination } = paginate(sortListings(mine, ctx), page);
     return { data: { success: true, data: { listings: items.map(toListing) }, pagination } };
@@ -124,8 +124,9 @@ export const registerMeHandlers = () => {
         user: toPublicUser(userById(counterpartId))!,
       };
     });
-    chats.sort((a, b) =>
-      new Date(b.lastMessage.createdAt).getTime() - new Date(a.lastMessage.createdAt).getTime(),
+    chats.sort(
+      (a, b) =>
+        new Date(b.lastMessage.createdAt).getTime() - new Date(a.lastMessage.createdAt).getTime(),
     );
 
     const { items, pagination } = paginate(chats, page);
@@ -136,9 +137,7 @@ export const registerMeHandlers = () => {
     const user = authUserFromContext(ctx);
     const db = getDemoDb();
     const unreadChatsCount = new Set(
-      db.messages
-        .filter((m) => m.recipientId === user.id && !m.isRead)
-        .map((m) => m.senderId),
+      db.messages.filter((m) => m.recipientId === user.id && !m.isRead).map((m) => m.senderId),
     ).size;
     return { data: { success: true, data: { unreadChatsCount } } };
   });

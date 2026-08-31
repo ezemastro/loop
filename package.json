@@ -20,8 +20,8 @@
   "type": "commonjs",
   "main": "",
   "scripts": {
-    "lint": "npm run lint --workspace=server/api --workspace=client --workspace=adminClient --workspace=landing 2>/dev/null || (cd server/api && npx eslint . && cd ../.. && cd client && npx eslint . && cd ../.. && cd adminClient && npx eslint . && cd ../.. && cd landing && npx eslint .)",
-    "lint:fix": "cd server/api && npx eslint . --fix && cd ../.. && cd client && npx eslint . --fix && cd ../.. && cd adminClient && npx eslint . --fix && cd ../.. && cd landing && npx eslint . --fix",
+    "lint": "npm run lint --workspace=server/api --workspace=client --workspace=adminClient 2>/dev/null || (cd server/api && npx eslint . && cd ../.. && cd client && npx eslint . && cd ../.. && cd adminClient && npx eslint .)",
+    "lint:fix": "cd server/api && npx eslint . --fix && cd ../.. && cd client && npx eslint . --fix && cd ../.. && cd adminClient && npx eslint . --fix",
     "format": "npx prettier --write \"**/*.{js,ts,tsx,mts,cts,json,css,scss,md}\"",
     "format:check": "npx prettier --check \"**/*.{js,ts,tsx,mts,cts,json,css,scss,md}\"",
     "build:server": "docker build -f api.Dockerfile -t ezemastro/loop:$npm_package_version -t ezemastro/loop:latest .",
@@ -33,7 +33,10 @@
     "start": "docker compose -f docker-compose.prod.yml up",
     "docker:deploy": "docker compose up -d --pull always",
     "dev:old": "concurrently -n api,client,admin -c green,blue,yellow \"cd server && docker compose up -d && docker compose watch api\" \"npm start --prefix client\" \"npm run dev --prefix adminClient\"",
-    "dev": "docker compose -f docker-compose.dev.yml up --build --watch",
+    "dev": "node scripts/dev.js",
+    "dev:migrate": "docker compose -f docker-compose.dev.yml exec api npm run migrate",
+    "dev:seed": "docker compose -f docker-compose.dev.yml exec api npm run seed",
+    "dev:seed:demo": "docker compose -f docker-compose.dev.yml exec api npm run seed -- --demo",
     "test:e2e": "bash scripts/run-e2e.sh",
     "test:e2e:down": "docker compose -p loop-e2e -f docker-compose.e2e.yml down -v --remove-orphans"
   },

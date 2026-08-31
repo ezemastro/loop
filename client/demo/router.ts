@@ -42,9 +42,10 @@ interface DemoRoute {
 const routes: DemoRoute[] = [];
 
 const toSegments = (pattern: string) =>
-  pattern.split("/").filter(Boolean).map((seg) =>
-    seg.startsWith(":") ? { param: seg.slice(1) } : seg,
-  );
+  pattern
+    .split("/")
+    .filter(Boolean)
+    .map((seg) => (seg.startsWith(":") ? { param: seg.slice(1) } : seg));
 
 /**
  * Registra un handler del mock. `pattern` usa la misma sintaxis que las rutas de Express:
@@ -58,6 +59,17 @@ interface RouteMatch {
   handler: DemoHandler;
   params: Record<string, string>;
 }
+
+/**
+ * ¿Coincide `pathname` con un patrón de ruta? Se usa para clasificar la request **antes** de
+ * resolverla, sin depender de que exista un handler registrado.
+ */
+export const matchesPattern = (pathname: string, pattern: string): boolean => {
+  const pathSegments = pathname.split("/").filter(Boolean);
+  const patternSegments = toSegments(pattern);
+  if (patternSegments.length !== pathSegments.length) return false;
+  return patternSegments.every((seg, i) => typeof seg !== "string" || seg === pathSegments[i]);
+};
 
 export const matchRoute = (method: string, pathname: string): RouteMatch | null => {
   const pathSegments = pathname.split("/").filter(Boolean);

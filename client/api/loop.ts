@@ -1,7 +1,7 @@
 import { API_URL, DEMO_MODE } from "@/config";
 import { useSessionStore } from "@/stores/session";
-import { demoAdapter, enableDemoMode } from "@/demo";
-import axios, { type AxiosAdapter, type AxiosResponse, type InternalAxiosRequestConfig } from "axios";
+import { DEMO_READ_ONLY_ERROR_CODE, demoAdapter, enableDemoMode } from "@/demo";
+import axios, { type AxiosAdapter, type AxiosResponse } from "axios";
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -9,11 +9,16 @@ export const api = axios.create({
   timeout: 10000,
 });
 
-// El adaptador demo está siempre instalado pero inactivo: si se activa en runtime (debug) no
-// hay que reinstalar nada. En build con EXPO_PUBLIC_DEMO_MODE=true arranca activo.
-const fallbackAdapter = api.defaults.adapter as AxiosAdapter;
-api.defaults.adapter = ((config: InternalAxiosRequestConfig) =>
-  demoAdapter(config, fallbackAdapter)) as AxiosAdapter;
+// El adaptador demo está siempre instalado pero inactivo: si se activa en runtime no hay que
+// reinstalar nada. En build con EXPO_PUBLIC_DEMO_MODE=true arranca activo.
+//
+// `defaults.adapter` **no es una función**: axios 1.x guarda ahí la lista de candidatos
+// (`['xhr', 'http', 'fetch']`) y elige uno por request. Castearla a `AxiosAdapter` compilaba pero
+// reventaba en runtime con "fallback is not a function" apenas el modo demo estaba apagado — o sea,
+// en el uso normal de la app. `getAdapter` hace exactamente la resolución que hace axios adentro.
+const fallbackAdapter = axios.getAdapter(api.defaults.adapter);
+const demoAwareAdapter: AxiosAdapter = (config) => demoAdapter(config, fallbackAdapter);
+api.defaults.adapter = demoAwareAdapter;
 
 if (DEMO_MODE) {
   enableDemoMode();
@@ -63,9 +68,16 @@ api.interceptors.response.use(
       applyRefreshedToken(error.response);
     }
 
-    if (error.response?.status && error.response.status >= 500) {
+    const errorCode = error.response?.data?.errorCode;
+
+    if (errorCode === DEMO_READ_ONLY_ERROR_CODE) {
+      // El aviso del modo demo se emite desde un solo lugar. Si cada pantalla tuviera que
+      // manejarlo, la primera que se olvide deja al usuario apretando un botón que no hace nada
+      // y sin ninguna explicación.
+      const message = error.response?.data?.error || "Estás en modo demo.";
+      globalErrorHandlers.forEach((handler) => handler(message, errorCode));
+    } else if (error.response?.status && error.response.status >= 500) {
       const message = error.response?.data?.error || "Error interno del servidor";
-      const errorCode = error.response?.data?.errorCode;
       globalErrorHandlers.forEach((handler) => handler(message, errorCode));
     }
 

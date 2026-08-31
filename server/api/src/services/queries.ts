@@ -59,19 +59,46 @@ export const queries = {
 
   insertUser: q<{ id: UUID }>(
     "user.insert",
-    `INSERT INTO users (email, first_name, last_name, password, community_id, invitation_id, domain_exempt)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `INSERT INTO users (email, first_name, last_name, password, community_id, invitation_id, domain_exempt, email_verification_token, email_verified)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING id`,
+  ),
+
+  /** Marca el usuario como verificado al hacer clic en el enlace del mail. */
+  verifyUserEmail: q<{ id: UUID }>(
+    "user.verifyEmail",
+    `UPDATE users
+        SET email_verified = TRUE, email_verification_token = NULL
+      WHERE email_verification_token = $1
+      RETURNING id`,
+  ),
+
+  /** Rota el token al reenviar el mail, para invalidar enlaces viejos. */
+  updateUserVerificationToken: q<void>(
+    "user.updateVerificationToken",
+    `UPDATE users SET email_verification_token = $1 WHERE id = $2`,
+  ),
+
+  /** Para reenviar el mail de verificación: busca si hay un usuario sin verificar. */
+  userEmailVerifiedAndTokenByEmail: q<
+    Pick<DB_Users, "id" | "email_verified" | "email_verification_token">
+  >(
+    "user.emailVerifiedAndTokenByEmail",
+    `SELECT id, email_verified, email_verification_token
+       FROM users WHERE lower(email) = lower($1)`,
   ),
 
   createUserWithGoogle: q<DB_Users>(
     "user.createWithGoogle",
-    `INSERT INTO users (email, first_name, last_name, password, google_id, community_id, invitation_id, domain_exempt)
-       VALUES ($1, $2, $3, NULL, $4, $5, $6, $7)
+    `INSERT INTO users (email, first_name, last_name, password, google_id, community_id, invitation_id, domain_exempt, email_verified)
+       VALUES ($1, $2, $3, NULL, $4, $5, $6, $7, TRUE)
        RETURNING *`,
   ),
 
-  updateUserGoogleId: q<void>("user.updateGoogleId", `UPDATE users SET google_id = $1 WHERE id = $2`),
+  updateUserGoogleId: q<void>(
+    "user.updateGoogleId",
+    `UPDATE users SET google_id = $1, email_verified = TRUE WHERE id = $2`,
+  ),
 
   // Camino de autenticación: todavía no sabemos la comunidad, por eso no llevan filtro.
   userByGoogleId: q<DB_Users>("user.byGoogleId", `SELECT * FROM users WHERE google_id = $1`),
@@ -597,10 +624,7 @@ export const queries = {
   ),
 
   communitiesByIds: (ids: UUID[]) =>
-    q<DB_Communities>(
-      "communities.byIds",
-      `SELECT * FROM communities WHERE id = ANY($1::uuid[])`,
-    ),
+    q<DB_Communities>("communities.byIds", `SELECT * FROM communities WHERE id = ANY($1::uuid[])`),
 
   allCommunities: q<DB_Communities>(
     "communities.all",

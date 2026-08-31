@@ -18,6 +18,7 @@
     "check-types": "tsc --noEmit",
     "migrate": "tsx src/scripts/migrate.ts",
     "migrate:status": "tsx src/scripts/migrate.ts --status",
+    "seed": "cross-env NODE_ENV=development tsx src/scripts/seed.ts",
     "check-sql": "python3 ../scripts/check-sql-arity.py",
     "deploy": "node publish.js"
   },
@@ -32,6 +33,7 @@
     "jsonwebtoken": "9.0.2",
     "multer": "^2.0.2",
     "pg": "8.16.3",
+    "resend": "^6.22.0",
     "sharp": "^0.34.5",
     "zod": "4.0.17"
   },

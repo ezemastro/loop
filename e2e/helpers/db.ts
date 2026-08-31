@@ -18,7 +18,10 @@ export const db = new Pool({
 
 export type Row = Record<string, unknown>;
 
-export const query = async <T extends Row = Row>(text: string, params: unknown[] = []): Promise<T[]> => {
+export const query = async <T extends Row = Row>(
+  text: string,
+  params: unknown[] = [],
+): Promise<T[]> => {
   const { rows } = await db.query<T>(text, params);
   return rows;
 };
@@ -38,7 +41,16 @@ export const getUserByEmail = (email: string) =>
     community_id: string;
     credits_balance: number;
     credits_locked: number;
-  }>(`SELECT id, community_id, credits_balance, credits_locked FROM users WHERE email = $1`, [email]);
+  }>(`SELECT id, community_id, credits_balance, credits_locked FROM users WHERE email = $1`, [
+    email,
+  ]);
+
+/** Token del mail de verificación: se usa para completar el flujo real de registro en los tests. */
+export const getVerificationTokenByEmail = (email: string) =>
+  query<{ id: string; email_verification_token: string | null }>(
+    `SELECT id, email_verification_token FROM users WHERE email = $1`,
+    [email],
+  );
 
 export const getUserSchools = (userId: string) =>
   query<{ school_id: string }>(`SELECT school_id FROM user_schools WHERE user_id = $1`, [userId]);
@@ -78,9 +90,10 @@ export const getNotificationsForUser = (userId: string) =>
     type: string;
     is_read: boolean;
     payload: { type?: string } | null;
-  }>(`SELECT id, type, is_read, payload FROM notifications WHERE user_id = $1 ORDER BY created_at DESC`, [
-    userId,
-  ]);
+  }>(
+    `SELECT id, type, is_read, payload FROM notifications WHERE user_id = $1 ORDER BY created_at DESC`,
+    [userId],
+  );
 
 export const getWalletTransactionsForUser = (userId: string) =>
   query<{ id: string; type: string; positive: boolean; amount: number; balance_after: number }>(

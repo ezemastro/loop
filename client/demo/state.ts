@@ -18,7 +18,7 @@ export const resetDemoDb = () => {
 export const getDemoDb = () => demoDb;
 
 export const userById = (id: UUID | null | undefined) =>
-  id ? demoDb.users.find((u) => u.id === id) ?? null : null;
+  id ? (demoDb.users.find((u) => u.id === id) ?? null) : null;
 
 /** Usuario de la sesión a partir del Bearer token. `null` = no logueado. */
 export const currentUserFromToken = (token: string | null): PrivateUser | null => {

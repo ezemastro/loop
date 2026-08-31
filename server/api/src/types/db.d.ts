@@ -83,6 +83,10 @@ interface DB_Users {
   invitation_id: UUID | null;
   /** Entró por invitación: el login no le exige que su dominio esté en la comunidad. */
   domain_exempt: boolean;
+  /** La cuenta confirmó el mail (clic en el enlace) o entró por Google. Bloquea el login. */
+  email_verified: boolean;
+  /** Token aleatorio del enlace de verificación; NULL si ya verificó o entró por Google. */
+  email_verification_token: string | null;
 }
 interface DB_UserSchools {
   id: UUID;

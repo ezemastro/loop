@@ -43,6 +43,7 @@ export const applyListingFilters = (ctx: DemoContext) => {
     if (l.disabled) return false;
     if (categoryIds && !categoryIds.has(l.categoryId)) return false;
     if (q.sellerId && l.sellerId !== q.sellerId) return false;
+    if (q.buyerId && l.buyerId !== q.buyerId) return false;
     if (q.productStatus && l.productStatus !== q.productStatus) return false;
     if (q.listingStatus && l.listingStatus !== q.listingStatus) return false;
     if (q.schoolId && !userById(l.sellerId)?.schools.some((s) => s.id === q.schoolId)) {
@@ -68,7 +69,11 @@ export const sortListings = (listings: ListingRecord[], ctx: DemoContext) => {
   return [...listings].sort((a, b) => {
     const ka = key(a);
     const kb = key(b);
-    return (typeof ka === "number" && typeof kb === "number" ? ka - kb : String(ka).localeCompare(String(kb))) * order;
+    return (
+      (typeof ka === "number" && typeof kb === "number"
+        ? ka - kb
+        : String(ka).localeCompare(String(kb))) * order
+    );
   });
 };
 
@@ -137,7 +142,8 @@ export const registerListingsHandlers = () => {
     const db = getDemoDb();
     const record = db.listings.find((l) => l.id === ctx.params.listingId);
     if (!record || record.disabled) throw httpError(404, "Publicación no encontrada");
-    if (record.sellerId !== user.id) throw httpError(403, "No podés eliminar una publicación ajena");
+    if (record.sellerId !== user.id)
+      throw httpError(403, "No podés eliminar una publicación ajena");
     record.disabled = true;
     return { data: { success: true, data: { listing: toListing(record) } } };
   });
@@ -147,7 +153,8 @@ export const registerListingsHandlers = () => {
     const db = getDemoDb();
     const record = db.listings.find((l) => l.id === ctx.params.listingId);
     if (!record || record.disabled) throw httpError(404, "Publicación no encontrada");
-    if (record.sellerId === user.id) throw httpError(400, "No podés ofrecer por tu propia publicación");
+    if (record.sellerId === user.id)
+      throw httpError(400, "No podés ofrecer por tu propia publicación");
     if (record.listingStatus !== "published") {
       throw httpError(400, "Esta publicación ya tiene una oferta en curso");
     }
@@ -177,7 +184,8 @@ export const registerListingsHandlers = () => {
     const db = getDemoDb();
     const record = db.listings.find((l) => l.id === ctx.params.listingId);
     if (!record) throw httpError(404, "Publicación no encontrada");
-    if (record.sellerId !== user.id) throw httpError(403, "Solo el vendedor puede rechazar una oferta");
+    if (record.sellerId !== user.id)
+      throw httpError(403, "Solo el vendedor puede rechazar una oferta");
     const buyerId = record.buyerId;
     record.buyerId = null;
     record.offeredCredits = null;
@@ -191,7 +199,8 @@ export const registerListingsHandlers = () => {
     const db = getDemoDb();
     const record = db.listings.find((l) => l.id === ctx.params.listingId);
     if (!record) throw httpError(404, "Publicación no encontrada");
-    if (record.sellerId !== user.id) throw httpError(403, "Solo el vendedor puede aceptar una oferta");
+    if (record.sellerId !== user.id)
+      throw httpError(403, "Solo el vendedor puede aceptar una oferta");
     if (record.listingStatus !== "offered" || !record.buyerId) {
       throw httpError(400, "No hay una oferta pendiente");
     }
@@ -202,7 +211,14 @@ export const registerListingsHandlers = () => {
       user.credits.balance += amount;
     }
     record.listingStatus = "accepted";
-    notifyLoop(record.buyerId, record.id, record.buyerId, "accepted", record.offeredCredits, "offer_accepted");
+    notifyLoop(
+      record.buyerId,
+      record.id,
+      record.buyerId,
+      "accepted",
+      record.offeredCredits,
+      "offer_accepted",
+    );
     return { data: { success: true } };
   });
 
@@ -211,9 +227,17 @@ export const registerListingsHandlers = () => {
     const db = getDemoDb();
     const record = db.listings.find((l) => l.id === ctx.params.listingId);
     if (!record) throw httpError(404, "Publicación no encontrada");
-    if (record.buyerId !== user.id) throw httpError(403, "Solo el comprador puede confirmar la entrega");
+    if (record.buyerId !== user.id)
+      throw httpError(403, "Solo el comprador puede confirmar la entrega");
     record.listingStatus = "received";
-    notifyLoop(record.sellerId, record.id, record.buyerId, "received", record.offeredCredits, "listing_received");
+    notifyLoop(
+      record.sellerId,
+      record.id,
+      record.buyerId,
+      "received",
+      record.offeredCredits,
+      "listing_received",
+    );
     return { data: { success: true } };
   });
 };

@@ -43,8 +43,12 @@ export const registerAuthHandlers = () => {
       community: db.users[0].community,
     };
     db.users.push(user);
+    // Mismo contrato que la API real: el registro no loguea, solo avisa que revise el mail.
     return {
-      data: { success: true, data: { user: toPrivateUser(user), token: demoTokenFor(user.id) } },
+      data: {
+        success: true,
+        data: { message: "Cuenta creada. Revisá tu email para verificarla." },
+      },
     };
   });
 
@@ -74,7 +78,9 @@ export const registerAuthHandlers = () => {
     return {
       data: {
         success: true,
-        data: { invitation: { id: "00000000-0000-4000-8000-000000000301", community: DEMO_COMMUNITY } },
+        data: {
+          invitation: { id: "00000000-0000-4000-8000-000000000301", community: DEMO_COMMUNITY },
+        },
       },
     };
   });

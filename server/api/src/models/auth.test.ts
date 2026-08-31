@@ -19,6 +19,10 @@ jest.mock("../services/hash", () => ({
   ),
 }));
 
+jest.mock("../services/email", () => ({
+  sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
+}));
+
 import { AuthModel } from "./auth";
 import { queries } from "../services/queries";
 import { validatePrivateUser } from "../services/validations";
@@ -157,6 +161,21 @@ describe("AuthModel", () => {
       await expect(validatePrivateUser(modelReturn.user)).resolves.not.toThrow();
     });
 
+    /** La cuenta recién registrada no puede entrar hasta verificar el mail. */
+    it("Should reject login if the email is not verified", async () => {
+      mockQuery.mockImplementation(async (query, params) => {
+        if (query === queries.userByEmail) return [{ ...MOCK_USER_DB, email_verified: false }];
+        return databaseQueryMock(query, params);
+      });
+      const modelReturn = AuthModel.loginUser({
+        email: MOCK_USER.email,
+        password: "validPassword",
+      });
+      await expect(modelReturn).rejects.toThrow(
+        new UnauthorizedError(ERROR_MESSAGES.EMAIL_NOT_VERIFIED),
+      );
+    });
+
     it("Should throw error if database is down", async () => {
       mockConnect.mockRejectedValue(new Error("Database error"));
       const modelReturn = AuthModel.loginUser({
@@ -177,6 +196,48 @@ describe("AuthModel", () => {
         password: "validPassword",
       });
       await expect(modelReturn).rejects.toThrow();
+    });
+  });
+
+  describe("Email verification", () => {
+    it("Should verify the email with a valid token", async () => {
+      mockQuery.mockImplementation(async (query, params) => {
+        if (query === queries.verifyUserEmail) return [{ id: MOCK_USER.id }];
+        return databaseQueryMock(query, params);
+      });
+      const result = await AuthModel.verifyEmail("valid-token");
+      expect(result).toEqual({ verified: true });
+    });
+
+    it("Should throw if the verification token is invalid", async () => {
+      mockQuery.mockImplementation(async (query, params) => {
+        if (query === queries.verifyUserEmail) return [];
+        return databaseQueryMock(query, params);
+      });
+      await expect(AuthModel.verifyEmail("bad-token")).rejects.toThrow(
+        new InvalidInputError(ERROR_MESSAGES.EMAIL_VERIFICATION_TOKEN_INVALID),
+      );
+    });
+
+    it("Should resend the verification email for an unverified user", async () => {
+      mockQuery.mockImplementation(async (query, params) => {
+        if (query === queries.userEmailVerifiedAndTokenByEmail) {
+          return [{ id: MOCK_USER.id, email_verified: false, email_verification_token: "old" }];
+        }
+        return databaseQueryMock(query, params);
+      });
+      const result = await AuthModel.resendVerificationEmail({ email: MOCK_USER.email });
+      expect(result).toEqual({ sent: true });
+    });
+
+    /** La respuesta no distingue cuentas inexistentes de cuentas ya verificadas (anti-enumeración). */
+    it("Should not reveal whether an email exists in resend", async () => {
+      mockQuery.mockImplementation(async (query, params) => {
+        if (query === queries.userEmailVerifiedAndTokenByEmail) return [];
+        return databaseQueryMock(query, params);
+      });
+      const result = await AuthModel.resendVerificationEmail({ email: "nobody@northfield.edu.ar" });
+      expect(result).toEqual({ sent: false });
     });
   });
 });

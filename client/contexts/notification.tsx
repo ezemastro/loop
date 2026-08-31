@@ -23,6 +23,7 @@ interface NotificationContextType {
 export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
   const authToken = useSessionStore((state) => state.authToken);
   const isLoggedIn = useSessionStore((state) => !!state.user);
+  const demoMode = useSessionStore((state) => state.demoMode);
   const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
   const [notification, setNotification] = useState<Notification.Notification | null>(null);
   const [error, setError] = useState<Error | null>(null);
@@ -33,6 +34,12 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     if (!isLoggedIn || !authToken) {
+      return;
+    }
+    // En la demo no se registran notificaciones. El `POST` al backend ya lo intercepta el mock,
+    // pero pedir el token igual saldría a los servidores de Expo y, en el celular, le pediría al
+    // visitante permiso de notificaciones para una sesión que no es suya. Nada de eso corresponde.
+    if (demoMode) {
       return;
     }
 
@@ -62,7 +69,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
         responseListener.current.remove();
       }
     };
-  }, [savePushToken, isLoggedIn, authToken]);
+  }, [savePushToken, isLoggedIn, authToken, demoMode]);
   return (
     <NotificationContext.Provider
       value={{

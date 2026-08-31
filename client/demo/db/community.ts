@@ -1,62 +1,27 @@
-import { DEFAULT_COLORS } from "@/config";
-import { IDS } from "../ids";
+/** Comunidad y colegios del modo demo, hidratados desde el dataset compartido. */
+import { SHARED_COMMUNITY, toMedia } from "./dataset";
 
-const mediaFor = (id: UUID, seed: string): Media => ({
-  id,
-  url: `https://picsum.photos/seed/${seed}/600/600`,
-  mime: "image/jpeg",
-  mediaType: "image",
-});
-
-export const DEMO_COMMUNITY_MEDIA = mediaFor("00000000-0000-4000-8000-000000000001-1", "loop-demo-community");
-
-const themeColors = {
-  primary: DEFAULT_COLORS.PRIMARY,
-  secondary: DEFAULT_COLORS.SECONDARY,
-  tertiary: DEFAULT_COLORS.TERTIARY,
-  mainText: DEFAULT_COLORS.MAIN_TEXT,
-  secondaryText: DEFAULT_COLORS.SECONDARY_TEXT,
-  credits: DEFAULT_COLORS.CREDITS,
-  creditsLight: DEFAULT_COLORS.CREDITS_LIGHT,
-  stroke: DEFAULT_COLORS.STROKE,
-  background: DEFAULT_COLORS.BACKGROUND,
-  alert: DEFAULT_COLORS.ALERT,
-};
+export const DEMO_COMMUNITY_MEDIA: Media = toMedia(SHARED_COMMUNITY.media);
 
 export const DEMO_COMMUNITY: Community = {
-  id: IDS.COMMUNITY,
-  slug: "demo",
-  name: "Comunidad Demo",
+  id: SHARED_COMMUNITY.id,
+  slug: SHARED_COMMUNITY.slug,
+  name: SHARED_COMMUNITY.name,
   mediaId: DEMO_COMMUNITY_MEDIA.id,
-  theme: { colors: themeColors },
+  theme: SHARED_COMMUNITY.theme,
   meta: null,
   active: true,
   media: DEMO_COMMUNITY_MEDIA,
 };
 
-export const DEMO_SCHOOLS: School[] = [
-  {
-    id: IDS.SCHOOL_PRIMARY,
-    name: "Escuela Primaria Demo",
-    mediaId: "00000000-0000-4000-8000-000000000101-1",
-    communityId: IDS.COMMUNITY,
-    meta: null,
-    media: mediaFor("00000000-0000-4000-8000-000000000101-1", "loop-demo-school-1"),
-  },
-  {
-    id: IDS.SCHOOL_SECONDARY,
-    name: "Escuela Secundaria Demo",
-    mediaId: "00000000-0000-4000-8000-000000000102-1",
-    communityId: IDS.COMMUNITY,
-    meta: null,
-    media: mediaFor("00000000-0000-4000-8000-000000000102-1", "loop-demo-school-2"),
-  },
-  {
-    id: IDS.SCHOOL_TECHNICAL,
-    name: "Instituto Técnico Demo",
-    mediaId: "00000000-0000-4000-8000-000000000103-1",
-    communityId: IDS.COMMUNITY,
-    meta: null,
-    media: mediaFor("00000000-0000-4000-8000-000000000103-1", "loop-demo-school-3"),
-  },
-];
+export const DEMO_SCHOOLS: School[] = SHARED_COMMUNITY.schools.map((school) => ({
+  id: school.id,
+  name: school.name,
+  mediaId: school.media.id,
+  communityId: SHARED_COMMUNITY.id,
+  meta: null,
+  media: toMedia(school.media),
+}));
+
+/** Dominio con el que la comunidad demo acepta correos. Se muestra en la pantalla de login. */
+export const DEMO_EMAIL_DOMAINS: string[] = [...SHARED_COMMUNITY.emailDomains];

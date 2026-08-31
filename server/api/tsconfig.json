@@ -2,7 +2,9 @@
   // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
     // File Layout
-    "rootDir": "./src",
+    // El monorepo entero: `src/scripts/seed.ts` importa de `shared/demo-data/`.
+    // Es el mismo rootDir que ya usa tsconfig.prod.json.
+    "rootDir": "../../",
     "outDir": "./dist",
 
     // Environment Settings
@@ -42,6 +44,6 @@
     "moduleDetection": "force",
     "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "../../shared/types/**/*.ts"],
+  "include": ["src/**/*.ts", "../../shared/**/*.ts"],
   "exclude": ["node_modules"]
 }

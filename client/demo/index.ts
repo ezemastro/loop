@@ -17,6 +17,16 @@ import { registerMessagesHandlers } from "./handlers/messages";
 import { registerStatsHandlers } from "./handlers/stats";
 import { registerUploadsHandlers } from "./handlers/uploads";
 import { resetDemoDb } from "./state";
+import { DEMO_READ_ONLY_ERROR_CODE, DEMO_READ_ONLY_MESSAGE, isReadOnlyBlocked } from "./readOnly";
+
+export { DEMO_READ_ONLY_ERROR_CODE, DEMO_READ_ONLY_MESSAGE } from "./readOnly";
+
+/**
+ * Credenciales de la cuenta con la que entra el modo demo. Son las mismas que siembra el seed en
+ * desarrollo, así que la demo hace un login normal — la única diferencia es quién lo contesta.
+ */
+export { DEMO_PASSWORD } from "./db/dataset";
+export { DEMO_SHOWCASE_EMAIL } from "./db/users";
 
 let enabled = false;
 let registered = false;
@@ -66,14 +76,20 @@ const toAxiosError = (err: DemoHttpError, config: InternalAxiosRequestConfig) =>
   if (err.errorCode) body.errorCode = err.errorCode;
   if (err.data !== undefined) body.data = err.data;
   const code = err.status >= 500 ? "ERR_BAD_RESPONSE" : "ERR_BAD_REQUEST";
-  return new AxiosError(err.message, code, config, {}, {
-    data: body,
-    status: err.status,
-    statusText: STATUS_TEXTS[err.status] ?? "Error",
-    headers: {},
+  return new AxiosError(
+    err.message,
+    code,
     config,
-    request: {},
-  });
+    {},
+    {
+      data: body,
+      status: err.status,
+      statusText: STATUS_TEXTS[err.status] ?? "Error",
+      headers: {},
+      config,
+      request: {},
+    },
+  );
 };
 
 const parseRequest = (config: InternalAxiosRequestConfig) => {
@@ -112,6 +128,10 @@ const getBearerToken = (config: InternalAxiosRequestConfig): string | null => {
  * Adaptador axios del modo demo: intercepta cada request y la resuelve contra los handlers
  * simulados. Cuando el modo demo está apagado delega en el adaptador real, así el toggle en
  * runtime no obliga a reinstalar nada.
+ *
+ * Con el modo **activo no delega nunca**: una ruta sin handler devuelve 404 en lugar de salir a la
+ * red. Esa es la garantía de la que depende todo lo demás — el día que se agregue un endpoint y se
+ * olviden de mockearlo, la demo falla a la vista en vez de escribir en la base real.
  */
 export const demoAdapter = async (
   config: InternalAxiosRequestConfig,
@@ -119,7 +139,11 @@ export const demoAdapter = async (
 ): Promise<AxiosResponse> => {
   if (!enabled) {
     if (!fallback) {
-      throw new AxiosError("Modo demo desactivado y sin adaptador de respaldo", "ERR_DEMO_DISABLED", config);
+      throw new AxiosError(
+        "Modo demo desactivado y sin adaptador de respaldo",
+        "ERR_DEMO_DISABLED",
+        config,
+      );
     }
     return fallback(config);
   }
@@ -129,11 +153,24 @@ export const demoAdapter = async (
   const method = (config.method ?? "get").toLowerCase();
   const { pathname, query } = parseRequest(config);
   const token = getBearerToken(config);
+
+  // Antes de resolver nada: la demo no muta contenido. Va primero que el ruteo a propósito, así
+  // una escritura a una ruta todavía sin handler también queda cubierta.
+  if (isReadOnlyBlocked(method, pathname)) {
+    throw toAxiosError(
+      new DemoHttpError(403, DEMO_READ_ONLY_MESSAGE, DEMO_READ_ONLY_ERROR_CODE),
+      config,
+    );
+  }
+
   const match = matchRoute(method, pathname);
 
   if (!match) {
     throw toAxiosError(
-      new DemoHttpError(404, `Ruta no disponible en modo demo: ${method.toUpperCase()} ${pathname}`),
+      new DemoHttpError(
+        404,
+        `Ruta no disponible en modo demo: ${method.toUpperCase()} ${pathname}`,
+      ),
       config,
     );
   }

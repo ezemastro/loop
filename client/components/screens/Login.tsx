@@ -4,13 +4,14 @@ import CustomButton from "../bases/CustomButton";
 import type { ReactNode } from "react";
 import Error from "../Error";
 import { useLoginForm } from "@/hooks/useLoginForm";
+import { useResendVerification } from "@/hooks/useResendVerification";
 import Loader from "../Loader";
 import ButtonText from "../bases/ButtonText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AvoidingKeyboard from "../AvoidingKeyboard";
 import { GoogleSignInButton } from "@/components/buttons/GoogleSignInButton";
 import AllowedDomainsNotice from "@/components/AllowedDomainsNotice";
-import { GOOGLE_OAUTH_READY, NODE_ENV, DEMO_MODE } from "@/config";
+import { GOOGLE_OAUTH_READY, NODE_ENV } from "@/config";
 import { useToast } from "@/components/ToastProvider";
 
 const TextLabel = ({ children }: { children: string }) => (
@@ -35,11 +36,28 @@ export default function Login() {
     isLoginError,
     loginErrorMessage,
     isLoginLoading,
+    loginError,
   } = useLoginForm();
   const { showToast } = useToast();
+  const resendVerification = useResendVerification();
 
   const handleGoogleError = (error: string) => {
     showToast(error, "error");
+  };
+
+  // Si el correo existe pero no verificó, además del mensaje se ofrece reenviar el mail.
+  const isUnverifiedEmail =
+    isLoginError &&
+    (loginError as { errorCode?: string } | undefined)?.errorCode === "EMAIL_NOT_VERIFIED";
+
+  const handleResend = () => {
+    resendVerification.mutate(
+      { email: formData.email.trim() },
+      {
+        onSuccess: (data) => showToast(data?.message || "Revisá tu email.", "success"),
+        onError: () => showToast("No se pudo enviar el email. Probá de nuevo.", "error"),
+      },
+    );
   };
 
   const fields: Field[] = [
@@ -95,13 +113,6 @@ export default function Login() {
               <Text className="color-main-text/80 text-center mb-4">
                 Introduce tus datos o inicia sesión con Google
               </Text>
-              {DEMO_MODE && (
-                <View className="rounded-lg border border-secondary/50 bg-secondary/10 p-3 mb-2">
-                  <Text className="text-secondary text-center font-semibold">
-                    Estás en modo demo: entrá con cualquier correo (ej. ana@demo.edu) y contraseña.
-                  </Text>
-                </View>
-              )}
               <AllowedDomainsNotice />
             </View>
           }
@@ -120,6 +131,17 @@ export default function Login() {
                 <Error textClassName="text-alert" className="my-2">
                   {loginErrorMessage}
                 </Error>
+              )}
+              {isUnverifiedEmail && (
+                <CustomButton
+                  onPress={handleResend}
+                  className="mt-1"
+                  disabled={resendVerification.isPending}
+                >
+                  <ButtonText>
+                    {resendVerification.isPending ? "Enviando…" : "Reenviar email de verificación"}
+                  </ButtonText>
+                </CustomButton>
               )}
               {isLoginLoading && <Loader />}
               <CustomButton onPress={handleSubmit}>

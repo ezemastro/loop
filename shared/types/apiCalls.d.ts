@@ -50,9 +50,26 @@ interface PostAuthRegisterRequest {
     invitationToken?: string;
   };
 }
+/** La cuenta nace sin verificar: no hay token ni auto-login, solo el aviso de revisar el mail. */
 type PostAuthRegisterResponse = ApiResponse<{
-  user: PrivateUser;
-  token: string;
+  message: string;
+}>;
+
+// GET /auth/verify-email (responde HTML, no JSON: se abre desde el mail)
+interface GetAuthVerifyEmailRequest {
+  query: {
+    token: string;
+  };
+}
+
+// POST /auth/resend-verification
+interface PostAuthResendVerificationRequest {
+  body: {
+    email: string;
+  };
+}
+type PostAuthResendVerificationResponse = ApiResponse<{
+  message: string;
 }>;
 
 // POST /auth/login

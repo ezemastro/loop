@@ -31,8 +31,27 @@ export const {
   WEB_GOOGLE_CLIENT_ID,
   ADMIN_FRONTEND_URL,
   AUTHORIZED_ADMIN_EMAIL,
+  RESEND_API_KEY,
 } = process.env;
 export const INITIAL_CREDITS = 0;
+
+/** Remitente de los mails transaccionales. En dev Resend exige su dominio de pruebas. */
+export const EMAIL_FROM =
+  process.env.NODE_ENV === "production"
+    ? "Loop <noreply@loop.reditinere.com>"
+    : "Loop <onboarding@resend.dev>";
+
+/**
+ * Si el registro exige verificar el email antes de poder entrar.
+ *
+ * Tener proveedor de mail y exigir verificación son dos preguntas distintas. Por defecto se deduce
+ * de `RESEND_API_KEY`, porque sin proveedor el paso no se podría cumplir; pero `REQUIRE_EMAIL_
+ * VERIFICATION` la responde explícitamente. Ponerla en `true` sin Resend deja el link en el log del
+ * api, que es justo lo que necesitan los tests y el desarrollo local.
+ */
+export const REQUIRE_EMAIL_VERIFICATION = process.env.REQUIRE_EMAIL_VERIFICATION
+  ? process.env.REQUIRE_EMAIL_VERIFICATION === "true"
+  : !!RESEND_API_KEY;
 
 /** URL pública de la app, usada para armar los links de invitación. */
 export const APP_BASE_URL = process.env.APP_BASE_URL || FRONTEND_URL || "http://localhost:8081";
@@ -113,6 +132,9 @@ export const ERROR_MESSAGES = {
   INVITATION_INVALID: "La invitación no es válida",
   INVITATION_ALREADY_USED: "Esta invitación ya fue utilizada",
   DELETE_REQUEST_INVALID: "El enlace de borrado no es válido o expiró",
+  EMAIL_NOT_VERIFIED: "Tu email no fue verificado. Revisá tu bandeja de entrada.",
+  EMAIL_VERIFICATION_TOKEN_INVALID: "El enlace de verificación no es válido o ya fue usado",
+  EMAIL_VERIFICATION_SENT: "Si el email está registrado, revisá tu bandeja de entrada.",
 };
 
 export const cookieOptions: CookieOptions = {

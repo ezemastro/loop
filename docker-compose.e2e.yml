@@ -82,6 +82,9 @@ services:
       DB_UNSCOPED_PASSWORD: e2e_unscoped_password
       UPLOAD_DIR: /uploads
       APP_BASE_URL: http://localhost:3000
+      # Sin Resend no sale ningún mail, pero la suite igual recorre el flujo real de verificación:
+      # lee el token de la base y llama al mismo endpoint que abriría el link.
+      REQUIRE_EMAIL_VERIFICATION: "true"
     volumes:
       - uploads-data:/uploads
     healthcheck:

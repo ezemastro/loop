@@ -14,5 +14,14 @@
     }
   },
   "include": ["src/**/*.ts", "src/types/**/*.ts", "../../shared/**/*.ts"],
-  "exclude": ["src/**/*.test.ts", "src/tests/**/*.ts", "node_modules"]
+  // El seed y su dataset son herramientas de desarrollo: se corren con `tsx` y nunca
+  // viajan a la imagen de producción. Además el reacomodo de `dist/` del Dockerfile
+  // rompería su ruta relativa hacia `shared/`.
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/tests/**/*.ts",
+    "src/scripts/seed.ts",
+    "../../shared/demo-data/**/*.ts",
+    "node_modules"
+  ]
 }

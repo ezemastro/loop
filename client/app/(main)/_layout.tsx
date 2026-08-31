@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 import Header from "@/components/header/Header";
+import DemoModeBanner from "@/components/DemoModeBanner";
 import { View } from "react-native";
 import * as Notifications from "expo-notifications";
 import { NotificationProvider } from "@/contexts/notification";
@@ -28,6 +29,7 @@ export default function MainLayout() {
     <NotificationProvider>
       <View className="flex-1 bg-white">
         <Header />
+        <DemoModeBanner />
         <View className="flex-1">
           <Stack screenOptions={{ headerShown: false }} />
         </View>

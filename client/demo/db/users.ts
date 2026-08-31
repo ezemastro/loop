@@ -1,98 +1,34 @@
-import { IDS } from "../ids";
+/** Usuarios del modo demo, hidratados desde el dataset compartido. */
 import { DEMO_COMMUNITY, DEMO_SCHOOLS } from "./community";
+import { SHARED_COMMUNITY, toMedia } from "./dataset";
 
-const EMPTY_STATS: Stats = { kgWaste: 0, kgCo2: 0, lH2o: 0 };
-
-interface UserSeed {
-  id: UUID;
-  email: string;
-  firstName: string;
-  lastName: string;
-  phone?: string | null;
-  creditsBalance?: number;
-  schoolNames: string[];
-  avatarSeed?: string | null;
-}
-
-const buildUser = (seed: UserSeed): PrivateUser => {
-  const schools = DEMO_SCHOOLS.filter((s) => seed.schoolNames.includes(s.name));
-  const profileMedia = seed.avatarSeed
-    ? {
-        id: `${seed.id}-avatar`,
-        url: `https://picsum.photos/seed/${seed.avatarSeed}/300/300`,
-        mime: "image/jpeg",
-        mediaType: "image",
-      }
-    : null;
-  return {
-    id: seed.id,
-    email: seed.email,
-    phone: seed.phone ?? null,
-    firstName: seed.firstName,
-    lastName: seed.lastName,
-    profileMediaId: profileMedia?.id ?? null,
-    communityId: DEMO_COMMUNITY.id,
-    credits: { balance: seed.creditsBalance ?? 300, locked: 0 },
-    stats: { ...EMPTY_STATS },
-    profileMedia,
-    schools,
-    community: DEMO_COMMUNITY,
-  };
-};
-
-export const DEMO_USERS: PrivateUser[] = [
-  buildUser({
-    id: IDS.USER_DEMO,
-    email: "ana@demo.edu",
-    firstName: "Ana",
-    lastName: "Gómez",
-    phone: "11 2345-6789",
-    creditsBalance: 1500,
-    schoolNames: ["Escuela Primaria Demo", "Escuela Secundaria Demo"],
-    avatarSeed: "loop-demo-ana",
-  }),
-  buildUser({
-    id: IDS.USER_CARLOS,
-    email: "carlos@demo.edu",
-    firstName: "Carlos",
-    lastName: "Fernández",
-    creditsBalance: 900,
-    schoolNames: ["Escuela Secundaria Demo"],
-  }),
-  buildUser({
-    id: IDS.USER_LUCIA,
-    email: "lucia@demo.edu",
-    firstName: "Lucía",
-    lastName: "Martínez",
-    creditsBalance: 1200,
-    schoolNames: ["Instituto Técnico Demo"],
-  }),
-  buildUser({
-    id: IDS.USER_MARTIN,
-    email: "martin@demo.edu",
-    firstName: "Martín",
-    lastName: "Rodríguez",
-    creditsBalance: 700,
-    schoolNames: ["Escuela Secundaria Demo"],
-    avatarSeed: "loop-demo-martin",
-  }),
-  buildUser({
-    id: IDS.USER_SOFIA,
-    email: "sofia@demo.edu",
-    firstName: "Sofía",
-    lastName: "López",
-    creditsBalance: 2000,
-    schoolNames: ["Escuela Primaria Demo"],
-  }),
-  buildUser({
-    id: IDS.USER_JULIAN,
-    email: "julian@demo.edu",
-    firstName: "Julián",
-    lastName: "Torres",
-    creditsBalance: 450,
-    schoolNames: ["Instituto Técnico Demo"],
-  }),
-];
+export const DEMO_USERS: PrivateUser[] = SHARED_COMMUNITY.users.map((user) => ({
+  id: user.id,
+  email: user.email,
+  phone: user.phone,
+  firstName: user.firstName,
+  lastName: user.lastName,
+  profileMediaId: user.avatar?.id ?? null,
+  communityId: SHARED_COMMUNITY.id,
+  credits: { balance: user.creditsBalance, locked: user.creditsLocked },
+  stats: { ...user.stats },
+  profileMedia: user.avatar ? toMedia(user.avatar) : null,
+  schools: DEMO_SCHOOLS.filter((school) => user.schoolIds.includes(school.id)),
+  community: DEMO_COMMUNITY,
+}));
 
 export const demoUserByEmail = (email: string) =>
-  DEMO_USERS.find((u) => u.email.toLowerCase() === email.toLowerCase());
+  DEMO_USERS.find((user) => user.email.toLowerCase() === email.toLowerCase());
+
+/**
+ * Cuenta con la que entra el modo demo. Es la misma que siembra el seed en desarrollo, así que la
+ * demo recorre el mismo camino que una cuenta real: cambia quién contesta, no el flujo.
+ */
+export const DEMO_SHOWCASE_USER: PrivateUser = (() => {
+  const showcase = DEMO_USERS.find((user) => user.id === SHARED_COMMUNITY.showcaseUserId);
+  if (!showcase) throw new Error("El dataset demo no define un usuario de portada");
+  return showcase;
+})();
+
+/** Email de esa cuenta. Es lo único que necesita `loginAsDemo` para entrar. */
+export const DEMO_SHOWCASE_EMAIL = DEMO_SHOWCASE_USER.email;

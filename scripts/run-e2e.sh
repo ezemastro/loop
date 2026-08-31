@@ -21,7 +21,9 @@ $COMPOSE build --build-arg CACHEBUST="$CACHEBUST" e2e
 # colgado con api/db vivos.)
 # El servicio e2e vive bajo `profiles: ["run"]`, así `up` NO lo arranca: la suite corre una
 # sola vez contra la DB fresca, en el `run` de abajo.
-$COMPOSE up -d --wait
+# `--build` es obligatorio: la imagen del api hornea el código fuente (no hay bind mount), así que
+# sin esto Compose reusa la imagen cacheada y la suite corre contra una versión vieja del backend.
+$COMPOSE up -d --wait --build
 
 # Corre la suite en el contenedor del runner. `--no-deps` evita que `run` toque los servicios
 # que ya están arriba (el one-shot `migrate` ya corrió con el `up`).

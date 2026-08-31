@@ -1,5 +1,7 @@
-# Compose de desarrollo para todos los módulos: db, api, web (Expo), admin (Vite) y landing (Astro)
-# Uso: docker compose -f docker-compose.dev.yml up --build --watch
+# Compose de desarrollo para todos los módulos: db, api, web (Expo) y admin (Vite)
+# Uso: npm run dev (resuelve DEV_HOST con la IP de LAN del host y levanta este compose).
+# DEV_HOST es el host que los clientes usan para llegar a la API: si queda en `localhost`, un
+# celular u otra notebook lo resuelven contra sí mismos y no alcanzan nada.
 # OJO: el daemon Docker es externo (docker-outside-of-docker): los bind mounts del host no funcionan,
 # por eso el código viaja dentro de las imágenes y los cambios se sincronizan con `watch` (sync).
 services:
@@ -9,8 +11,14 @@ services:
     container_name: loop-dev-db
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
+    # Fuente única: el .env de la raíz. `./server/.env` queda como puente opcional mientras se
+    # termina de migrar; va primero para que la raíz gane. Cuando ese archivo ya no exista,
+    # se puede borrar la primera entrada sin tocar nada más.
     env_file:
-      - ./server/.env
+      - path: ./server/.env
+        required: false
+      - path: ./.env
+        required: false
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
@@ -32,8 +40,12 @@ services:
     container_name: loop-dev-api
     ports:
       - "${API_PORT:-3000}:3000"
+    # Ver la nota de `db`: la raíz gana, `./server/.env` es el puente opcional de la migración.
     env_file:
-      - ./server/.env
+      - path: ./server/.env
+        required: false
+      - path: ./.env
+        required: false
     environment:
       - NODE_ENV=development
       # POSTGRES_USER es el dueño de las tablas y superusuario: la API no lo usa para consultar,
@@ -43,7 +55,9 @@ services:
       - DB_APP_PASSWORD=${DB_APP_PASSWORD:-}
       - DB_UNSCOPED_USER=${DB_UNSCOPED_USER:-loop_app_unscoped}
       - DB_UNSCOPED_PASSWORD=${DB_UNSCOPED_PASSWORD:-}
-      - APP_BASE_URL=${APP_BASE_URL:-http://localhost:8081}
+      - APP_BASE_URL=${APP_BASE_URL:-http://${DEV_HOST:-localhost}:${WEB_PORT:-8081}}
+      # URL pública del api: la usa el link de verificación de email (BASE_URL)
+      - BASE_URL=${BASE_URL:-http://${DEV_HOST:-localhost}:3000}
     volumes:
       - /app/server/api/node_modules
       - ./server/uploads:/uploads
@@ -70,10 +84,17 @@ services:
       dockerfile: ./Dockerfile.web.dev
     container_name: loop-dev-web
     ports:
-      - "8081:8081"
+      - "${WEB_PORT:-8081}:8081"
     environment:
-      - EXPO_PUBLIC_API_URL=http://localhost:3000
-      - EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID=${EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID:-}
+      # Sin esto Expo lee client/.env y arma `expo/virtual/env` con ESE archivo, ignorando el
+      # entorno del contenedor: la app termina llamando a la URL del archivo aunque acá diga otra.
+      - EXPO_NO_DOTENV=1
+      - EXPO_PUBLIC_API_URL=${EXPO_PUBLIC_API_URL:-http://${DEV_HOST:-localhost}:3000}
+      # Sin `=`: si la variable no está en el .env de la raíz, no se define en el contenedor
+      # (en vez de definirse vacía, que es lo que rompía el login de Google).
+      - EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID
+      - EXPO_PUBLIC_REPORT_EMAIL
+      - EXPO_PUBLIC_INSTITUTIONAL_EMAIL_FORM_URL
       - EXPO_NO_TELEMETRY=1
     volumes:
       - /app/client/node_modules
@@ -87,6 +108,14 @@ services:
             - .expo/
             - dist/
             - .git/
+            # El env del cliente sale del .env de la raíz vía Compose; si se sincroniza el archivo
+            # local, Expo vuelve a leerlo y pisa la URL de la API.
+            - .env
+            - .env.*
+        # El dataset demo vive fuera de client/ y el bundle lo importa: se sincroniza igual.
+        - action: sync
+          path: ./shared
+          target: /app/shared
         - action: rebuild
           path: ./client/package.json
 
@@ -97,10 +126,10 @@ services:
       dockerfile: ./Dockerfile.admin.dev
     container_name: loop-dev-admin
     ports:
-      - "5173:5173"
+      - "${ADMIN_PORT:-5173}:5173"
     environment:
-      - VITE_API_URL=http://localhost:3000
-      - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID:-}
+      - VITE_API_URL=${VITE_API_URL:-http://${DEV_HOST:-localhost}:3000}
+      - VITE_GOOGLE_CLIENT_ID
     volumes:
       - /app/adminClient/node_modules
     develop:
@@ -114,29 +143,6 @@ services:
             - .git/
         - action: rebuild
           path: ./adminClient/package.json
-
-  # --- LANDING (Astro) ---
-  landing:
-    build:
-      context: .
-      dockerfile: ./Dockerfile.landing.dev
-    container_name: loop-dev-landing
-    ports:
-      - "4321:4321"
-    volumes:
-      - /app/landing/node_modules
-    develop:
-      watch:
-        - action: sync
-          path: ./landing
-          target: /app/landing
-          ignore:
-            - node_modules/
-            - dist/
-            - .astro/
-            - .git/
-        - action: rebuild
-          path: ./landing/package.json
 
 volumes:
   postgres-data:

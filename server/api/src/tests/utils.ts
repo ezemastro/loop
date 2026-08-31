@@ -126,6 +126,8 @@ export const MOCK_USER_DB: DB_Users = {
   community_id: MOCK_COMMUNITY.id,
   invitation_id: null,
   domain_exempt: false,
+  email_verified: true,
+  email_verification_token: null,
 };
 export const MOCK_USER_SCHOOL_DB: DB_UserSchools = {
   id: randomUUID(),

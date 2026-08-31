@@ -1,4 +1,9 @@
-import { ERROR_MESSAGES, INITIAL_CREDITS, WEB_GOOGLE_CLIENT_ID } from "../config.js";
+import {
+  ERROR_MESSAGES,
+  INITIAL_CREDITS,
+  REQUIRE_EMAIL_VERIFICATION,
+  WEB_GOOGLE_CLIENT_ID,
+} from "../config.js";
 import {
   ConflictError,
   InternalServerError,
@@ -19,8 +24,14 @@ import {
 } from "../utils/communities.js";
 import { assignAllMissionsToUser, getUserSchools } from "../utils/helpersDb.js";
 import { consumeInvitation, lockInvitation } from "../utils/invitations.js";
-import { parseMediaFromDb, parsePrivateUserFromBase, parseUserBaseFromDb } from "../utils/parseDb.js";
+import {
+  parseMediaFromDb,
+  parsePrivateUserFromBase,
+  parseUserBaseFromDb,
+} from "../utils/parseDb.js";
 import { webGoogleClient } from "../services/googleOauth.js";
+import { sendVerificationEmail } from "../services/email.js";
+import crypto from "crypto";
 
 /**
  * Arma el `PrivateUser` de la respuesta: perfil, colegios y comunidad.
@@ -152,6 +163,17 @@ export class AuthModel {
 
     const { communityId } = await resolveSignupCommunity({ email, invitationToken });
 
+    // Sin proveedor de mail el paso no se podría cumplir, así que por defecto la cuenta nace
+    // verificada. `REQUIRE_EMAIL_VERIFICATION` permite exigirlo igual (dev y tests: el link queda
+    // en el log del api en vez de salir por mail).
+    const requireEmailVerification = REQUIRE_EMAIL_VERIFICATION;
+
+    // Token que viaja en el link del mail de verificación. Solo la persona que controla la casilla
+    // puede confirmar la cuenta; el login queda bloqueado hasta entonces.
+    const verificationToken = requireEmailVerification
+      ? crypto.randomBytes(32).toString("hex")
+      : null;
+
     return withClient(
       async (client) => {
         // Reserva definitiva de la invitación: bloquea la fila hasta el commit.
@@ -175,6 +197,8 @@ export class AuthModel {
           communityId,
           invitation?.id ?? null,
           !!invitation,
+          verificationToken,
+          !requireEmailVerification,
         ]);
         if (!newUser) {
           throw new InternalServerError(ERROR_MESSAGES.UNEXPECTED_ERROR);
@@ -220,7 +244,16 @@ export class AuthModel {
         return { user };
       },
       { scope: inCommunity(communityId), transaction: true },
-    );
+    ).then((result) => {
+      // El mail se manda después del commit y sin bloquear la respuesta: si Resend falla, la
+      // cuenta queda creada igual y el reenvío (POST /auth/resend-verification) cubre el caso.
+      if (requireEmailVerification && verificationToken) {
+        sendVerificationEmail({ to: email, token: verificationToken }).catch((err) =>
+          console.error("[EMAIL] Error al enviar email de verificación:", err),
+        );
+      }
+      return { ...result, requireEmailVerification };
+    });
   };
 
   static loginUser = async ({ email, password }: AuthLoginPayload) => {
@@ -245,6 +278,13 @@ export class AuthModel {
       throw new UnauthorizedError(ERROR_MESSAGES.INVALID_CREDENTIALS, "INVALID_CREDENTIALS");
     }
 
+    // Recién acá (después de validar la password) se avisa que falta verificar: quien no tiene la
+    // password no puede distinguir EMAIL_NOT_VERIFIED de INVALID_CREDENTIALS, y así no se filtra
+    // qué direcciones están registradas.
+    if (!userDb.email_verified) {
+      throw new UnauthorizedError(ERROR_MESSAGES.EMAIL_NOT_VERIFIED, "EMAIL_NOT_VERIFIED");
+    }
+
     // A partir de acá ya sabemos la comunidad, así que se trabaja scopeado.
     return withClient(
       async (client) => {
@@ -253,6 +293,64 @@ export class AuthModel {
       },
       { scope: inCommunity(userDb.community_id) },
     );
+  };
+
+  /**
+   * Confirma la cuenta cuando el usuario hace clic en el enlace del mail.
+   *
+   * Se ejecuta sin scope: el token de 32 bytes aleatorios ES la credencial, igual que el jwt en
+   * login o el token de invitación. Sin el token no hay fila que matchear, así que no hay forma de
+   * tocar la fila de otro usuario.
+   */
+  static verifyEmail = async (token: string) => {
+    return withClient(
+      async (client) => {
+        const [row] = await client.query(queries.verifyUserEmail, [token]);
+        if (!row) {
+          throw new InvalidInputError(
+            ERROR_MESSAGES.EMAIL_VERIFICATION_TOKEN_INVALID,
+            "EMAIL_VERIFICATION_TOKEN_INVALID",
+          );
+        }
+        return { verified: true };
+      },
+      { scope: unscoped("token-lookup") },
+    );
+  };
+
+  /**
+   * Reenvío del mail de verificación (por ejemplo cuando el primero no llegó).
+   *
+   * La respuesta es la misma exista o no la cuenta, o esté o no verificada: así el endpoint no se
+   * puede usar para enumerar qué direcciones están registradas.
+   */
+  static resendVerificationEmail = async ({ email }: { email: string }) => {
+    const userDb = await withClient(
+      async (client) => {
+        const [row] = await client.query(queries.userEmailVerifiedAndTokenByEmail, [email]);
+        return row ?? null;
+      },
+      { scope: unscoped("auth:lookup-user") },
+    );
+
+    if (!userDb || userDb.email_verified) {
+      return { sent: false };
+    }
+
+    // Se rota el token para invalidar cualquier enlace anterior que haya quedado fuera de banda.
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    await withClient(
+      async (client) => {
+        await client.query(queries.updateUserVerificationToken, [verificationToken, userDb.id]);
+      },
+      { scope: unscoped("token-lookup") },
+    );
+
+    sendVerificationEmail({ to: email, token: verificationToken }).catch((err) =>
+      console.error("[EMAIL] Error al reenviar email de verificación:", err),
+    );
+
+    return { sent: true };
   };
 
   static googleLogin = async ({
