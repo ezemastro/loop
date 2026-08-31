@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { DEFAULT_COLORS, ThemeColorKey } from "../config";
 import { hexToChannels } from "../services/color";
+import { walkTsFiles } from "./helpers/sourceFiles";
 
 /**
  * Sync guard for the Itínere brand palette. `config.ts` (`DEFAULT_COLORS`, hex) and
@@ -49,22 +50,6 @@ const OLD_BRAND_HEX = [
 ];
 const NEW_BRAND_HEX = ["E4510B", "243B7A", "209B8A", "7D2048", "A03A63", "C52525"];
 const FORBIDDEN_HEX = [...OLD_BRAND_HEX, ...NEW_BRAND_HEX].map((hex) => hex.toLowerCase());
-
-const SKIP_DIRS = new Set(["node_modules", ".expo", ".git", "android", "ios", "dist", "build"]);
-
-function walkTsFiles(dir: string, results: string[] = []): string[] {
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (entry.name.startsWith(".")) continue;
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      if (SKIP_DIRS.has(entry.name)) continue;
-      walkTsFiles(fullPath, results);
-    } else if (/\.(ts|tsx)$/.test(entry.name)) {
-      results.push(fullPath);
-    }
-  }
-  return results;
-}
 
 function parseRootBlock(css: string): Record<string, string> {
   const rootMatch = css.match(/:root\s*{([^}]*)}/);

@@ -13,7 +13,11 @@
     "deploy": "node publish.js"
   },
   "jest": {
-    "preset": "jest-expo"
+    "preset": "jest-expo",
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "<rootDir>/__tests__/helpers/"
+    ]
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
