@@ -126,36 +126,46 @@ export default function Landing() {
     <View className="flex-1 bg-white">
       <View pointerEvents="none" className="absolute inset-0 overflow-hidden">
         <View
-          className="absolute"
+          className="absolute bg-primary/10"
           style={{
             top: -130,
             right: -120,
             width: 360,
             height: 320,
             borderRadius: 180,
-            backgroundColor: "#FFF1E8",
           }}
         />
         <LeafIcon
-          color="#F3D4BF"
+          color={colors.PRIMARY}
           size={78}
-          style={{ position: "absolute", top: 62, right: 50, transform: [{ rotate: "25deg" }] }}
+          style={{
+            position: "absolute",
+            top: 62,
+            right: 50,
+            opacity: 0.22,
+            transform: [{ rotate: "25deg" }],
+          }}
         />
         <View
-          className="absolute"
+          className="absolute bg-secondary/10"
           style={{
             bottom: -170,
             left: -130,
             width: 380,
             height: 350,
             borderRadius: 190,
-            backgroundColor: "#EEF8E9",
           }}
         />
         <LeafIcon
-          color="#C7E0BE"
+          color={colors.SECONDARY}
           size={96}
-          style={{ position: "absolute", bottom: 72, left: 56, transform: [{ rotate: "-35deg" }] }}
+          style={{
+            position: "absolute",
+            bottom: 72,
+            left: 56,
+            opacity: 0.22,
+            transform: [{ rotate: "-35deg" }],
+          }}
         />
       </View>
 
@@ -216,8 +226,8 @@ export default function Landing() {
               className="mt-6 w-full max-w-md rounded-2xl bg-white p-8"
               style={{
                 borderWidth: 1,
-                borderColor: "#EEEEEE",
-                shadowColor: "#16352B",
+                borderColor: colors.STROKE,
+                shadowColor: colors.MAIN_TEXT,
                 shadowOffset: { width: 0, height: 10 },
                 shadowOpacity: 0.1,
                 shadowRadius: 22,

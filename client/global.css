@@ -9,14 +9,14 @@
  * abajo en el árbol. Espejo de `DEFAULT_COLORS` en `config.ts`.
  */
 :root {
-  --color-primary: 255 89 0;
-  --color-secondary: 76 159 56;
-  --color-tertiary: 0 158 124;
-  --color-main-text: 66 66 66;
+  --color-primary: 228 81 11;
+  --color-secondary: 36 59 122;
+  --color-tertiary: 32 155 138;
+  --color-main-text: 61 61 61;
   --color-secondary-text: 158 158 158;
-  --color-credits: 132 54 209;
-  --color-credits-light: 143 76 209;
+  --color-credits: 125 32 72;
+  --color-credits-light: 160 58 99;
   --color-stroke: 228 228 228;
   --color-background: 240 240 240;
-  --color-alert: 255 59 48;
+  --color-alert: 197 37 37;
 }

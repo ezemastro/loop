@@ -23,7 +23,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/app_icon.png",
-        "backgroundColor": "#F0F0F0"
+        "backgroundColor": "#243B7A"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.reditinere.loop",
@@ -39,7 +39,7 @@
       "shortName": "Loop",
       "description": "Marketplace escolar - comprá y vendé entre alumnos",
       "lang": "es-AR",
-      "themeColor": "#4C9F38",
+      "themeColor": "#243B7A",
       "backgroundColor": "#F0F0F0",
       "display": "standalone",
       "orientation": "portrait",

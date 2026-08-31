@@ -6,7 +6,7 @@ const expandShorthand = (hex: string) =>
 /**
  * Convierte "#RRGGBB" a los canales sueltos "R G B" que espera `rgb(var(--x) / <alpha-value>)`.
  * Sin esto las variantes con opacidad (`bg-primary/10`) generarían CSS inválido, porque
- * `rgb(#FF5900 / 0.1)` no existe.
+ * `rgb(#000000 / 0.1)` no existe.
  *
  * Es tolerante a propósito: el tema llega del servidor y una comunidad mal cargada no puede
  * dejar la app sin colores, así que un hex inválido cae al fallback en vez de romper.
