@@ -4,6 +4,10 @@ import { useMissions } from "@/hooks/useMissions";
 import Mission from "./cards/Mission";
 import Loader from "./Loader";
 import Error from "./Error";
+import ListingGrid from "./bases/ListingGrid";
+
+/** 1 column on mobile, 2 from `md` up — see design note in `ListingGrid`. */
+const MISSIONS_COLUMN_RAMP = { base: 1, md: 2 };
 
 export default function Missions({
   setHasMissions,
@@ -23,14 +27,16 @@ export default function Missions({
   }, [showMissions, hasMissions, setHasMissions]);
 
   return (
-    <View className="gap-2">
-      {missions?.map((mission) => (
-        <Mission
-          key={mission.id}
-          mission={mission}
-          className={mission.completed ? "saturate-50 opacity-50" : ""}
-        />
-      ))}
+    <View>
+      <ListingGrid columnRamp={MISSIONS_COLUMN_RAMP} lastFullOnOdd>
+        {missions?.map((mission) => (
+          <Mission
+            key={mission.id}
+            mission={mission}
+            className={mission.completed ? "saturate-50 opacity-50" : ""}
+          />
+        )) ?? []}
+      </ListingGrid>
       {isLoading && <Loader />}
       {error && <Error>Error al cargar misiones</Error>}
     </View>

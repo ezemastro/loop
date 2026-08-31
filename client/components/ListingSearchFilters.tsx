@@ -27,7 +27,7 @@ export default function ListingSearchFilters({
   const filtersCount = Object.values(value).filter((v) => v !== null).length;
   return (
     <>
-      <CustomButton onPress={() => openModal()} className="flex-grow">
+      <CustomButton onPress={() => openModal()} className="w-auto max-w-none flex-grow">
         <ButtonText>Filtros{filtersCount > 0 ? ` (${filtersCount})` : ""}</ButtonText>
       </CustomButton>
       <ListingSearchFiltersModal

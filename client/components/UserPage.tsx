@@ -1,5 +1,6 @@
 import { View, Text, FlatList, TextInput, ScrollView } from "react-native";
 import React, { useState } from "react";
+import { twMerge } from "tailwind-merge";
 import { useRouter } from "expo-router";
 import { MainView, pageContentClassName } from "./bases/MainView";
 import AvoidingKeyboard from "./AvoidingKeyboard";
@@ -29,6 +30,12 @@ interface Section {
   component: () => React.ReactNode;
   show?: boolean;
   hide?: boolean;
+  /**
+   * Alignment applied to both the title and the body as one block, so a section never shows a
+   * left-hanging label over centred content. Defaults to "left" (the existing look for every
+   * section except "credits", whose body is already centred).
+   */
+  align?: "left" | "center";
 }
 export default function UserPage({
   user,
@@ -147,6 +154,7 @@ export default function UserPage({
       key: "credits",
       show: isCurrentUser,
       title: "Loopies:",
+      align: "center",
       component: () => (
         <View className="gap-4">
           <View className="px-2 flex-row items-center justify-center gap-4">
@@ -261,8 +269,20 @@ export default function UserPage({
           refreshControl={<CustomRefresh />}
           contentContainerClassName={sectionsContentClassName}
           renderItem={({ item }) => (
-            <View className={"gap-2" + (item.hide ? " hidden" : "")}>
-              {item.title && <Text className="text-2xl text-main-text">{item.title}</Text>}
+            <View className={twMerge("gap-2", item.hide && "hidden")}>
+              {item.title && (
+                // `self-center` (not `items-center` on this row) so a centred title never
+                // shrink-wraps the body below it — the body keeps its own full-width stretch
+                // and controls its own internal centring (see the "credits" section).
+                <Text
+                  className={twMerge(
+                    "text-2xl text-main-text",
+                    item.align === "center" && "self-center text-center",
+                  )}
+                >
+                  {item.title}
+                </Text>
+              )}
               {item.component()}
             </View>
           )}
