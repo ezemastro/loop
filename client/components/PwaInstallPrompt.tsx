@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Modal, Platform, Pressable, View, Text, ScrollView } from "react-native";
+import { Image, Modal, Platform, Pressable, View, Text, ScrollView } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -31,6 +32,7 @@ function getDaysSince(dateStr: string): number {
 }
 
 export default function PwaInstallPrompt() {
+  const colors = useThemeColors();
   const [visible, setVisible] = useState(false);
   const [isIOSDevice, setIsIOSDevice] = useState(false);
   const deferredPromptRef = useRef<BeforeInstallPromptEvent | null>(null);
@@ -139,20 +141,24 @@ export default function PwaInstallPrompt() {
                   width: 60,
                   height: 60,
                   borderRadius: 16,
-                  backgroundColor: "#FF5900",
+                  backgroundColor: colors.SECONDARY,
                   alignItems: "center",
                   justifyContent: "center",
                   marginBottom: 16,
                 }}
               >
-                <Text style={{ color: "#FFFFFF", fontSize: 28, fontWeight: "700" }}>L</Text>
+                <Image
+                  source={require("../assets/icon.png")}
+                  resizeMode="contain"
+                  style={{ width: 44, height: 44 }}
+                />
               </View>
 
               <Text
                 style={{
                   fontSize: 20,
                   fontWeight: "700",
-                  color: "#424242",
+                  color: colors.MAIN_TEXT,
                   marginBottom: 8,
                   textAlign: "center",
                 }}
@@ -163,7 +169,7 @@ export default function PwaInstallPrompt() {
               <Text
                 style={{
                   fontSize: 14,
-                  color: "#9E9E9E",
+                  color: colors.SECONDARY_TEXT,
                   textAlign: "center",
                   lineHeight: 20,
                   marginBottom: 24,
@@ -180,7 +186,7 @@ export default function PwaInstallPrompt() {
                         width: 28,
                         height: 28,
                         borderRadius: 14,
-                        backgroundColor: "#FF5900",
+                        backgroundColor: colors.PRIMARY,
                         alignItems: "center",
                         justifyContent: "center",
                       }}
@@ -188,10 +194,10 @@ export default function PwaInstallPrompt() {
                       <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "700" }}>1</Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 15, fontWeight: "600", color: "#424242" }}>
+                      <Text style={{ fontSize: 15, fontWeight: "600", color: colors.MAIN_TEXT }}>
                         Tocá el botón Compartir
                       </Text>
-                      <Text style={{ fontSize: 13, color: "#9E9E9E", marginTop: 2 }}>
+                      <Text style={{ fontSize: 13, color: colors.SECONDARY_TEXT, marginTop: 2 }}>
                         En la barra inferior de Safari, presioná el ícono{" "}
                         <Text style={{ fontSize: 16 }}>↗</Text>
                       </Text>
@@ -204,7 +210,7 @@ export default function PwaInstallPrompt() {
                         width: 28,
                         height: 28,
                         borderRadius: 14,
-                        backgroundColor: "#FF5900",
+                        backgroundColor: colors.PRIMARY,
                         alignItems: "center",
                         justifyContent: "center",
                       }}
@@ -212,10 +218,10 @@ export default function PwaInstallPrompt() {
                       <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "700" }}>2</Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 15, fontWeight: "600", color: "#424242" }}>
+                      <Text style={{ fontSize: 15, fontWeight: "600", color: colors.MAIN_TEXT }}>
                         Agregar a la pantalla de inicio
                       </Text>
-                      <Text style={{ fontSize: 13, color: "#9E9E9E", marginTop: 2 }}>
+                      <Text style={{ fontSize: 13, color: colors.SECONDARY_TEXT, marginTop: 2 }}>
                         Deslizá y seleccioná &quot;Agregar a inicio&quot; en el menú
                       </Text>
                     </View>
@@ -225,7 +231,7 @@ export default function PwaInstallPrompt() {
                 <Pressable
                   onPress={handleInstall}
                   style={{
-                    backgroundColor: "#FF5900",
+                    backgroundColor: colors.PRIMARY,
                     paddingVertical: 14,
                     paddingHorizontal: 32,
                     borderRadius: 12,
@@ -233,16 +239,14 @@ export default function PwaInstallPrompt() {
                     alignItems: "center",
                   }}
                 >
-                  <Text
-                    style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "600" }}
-                  >
+                  <Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "600" }}>
                     Instalar Loop
                   </Text>
                 </Pressable>
               )}
 
               <Pressable onPress={handleDismiss} style={{ marginTop: 20, padding: 8 }}>
-                <Text style={{ fontSize: 14, color: "#9E9E9E" }}>
+                <Text style={{ fontSize: 14, color: colors.SECONDARY_TEXT }}>
                   {isIOSDevice ? "Entendido" : "Ahora no"}
                 </Text>
               </Pressable>
