@@ -82,3 +82,54 @@ export const NOTIFICATIONS_CATEGORIES = {
   ADMIN: "admin",
   MESSAGE: "message",
 };
+
+/**
+ * Single source of breakpoint truth. Must match Tailwind's default `theme.screens`
+ * (`tailwind.config.js` is not overridden) — asserted in `__tests__/responsive-tokens.test.ts`.
+ * Used by `useBreakpoint()` for JS-side props that cannot be expressed as classes.
+ */
+export const BREAKPOINTS = {
+  md: 768,
+  lg: 1024,
+  xl: 1280,
+} as const;
+
+/**
+ * Shadow scale. `boxShadow` on native only maps `shadowColor` + `shadowRadius` (`spread`, always
+ * `0` in Tailwind's defaults, is the only source `shadowOffset`/`shadowOpacity`/`elevation` could
+ * come from) — so `class` (web) and `native` (Platform.select style object) must be projected
+ * separately. `class` reproduces today's web appearance; `native` is a native-only visual gain.
+ */
+export const ELEVATION = {
+  raised: {
+    class: "shadow",
+    native: {
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 3,
+      elevation: 2,
+    },
+  },
+  overlay: {
+    class: "shadow-md",
+    native: {
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.12,
+      shadowRadius: 8,
+      elevation: 6,
+    },
+  },
+} as const;
+
+/** Carousel/Image height per breakpoint — not expressible as a class (native `height` prop). */
+export const GALLERY_HEIGHT = {
+  base: 260,
+  md: 360,
+  lg: 420,
+  xl: 420,
+} as const;
+
+/** Number of `ListingSkeleton` placeholders rendered inside `ListingGrid` on initial load. */
+export const SKELETON_COUNT = 4;
