@@ -18,10 +18,9 @@ export default function UserBadge({
     <View className={twMerge(`flex-row items-center gap-2`, containerClassName)}>
       <Image
         source={getProfileImageSource(user.profileMedia?.url)}
-        className={twMerge(`rounded-full bg-background`, imageClassName)}
-        style={{ width: 24, height: 24 }}
+        className={twMerge(`rounded-full bg-background size-6`, imageClassName)}
       />
-      <Text className={twMerge(`text-secondary-text text-sm`, textClassName)}>
+      <Text numberOfLines={1} className={twMerge(`text-secondary-text text-sm`, textClassName)}>
         {user.firstName} {user.lastName}
       </Text>
     </View>

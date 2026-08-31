@@ -1,5 +1,12 @@
 import { useState, useRef } from "react";
-import { View, TextInput, Pressable, Platform, type NativeSyntheticEvent, type TextInputKeyPressEventData } from "react-native";
+import {
+  View,
+  TextInput,
+  Pressable,
+  Platform,
+  type NativeSyntheticEvent,
+  type TextInputKeyPressEventData,
+} from "react-native";
 import { SendIcon } from "./Icons";
 
 export default function ChatInput({ onSubmit }: { onSubmit: (text: string) => void }) {
@@ -38,11 +45,9 @@ export default function ChatInput({ onSubmit }: { onSubmit: (text: string) => vo
         className="border border-stroke rounded-2xl px-4 py-2 text-main-text flex-grow text-lg"
         multiline
         numberOfLines={Platform.OS === "web" ? undefined : 4}
-        style={
-          Platform.OS === "web"
-            ? { maxHeight: 120, minHeight: 40, outline: "none" as any }
-            : undefined
-        }
+        // Focus ring comes from the shared `global.css` rule; only the size constraints are
+        // specific to this input.
+        style={Platform.OS === "web" ? { maxHeight: 120, minHeight: 40 } : undefined}
         value={messageText}
         onChangeText={handleChangeText}
         onKeyPress={handleKeyPress}

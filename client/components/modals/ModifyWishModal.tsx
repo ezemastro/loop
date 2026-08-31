@@ -1,4 +1,4 @@
-import { View, Text, TextInput } from "react-native";
+import { View, Text, TextInput, ScrollView } from "react-native";
 import CategorySelector from "../selectors/CategorySelector";
 import { useEffect, useState } from "react";
 import CustomModal from "../bases/CustomModal";
@@ -54,38 +54,41 @@ export default function ModifyWishModal({
   };
   return (
     <CustomModal handleClose={handleClose} isVisible={isVisible}>
-      <AvoidingKeyboard className="items-center justify-center flex-1 w-full">
-        <View className="bg-background p-4 rounded-lg w-full gap-4">
-          <CloseModalButton onClose={handleClose} />
-          <TextTitle>{wish ? "Modificar deseo" : "Agregar deseo"}</TextTitle>
-          <View className="gap-1">
-            <Text className="text-main-text text-lg">Categoría</Text>
-            <CategorySelector
-              value={selectedCategory}
-              onChange={(cat) => setSelectedCategory(cat)}
-            />
-          </View>
-          <View className="gap-1">
-            <Text className="text-main-text text-lg">Comentario</Text>
-            <TextInput
-              className="border border-gray-300 p-2 rounded text-main-text bg-white"
-              value={comment}
-              onChangeText={setComment}
-              placeholderClassName="text-secondary-text"
-              placeholder="Sé más específico en lo que buscas..."
-              multiline
-              numberOfLines={4}
-            />
-          </View>
-          <CustomButton
-            onPress={handleSubmit}
-            className="mt-4"
-            disabled={isLoading || !selectedCategory}
+      {(modalMaxHeight) => (
+        <AvoidingKeyboard className="items-center justify-center flex-1 w-full">
+          <View
+            className="overflow-hidden bg-background rounded-lg w-full"
+            style={{ maxHeight: modalMaxHeight }}
           >
-            <ButtonText>{wish ? "Guardar cambios" : "Agregar deseo"}</ButtonText>
-          </CustomButton>
-        </View>
-      </AvoidingKeyboard>
+            <ScrollView className="p-4" contentContainerClassName="gap-4">
+              <CloseModalButton onClose={handleClose} />
+              <TextTitle>{wish ? "Modificar deseo" : "Agregar deseo"}</TextTitle>
+              <View className="gap-1">
+                <Text className="text-main-text text-lg">Categoría</Text>
+                <CategorySelector
+                  value={selectedCategory}
+                  onChange={(cat) => setSelectedCategory(cat)}
+                />
+              </View>
+              <View className="gap-1">
+                <Text className="text-main-text text-lg">Comentario</Text>
+                <TextInput
+                  className="border border-gray-300 p-2 rounded text-main-text bg-white"
+                  value={comment}
+                  onChangeText={setComment}
+                  placeholderClassName="text-secondary-text"
+                  placeholder="Sé más específico en lo que buscas..."
+                  multiline
+                  numberOfLines={4}
+                />
+              </View>
+              <CustomButton onPress={handleSubmit} disabled={isLoading || !selectedCategory}>
+                <ButtonText>{wish ? "Guardar cambios" : "Agregar deseo"}</ButtonText>
+              </CustomButton>
+            </ScrollView>
+          </View>
+        </AvoidingKeyboard>
+      )}
     </CustomModal>
   );
 }
