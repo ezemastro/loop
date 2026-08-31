@@ -24,7 +24,7 @@ import CustomRefresh from "./CustomRefresh";
 import AvoidingKeyboard from "./AvoidingKeyboard";
 import Loader from "./Loader";
 import ImagesSelector from "./selectors/ImagesSelector";
-import { MainView } from "@/components/bases/MainView";
+import { MainView, pageContentClassName } from "@/components/bases/MainView";
 import { useThemeColors } from "@/hooks/useThemeColors";
 
 interface Section {
@@ -60,6 +60,7 @@ export default function ModifyListing({
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const colors = useThemeColors();
+  const contentContainerClassName = pageContentClassName("wide", "gap-2");
 
   const [form, setForm] = useState<FormData>({
     title: initialData?.title || null,
@@ -340,7 +341,7 @@ export default function ModifyListing({
           keyExtractor={(item) => item.key}
           refreshControl={<CustomRefresh />}
           className="flex-1"
-          contentContainerClassName="gap-2"
+          contentContainerClassName={contentContainerClassName}
           contentContainerStyle={{ paddingBottom: insets.bottom }}
           renderItem={({ item }) => (
             <View className="w-full gap-2">

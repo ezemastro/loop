@@ -14,7 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import DeleteListingButton from "../buttons/DeleteListingButton";
 import EditListingButton from "../buttons/EditListingButton";
 import BackButton from "../BackButton";
-import { MainView } from "../bases/MainView";
+import { MainView, pageContentClassName } from "../bases/MainView";
 import CustomRefresh from "../CustomRefresh";
 import ListingStatusInfo from "../ListingStatusInfo";
 import Stats from "../Stats";
@@ -33,6 +33,8 @@ export default function Listing() {
 
   const { user } = useAuth();
   const isOwner = listing?.seller.id === user?.id;
+  const sectionsContentClassName = pageContentClassName("narrow");
+  const buttonsRowClassName = pageContentClassName("narrow", "p-4 flex-row gap-4");
 
   const sections = listing
     ? [
@@ -143,12 +145,13 @@ export default function Listing() {
         data={sections}
         refreshControl={<CustomRefresh />}
         className="flex-grow"
+        contentContainerClassName={sectionsContentClassName}
         renderItem={({ item }) => item.component()}
         ListEmptyComponent={
           isLoading ? <Loader /> : error ? <Error>No se encontró la publicación</Error> : null
         }
       />
-      <View className="p-4 flex-row gap-4">
+      <View className={buttonsRowClassName}>
         {listing && <ListingButtons listing={listing} onMutate={handleMutation} />}
       </View>
     </MainView>

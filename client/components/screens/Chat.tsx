@@ -1,7 +1,7 @@
 import { addNewMessageToCache, replaceMessageInCache, useMessages } from "@/hooks/useMessages";
 import { useLocalSearchParams } from "expo-router";
 import { View, Text, Image, FlatList, Platform, RefreshControl } from "react-native";
-import { MainView } from "../bases/MainView";
+import { MainView, pageContentClassName } from "../bases/MainView";
 import BackButton from "../BackButton";
 import { getProfileImageSource, getUrl } from "@/services/getUrl";
 import { useUser } from "@/hooks/useUser";
@@ -36,6 +36,7 @@ export default function Chat() {
   const { mutate: sendMessage } = useSendMessage({ userId: userId });
   const { mutate: markMessagesAsRead } = useMessageRead({ userId: userId });
   const { showToast } = useToast();
+  const messagesContentClassName = pageContentClassName("narrow", "flex-grow gap-1");
 
   const user = userData?.user;
   const messages = data?.pages.flatMap((page) => page!.data!.messages) ?? [];
@@ -131,8 +132,10 @@ export default function Chat() {
         <FlatList
           data={messages}
           className="flex-1 mt-3 bg-white"
-          contentContainerClassName="flex-grow gap-1"
-          contentContainerStyle={Platform.OS === "web" ? { transform: [{ scaleY: -1 }] } : undefined}
+          contentContainerClassName={messagesContentClassName}
+          contentContainerStyle={
+            Platform.OS === "web" ? { transform: [{ scaleY: -1 }] } : undefined
+          }
           renderItem={({ item, index }) => (
             <>
               {!messages[index - 1] ||

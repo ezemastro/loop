@@ -1,5 +1,5 @@
 import { Text, TextInput, View, FlatList } from "react-native";
-import { MainView } from "../bases/MainView";
+import { MainView, pageContentClassName } from "../bases/MainView";
 import CustomButton from "../bases/CustomButton";
 import type { ReactNode } from "react";
 import Error from "../Error";
@@ -40,6 +40,10 @@ export default function Login() {
   } = useLoginForm();
   const { showToast } = useToast();
   const resendVerification = useResendVerification();
+  const contentContainerClassName = pageContentClassName(
+    "narrow",
+    "gap-2 p-4 pt-6 pb-16 flex-1 justify-center",
+  );
 
   const handleGoogleError = (error: string) => {
     showToast(error, "error");
@@ -100,11 +104,11 @@ export default function Login() {
         <FlatList
           data={fields}
           keyExtractor={(item) => item.key}
-          className="flex-1 w-full max-w-xl mx-auto p-4"
+          className="flex-1"
           style={{
             paddingTop: insets.top,
           }}
-          contentContainerClassName="gap-2 pt-6 pb-16 flex-1 justify-center"
+          contentContainerClassName={contentContainerClassName}
           ListHeaderComponent={
             <View className="py-6">
               <Text className="text-3xl p-3 text-center font-bold color-main-text">

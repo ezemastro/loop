@@ -1,6 +1,6 @@
 import { View, Text, FlatList } from "react-native";
 import MyListingsList from "../MyListingsList";
-import { MainView } from "../bases/MainView";
+import { MainView, pageContentClassName } from "../bases/MainView";
 import TextTitle from "../bases/TextTitle";
 import { useState } from "react";
 import CustomRefresh from "../CustomRefresh";
@@ -15,6 +15,7 @@ interface Section {
 }
 export default function MyListings() {
   const [hasResults, setHasResults] = useState(false);
+  const contentContainerClassName = pageContentClassName("wide", "px-4 py-4");
   const sections: Section[] = [
     {
       key: "pending-title",
@@ -42,7 +43,7 @@ export default function MyListings() {
           data={sections}
           className="flex-1"
           refreshControl={<CustomRefresh />}
-          contentContainerClassName="px-4 py-4"
+          contentContainerClassName={contentContainerClassName}
           renderItem={({ item }) => (
             <View className={`mb-4 ${(!item.show || item.show()) === false && "hidden"}`}>
               {item.title && (

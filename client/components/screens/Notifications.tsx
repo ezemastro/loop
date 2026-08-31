@@ -1,5 +1,5 @@
-import { FlatList, Text, TouchableOpacity } from "react-native";
-import { MainView } from "../bases/MainView";
+import { FlatList, Text, TouchableOpacity, View } from "react-native";
+import { MainView, pageContentClassName } from "../bases/MainView";
 import { useNotifications } from "@/hooks/useNotifications";
 import NotificationCard from "../cards/Notification";
 import Loader from "../Loader";
@@ -15,6 +15,8 @@ export default function Notifications() {
   const { mutateAsync: readAllNotifications, isPending: isReading } = useReadNotifications();
   const { showToast } = useToast();
   const notifications = data?.pages.flatMap((page) => page.data!.notifications) || [];
+  const headerClassName = pageContentClassName("narrow", "mb-2 items-end");
+  const listContentClassName = pageContentClassName("narrow", "gap-2");
 
   const handleMarkAllRead = async () => {
     try {
@@ -28,20 +30,22 @@ export default function Notifications() {
   return (
     <MainView className="p-4">
       {notifications.length > 0 && (
-        <TouchableOpacity
-          className="mb-2 self-end rounded-lg bg-primary px-3 py-1.5 active:opacity-70"
-          onPress={handleMarkAllRead}
-          disabled={isReading}
-        >
-          <Text className="text-xs font-semibold text-white">
-            {isReading ? "Marcando..." : "Marcar todo como leído"}
-          </Text>
-        </TouchableOpacity>
+        <View className={headerClassName}>
+          <TouchableOpacity
+            className="rounded-lg bg-primary px-3 py-1.5 active:opacity-70"
+            onPress={handleMarkAllRead}
+            disabled={isReading}
+          >
+            <Text className="text-xs font-semibold text-white">
+              {isReading ? "Marcando..." : "Marcar todo como leído"}
+            </Text>
+          </TouchableOpacity>
+        </View>
       )}
       <FlatList
         className="flex-1"
         data={notifications}
-        contentContainerClassName="gap-2"
+        contentContainerClassName={listContentClassName}
         renderItem={({ item }) => <NotificationCard notification={item} />}
         refreshControl={<CustomRefresh refreshing={isFetching} />}
         onEndReached={() => hasNextPage && fetchNextPage()}

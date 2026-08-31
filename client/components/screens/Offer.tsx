@@ -1,5 +1,5 @@
 import { View, Text, FlatList, Pressable } from "react-native";
-import { MainView } from "../bases/MainView";
+import { MainView, pageContentClassName } from "../bases/MainView";
 import Listing from "../cards/Listing";
 import { useListing } from "@/hooks/useListing";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -134,6 +134,8 @@ export default function Offer() {
   };
   const isLoading =
     isLoadingListing || isLoadingBuyerListings || isLoadingAcceptOffer || isLoadingRejectOffer;
+  const sectionsContentClassName = pageContentClassName("narrow", "p-4");
+  const actionsRowClassName = pageContentClassName("narrow", "px-4 mb-4");
   const sections: Section[] = [
     {
       key: "header",
@@ -232,7 +234,7 @@ export default function Offer() {
       <FlatList
         className="flex-1"
         data={sections}
-        contentContainerClassName="p-4"
+        contentContainerClassName={sectionsContentClassName}
         onEndReached={() => fetchNextPage()}
         onEndReachedThreshold={0.5}
         renderItem={({ item }) => (
@@ -240,7 +242,7 @@ export default function Offer() {
         )}
       />
       <View>
-        <View className="px-4 mb-4">
+        <View className={actionsRowClassName}>
           {isLoading && <Loader />}
           <View className="flex-row gap-4">
             <CustomButton className="flex-grow" onPress={handleSubmit}>

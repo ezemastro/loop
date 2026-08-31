@@ -1,6 +1,6 @@
 import { useChats } from "@/hooks/useChats";
 import { View, Text, FlatList, Pressable } from "react-native";
-import { MainView } from "../bases/MainView";
+import { MainView, pageContentClassName } from "../bases/MainView";
 import TextTitle from "../bases/TextTitle";
 import SearchBar from "../SearchBar";
 import CustomRefresh from "../CustomRefresh";
@@ -18,6 +18,8 @@ export default function Messages() {
   const { user: currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const headerClassName = pageContentClassName("narrow", "p-4 gap-3 flex-shrink-0");
+  const listContentClassName = pageContentClassName("narrow", "p-4 gap-2");
   const { data, isLoading, isError, fetchNextPage, hasNextPage } = useChats();
   const { data: usersData, hasNextPage: userHasNextPage } = useUsers({
     userId: currentUser?.id,
@@ -44,7 +46,7 @@ export default function Messages() {
 
   return (
     <MainView>
-      <View className="p-4 gap-3 flex-shrink-0">
+      <View className={headerClassName}>
         <TextTitle>Mensajes</TextTitle>
         <SearchBar
           className="bg-white"
@@ -89,7 +91,7 @@ export default function Messages() {
         onEndReached={() => fetchNextPage()}
         onEndReachedThreshold={0.2}
         refreshControl={<CustomRefresh />}
-        contentContainerClassName="p-4 gap-2"
+        contentContainerClassName={listContentClassName}
         renderItem={({ item }) => item.component()}
         ListEmptyComponent={() =>
           isLoading ? (
