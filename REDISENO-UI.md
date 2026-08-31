@@ -30,7 +30,7 @@ Las ramas están apiladas: cada una incluye todo lo anterior. Para probar todo j
 | 2 | `feat/ui-2-listing-grid` | [#3](https://github.com/ezemastro/loop/pull/3) | Listo |
 | 3 | `feat/ui-3-width-system` | [#4](https://github.com/ezemastro/loop/pull/4) | Listo |
 | 4 | `feat/ui-4-fixes` | [#5](https://github.com/ezemastro/loop/pull/5) | Listo |
-| 5 | `feat/ui-5-compact-card` | — | Pendiente |
+| 5 | `feat/ui-5-compact-card` | [#6](https://github.com/ezemastro/loop/pull/6) | Listo |
 | 6 | `feat/ui-6-wide-density` | — | Pendiente |
 | 7 | `feat/ui-7-notifications` | — | Pendiente |
 | 8 | `feat/ui-8-chat` | — | Pendiente |
@@ -268,6 +268,51 @@ grilla sigue en 24px.
 - **Faltaba el recorte.** Con el cap de altura y el scroll interno ya funcionando, los ítems se
   seguían dibujando *por fuera* del borde inferior del modal. Las mediciones daban todas bien; solo
   se vio en la captura. Faltaba `overflow-hidden` en las cajas.
+
+---
+
+## Rebanada 5 — Card compacta
+
+### Qué cambió
+
+La card de publicación gana una **variante**, no un componente paralelo:
+
+| variante | forma | dónde |
+|---|---|---|
+| `grid` (default) | imagen arriba, protagonista | buscar, inicio, mis publicaciones |
+| `compact` | imagen 96×112 a la izquierda, info a la derecha, una fila | notificaciones, pendientes, chat |
+
+El criterio: **la imagen manda donde estás eligiendo qué te gusta; no manda donde la publicación
+solo está referenciada.**
+
+Dónde se usa compacta:
+- `/notifications` — cuando aparece una publicación.
+- El desplegable "Loops pendientes" del chat, que además vive en una caja de 240px de alto.
+- Las secciones de pendientes del perfil y del inicio.
+
+`/myListings` se queda en grilla: ahí sí estás navegando tus propias publicaciones.
+
+También va la guarda de `listing.media[0].url`, que hoy **revienta** con una publicación sin
+imágenes. Ahora cae en un recuadro neutro.
+
+### Qué probar
+
+- **`/notifications`:** la publicación aparece como fila compacta, no como imagen gigante.
+- **`/messages/[id]`** → desplegable "Loops pendientes": las publicaciones entran en el espacio.
+- **`/myListings`:** conviven las dos variantes en la misma pantalla — pendientes en filas
+  compactas arriba, "Mis publicaciones" en grilla abajo.
+- **Publicación sin imágenes:** no rompe.
+
+### Un bug que solo apareció renderizando
+
+Las cards compactas estaban entrando por `ListingGrid`, así que quedaban encajadas en una celda de
+`w-1/4`: apretadas y con los títulos cortados en "Cartuchera …". Una fila compacta es full width por
+definición y no puede pasar por un contenedor de columnas. Ahora se apila en un `View` plano.
+
+### Pendiente de decisión tuya
+
+`/listing/[id]/offer` también apila cards completas a lo ancho. Podría querer compacta, pero ahí
+**sí** estás eligiendo qué entregar, así que la imagen importa. Sin tocar hasta que lo decidas.
 
 ---
 
