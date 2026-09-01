@@ -32,7 +32,7 @@ Las ramas están apiladas: cada una incluye todo lo anterior. Para probar todo j
 | 4 | `feat/ui-4-fixes` | [#5](https://github.com/ezemastro/loop/pull/5) | Listo |
 | 5 | `feat/ui-5-compact-card` | [#6](https://github.com/ezemastro/loop/pull/6) | Listo |
 | 6 | `feat/ui-6-wide-density` | [#7](https://github.com/ezemastro/loop/pull/7) | Listo |
-| 7 | `feat/ui-7-notifications` | — | Pendiente |
+| 7 | `feat/ui-7-notifications` | [#8](https://github.com/ezemastro/loop/pull/8) | Listo |
 | 8 | `feat/ui-8-chat` | — | Pendiente |
 | 9 | `feat/ui-9-detail` | — | Pendiente |
 | 10 | `feat/ui-10-desktop-nav` | — | Pendiente |
@@ -370,6 +370,53 @@ Vale documentarlos porque muestran cómo un arreglo destapa otro:
    override empezó a funcionar de verdad, dejando el texto invisible.
 
 Los tres pasaban los 649 tests.
+
+---
+
+## Rebanada 7 — `/notifications`
+
+### El botón de "marcar todo como leído" ya no existe
+
+**Qué pasaba.** El botón estaba montado condicionalmente sobre `notifications.length > 0`, así que
+cuando la lista estaba vacía o la primera página todavía cargaba, se desmontaba y **todo el
+contenido saltaba hacia arriba**. Esa era la línea blanca.
+
+**Qué cambió.** Las notificaciones se marcan solas **al salir de la pantalla**, no al entrar.
+
+Marcarlas al entrar hubiera sido más simple, pero borraba el estado de no leída antes del primer
+pintado: el resaltado existiría en el código y nunca en la pantalla. Marcándolas al salir las ves
+resaltadas toda la visita, y la próxima vez ya están leídas. Es lo que hacen GitHub, Slack y Gmail.
+
+Con eso el botón sobra, así que se fue. En su lugar quedó un título "Notificaciones".
+
+### Las no leídas ahora se ven no leídas
+
+Antes la única diferencia era un borde de 1px que cambiaba de color. Ahora llevan barra de acento a
+la izquierda, fondo con tinte suave y título en negrita. Las leídas quedan planas y se corren para
+atrás. Todo con los tokens que ya existían, sin colores nuevos.
+
+### El usuario en las notificaciones
+
+`cards/User.tsx` no tenía ninguna restricción de ancho, así que en "Nueva donación recibida" la foto
+quedaba pegada a la izquierda, el nombre centrado en el medio y el resto en blanco. Ahora tiene un
+ancho máximo y la foto y el nombre van juntos.
+
+### Qué probar
+
+- **Entrá a `/notifications`:** las no leídas se ven claramente distintas.
+- **Salí y volvé a entrar:** ahora están todas planas y el contador del header en cero. Sin tocar
+  ningún botón.
+- **"Nueva donación recibida":** el usuario es una tarjeta compacta, no una banda.
+- **Entrá con la lista vacía:** el contenido no salta.
+
+### Un límite del backend, no un descuido
+
+**No existe endpoint para marcar una notificación individual.** Se verificaron `client/hooks/`,
+`client/api/loop.ts`, el mock de demo y las rutas del server: solo hay
+`GET /me/notifications`, `GET /me/notifications/unread` y `POST /me/notifications/read-all`.
+
+Por eso se marcan todas juntas al salir, y no una por una al tocarlas. Marcar individualmente
+requiere backend nuevo.
 
 ---
 

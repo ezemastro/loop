@@ -1,4 +1,5 @@
 import { View, Text } from "react-native";
+import { twMerge } from "tailwind-merge";
 import Mission from "./Mission";
 import Listing from "./Listing";
 import { DateBadge } from "../bases/DateBadge";
@@ -7,41 +8,91 @@ import User from "./User";
 
 export default function NotificationCard({ notification }: { notification: AppNotification }) {
   const date = new Date(notification.createdAt);
+  const isRead = notification.isRead;
   return (
+    // Unread state used to be a 1px border-colour swap (easy to miss). It now reads through a
+    // left accent bar + a soft tinted background instead, both of which recede to plain
+    // white/stroke once read -- flat, no depth effects, so it renders identically on web and
+    // native.
     <View
-      className={
-        "bg-white rounded-lg " +
-        (!notification.isRead ? "border border-main-text/50" : "border border-stroke")
-      }
+      className={twMerge(
+        "flex-row overflow-hidden rounded-xl border bg-white",
+        isRead ? "border-stroke" : "border-primary/30 bg-primary/5",
+      )}
     >
-      <NotificationContent notification={notification} />
-      <DateBadge date={date} includeTime className="text-right py-1 px-3" />
+      <View className={isRead ? "w-1 bg-stroke" : "w-1 bg-primary"} />
+      <View className="flex-1">
+        <NotificationContent notification={notification} isRead={isRead} />
+        <DateBadge date={date} includeTime className="text-right py-1 px-3" />
+      </View>
     </View>
   );
 }
 
-function NotificationContent({ notification }: { notification: AppNotification }) {
+function NotificationContent({
+  notification,
+  isRead,
+}: {
+  notification: AppNotification;
+  isRead: boolean;
+}) {
   switch (notification.type) {
     case "mission":
-      return <MissionNotification payload={notification.payload as MissionNotificationPayload} />;
+      return (
+        <MissionNotification
+          payload={notification.payload as MissionNotificationPayload}
+          isRead={isRead}
+        />
+      );
     case "loop":
-      return <LoopNotification payload={notification.payload as LoopNotificationPayload} />;
+      return (
+        <LoopNotification
+          payload={notification.payload as LoopNotificationPayload}
+          isRead={isRead}
+        />
+      );
     case "donation":
-      return <DonationNotification payload={notification.payload as DonationNotificationPayload} />;
+      return (
+        <DonationNotification
+          payload={notification.payload as DonationNotificationPayload}
+          isRead={isRead}
+        />
+      );
     case "admin":
-      return <AdminNotification payload={notification.payload as AdminNotificationPayload} />;
+      return (
+        <AdminNotification
+          payload={notification.payload as AdminNotificationPayload}
+          isRead={isRead}
+        />
+      );
   }
 }
 
-function MissionNotification({ payload }: { payload: MissionNotificationPayload }) {
+/** Unread titles carry more weight than read ones; read titles recede back to normal weight. */
+const titleClassName = (isRead: boolean) =>
+  twMerge("text-main-text text-xl", !isRead && "font-bold");
+
+function MissionNotification({
+  payload,
+  isRead,
+}: {
+  payload: MissionNotificationPayload;
+  isRead: boolean;
+}) {
   return (
     <View className="p-4 pb-2">
-      <Text className="text-main-text text-xl">Has completado una misión</Text>
+      <Text className={titleClassName(isRead)}>Has completado una misión</Text>
       <Mission mission={payload.userMission} />
     </View>
   );
 }
-function LoopNotification({ payload }: { payload: LoopNotificationPayload }) {
+function LoopNotification({
+  payload,
+  isRead,
+}: {
+  payload: LoopNotificationPayload;
+  isRead: boolean;
+}) {
   let label;
   switch (payload.type) {
     case "new_offer":
@@ -68,28 +119,40 @@ function LoopNotification({ payload }: { payload: LoopNotificationPayload }) {
   }
   return (
     <View className="p-4 pb-2 gap-2">
-      <Text className="text-main-text text-xl">{label}</Text>
+      <Text className={titleClassName(isRead)}>{label}</Text>
       <Listing listing={payload.listing} variant="compact" />
     </View>
   );
 }
 
-function DonationNotification({ payload }: { payload: DonationNotificationPayload }) {
+function DonationNotification({
+  payload,
+  isRead,
+}: {
+  payload: DonationNotificationPayload;
+  isRead: boolean;
+}) {
   return (
     <View className="p-4 gap-2">
-      <Text className="text-main-text text-xl">Nueva donación recibida</Text>
+      <Text className={titleClassName(isRead)}>Nueva donación recibida</Text>
       <User user={payload.donorUser} className="border border-stroke" />
       <CreditsBadge credits={payload.amount} numberClassName="text-2xl" iconSize={32} />
     </View>
   );
 }
 
-function AdminNotification({ payload }: { payload: AdminNotificationPayload }) {
+function AdminNotification({
+  payload,
+  isRead,
+}: {
+  payload: AdminNotificationPayload;
+  isRead: boolean;
+}) {
   switch (payload.action) {
     case "credits":
       return (
         <View className="p-4 pb-2 gap-2">
-          <Text className="text-main-text text-xl">
+          <Text className={titleClassName(isRead)}>
             El equipo de Loop ha modificado tu cantidad de Loopies
           </Text>
           <Text className="text-main-text">
