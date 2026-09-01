@@ -1,19 +1,93 @@
-# Rediseño de UI — guía de prueba
+# Rediseño de UI
 
-Documento vivo. Se actualiza con cada rebanada. Pensado para que puedas probar todo de una vez
-cuando esté terminado.
+**Estado: mergeado a `main` el 2026-09-01.** Trece commits, `68f2517` a `d9fffd6`.
+
+Este documento describe qué cambió y qué queda pendiente. Es el registro autoritativo del
+rediseño — por encima de los `tasks.md` archivados en `openspec/changes/archive/`, que quedaron
+desfasados del plan real.
 
 ## Cómo levantarlo
 
 ```bash
 cd /home/opencode/projects/loop
-git checkout <rama de la rebanada que quieras probar>
-DEV_HOST=192.168.1.37 WEB_PORT=8082 docker compose -f docker-compose.dev.yml up --watch
+DEV_HOST=192.168.1.37 WEB_PORT=8082 docker compose -f docker-compose.dev.yml up --build --watch
 ```
 
-Las ramas están apiladas: cada una incluye todo lo anterior. Para probar todo junto, usá la última.
+> **El `--build` no es opcional.** El compose no hace bind mount del código: lo hornea dentro de la
+> imagen al construirla. El `develop.watch` sincroniza los cambios que hacés *mientras corre*, pero
+> **no hace una sincronización inicial** — así que si cambiás de rama antes de levantar, vas a ver
+> la imagen anterior sin ningún error que te avise. Esto ya pasó una vez.
+>
+> Arreglo pendiente: cambiar el `sync` por un bind mount de `./client` a `/app/client` en
+> `docker-compose.dev.yml`. Son pocas líneas y elimina la trampa.
 
-**Para deshacer todo:** `git checkout main`.
+---
+
+## Lo que falta
+
+### 1. El pase de pulido de móvil (lo más grande)
+
+Cuando se planeó el rediseño se eligió "pulido suave también en móvil": imágenes más grandes, una
+escala unificada de espaciado, una de sombras, una de radios, jerarquía tipográfica consistente y
+estados vacíos y de carga decentes. Era una rebanada de ~400 líneas.
+
+**Se cayó cuando el plan se reorganizó de 6 a 11 rebanadas, y nunca se volvió a agregar.**
+
+La fundación está pagada pero a medio consumir:
+
+| | Estado |
+|---|---|
+| `SKELETON_COUNT` | **0 usos** — el token existe y nadie lo consume |
+| Skeletons de carga | **No existen** |
+| `ELEVATION` | Usado en **un solo archivo** (`cards/Listing.tsx`) |
+| Escala de espaciado | Sin unificar: `gap-0` a `gap-8`, ocho valores |
+| Escala de radios | Seis tokens conviviendo |
+| Estados vacíos | Existen, pero son texto pelado |
+
+Es el trabajo con mejor relación esfuerzo/resultado de todo lo que queda: no hay que diseñar nada
+nuevo, solo aplicar lo que ya está definido.
+
+### 2. Deuda chica y concreta
+
+- **`text-md` no existe en Tailwind** y no aplica nada en `badges/CreditsBadge.tsx:28` y
+  `screens/Listing.tsx:126`. Se difirió porque corregirlo a `text-base` cambia el tamaño renderizado
+  de 14 a 16 — es un delta visual, no un no-op.
+- **`ReportButton.tsx:125`** arma `className` por concatenación de strings, así que `twMerge` nunca
+  corre y un override del caller no puede ganar. Es el mismo bug que ya se arregló en `ButtonText`.
+- **`Toast.tsx` y `GoogleSignInButton.tsx`** quedaron con sombras propias, en la lista de excepciones
+  del guardián de sombras.
+- **El degradé del logo sigue siendo arcoíris**, no la paleta Itínere. Los assets se referencian solo
+  por nombre de archivo, así que reemplazarlo es cambiar el PNG: cero código.
+
+### 3. Verificaciones que no se hicieron
+
+- Readback visual a exactamente **1024×768** (laptop bajo): que el panel del detalle scrollee
+  internamente y el botón de acción quede alcanzable.
+- Cruzar manualmente **1023↔1024px** redimensionando, para confirmar que no hay remontaje ni pérdida
+  de posición de scroll.
+
+Todo lo demás se verificó renderizando a 390 / 800 / 1100 / 1440 / 1920 px y midiendo el DOM.
+
+### 4. Entorno, preexistente y ajeno a este trabajo
+
+- **`npm run lint` está roto**: `expo lint` revienta con `ERR_UNSUPPORTED_DIR_IMPORT` resolviendo
+  `eslint-config-expo/flat` bajo Node v24.
+- **`npx tsc --noEmit` está roto**: falta `@types/jest`, más errores previos ajenos.
+- **`npm run test` es `jest --watchAll`** y nunca termina. Usar siempre
+  `npx jest --ci --watchAll=false`.
+
+### 5. Configuración: lo que necesita backend
+
+Se consideró y difirió: preferencias de notificaciones y de email, privacidad del perfil, usuarios
+bloqueados, cambio de contraseña y email, sesiones activas, gestión de comunidades, exportar datos,
+apariencia e idioma. Cada una necesita persistencia por cuenta o trabajo de auth.
+
+De todas, **las preferencias de notificaciones son la de mayor valor**: es lo que un usuario
+realmente espera encontrar detrás de una ruedita.
+
+---
+
+## Lo que se hizo
 
 > **Sobre el header verde en modo demo.** Adentro de la app el header sigue verde a propósito: la
 > comunidad de demo define su propio tema y lo conserva. Es el comportamiento multi-tenant
