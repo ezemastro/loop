@@ -25,7 +25,7 @@ export default function DeleteListingButton({
   }, [isSuccess, onDelete, queryClient, listingId]);
 
   return (
-    <CustomButton className="bg-alert" onPress={handleDelete}>
+    <CustomButton className="w-auto max-w-none bg-alert" onPress={handleDelete}>
       <DeleteIcon className="text-white" />
     </CustomButton>
   );

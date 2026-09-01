@@ -34,7 +34,7 @@ Las ramas están apiladas: cada una incluye todo lo anterior. Para probar todo j
 | 6 | `feat/ui-6-wide-density` | [#7](https://github.com/ezemastro/loop/pull/7) | Listo |
 | 7 | `feat/ui-7-notifications` | [#8](https://github.com/ezemastro/loop/pull/8) | Listo |
 | 8 | `feat/ui-8-chat` | [#9](https://github.com/ezemastro/loop/pull/9) | Listo |
-| 9 | `feat/ui-9-detail` | — | Pendiente |
+| 9 | `feat/ui-9-detail` | [#10](https://github.com/ezemastro/loop/pull/10) | Listo |
 | 10 | `feat/ui-10-desktop-nav` | — | Pendiente |
 | 11 | `feat/ui-11-settings` | — | Pendiente |
 
@@ -453,6 +453,58 @@ estiraban demasiado para leerse cómodas.
 - **El desplegable "Loops pendientes":** las publicaciones ahora entran en su caja (viene de la
   rebanada 5).
 - **En celular:** misma estructura, header más compacto.
+
+---
+
+## Rebanada 9 — Detalle de publicación en dos columnas
+
+### Qué cambió
+
+En desktop (≥1024px) el detalle pasa a **dos columnas**: la galería y la descripción a la
+izquierda, y un panel a la derecha con título, precio, estado, colegio, vendedor y el botón de
+acción. La pantalla pasó de `narrow` a `wide`, porque dos columnas en 768px no entran.
+
+**El panel no usa `position: sticky`.** Va como hermano flex del scroller dentro de una fila de
+altura acotada: queda fijo por construcción en ambas plataformas, el scroll interno sale gratis, y
+al cruzar los 1024px **no se remonta** — con `position: sticky` habría un salto visible al
+redimensionar.
+
+El botón de acción queda **fuera** del scroll interno del panel, así que nunca se va abajo del
+fold, ni siquiera en una laptop de 1024×768 con un título largo.
+
+**En celular (<1024px) queda exactamente como estaba**: una columna, mismo orden, botón fijo abajo.
+
+### La galería
+
+Estaba clavada en 240px y leía el ancho de la ventana **a nivel de módulo**, así que no reaccionaba
+al redimensionado. Ahora usa el token `GALLERY_HEIGHT` (260 / 360 / 420 según el ancho) y lee las
+dimensiones con el hook.
+
+### Los nombres ahora son enlaces
+
+En "X quiere loopear este artículo", el nombre no era tocable. Ese mismo patrón se repetía en
+**cinco lugares más** de `ListingStatusInfo`, en los estados aceptado y recibido. Todos llevan al
+perfil ahora.
+
+### Qué probar
+
+- **Detalle en desktop:** dos columnas, y el botón de acción siempre visible sin scrollear.
+- **Redimensioná cruzando 1024px:** no tiene que haber salto ni parpadeo.
+- **En celular:** una columna, idéntico a antes.
+- **Estados de oferta:** los nombres de las personas llevan al perfil.
+
+### Cuatro bugs que aparecieron al renderizar
+
+1. **El título salía dos veces** en desktop: el bloque de la izquierda no tenía `lg:hidden`, así que
+   título, estado y colegios se dibujaban en la columna *y* en el panel.
+2. **Los botones de editar y borrar aplastados**, y lo mismo con "Denunciar" y "Preguntar": son
+   `CustomButton` dentro de un `flex-row`, y el `w-full` que agregué en la rebanada 6 los hace
+   pelear por el ancho. Van con `w-auto max-w-none`.
+3. **El avatar del vendedor ocupaba el panel entero.** En la rebanada 4 le saqué el tamaño en línea
+   a `UserBadge` para que se pudiera sobrescribir por clase — pero las utilidades de ancho y alto
+   **no resuelven en ese `Image`**, así que quedaba sin dimensiones y tomaba el tamaño intrínseco
+   del archivo (640×640). Ahora lleva un prop numérico explícito.
+4. La galería tapaba el resto hasta que se ató al token de altura.
 
 ---
 

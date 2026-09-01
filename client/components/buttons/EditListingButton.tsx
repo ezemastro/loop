@@ -11,7 +11,7 @@ export default function EditListingButton({ listingId }: { listingId: string }) 
     });
   };
   return (
-    <CustomButton onPress={handleEdit}>
+    <CustomButton className="w-auto max-w-none" onPress={handleEdit}>
       <EditIcon className="text-white" />
     </CustomButton>
   );
