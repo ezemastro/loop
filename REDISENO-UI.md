@@ -33,7 +33,7 @@ Las ramas están apiladas: cada una incluye todo lo anterior. Para probar todo j
 | 5 | `feat/ui-5-compact-card` | [#6](https://github.com/ezemastro/loop/pull/6) | Listo |
 | 6 | `feat/ui-6-wide-density` | [#7](https://github.com/ezemastro/loop/pull/7) | Listo |
 | 7 | `feat/ui-7-notifications` | [#8](https://github.com/ezemastro/loop/pull/8) | Listo |
-| 8 | `feat/ui-8-chat` | — | Pendiente |
+| 8 | `feat/ui-8-chat` | [#9](https://github.com/ezemastro/loop/pull/9) | Listo |
 | 9 | `feat/ui-9-detail` | — | Pendiente |
 | 10 | `feat/ui-10-desktop-nav` | — | Pendiente |
 | 11 | `feat/ui-11-settings` | — | Pendiente |
@@ -417,6 +417,42 @@ ancho máximo y la foto y el nombre van juntos.
 
 Por eso se marcan todas juntas al salir, y no una por una al tocarlas. Marcar individualmente
 requiere backend nuevo.
+
+---
+
+## Rebanada 8 — `/messages/[id]`
+
+### El header ocupaba 130px antes del primer mensaje
+
+Eran dos filas apiladas: el botón de volver solo en una, y abajo un avatar de 80×80 al lado de un
+nombre en `text-2xl`. Ahora es **una sola fila** de la mitad de alto: volver, avatar de 40×40,
+nombre proporcionado con truncado, y los colegios en una línea secundaria.
+
+**El header ahora es tocable** y te lleva al perfil de la otra persona. Antes, desde una
+conversación, no había forma de llegar ahí.
+
+### El fondo blanco: el problema no era el blanco
+
+Tus burbujas enviadas son **transparentes con borde**. Sobre un fondo blanco se leían como
+contornos fantasma, no como burbujas.
+
+La superficie de la conversación pasa a gris (`bg-background`), y con eso la burbuja enviada puede
+tomar blanco y por fin verse como burbuja. Las recibidas quedan igual — es la parte que te gustaba.
+La barra de escribir se queda blanca, así que ahora se distingue de la conversación en vez de
+fundirse con ella.
+
+### Ancho de lectura
+
+La columna de mensajes se capea a 576px. A lo ancho de una pantalla de 1440 las burbujas se
+estiraban demasiado para leerse cómodas.
+
+### Qué probar
+
+- **Entrá a una conversación:** el header ocupa la mitad, y tocarlo te lleva al perfil.
+- **Las burbujas:** las tuyas blancas, las de la otra persona en color, todo sobre gris.
+- **El desplegable "Loops pendientes":** las publicaciones ahora entran en su caja (viene de la
+  rebanada 5).
+- **En celular:** misma estructura, header más compacto.
 
 ---
 

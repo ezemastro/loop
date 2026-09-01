@@ -1,6 +1,6 @@
 import { addNewMessageToCache, replaceMessageInCache, useMessages } from "@/hooks/useMessages";
-import { useLocalSearchParams } from "expo-router";
-import { View, Text, Image, FlatList, Platform, RefreshControl } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { View, Text, Image, FlatList, Platform, Pressable, RefreshControl } from "react-native";
 import { MainView, pageContentClassName } from "../bases/MainView";
 import BackButton from "../BackButton";
 import { getProfileImageSource, getUrl } from "@/services/getUrl";
@@ -24,6 +24,7 @@ import { useToast } from "@/components/ToastProvider";
 import { getUserFriendlyErrorMessage } from "@/services/errorMapping";
 
 export default function Chat() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const { user: currentUser } = useAuth();
   const { userId: unparsedUserId } = useLocalSearchParams();
@@ -36,7 +37,7 @@ export default function Chat() {
   const { mutate: sendMessage } = useSendMessage({ userId: userId });
   const { mutate: markMessagesAsRead } = useMessageRead({ userId: userId });
   const { showToast } = useToast();
-  const messagesContentClassName = pageContentClassName("narrow", "flex-grow gap-1");
+  const messagesContentClassName = pageContentClassName("narrow", "flex-grow gap-1 max-w-xl");
 
   const user = userData?.user;
   const messages = data?.pages.flatMap((page) => page!.data!.messages) ?? [];
@@ -93,45 +94,48 @@ export default function Chat() {
   return (
     <AvoidingKeyboard>
       <MainView>
-        <View className="flex-row items-center p-4">
+        <View className="flex-row items-center gap-2 px-2 py-2">
           <BackButton />
-        </View>
-        <View className="flex-row items-center gap-4 px-4 pb-2">
-          <Image
-            source={getProfileImageSource(user?.profileMedia?.url)}
-            className="rounded-full bg-secondary-text"
-            style={{ width: 80, height: 80 }}
-          />
-          <View>
-            <Text className="text-2xl text-main-text">
-              {user?.firstName} {user?.lastName}
-            </Text>
-            {(user?.schools.length ?? 0) > 3 ? (
-              <View className="flex-row gap-2">
-                {user?.schools.map((school) => (
-                  <Image
-                    key={school.id}
-                    source={{ uri: getUrl(school.media.url) }}
-                    className="mb-1"
-                    style={{ width: 24, height: 24 }}
-                  />
-                ))}
-              </View>
-            ) : (
-              <>
-                {user?.schools.map((school) => (
-                  <Text className="text-secondary-text" key={school.id}>
-                    {school.name}
-                  </Text>
-                ))}
-              </>
-            )}
-          </View>
+          <Pressable
+            className="flex-1 flex-row items-center gap-3"
+            onPress={() =>
+              router.push({
+                pathname: "/(main)/user/[userId]",
+                params: { userId: userId! },
+              })
+            }
+          >
+            <Image
+              source={getProfileImageSource(user?.profileMedia?.url)}
+              className="rounded-full bg-secondary-text"
+              style={{ width: 40, height: 40 }}
+            />
+            <View className="flex-1">
+              <Text numberOfLines={1} className="text-base font-medium text-main-text">
+                {user?.firstName} {user?.lastName}
+              </Text>
+              {(user?.schools.length ?? 0) > 3 ? (
+                <View className="flex-row gap-1">
+                  {user?.schools.map((school) => (
+                    <Image
+                      key={school.id}
+                      source={{ uri: getUrl(school.media.url) }}
+                      style={{ width: 16, height: 16 }}
+                    />
+                  ))}
+                </View>
+              ) : (
+                <Text numberOfLines={1} className="text-secondary-text text-xs">
+                  {user?.schools.map((school) => school.name).join(", ")}
+                </Text>
+              )}
+            </View>
+          </Pressable>
         </View>
         <DroppablePendingWithUser userId={userId!} />
         <FlatList
           data={messages}
-          className="flex-1 mt-3 bg-white"
+          className="flex-1 mt-3 bg-background"
           contentContainerClassName={messagesContentClassName}
           contentContainerStyle={
             Platform.OS === "web" ? { transform: [{ scaleY: -1 }] } : undefined
