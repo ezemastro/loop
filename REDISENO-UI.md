@@ -35,7 +35,7 @@ Las ramas están apiladas: cada una incluye todo lo anterior. Para probar todo j
 | 7 | `feat/ui-7-notifications` | [#8](https://github.com/ezemastro/loop/pull/8) | Listo |
 | 8 | `feat/ui-8-chat` | [#9](https://github.com/ezemastro/loop/pull/9) | Listo |
 | 9 | `feat/ui-9-detail` | [#10](https://github.com/ezemastro/loop/pull/10) | Listo |
-| 10 | `feat/ui-10-desktop-nav` | — | Pendiente |
+| 10 | `feat/ui-10-desktop-nav` | [#11](https://github.com/ezemastro/loop/pull/11) | Listo |
 | 11 | `feat/ui-11-settings` | — | Pendiente |
 
 ---
@@ -505,6 +505,45 @@ perfil ahora.
    **no resuelven en ese `Image`**, así que quedaba sin dimensiones y tomaba el tamaño intrínseco
    del archivo (640×640). Ahora lleva un prop numérico explícito.
 4. La galería tapaba el resto hasta que se ató al token de altura.
+
+---
+
+## Rebanada 10 — Navegación de desktop
+
+### Qué cambió
+
+En pantallas de 1024px o más, las cinco tabs suben al header como links horizontales y **la barra
+inferior desaparece**, recuperando unos 60px de alto útil. Es el cambio que más hace que la app
+deje de parecer una app de celular estirada.
+
+**Abajo de 1024px no cambia nada**, tablets incluidas: la barra se queda, como hacen las apps de
+iPad.
+
+Las tabs se definen **una sola vez** en un array compartido, así que el header y la barra inferior
+no se pueden desincronizar. Hay un test que lo verifica.
+
+La barra se **esconde, no se desmonta**: el `Tabs` de expo-router sigue siendo el router y las
+rutas siguen funcionando igual.
+
+"Publicar" mantiene su jerarquía de acción primaria: va como pastilla llena, no como un link más.
+
+### Qué probar
+
+- **Achicá y agrandá la ventana cruzando 1024px:** los links aparecen y desaparecen, y la barra
+  inferior hace lo inverso. La navegación tiene que seguir funcionando en los dos lados.
+- **Navegá entre secciones:** el link activo se marca en el header.
+- **En celular:** todo idéntico a antes.
+
+### El bug de contraste
+
+La primera versión reutilizaba los tintes de la barra inferior "para que las dos navegaciones
+coincidan". Lógico, pero equivocado: la barra tiene **fondo blanco** y el header **fondo de color**.
+El gris de los links inactivos quedaba en torno a 1,6:1 sobre el verde — ilegible.
+
+Ahora el header usa una escala de blanco con opacidad, igual que el logo que ya vive en esa
+superficie, y el estado activo se marca con opacidad más una pastilla translúcida en vez de con
+color. Eso lo mantiene legible sobre el color que defina **cualquier** comunidad, no solo el de la
+demo.
 
 ---
 
