@@ -5,6 +5,7 @@ import CreditsBalance from "./CreditsBalance";
 import Messages from "./Messages";
 import Notifications from "./Notifications";
 import HeaderSearchBar from "./HeaderSearchBar";
+import DesktopNavLinks from "./DesktopNavLinks";
 import { usePathname, useRouter } from "expo-router";
 
 export default function Header() {
@@ -27,6 +28,13 @@ export default function Header() {
           >
             <AppLogo />
           </Pressable>
+        </View>
+        {/* Desktop-only: primary tabs as header links (ui-10-desktop-nav). max-lg:hidden is the
+            one-directional idiom required here — see responsive-tokens.test.ts native display
+            trap guard. Below lg this View is removed from layout entirely, so the logo/icons
+            row is unchanged. */}
+        <View className="max-lg:hidden">
+          <DesktopNavLinks />
         </View>
         <View className="flex-row items-center gap-4">
           <CreditsBalance />
