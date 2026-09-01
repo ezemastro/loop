@@ -1,9 +1,9 @@
 import { REPORT_EMAIL } from "@/config";
-import { useState } from "react";
-import { Alert, Modal, ScrollView, Share, Text, View, type PressableProps } from "react-native";
+import { Alert, type PressableProps } from "react-native";
 import ButtonText from "./bases/ButtonText";
 import CustomButton from "./bases/CustomButton";
-import { openMailComposer } from "@/services/emailComposer";
+import MailFallbackSheet from "./bases/MailFallbackSheet";
+import { useMailComposer } from "@/hooks/useMailComposer";
 
 type ReportButtonProps = PressableProps & {
   label?: string;
@@ -17,7 +17,7 @@ export default function ReportButton({
   user,
   ...props
 }: ReportButtonProps) {
-  const [manualCopyText, setManualCopyText] = useState("");
+  const { manualCopyText, sendMail, closeFallback } = useMailComposer();
 
   const getReportData = () => {
     if (listing) {
@@ -75,30 +75,6 @@ export default function ReportButton({
     return null;
   };
 
-  const showManualFallback = (to: string, subject: string, body: string) => {
-    const textToCopy = `Para: ${to}\nAsunto: ${subject}\n\n${body}`;
-
-    Alert.alert(
-      "No se pudo abrir la app de correo",
-      `Mandá un mail manualmente a ${to} con los datos de la denuncia.`,
-      [
-        {
-          text: "Copiar manual",
-          onPress: () => {
-            setManualCopyText(textToCopy);
-          },
-        },
-        {
-          text: "Compartir texto",
-          onPress: async () => {
-            await Share.share({ message: textToCopy });
-          },
-        },
-        { text: "Cerrar", style: "cancel" },
-      ],
-    );
-  };
-
   const handleReportListing = async () => {
     const reportData = getReportData();
     if (!reportData) return;
@@ -111,10 +87,7 @@ export default function ReportButton({
 
     const { subject, body } = reportData;
 
-    const canOpen = await openMailComposer(to, subject, body);
-    if (!canOpen) {
-      showManualFallback(to, subject, body);
-    }
+    await sendMail(to, subject, body);
   };
 
   const isDisabled = !listing && !user;
@@ -129,44 +102,7 @@ export default function ReportButton({
         <ButtonText>{label}</ButtonText>
       </CustomButton>
 
-      <Modal
-        visible={!!manualCopyText}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setManualCopyText("")}
-      >
-        <View className="flex-1 justify-end bg-black/40">
-          <View className="bg-white rounded-t-3xl p-4 gap-3 max-h-[70%]">
-            <Text className="text-main-text text-xl font-semibold">
-              Copiar denuncia manualmente
-            </Text>
-            <Text className="text-secondary-text">
-              Mantené presionado el texto para seleccionarlo y copiarlo.
-            </Text>
-            <ScrollView className="border border-stroke rounded-xl p-3 min-h-36 max-h-72">
-              <Text selectable className="text-main-text">
-                {manualCopyText}
-              </Text>
-            </ScrollView>
-            <View className="flex-row gap-2">
-              <CustomButton
-                className="flex-1"
-                onPress={async () => {
-                  await Share.share({ message: manualCopyText });
-                }}
-              >
-                <ButtonText className="text-base">Compartir</ButtonText>
-              </CustomButton>
-              <CustomButton
-                className="w-auto max-w-none flex-1 bg-main-text"
-                onPress={() => setManualCopyText("")}
-              >
-                <ButtonText className="text-base">Cerrar</ButtonText>
-              </CustomButton>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <MailFallbackSheet text={manualCopyText} onClose={closeFallback} />
     </>
   );
 }

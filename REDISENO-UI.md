@@ -36,7 +36,7 @@ Las ramas están apiladas: cada una incluye todo lo anterior. Para probar todo j
 | 8 | `feat/ui-8-chat` | [#9](https://github.com/ezemastro/loop/pull/9) | Listo |
 | 9 | `feat/ui-9-detail` | [#10](https://github.com/ezemastro/loop/pull/10) | Listo |
 | 10 | `feat/ui-10-desktop-nav` | [#11](https://github.com/ezemastro/loop/pull/11) | Listo |
-| 11 | `feat/ui-11-settings` | — | Pendiente |
+| 11 | `feat/ui-11-settings` | [#12](https://github.com/ezemastro/loop/pull/12) | Listo |
 
 ---
 
@@ -544,6 +544,50 @@ Ahora el header usa una escala de blanco con opacidad, igual que el logo que ya 
 superficie, y el estado activo se marca con opacidad más una pastilla translúcida en vez de con
 color. Eso lo mantiene legible sobre el color que defina **cualquier** comunidad, no solo el de la
 demo.
+
+---
+
+## Rebanada 11 — Configuración
+
+### Qué cambió
+
+`/profile` gana una **ruedita** arriba a la derecha que abre `/settings`. Los dos controles
+destructivos se mudan ahí adentro.
+
+Antes vivían en **capas distintas**: cerrar sesión era una barra fija abajo, fuera de la lista, y
+eliminar cuenta una sección *adentro* de la lista que scrollea. Ahora están juntos donde
+corresponde.
+
+La pantalla tiene dos grupos:
+
+- **Cuenta y sesión** — cerrar sesión, eliminar cuenta.
+- **Contacto** — reportar un error, enviar una sugerencia, contactar al equipo. Los tres abren el
+  cliente de mail a `loop@reditinere.com` con asunto y cuerpo prellenados, incluyendo versión de la
+  app y plataforma. Nunca se incluye ningún dato de sesión.
+
+### Qué probar
+
+- **La ruedita solo aparece en tu propio perfil**, no cuando mirás el de otra persona.
+- **Eliminar cuenta:** el botón rojo sigue deshabilitado hasta que escribas tu email exacto.
+- **Los tres contactos:** abren el mail. Si no se puede abrir, aparece el panel de copiado manual.
+- **Configuración no aparece** ni en la barra inferior ni en la navegación de desktop.
+
+### Tres cosas que el design encontró y evitaron trabajo
+
+1. **`CONTACT_EMAIL = "loop@reditinere.com"` ya existía** en `config.ts`. No hizo falta constante
+   nueva. Y deliberadamente **no** usa `REPORT_EMAIL`, que viene de una variable de entorno que
+   puede estar sin definir: un control que tiene que funcionar siempre no puede depender de eso.
+2. **Cerrar sesión no necesita navegar.** `(main)` está envuelto en `Stack.Protected`, así que
+   terminar la sesión desmonta la pantalla sola. Sin `router.replace`, sin rutas colgadas.
+3. **El compositor de mails ya existía** y ya tenía fallback de copiado manual. Se extrajo a un
+   componente compartido en vez de escribir una tercera copia — y esa extracción arregla de paso un
+   botón aplastado preexistente en `ReportButton`.
+
+### Deferido a propósito
+
+Se consideraron y descartaron, por necesitar backend: preferencias de notificaciones y de email,
+privacidad del perfil, usuarios bloqueados, cambio de contraseña y email, sesiones activas, gestión
+de comunidades, exportar datos, apariencia e idioma. Están anotadas para la próxima iteración.
 
 ---
 
