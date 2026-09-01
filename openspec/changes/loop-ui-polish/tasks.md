@@ -78,20 +78,42 @@ Environment: baseline is **231/231 passing** via `cd client && npx jest --ci --w
 
 ## Slice 3: Detail + Gallery — `feat/ui-3-detail-layout` (base: `feat/ui-2-listing-grid`)
 
-- [ ] 3.1 **[Largest structural edit — flag for careful review]** Rewrite `client/components/screens/Listing.tsx`: replace the `FlatList`-of-7-static-sections with a `ScrollView` layout inside `MainView "flex-1 lg:flex-row lg:gap-6"` per design D4's tree. Verify no section content or order is dropped in the `FlatList`→`ScrollView` conversion. — *listing-discovery-grid: Two-Column Listing Detail*
-- [ ] 3.2 Add the mobile inline copies (`View "lg:hidden"`, price/seller/status) inside the `ScrollView` column, and the desktop aside (`View "max-lg:hidden lg:w-[380px] lg:shrink-0"`) containing an internally-scrolling `ScrollView` for price/seller/status + `ListingButtons`. — *listing-discovery-grid: Sticky Panel Reachability*
-  - **Checkpoint (verified inert, note don't dedupe)**: price/seller/status (3 components) and `ListingButtons` render twice by design. `ListingButtons` was read end-to-end — no mount effects, only handlers and `useMutation` registrations — so double-mounting is inert.
-- [ ] 3.3 Add the mobile bottom bar (`View "p-4 flex-row gap-4 lg:hidden"`) with `ListingButtons`, preserving the pre-change single-column element order below `lg`. — *listing-discovery-grid: "Single column below 1024px"*
-- [ ] 3.4 Confirm every desktop-only region added in 3.1–3.3 uses `max-lg:hidden`, never `hidden lg:flex` (fact 3 / hard rule); re-run the slice-1 display-trap guard (task 1.12) against these new lines.
-- [ ] 3.5 Modify `client/components/ImageGallery.tsx`: delete the module-scope `Dimensions.get("window").width` constant (`:8`) and the `Dimensions` import; initialize `containerWidth` to `0`; render `Carousel` only once `containerWidth > 0` via `onLayout` (D6).
-- [ ] 3.6 In `ImageGallery.tsx`, replace the fixed `240` height (`:36`, `:47`) on both the `Carousel` `height` prop and the `Image` style number with `useBreakpoint()` reading `GALLERY_HEIGHT` from `client/config.ts`.
-- [ ] 3.7 Visual readback at 1024×768 (short laptop viewport): confirm the aside scrolls internally and the Ofertar/Deseados action stays reachable without scrolling the outer page. — *listing-discovery-grid: "Primary action reachable on a short laptop viewport"*
-- [ ] 3.8 Visual readback at 1280px: gallery occupies the left column, action panel occupies the right column. — *listing-discovery-grid: "Two columns at 1280px"*
-- [ ] 3.9 Visual readback at 768px/900px/1023px: single column, pre-change element order preserved, tab bar still visible. — *listing-discovery-grid: "Single column below 1024px", Tablet Layout*
-- [ ] 3.10 Manually cross 1023↔1024px (browser resize or Expo web dev tools): confirm no remount and no scroll-position loss.
-- [ ] 3.11 Run `cd client && npx jest --ci --watchAll=false`; confirm all tests green (no new unit tests in this slice — verification is structural readback per 3.7–3.10).
+> **Deviation (applied this session)**: actual repo history diverged from this plan between
+> slices 2 and 3 — real branches are `feat/ui-3-width-system`, `ui-4-fixes`, `ui-5-compact-card`,
+> `ui-6-wide-density`, `ui-7-notifications`, `ui-8-chat`, none of which are in this openspec change.
+> This slice's content was applied on the already-checked-out `feat/ui-9-detail` (base
+> `feat/ui-8-chat`), not `feat/ui-3-detail-layout` (base `feat/ui-2-listing-grid`) as labeled above.
+> `MainView`'s width-cap API also evolved beyond D9 (now `pageContentClassName(width, className)`
+> with `wide`/`narrow`/`full` variants, not a single `PAGE_CLASS`) — `Listing.tsx` was switched
+> from `"narrow"` to `"wide"`, consistent with this slice's intent. Panel content also expanded
+> past D4's `price/seller/status` list to match the current, more specific request: title text,
+> price, product status badge, and school list are duplicated into the desktop aside too (not just
+> price/seller); `ListingStatusInfo` ("status") was deliberately kept in the shared left column
+> only (not duplicated into the aside) since it wasn't in the requested panel content list.
+> Additionally, out of this tasks list's original scope: `components/ListingStatusInfo.tsx`'s five
+> plain buyer/seller name mentions were made tappable, linking to `/(main)/user/[userId]` (new
+> `NameLink` helper, `onPress` on the nested `Text` itself — a `Pressable` cannot wrap nested `Text`
+> without breaking RN text flow), with a `font-bold underline` affordance.
 
-**Done condition**: detail screen is two-column at `lg` with an internally-scrolling, reachable aside; single-column unchanged below `lg`; gallery height is responsive; no remount/scroll-loss crossing 1024px; all tests green.
+- [x] 3.1 **[Largest structural edit — flag for careful review]** Rewrite `client/components/screens/Listing.tsx`: replace the `FlatList`-of-7-static-sections with a `ScrollView` layout inside `MainView "flex-1 lg:flex-row lg:gap-6"` per design D4's tree. Verify no section content or order is dropped in the `FlatList`→`ScrollView` conversion. — *listing-discovery-grid: Two-Column Listing Detail*
+- [x] 3.2 Add the mobile inline copies (`View "lg:hidden"`, price/seller/status) inside the `ScrollView` column, and the desktop aside (`View "max-lg:hidden lg:w-[380px] lg:shrink-0"`) containing an internally-scrolling `ScrollView` for price/seller/status + `ListingButtons`. — *listing-discovery-grid: Sticky Panel Reachability*
+  - **Checkpoint (verified inert, note don't dedupe)**: price/seller/status (3 components) and `ListingButtons` render twice by design. `ListingButtons` was read end-to-end — no mount effects, only handlers and `useMutation` registrations — so double-mounting is inert.
+  - **Deviation**: aside content is title/price/productStatus/school/seller (not just price/seller/status — see slice note above); `ListingStatusInfo` is shared, not duplicated.
+- [x] 3.3 Add the mobile bottom bar (`View "p-4 flex-row gap-4 lg:hidden"`) with `ListingButtons`, preserving the pre-change single-column element order below `lg`. — *listing-discovery-grid: "Single column below 1024px"*
+- [x] 3.4 Confirm every desktop-only region added in 3.1–3.3 uses `max-lg:hidden`, never `hidden lg:flex` (fact 3 / hard rule); re-run the slice-1 display-trap guard (task 1.12) against these new lines.
+- [x] 3.5 Modify `client/components/ImageGallery.tsx`: delete the module-scope `Dimensions.get("window").width` constant (`:8`) and the `Dimensions` import; initialize `containerWidth` to `0`; render `Carousel` only once `containerWidth > 0` via `onLayout` (D6).
+- [x] 3.6 In `ImageGallery.tsx`, replace the fixed `240` height (`:36`, `:47`) on both the `Carousel` `height` prop and the `Image` style number with `useBreakpoint()` reading `GALLERY_HEIGHT` from `client/config.ts`.
+- [ ] 3.7 Visual readback at 1024×768 (short laptop viewport): confirm the aside scrolls internally and the Ofertar/Deseados action stays reachable without scrolling the outer page. — *listing-discovery-grid: "Primary action reachable on a short laptop viewport"*
+  - **Not executed** — no browser/Expo-web runtime available in this environment (Raspberry Pi, no dev server allowed); manual/human confirmation required.
+- [ ] 3.8 Visual readback at 1280px: gallery occupies the left column, action panel occupies the right column. — *listing-discovery-grid: "Two columns at 1280px"*
+  - **Not executed** — same reason as 3.7.
+- [ ] 3.9 Visual readback at 768px/900px/1023px: single column, pre-change element order preserved, tab bar still visible. — *listing-discovery-grid: "Single column below 1024px", Tablet Layout*
+  - **Not executed** — same reason as 3.7.
+- [ ] 3.10 Manually cross 1023↔1024px (browser resize or Expo web dev tools): confirm no remount and no scroll-position loss.
+  - **Not executed** — same reason as 3.7.
+- [x] 3.11 Run `cd client && npx jest --ci --watchAll=false`; confirm all tests green (no new unit tests in this slice — verification is structural readback per 3.7–3.10).
+
+**Done condition**: detail screen is two-column at `lg` with an internally-scrolling, reachable aside; single-column unchanged below `lg`; gallery height is responsive; no remount/scroll-loss crossing 1024px; all tests green. **3.7–3.10 (visual readback) remain open** — no browser/Expo-web runtime in this environment; flagged for the orchestrator/user to confirm manually.
 
 ---
 

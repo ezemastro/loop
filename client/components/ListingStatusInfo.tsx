@@ -1,6 +1,42 @@
 import { View, Text } from "react-native";
 import React from "react";
+import { useRouter } from "expo-router";
 import { useAuth } from "@/hooks/useAuth";
+
+/** Visual affordance so the nested `Text` reads as tappable (no `Pressable` — see `NameLink`). */
+const NAME_LINK_CLASS = "font-bold underline";
+
+/**
+ * Links the other party's name to their profile. A nested `<Text>` inside a `<Text>` cannot be
+ * wrapped in a `Pressable` on React Native without breaking the text flow — `onPress` on the
+ * `Text` itself is the supported alternative, reusing the same route
+ * `components/screens/Listing.tsx` pushes for the seller badge.
+ */
+function NameLink({
+  userId,
+  firstName,
+  lastName,
+}: {
+  userId?: string;
+  firstName?: string;
+  lastName?: string;
+}) {
+  const router = useRouter();
+  return (
+    <Text
+      className={NAME_LINK_CLASS}
+      onPress={() =>
+        userId &&
+        router.push({
+          pathname: "/(main)/user/[userId]",
+          params: { userId },
+        })
+      }
+    >
+      {firstName} {lastName}
+    </Text>
+  );
+}
 
 export default function ListingStatusInfo({ listing }: { listing: Listing }) {
   const { user } = useAuth();
@@ -12,9 +48,11 @@ export default function ListingStatusInfo({ listing }: { listing: Listing }) {
         return (
           <View>
             <Text className="text-main-text text-center p-4">
-              <Text className="font-bold">
-                {listing.buyer?.firstName} {listing.buyer?.lastName}
-              </Text>
+              <NameLink
+                userId={listing.buyer?.id}
+                firstName={listing.buyer?.firstName}
+                lastName={listing.buyer?.lastName}
+              />
               <Text> quiere loopear este artículo, elige que quieres recibir a cambio.</Text>
             </Text>
           </View>
@@ -25,9 +63,11 @@ export default function ListingStatusInfo({ listing }: { listing: Listing }) {
           <View>
             <Text className="text-main-text text-center p-4">
               <Text>Has loopeado este artículo, espera a que </Text>
-              <Text className="font-bold">
-                {listing.seller?.firstName} {listing.seller?.lastName}
-              </Text>
+              <NameLink
+                userId={listing.seller?.id}
+                firstName={listing.seller?.firstName}
+                lastName={listing.seller?.lastName}
+              />
               <Text> elija que quiere recibir a cambio.</Text>
             </Text>
           </View>
@@ -39,9 +79,11 @@ export default function ListingStatusInfo({ listing }: { listing: Listing }) {
           <View>
             <Text className="text-main-text text-center p-4">
               <Text>Debes entregar este artículo a </Text>
-              <Text className="font-bold">
-                {listing.buyer?.firstName} {listing.buyer?.lastName}
-              </Text>
+              <NameLink
+                userId={listing.buyer?.id}
+                firstName={listing.buyer?.firstName}
+                lastName={listing.buyer?.lastName}
+              />
             </Text>
           </View>
         );
@@ -51,9 +93,11 @@ export default function ListingStatusInfo({ listing }: { listing: Listing }) {
           <View>
             <Text className="text-main-text text-center p-4">
               <Text>Debes recibir este artículo de </Text>
-              <Text className="font-bold">
-                {listing.seller?.firstName} {listing.seller?.lastName}
-              </Text>
+              <NameLink
+                userId={listing.seller?.id}
+                firstName={listing.seller?.firstName}
+                lastName={listing.seller?.lastName}
+              />
             </Text>
           </View>
         );
@@ -64,9 +108,11 @@ export default function ListingStatusInfo({ listing }: { listing: Listing }) {
           <View>
             <Text className="text-main-text text-center p-4">
               <Text>Has entregado este artículo a </Text>
-              <Text className="font-bold">
-                {listing.buyer?.firstName} {listing.buyer?.lastName}
-              </Text>
+              <NameLink
+                userId={listing.buyer?.id}
+                firstName={listing.buyer?.firstName}
+                lastName={listing.buyer?.lastName}
+              />
             </Text>
           </View>
         );
@@ -76,9 +122,11 @@ export default function ListingStatusInfo({ listing }: { listing: Listing }) {
           <View>
             <Text className="text-main-text text-center p-4">
               <Text>Has recibido este artículo de </Text>
-              <Text className="font-bold">
-                {listing.seller?.firstName} {listing.seller?.lastName}
-              </Text>
+              <NameLink
+                userId={listing.seller?.id}
+                firstName={listing.seller?.firstName}
+                lastName={listing.seller?.lastName}
+              />
             </Text>
           </View>
         );

@@ -7,7 +7,7 @@ export default function AskButton({ userId }: { userId: string }) {
   const router = useRouter();
   return (
     <CustomButton
-      className="flex-row items-center gap-2"
+      className="w-auto max-w-none flex-row items-center gap-2"
       onPress={() => {
         router.push({
           pathname: "/(main)/(tabs)/messages/[userId]",

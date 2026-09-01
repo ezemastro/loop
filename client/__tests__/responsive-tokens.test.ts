@@ -83,17 +83,16 @@ describe("responsive tokens", () => {
   describe("Source guard: one shadow scale (ELEVATION)", () => {
     // Grandfathered by design.md D1/D9's "Verified Platform Facts": ad hoc shadows kept outside
     // `ELEVATION` on purpose, tracked as a Recorded Follow-up, not fixed by this change.
-    // `screens/Listing.tsx` and `ToastProvider.tsx` are additional pre-existing call sites
-    // discovered while writing this guard (not in the original 3-file design list); both are out
-    // of slice 1's scope — `screens/Listing.tsx` is fully rewritten in slice 3 (D4), and
-    // `ToastProvider.tsx`'s `elevation` is the same Android z-stacking companion to `Toast.tsx`,
-    // not a shadow-depth choice.
+    // `ToastProvider.tsx` was an additional pre-existing call site discovered while writing this
+    // guard (not in the original 3-file design list): its `elevation` is the same Android
+    // z-stacking companion to `Toast.tsx`, not a shadow-depth choice.
+    // `screens/Listing.tsx` was grandfathered pending its slice-3 rewrite (D4); the rewrite is done
+    // and the file no longer uses a raw shadow token, so it is removed from this list.
     const ALLOW_LIST = new Set([
       "components/Toast.tsx",
       "components/ToastProvider.tsx",
       "components/buttons/GoogleSignInButton.tsx",
       "components/screens/Landing.tsx",
-      "components/screens/Listing.tsx",
     ]);
     const FORBIDDEN_TOKENS = ["shadow-", "shadowOpacity", "elevation"];
 
