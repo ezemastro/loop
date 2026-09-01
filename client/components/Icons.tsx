@@ -212,6 +212,28 @@ export const RepeatIcon = ({
   <Feather size={24} color={color} className={className} {...props} name="repeat" />
 );
 
+export const SettingsIcon = ({
+  className,
+  color,
+  ...props
+}: Partial<IconProps<string>> & { color?: string }) => (
+  <Feather size={24} color={color} className={className} {...props} name="settings" />
+);
+export const LogoutIcon = ({
+  className,
+  color,
+  ...props
+}: Partial<IconProps<string>> & { color?: string }) => (
+  <Feather size={24} color={color} className={className} {...props} name="log-out" />
+);
+export const ReportProblemIcon = ({
+  className,
+  color,
+  ...props
+}: Partial<IconProps<string>> & { color?: string }) => (
+  <Feather size={24} color={color} className={className} {...props} name="alert-triangle" />
+);
+
 export const HomeIcon = (props: Partial<IconProps<string>>) => (
   <Ionicons size={24} {...props} name="home-outline" />
 );

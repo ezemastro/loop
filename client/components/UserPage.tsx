@@ -1,4 +1,4 @@
-import { View, Text, FlatList, TextInput, ScrollView } from "react-native";
+import { View, Text, FlatList, Pressable } from "react-native";
 import React, { useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { useRouter } from "expo-router";
@@ -6,23 +6,17 @@ import { MainView, pageContentClassName } from "./bases/MainView";
 import AvoidingKeyboard from "./AvoidingKeyboard";
 import BackButton from "./BackButton";
 import ProfileImage from "./ProfileImage";
-import { CreditIcon, EmailIcon } from "./Icons";
+import { CreditIcon, EmailIcon, SettingsIcon } from "./Icons";
 import { formatNumber } from "@/utils/formatNumber";
 import CustomButton from "./bases/CustomButton";
 import ButtonText from "./bases/ButtonText";
 import CustomRefresh from "./CustomRefresh";
-import { useSessionStore } from "@/stores/session";
 import MyPendingList from "./MyPendingList";
 import DonateModal from "./modals/DonateModal";
 import Stats from "./Stats";
 import { usePublicWishes } from "@/hooks/usePublicWishes";
 import CategoryBadge from "./CategoryBadge";
 import ReportButton from "./ReportButton";
-import { useDeleteAccount } from "@/hooks/useDeleteAccount";
-import CustomModal from "./bases/CustomModal";
-import CloseModalButton from "./CloseModalButton";
-import TextTitle from "./bases/TextTitle";
-import Error from "./Error";
 
 interface Section {
   key: string;
@@ -49,13 +43,8 @@ export default function UserPage({
   const { data: wishesData } = usePublicWishes({ userId: user.id });
   const wishes = wishesData?.userWishes || [];
   const sectionsContentClassName = pageContentClassName("narrow", "p-4 gap-6");
-  const logoutButtonWrapperClassName = pageContentClassName("narrow", "p-4");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const logout = useSessionStore((state) => state.logout);
   const router = useRouter();
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [deleteEmailConfirm, setDeleteEmailConfirm] = useState("");
-  const { mutate: deleteAccount, isPending: isDeleting, error: deleteError } = useDeleteAccount();
   const [pendingCount, setPendingCount] = useState<{
     "to-receive": number;
     "to-deliver": number;
@@ -75,6 +64,11 @@ export default function UserPage({
           <View>{canGoBack && <BackButton />}</View>
           {!isCurrentUser && (
             <ReportButton user={user} className="px-3 py-2 rounded-full" label="Denunciar" />
+          )}
+          {isCurrentUser && (
+            <Pressable className="p-1" hitSlop={10} onPress={() => router.push("/(main)/settings")}>
+              <SettingsIcon className="text-main-text" size={26} />
+            </Pressable>
           )}
         </View>
       ),
@@ -246,17 +240,6 @@ export default function UserPage({
         />
       ),
     },
-    {
-      key: "delete-account",
-      show: isCurrentUser,
-      component: () => (
-        <View className="items-center">
-          <CustomButton className="bg-alert" onPress={() => setIsDeleteModalOpen(true)}>
-            <ButtonText>Eliminar cuenta</ButtonText>
-          </CustomButton>
-        </View>
-      ),
-    },
   ];
 
   return (
@@ -287,65 +270,7 @@ export default function UserPage({
             </View>
           )}
         />
-        {isCurrentUser && (
-          <View className={logoutButtonWrapperClassName}>
-            <CustomButton onPress={() => logout()} className="bg-main-text">
-              <ButtonText>Cerrar sesión</ButtonText>
-            </CustomButton>
-          </View>
-        )}
       </AvoidingKeyboard>
-      <CustomModal
-        isVisible={isDeleteModalOpen}
-        handleClose={() => {
-          setIsDeleteModalOpen(false);
-          setDeleteEmailConfirm("");
-        }}
-      >
-        {(modalMaxHeight) => (
-          <View
-            className="overflow-hidden bg-background rounded-lg w-full"
-            style={{ maxHeight: modalMaxHeight }}
-          >
-            <ScrollView className="p-6" contentContainerClassName="gap-4">
-              <CloseModalButton
-                onClose={() => {
-                  setIsDeleteModalOpen(false);
-                  setDeleteEmailConfirm("");
-                }}
-              />
-              <TextTitle>Eliminar cuenta</TextTitle>
-              <Text className="text-main-text text-base">
-                Esta acción es permanente e irreversible. Se eliminarán todos tus datos, incluyendo
-                publicaciones, mensajes, notificaciones y transacciones.
-              </Text>
-              <View className="gap-2">
-                <Text className="text-main-text text-lg">Escribí tu email para confirmar:</Text>
-                <TextInput
-                  className="bg-white rounded border border-stroke px-4 py-3 text-main-text"
-                  placeholder={(user as PrivateUser).email}
-                  value={deleteEmailConfirm}
-                  onChangeText={setDeleteEmailConfirm}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                />
-              </View>
-              {deleteError && (
-                <Error>
-                  {(deleteError as { message?: string })?.message || "Error al eliminar la cuenta"}
-                </Error>
-              )}
-              <CustomButton
-                className="bg-alert"
-                disabled={deleteEmailConfirm !== (user as PrivateUser).email || isDeleting}
-                onPress={() => deleteAccount()}
-              >
-                <ButtonText>{isDeleting ? "Eliminando..." : "Eliminar cuenta"}</ButtonText>
-              </CustomButton>
-            </ScrollView>
-          </View>
-        )}
-      </CustomModal>
     </MainView>
   );
 }
