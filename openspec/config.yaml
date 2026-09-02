@@ -1,0 +1,41 @@
+# openspec/config.yaml
+schema: spec-driven
+
+context: |
+  Tech stack: npm monorepo (no workspaces), 4 packages.
+  API: Express 5 + TypeScript + PostgreSQL (raw pg, no ORM), server/api/.
+  Client: Expo (React Native + Web), client/.
+  Admin: React 19 + Vite (rolldown-vite) + Zustand, adminClient/.
+  Shared: TS type defs + demo-data fixtures, shared/.
+  Architecture: multi-tenant via community_id + RLS (fail-closed, 2 DB roles).
+  Testing: Jest (api/unit/client), Playwright e2e/. See testing-capabilities.
+  Style: Prettier (2sp, double quotes, 100 width, LF), ESLint flat config per package.
+
+strict_tdd: false # no runner-enforced TDD marker found; test suites in server/api are known stale/red (see INF-06)
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes (DB migrations, RLS, credits/ledger logic)
+    - Flag any change touching multi-tenancy/RLS or the credits ledger as high-risk
+  specs:
+    - Use Given/When/Then for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Document community_id scoping decisions explicitly (inCommunity vs unscoped)
+    - Include rationale for any new DB migration under server/migrations/
+  tasks:
+    - Group by phase, use hierarchical numbering
+    - Keep tasks completable in one session
+  apply:
+    guidelines:
+      - Follow existing code patterns (see AGENTS.md)
+      - Never edit an already-applied migration; add a new one
+      - Use withClient(fn, { inCommunity(id) } | { unscoped(reason) }) for all DB access
+    tdd: false
+    test_command: "" # see testing-capabilities; server/api jest suite is currently red (INF-06)
+  verify:
+    test_command: ""
+    build_command: ""
+    coverage_threshold: 0
+  archive:
+    - Warn before merging destructive deltas
