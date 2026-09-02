@@ -275,11 +275,14 @@ served `dist/index.html`.** Without fixing this, "the legal page is an Expo rout
 in the router and false in the browser's first paint. This is a pre-existing production defect
 that also affects `/listing/<id>` SEO and share previews.
 
-**C5 — new finding: the email-verification token has no expiry.**
-`server/migrations/0008_email_verification.sql:8-10` adds `email_verification_token TEXT` with no
-companion timestamp, and `server/api/src/services/queries.ts:68-74` matches it in plaintext with
-no time bound. `db-integrity-migrations` owns hashing it (SEC-10); the **missing expiry** appears
-to be owned by nobody. Flagged for that block.
+**C5 — WITHDRAWN.** This was raised as "the email-verification token has no expiry and nobody
+owns it". The first half is true today — `server/migrations/0008_email_verification.sql:8-10` adds
+`email_verification_token TEXT` with no companion timestamp and
+`server/api/src/services/queries.ts:68-74` matches it in plaintext with no time bound — but the
+ownership claim was wrong. `openspec/changes/db-integrity-migrations/tasks.md` task 4.2 adds
+**both** `email_verification_token_hash` and `email_verification_expires_at`, so the expiry is
+already covered by that block. No hand-off is needed. Recorded rather than deleted because the
+retraction is itself the useful finding: verify sibling-block ownership before escalating.
 
 **C6 — new finding: `hasAcceptedTerms` is destroyed on logout.**
 `client/stores/session.ts:88` defaults it to `false` and `:69` resets it on logout. There is no

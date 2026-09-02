@@ -160,9 +160,11 @@ session and retries on next launch. A network failure must not lock a user out o
 `sha256` rather than bcrypt: the token is 32 bytes of CSPRNG entropy, so it is not
 brute-forceable and does not need a slow KDF; a fast digest keeps the lookup indexable
 (`CREATE INDEX ... WHERE password_reset_token_hash IS NOT NULL`, mirroring
-`server/migrations/0008_email_verification.sql:16-18`). This is the same reasoning
-`db-integrity-migrations` is expected to apply to SEC-10; task 1.1 requires conforming to that
-block if it chose differently.
+`server/migrations/0008_email_verification.sql:16-18`). Confirmed consistent with
+`db-integrity-migrations`, whose task 4.2 uses the same `*_token_hash` + `*_expires_at` shape and
+whose tasks 4.3-4.4 compute the digest **in PostgreSQL** with `encode(sha256($2::bytea), 'hex')`
+— a built-in, explicitly not `pgcrypto`. This block adopts that SQL-side form so both token flows
+read identically. Migration numbers are `0014` and `0015`; that block holds `0009`-`0013`.
 
 **Endpoints.** `POST /auth/forgot-password { email }` → always 200. `POST /auth/reset-password
 { token, newPassword }` → validates `passwordSchema` (`services/validations.ts:12`), consumes the

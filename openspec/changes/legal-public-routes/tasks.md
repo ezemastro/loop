@@ -47,6 +47,16 @@ pre-existing under Node 24 (`ERR_UNSUPPORTED_DIR_IMPORT`) — not a gate.
 
 **Tooling.** `rg` is available; `fd`, `bat` and `eza` are not.
 
+**Line numbers are indicative; symbol names are authoritative.** These artifacts were written
+while sibling audit blocks were editing the same working tree on `fix/auditoria-2026-09`
+(`client/config.ts`, `server/api/src/config.ts`, `server/api/src/utils/parseDb.ts`,
+`server/api/src/models/accountDeletion.ts`, `shared/types/*.d.ts` and others already carry
+uncommitted modifications). Citations were re-verified at write time, but they will drift again.
+Locate every target by its symbol — `parseMediaFromDb`, `CONTACT_EMAIL`, `APP_BASE_URL`,
+`safeValidateEmail`, `<Stack.Screen name="debug" />` — and treat a mismatched line number as
+drift, not as a missing target. Re-check for conflicts with sibling blocks before editing any
+shared file.
+
 ---
 
 ## Phase 1: Routing and Serving Layer
@@ -356,10 +366,9 @@ and single-use; the hand-off to `sec-hardening-api` is recorded in the PR.
   `// No hay validaciones porque es administrador` is explicit — so an `undefined` or empty
   `newPassword` reaches `hashPassword` (`server/api/src/models/admin.ts:396`). Any community
   admin, not only a super admin, can invoke it. (Proposal C3.)
-- **`db-integrity-migrations`**: the email-verification token has **no expiry**, only the missing
-  hash is tracked as SEC-10. `server/migrations/0008_email_verification.sql:8-10` adds no
-  companion timestamp and `server/api/src/services/queries.ts:68-74` applies no time bound. The
-  expiry appears to be owned by nobody. (Proposal C5.)
+- ~~`db-integrity-migrations`: the email-verification token has no expiry.~~ **Withdrawn** — that
+  block's task 4.2 already adds `email_verification_expires_at` alongside the hash. No hand-off
+  needed. (Proposal C5.)
 - Binding `community_id` into the media signature payload as defence in depth. Not needed today —
   scoping is enforced at mint time — but it would survive a future code path that mints outside
   a community-scoped query. (Design D7.)

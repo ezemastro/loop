@@ -107,3 +107,77 @@ pasarla desde el código de la app es peso muerto.
 | `ListingButtons.tsx:108-110` | `ListingButtons.tsx:114-116` |
 | N+1 en `admin.ts:687-691` | `utils/helpersDb.ts:769-802` |
 | `AGENTS.md:170` (admin sin `shared/types`) | `adminClient/tsconfig.app.json` **sí** incluye `shared/types` |
+
+---
+
+## Hallazgos de la segunda tanda de planificación (bloques A, D, G)
+
+### SEC-04 está mal planteado, y "pasar los cuatro client IDs" era una escalada de privilegios
+`audience` **ya se pasa** (`models/auth.ts:365-368`, `models/admin.ts:216-219`). El defecto real es
+que google-auth-library 10.5.0 **saltea** el chequeo de `aud` cuando el audience es `undefined`/`null`
+(`oauth2client.js:775`); con `""` falla cerrado. O sea que SEC-04 es sobre todo una consecuencia de
+SEC-01.
+
+Y ojo: pasarle al verificador **del admin** los client IDs de los usuarios finales dejaría que un
+token de la app Expo autentique contra el panel de administración. Quedó separado:
+`/auth/google-login` acepta `[web, android, ios]`; el admin acepta **solo** `[admin]`.
+
+### `TOKEN_EXP` no dura 30 días: dura 43 minutos
+Estaba como "(a confirmar)". Confirmado: `TOKEN_EXP=2592000` se interpreta en **milisegundos**, así
+que el token de usuario vive ~43 minutos, no 30 días.
+
+### SEC-16 tiene el campo invertido
+`page` **sí** es `z.number().min(1)`. El campo roto es `limit: z.string()`
+(`services/validations.ts:264`): sin cota y **nunca consumido**. Además `Infinity` sobrevive a
+`safeNumber` y entra en `(page-1)*PAGE_SIZE`.
+
+### Hay un tercer oráculo de enumeración de cuentas
+Además de `USER_NOT_FOUND` / `INVALID_CREDENTIALS`, está `INCORRECT_LOGIN_METHOD`
+(`models/auth.ts:272-274`).
+
+### `express.json()` ya tiene límite
+Es 100 kb por default. SEC-15 pedía agregarlo; solo hay que hacerlo explícito.
+
+### `ADMIN_PASS_TOKEN` es un cuarto secreto que SEC-01 no lista
+
+### El rate limiting no puede depender de `NODE_ENV`
+El e2e corre con `NODE_ENV: development` (`docker-compose.e2e.yml:73`), no `test`. Hace falta un
+`RATE_LIMIT_ENABLED` explícito, en `false` solo en el compose de e2e y rechazado en producción.
+
+### El mínimo de 8 caracteres no puede aplicarse al login del admin
+`validations.ts:361` usa `min(6)`; subirlo dejaría afuera a los admins que ya existen. Va solo en
+los caminos de **creación** de contraseña.
+
+### `serve -s` hace que TODO deep link sirva el HTML equivocado
+`client/app.json:36` ya es `web.output: "static"`, así que `expo export` prerenderiza un HTML real por
+ruta. Pero `Dockerfile.web:42` corre `serve -s dist`, y `--single` antepone un rewrite `**`→`/index.html`
+(`serve@14 build/main.js:539-548`), mientras que `serve-handler` **saltea** la resolución de `cleanUrls`
+cuando algún rewrite matcheó (`serve-handler@6.1.7 src/index.js:282`).
+
+**Consecuencia:** hoy cualquier link profundo sin extensión sirve `dist/index.html` y la página correcta
+aparece recién después de hidratar. Un revisor de la App Store vería el markup del landing en el primer
+paint. Esto es lo que hace que las páginas legales por URL no funcionen "gratis".
+
+### Más cosas rotas en el camino legal
+- `Terms.tsx:24-28` llama `BackHandler.exitApp()`, que en web es un no-op: el usuario queda encerrado.
+- `hasAcceptedTerms` se destruye al hacer logout.
+- Hay un `catch` muerto en el controlador de borrado.
+- `controllers/admin.ts:205` tiene el comentario "No hay validaciones porque es administrador" y no
+  aplica **ningún** esquema: un `undefined` llega hasta `hashPassword`.
+
+### Los uploads no son enumerables
+Los nombres son `randomUUID()`. La exposición de SEC-08 no es que se puedan adivinar, es que una URL
+filtrada vive para siempre. Por eso el fix elegido es firma con expiración, no autorización por header
+(imposible: 14 sitios los renderizan en `<img>`/`Image`).
+
+---
+
+## Numeración de migraciones — arbitraje
+
+Tres bloques planificaron migraciones en paralelo y dos reclamaron el `0014`. Asignación definitiva:
+
+| Rango | Bloque |
+|---|---|
+| `0009`–`0013` | `db-integrity-migrations` |
+| `0014` | `credit-economy-integrity` |
+| `0015`–`0016` | `legal-public-routes` |

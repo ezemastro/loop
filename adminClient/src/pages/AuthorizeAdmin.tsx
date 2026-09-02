@@ -1,14 +1,35 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
+import CommunityFilter from "@/components/CommunityFilter";
 import adminApi from "@/api/adminApi";
-import { AxiosError } from "axios";
+import { useIsSuperAdmin } from "@/stores/session";
+import { useCommunitiesStore } from "@/stores/communities";
+import { getErrorMessage } from "@/services/errors";
 import { emailSchema } from "@/services/validations";
+import { Field, Select } from "@/components/ui";
+
+type GrantRole = "community_admin" | "super_admin";
 
 export default function AuthorizeAdmin() {
+  const isSuperAdmin = useIsSuperAdmin();
+  const communities = useCommunitiesStore((state) => state.communities);
+  const communitiesLoading = useCommunitiesStore((state) => state.loading);
+  const loadCommunities = useCommunitiesStore((state) => state.load);
+
   const [email, setEmail] = useState("");
+  const [role, setRole] = useState<GrantRole>("community_admin");
+  const [communityId, setCommunityId] = useState<UUID | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // Solo un super admin puede elegir comunidad al autorizar: para el resto la comunidad la fija el token.
+  useEffect(() => {
+    if (isSuperAdmin) void loadCommunities();
+  }, [isSuperAdmin, loadCommunities]);
+
+  const needsCommunity = isSuperAdmin && role === "community_admin";
+  const missingCommunity = needsCommunity && !communityId;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,24 +43,28 @@ export default function AuthorizeAdmin() {
       return;
     }
 
+    if (missingCommunity) {
+      setError("Hay que elegir una comunidad para esta acción.");
+      return;
+    }
+
     try {
       setLoading(true);
-      const response = await adminApi.addValidEmailForRegistration(email);
+      const response = await adminApi.addValidEmailForRegistration(email, {
+        role: isSuperAdmin ? role : undefined,
+        communityId: needsCommunity && communityId ? communityId : undefined,
+      });
 
       if (response.success) {
         setSuccess(
           `Email ${email} autorizado exitosamente. Ahora puede registrarse como administrador.`,
         );
         setEmail("");
+        setRole("community_admin");
+        setCommunityId(null);
       }
     } catch (err) {
-      if (err instanceof AxiosError) {
-        setError(
-          err.response?.data?.error || "Error al autorizar el email. Puede que ya esté autorizado.",
-        );
-      } else {
-        setError("Error al autorizar el email. Puede que ya esté autorizado.");
-      }
+      setError(getErrorMessage(err, "Error al autorizar el email. Puede que ya esté autorizado."));
       console.error(err);
     } finally {
       setLoading(false);
@@ -70,11 +95,9 @@ export default function AuthorizeAdmin() {
 
         <div className="bg-white p-6 rounded-lg shadow">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block mb-2 font-semibold text-gray-700">
-                Email del nuevo administrador*:
-              </label>
+            <Field label="Email del nuevo administrador" htmlFor="authorize-email" required>
               <input
+                id="authorize-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -85,11 +108,39 @@ export default function AuthorizeAdmin() {
               <p className="text-sm text-gray-500 mt-2">
                 Este email podrá registrarse como administrador en la plataforma
               </p>
-            </div>
+            </Field>
+
+            {isSuperAdmin && (
+              <Field label="Rol a otorgar" htmlFor="authorize-role" required>
+                <Select
+                  id="authorize-role"
+                  value={role}
+                  onChange={(e) => {
+                    const nextRole = e.target.value as GrantRole;
+                    setRole(nextRole);
+                    if (nextRole === "super_admin") setCommunityId(null);
+                  }}
+                >
+                  <option value="community_admin">Administrador de comunidad</option>
+                  <option value="super_admin">Super administrador</option>
+                </Select>
+              </Field>
+            )}
+
+            {needsCommunity && (
+              <CommunityFilter
+                communities={communities}
+                value={communityId}
+                onChange={setCommunityId}
+                allowAll={false}
+                loading={communitiesLoading}
+                label="Comunidad"
+              />
+            )}
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || missingCommunity}
               className="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed w-full font-semibold text-lg"
             >
               {loading ? "Autorizando..." : "🔑 Autorizar Email"}
