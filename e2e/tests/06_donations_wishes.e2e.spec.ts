@@ -5,10 +5,13 @@ import {
   creditUser,
   createWish,
   donate,
+  expectOk,
   getMe,
   getWishes,
+  newUserPayload,
   registerAdmin,
   registerUser,
+  verifyUserEmail,
 } from "../helpers/api";
 import {
   getCategoryByName,
@@ -165,18 +168,27 @@ test.describe.serial("Créditos, donaciones y deseos", () => {
       name: "E2E Comunidad Vecina 06",
       domains: [bDomain],
     });
-    const outsider = await registerUser(api, uniqueEmail(bDomain, "e2e-outsider"), [
-      communityB.schoolId,
-    ]);
-    expect(outsider.user.communityId).toBe(communityB.communityId);
+    // Registramos y verificamos al outsider, pero NUNCA lo logueamos con este `api`: `/auth/login`
+    // planta la cookie `token` (`auth.ts:78`), y el middleware la prioriza sobre el header
+    // `Authorization` (`parseToken.ts:49`). Como `api` es un contexto compartido por todo el test
+    // (`fixtures.ts`), loguear al outsider acá pisaría el Bearer de `donorToken` en la llamada de
+    // abajo y el donante terminaría autenticado como el propio outsider — exactamente el falso
+    // positivo de "CANNOT_DONATE_TO_SELF" que este test destapó. Leemos el id directo de la base.
+    const outsiderEmail = uniqueEmail(bDomain, "e2e-outsider");
+    await expectOk<{ message: string }>(
+      await api.post("/auth/register", { data: newUserPayload(outsiderEmail, [communityB.schoolId]) }),
+    );
+    await verifyUserEmail(api, outsiderEmail);
+    const [outsiderRow] = await getUserByEmail(outsiderEmail);
+    expect(outsiderRow.community_id).toBe(communityB.communityId);
 
     // El receptor no existe en la comunidad del donante → el modelo corta con 400 INVALID_INPUT
     // (InvalidInputError sin código explícito: code = "INVALID_INPUT").
-    await expectApiError(donate(api, donorToken, outsider.user.id, 100), 400, "INVALID_INPUT");
+    await expectApiError(donate(api, donorToken, outsiderRow.id, 100), 400, "INVALID_INPUT");
 
     // El saldo del donante no cambió y el outsider sigue en cero.
     expect(await balanceOf(donorEmail)).toEqual({ balance: 3000, locked: 0 });
-    expect(await balanceOf(outsider.user.email)).toEqual({ balance: 0, locked: 0 });
+    expect(await balanceOf(outsiderEmail)).toEqual({ balance: 0, locked: 0 });
   });
 
   test("wishlist: crear, listar, modificar y eliminar", async ({ api }: LoopFixtures) => {

@@ -28,6 +28,7 @@ import {
  */
 
 let categoryId: string;
+let schoolId: string;
 let sellerId: string;
 let sellerToken: string;
 let buyerId: string;
@@ -66,7 +67,7 @@ test.describe.serial("Oferta: casos negativos y autorización", () => {
     stamp = `${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
 
     const [community] = await getCommunityBySlug("red-itinere");
-    const schoolId = await seedSchool(community.id, "E2E Escuela Ofertas");
+    schoolId = await seedSchool(community.id, "E2E Escuela Ofertas");
     const [category] = await getCategoryByName("Lápices y lapiceras");
     categoryId = category.id;
 
@@ -142,11 +143,17 @@ test.describe.serial("Oferta: casos negativos y autorización", () => {
     expect(await buyerBalance()).toEqual({ balance: 1000, locked: 0 });
   });
 
-  test("oferta con créditos insuficientes", async ({ api }: LoopFixtures) => {
-    const listingId = await sellerListing(api, 5000, "creditos");
+  test("oferta con créditos insuficientes", async ({ api, uniqueEmail }: LoopFixtures) => {
+    // Precio dentro de la banda de la categoría (140-700, ver seed): un comprador sin saldo
+    // propio, no el `buyer` compartido (que arranca con 1000 y nunca sería insuficiente frente
+    // a un precio válido para esta categoría).
+    const listingId = await sellerListing(api, 700, "creditos");
+    const poorBuyer = await registerUser(api, uniqueEmail("northfield.edu.ar", "e2e-sin-saldo"), [
+      schoolId,
+    ]);
 
     await expectApiError(
-      makeOffer(api, buyerToken, listingId, 3000),
+      makeOffer(api, poorBuyer.token, listingId, 100),
       400,
       "Créditos insuficientes",
     );
@@ -154,7 +161,6 @@ test.describe.serial("Oferta: casos negativos y autorización", () => {
     const [row] = await getListingById(listingId);
     expect(row.listing_status).toBe("published");
     expect(row.buyer_id).toBeNull();
-    expect(await buyerBalance()).toEqual({ balance: 1000, locked: 0 });
   });
 
   test("solo el vendedor acepta", async ({ api }: LoopFixtures) => {
