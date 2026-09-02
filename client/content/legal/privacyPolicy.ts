@@ -29,16 +29,25 @@ export const PRIVACY_REVIEW_MARKER = "REVISIÓN LEGAL PENDIENTE";
  * `CONTACT_EMAIL` — every other one needs a human answer.
  */
 export const PRIVACY_PLACEHOLDERS = {
-  DATOS_RECOLECTADOS: "{{DATOS_RECOLECTADOS}}",
-  FINALIDAD: "{{FINALIDAD}}",
-  BASE_LEGAL: "{{BASE_LEGAL}}",
-  CONSERVACION: "{{CONSERVACION}}",
-  TERCEROS: "{{TERCEROS}}",
-  MENORES: "{{MENORES}}",
-  DERECHOS: "{{DERECHOS}}",
+  DATOS_RECOLECTADOS:
+    "Recolectamos los datos que nos das al crear tu cuenta y usar Loop: nombre, apellido, email, teléfono (si lo cargás), foto de perfil, la comunidad escolar a la que pertenecés, y tu actividad dentro de la plataforma (publicaciones, intercambios, loopies ganados y canjeados). También guardamos metadatos técnicos básicos (fecha de registro, últimos accesos) necesarios para el funcionamiento y la seguridad del servicio.",
+  FINALIDAD:
+    "Usamos estos datos para crear y administrar tu cuenta, verificar tu identidad, permitirte publicar e intercambiar productos dentro de tu comunidad escolar, procesar tus loopies, enviarte comunicaciones operativas (verificación de email, recuperación de contraseña, avisos de la plataforma) y prevenir fraude, abuso o uso indebido del servicio.",
+  BASE_LEGAL:
+    "Tratamos tus datos con tu consentimiento, otorgado al registrarte y aceptar los Términos de uso, y en la medida necesaria para ejecutar el contrato de prestación del servicio. Cuando corresponde, también nos basamos en un interés legítimo para prevenir fraude y garantizar la seguridad de la plataforma, conforme a la Ley 25.326 de Protección de Datos Personales de la República Argentina.",
+  CONSERVACION:
+    "Conservamos tus datos mientras tu cuenta esté activa. Si solicitás la baja de tu cuenta (por ejemplo desde /borrar-cuenta), tus datos personales se conservan hasta 2 años adicionales por razones administrativas, de seguridad y para cumplir obligaciones legales, y luego se eliminan o anonimizan, salvo que una norma exija un plazo mayor.",
+  TERCEROS:
+    "Compartimos datos con proveedores que nos ayudan a operar Loop: Resend (envío de emails transaccionales), Google (si elegís iniciar sesión con tu cuenta de Google) y, opcionalmente, un servicio de monitoreo de errores (Sentry) que solo se activa si lo configuramos explícitamente. No vendemos ni compartimos tus datos con terceros con fines publicitarios.",
+  MENORES:
+    "Loop está destinado a personas mayores de 18 años. Las cuentas son creadas y administradas exclusivamente por un adulto (madre, padre o tutor) responsable dentro de la comunidad escolar. Los menores de edad no pueden registrar ni operar una cuenta propia en la plataforma. Si un adulto publica productos o gestiona intercambios que involucran a un menor a su cargo, es responsable de resguardar los datos personales del menor y de no exponer información innecesaria en publicaciones o mensajes.",
+  DERECHOS:
+    "Tenés derecho a acceder, rectificar, actualizar, suprimir, limitar el uso y pedir la portabilidad de tus datos personales. Podés ejercer estos derechos, incluida la baja de tu cuenta, desde /borrar-cuenta o escribiéndonos a nuestro email de contacto. La Agencia de Acceso a la Información Pública, como Órgano de Control de la Ley 25.326, tiene la atribución de atender denuncias y reclamos de quienes resulten afectados en sus derechos.",
   CONTACTO: CONTACT_EMAIL,
-  JURISDICCION: "{{JURISDICCION}}",
-  VIGENCIA: "{{VIGENCIA}}",
+  JURISDICCION:
+    "Esta política se rige por las leyes de la República Argentina, en particular la Ley 25.326 de Protección de Datos Personales. Ante cualquier controversia serán competentes los tribunales ordinarios del domicilio de Redi Tinere, sin perjuicio de los fueros que la ley disponga como irrenunciables para los usuarios en su carácter de consumidores.",
+  VIGENCIA:
+    "Esta versión de la política rige desde el 02/09/2026 y permanece vigente hasta que publiquemos una versión posterior en esta misma página.",
 } as const;
 
 export function buildPrivacyPolicySections(): LegalSection[] {
