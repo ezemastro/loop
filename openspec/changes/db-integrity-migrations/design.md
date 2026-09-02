@@ -415,8 +415,15 @@ column, and cannot find a hash in a cleartext column.
 
 ## Open Questions
 
-- [ ] Does production currently hold duplicate `lower(email)` rows? Task 1.1 answers this before
-      `0009` ships. If it does, resolution is an operator decision, not this change's.
+- [x] Does the dev/audit database currently hold duplicate `lower(email)` rows? Ran
+      `server/scripts/audit-duplicate-emails.sql` against `loop-audit-db` (fresh `database_creation.sql`
+      + `create_categories.sql` + `0000`–`0008`, no application traffic) on 2026-09-02: **zero rows**.
+      `0009` applied cleanly with no abort.
+- [ ] Does **production** currently hold duplicate `lower(email)` rows? This apply batch has no
+      access to the production database. **Operator action required before this change ships**: run
+      `server/scripts/audit-duplicate-emails.sql` against production. If it returns any row, `0009`
+      will abort by design (see D1) and the duplicates must be resolved by a human before re-running
+      the migration. This is a hard prerequisite for deploy, not a defect in the migration.
 
 ## Recorded Follow-ups (not fixed here)
 

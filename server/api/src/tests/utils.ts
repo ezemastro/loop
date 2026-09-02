@@ -127,7 +127,8 @@ export const MOCK_USER_DB: DB_Users = {
   invitation_id: null,
   domain_exempt: false,
   email_verified: true,
-  email_verification_token: null,
+  email_verification_token_hash: null,
+  email_verification_expires_at: null,
 };
 export const MOCK_USER_SCHOOL_DB: DB_UserSchools = {
   id: randomUUID(),

@@ -31,7 +31,15 @@ import {
 } from "../utils/parseDb.js";
 import { webGoogleClient } from "../services/googleOauth.js";
 import { sendVerificationEmail } from "../services/email.js";
+import { isUniqueViolation } from "../services/pgErrors.js";
 import crypto from "crypto";
+
+/**
+ * El link de verificación lleva el token en cleartext (es lo que el usuario clickea); la base solo
+ * guarda su digest SHA-256 (migración 0012, SEC-10). Nunca se persiste ni se loguea el cleartext.
+ */
+const hashVerificationToken = (token: string): string =>
+  crypto.createHash("sha256").update(token).digest("hex");
 
 /**
  * Arma el `PrivateUser` de la respuesta: perfil, colegios y comunidad.
@@ -189,17 +197,30 @@ export class AuthModel {
 
         const hashedPassword = await hashPassword(password);
 
-        const [newUser] = await client.query(queries.insertUser, [
-          email,
-          firstName,
-          lastName,
-          hashedPassword,
-          communityId,
-          invitation?.id ?? null,
-          !!invitation,
-          verificationToken,
-          !requireEmailVerification,
-        ]);
+        let newUser: { id: UUID } | undefined;
+        try {
+          [newUser] = await client.query(queries.insertUser, [
+            email,
+            firstName,
+            lastName,
+            hashedPassword,
+            communityId,
+            invitation?.id ?? null,
+            !!invitation,
+            verificationToken ? hashVerificationToken(verificationToken) : null,
+            !requireEmailVerification,
+          ]);
+        } catch (err) {
+          // El pre-chequeo de arriba (`queries.userExists`) es TOCTOU por naturaleza: no bloquea
+          // dos registros concurrentes para el mismo email. `idx_users_email_lower_uq` (0009) es la
+          // enforcement real; acá se traduce su violación al mismo 409 que el pre-chequeo ya da.
+          // Se discrimina por nombre de constraint: `users_google_id_key` es un choque distinto y
+          // no debe reportarse como "el email ya existe".
+          if (isUniqueViolation(err, "idx_users_email_lower_uq")) {
+            throw new ConflictError(ERROR_MESSAGES.USER_ALREADY_EXISTS, "USER_ALREADY_EXISTS");
+          }
+          throw err;
+        }
         if (!newUser) {
           throw new InternalServerError(ERROR_MESSAGES.UNEXPECTED_ERROR);
         }
@@ -305,7 +326,7 @@ export class AuthModel {
   static verifyEmail = async (token: string) => {
     return withClient(
       async (client) => {
-        const [row] = await client.query(queries.verifyUserEmail, [token]);
+        const [row] = await client.query(queries.verifyUserEmail, [hashVerificationToken(token)]);
         if (!row) {
           throw new InvalidInputError(
             ERROR_MESSAGES.EMAIL_VERIFICATION_TOKEN_INVALID,
@@ -341,7 +362,10 @@ export class AuthModel {
     const verificationToken = crypto.randomBytes(32).toString("hex");
     await withClient(
       async (client) => {
-        await client.query(queries.updateUserVerificationToken, [verificationToken, userDb.id]);
+        await client.query(queries.updateUserVerificationToken, [
+          hashVerificationToken(verificationToken),
+          userDb.id,
+        ]);
       },
       { scope: unscoped("token-lookup") },
     );
@@ -452,15 +476,26 @@ export class AuthModel {
           );
         }
 
-        const [newUserDb] = await client.query(queries.createUserWithGoogle, [
-          email,
-          givenName || fullName,
-          familyName || "",
-          googleId,
-          communityId,
-          invitation?.id ?? null,
-          !!invitation,
-        ]);
+        let newUserDb: DB_Users | undefined;
+        try {
+          [newUserDb] = await client.query(queries.createUserWithGoogle, [
+            email,
+            givenName || fullName,
+            familyName || "",
+            googleId,
+            communityId,
+            invitation?.id ?? null,
+            !!invitation,
+          ]);
+        } catch (err) {
+          // Misma carrera que en el registro por password: dos altas por Google para el mismo
+          // email en simultáneo pasan ambas el lookup previo (`userByEmail`), y `0009` es lo único
+          // que realmente lo impide.
+          if (isUniqueViolation(err, "idx_users_email_lower_uq")) {
+            throw new ConflictError(ERROR_MESSAGES.USER_ALREADY_EXISTS, "USER_ALREADY_EXISTS");
+          }
+          throw err;
+        }
         if (!newUserDb) {
           throw new InternalServerError(
             ERROR_MESSAGES.DATABASE_QUERY_ERROR,

@@ -85,8 +85,13 @@ interface DB_Users {
   domain_exempt: boolean;
   /** La cuenta confirmó el mail (clic en el enlace) o entró por Google. Bloquea el login. */
   email_verified: boolean;
-  /** Token aleatorio del enlace de verificación; NULL si ya verificó o entró por Google. */
-  email_verification_token: string | null;
+  /**
+   * Digest SHA-256 del token del enlace de verificación; NULL si ya verificó, entró por Google, o
+   * nunca se le exigió verificación. Nunca el token en texto plano (0012 lo elimina).
+   */
+  email_verification_token_hash: string | null;
+  /** Vencimiento del token de verificación, 24hs después de emitido. NULL junto con el hash. */
+  email_verification_expires_at: ISODateString | null;
 }
 interface DB_UserSchools {
   id: UUID;

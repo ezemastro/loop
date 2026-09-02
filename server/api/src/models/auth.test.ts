@@ -222,7 +222,7 @@ describe("AuthModel", () => {
     it("Should resend the verification email for an unverified user", async () => {
       mockQuery.mockImplementation(async (query, params) => {
         if (query === queries.userEmailVerifiedAndTokenByEmail) {
-          return [{ id: MOCK_USER.id, email_verified: false, email_verification_token: "old" }];
+          return [{ id: MOCK_USER.id, email_verified: false }];
         }
         return databaseQueryMock(query, params);
       });

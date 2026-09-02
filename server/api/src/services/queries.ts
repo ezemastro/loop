@@ -57,34 +57,47 @@ export const queries = {
      ) AS user_exists`,
   ),
 
+  /**
+   * `$8` es el hash SHA-256 del token (o NULL si no se exige verificación); nunca el cleartext.
+   * La expiración se calcula acá mismo, condicionada a que haya hash: sin verificación exigida no
+   * hay token, y por lo tanto tampoco vencimiento.
+   */
   insertUser: q<{ id: UUID }>(
     "user.insert",
-    `INSERT INTO users (email, first_name, last_name, password, community_id, invitation_id, domain_exempt, email_verification_token, email_verified)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    `INSERT INTO users (email, first_name, last_name, password, community_id, invitation_id, domain_exempt, email_verification_token_hash, email_verification_expires_at, email_verified)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CASE WHEN $8::text IS NULL THEN NULL ELSE NOW() + INTERVAL '24 hours' END, $9)
        RETURNING id`,
   ),
 
-  /** Marca el usuario como verificado al hacer clic en el enlace del mail. */
+  /**
+   * Marca el usuario como verificado al hacer clic en el enlace del mail. Matchea por hash y exige
+   * que no haya vencido: un token expirado se rechaza igual que uno inexistente.
+   */
   verifyUserEmail: q<{ id: UUID }>(
     "user.verifyEmail",
     `UPDATE users
-        SET email_verified = TRUE, email_verification_token = NULL
-      WHERE email_verification_token = $1
+        SET email_verified = TRUE, email_verification_token_hash = NULL, email_verification_expires_at = NULL
+      WHERE email_verification_token_hash = $1
+        AND email_verification_expires_at > NOW()
       RETURNING id`,
   ),
 
-  /** Rota el token al reenviar el mail, para invalidar enlaces viejos. */
+  /** Rota el hash y la expiración al reenviar el mail, para invalidar enlaces viejos. */
   updateUserVerificationToken: q<void>(
     "user.updateVerificationToken",
-    `UPDATE users SET email_verification_token = $1 WHERE id = $2`,
+    `UPDATE users
+        SET email_verification_token_hash = $1,
+            email_verification_expires_at = NOW() + INTERVAL '24 hours'
+      WHERE id = $2`,
   ),
 
-  /** Para reenviar el mail de verificación: busca si hay un usuario sin verificar. */
-  userEmailVerifiedAndTokenByEmail: q<
-    Pick<DB_Users, "id" | "email_verified" | "email_verification_token">
-  >(
+  /**
+   * Para reenviar el mail de verificación: busca si hay un usuario sin verificar. Ya no selecciona
+   * el token/hash — solo necesita saber si existe uno pendiente, nunca su valor.
+   */
+  userEmailVerifiedAndTokenByEmail: q<Pick<DB_Users, "id" | "email_verified">>(
     "user.emailVerifiedAndTokenByEmail",
-    `SELECT id, email_verified, email_verification_token
+    `SELECT id, email_verified
        FROM users WHERE lower(email) = lower($1)`,
   ),
 

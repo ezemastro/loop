@@ -1,6 +1,7 @@
 import type { APIRequestContext, APIResponse } from "@playwright/test";
+import { randomBytes } from "node:crypto";
 import { ENV } from "./config";
-import { getVerificationTokenByEmail } from "./db";
+import { seedExpiredVerificationToken, seedVerificationToken } from "./db";
 
 /**
  * Helpers de API: envuelven los ENDPOINTS REALES del backend (los mismos que llama el cliente).
@@ -64,18 +65,31 @@ export const newUserPayload = (email: string, schoolIds: string[]) => ({
 });
 
 /**
- * Completa la verificación de email por el endpoint real (el mismo que abre el link del mail):
- * lee el token de la base y llama a GET /auth/verify-email, igual que haría el usuario con el clic.
+ * Completa la verificación de email por el endpoint real (el mismo que abre el link del mail).
+ *
+ * Desde la migración 0012 (SEC-10) la base solo guarda el hash del token: ya no hay forma de leer
+ * un cleartext existente. El harness invierte la dirección — genera un token conocido, escribe su
+ * hash directo en la base con el pool dueño (`seedVerificationToken`, exento de RLS) y llama al
+ * endpoint real con ese cleartext, igual que haría el usuario al clickear el link. Nunca se mockea
+ * ni se saltea `GET /auth/verify-email`.
  */
 export const verifyUserEmail = async (api: APIRequestContext, email: string) => {
-  const [row] = await getVerificationTokenByEmail(email);
-  if (!row?.email_verification_token) {
-    throw new Error(`No hay token de verificación para ${email}`);
-  }
-  const res = await api.get(`/auth/verify-email?token=${row.email_verification_token}`);
+  const token = randomBytes(32).toString("hex");
+  await seedVerificationToken(email, token);
+  const res = await api.get(`/auth/verify-email?token=${token}`);
   if (!res.ok()) {
     throw new ApiError(res.status(), "VERIFY_EMAIL_FAILED", `No se pudo verificar ${email}`);
   }
+};
+
+/**
+ * Siembra un token ya vencido y confirma que `GET /auth/verify-email` lo rechaza — cubre
+ * `email-verification-tokens: "An expired token is refused"`.
+ */
+export const verifyUserEmailExpired = async (api: APIRequestContext, email: string) => {
+  const token = randomBytes(32).toString("hex");
+  await seedExpiredVerificationToken(email, token);
+  return api.get(`/auth/verify-email?token=${token}`);
 };
 
 /**

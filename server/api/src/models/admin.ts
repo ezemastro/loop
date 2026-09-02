@@ -13,6 +13,7 @@ import {
   InvalidInputError,
   NotFoundError,
 } from "../services/errors.js";
+import { isUniqueViolation } from "../services/pgErrors.js";
 import { queries } from "../services/queries.js";
 import {
   parseAdminFromDb,
@@ -55,10 +56,6 @@ import type { DatabaseClient } from "../types/dbClient.js";
 
 const adminScope = { scope: unscoped("admin") } as const;
 const adminScopeTx = { scope: unscoped("admin"), transaction: true } as const;
-
-/** Violación de unique en Postgres. */
-const isUniqueViolation = (err: unknown): boolean =>
-  typeof err === "object" && err !== null && (err as { code?: string }).code === "23505";
 
 const parseCommunityDomainFromDb = (row: DB_CommunityEmailDomains): CommunityEmailDomain => ({
   id: row.id,
@@ -323,8 +320,9 @@ export class AdminModel {
         usersDb.map((row) => buildPrivateUser({ client, userDb: row, loadCommunity })),
       );
       const total = safeNumber(usersDb[0]?.total_records) ?? 0;
+      const pagination = parsePagination({ currentPage: page, totalRecords: total });
 
-      return { users, total };
+      return { users, total, pagination };
     }, adminScope);
   }
 

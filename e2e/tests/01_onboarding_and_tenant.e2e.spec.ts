@@ -7,6 +7,7 @@ import {
   newUserPayload,
   registerUser,
   verifyUserEmail,
+  verifyUserEmailExpired,
 } from "../helpers/api";
 import {
   getCommunityBySlug,
@@ -91,6 +92,21 @@ test.describe.serial("Onboarding y tenancy", () => {
     expect(user.email).toBe(email);
   });
 
+  test("un token de verificación vencido se rechaza y la cuenta sigue sin verificar", async ({
+    api,
+    uniqueEmail,
+  }: LoopFixtures) => {
+    const email = uniqueEmail("northfield.edu.ar", "e2e-expired-token");
+    const res = await api.post("/auth/register", { data: newUserPayload(email, [schoolId]) });
+    expect(res.ok()).toBeTruthy();
+
+    const verifyRes = await verifyUserEmailExpired(api, email);
+    expect(verifyRes.ok()).toBeFalsy();
+
+    // El vencimiento se rechaza igual que un token desconocido: la cuenta sigue bloqueada.
+    await expectApiError(loginUser(api, email), 401, "EMAIL_NOT_VERIFIED", "verificado");
+  });
+
   test("registro rechazado con escuela de otra comunidad", async ({
     api,
     uniqueEmail,
@@ -114,10 +130,7 @@ test.describe.serial("Onboarding y tenancy", () => {
     expect(await getUserByEmail(email)).toHaveLength(0);
   });
 
-  test("registro con dominio desconocido rechazado", async ({
-    api,
-    uniqueEmail,
-  }: LoopFixtures) => {
+  test("registro con dominio desconocido rechazado", async ({ api, uniqueEmail }: LoopFixtures) => {
     const email = uniqueEmail("unknown-domain.test");
     await expectApiError(
       registerUser(api, email, [schoolId]),

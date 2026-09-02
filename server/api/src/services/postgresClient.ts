@@ -42,6 +42,40 @@ export const TENANT_TABLES = [
   "media",
 ] as const;
 
+/**
+ * Matriz de privilegios mínimos de `loop_app` sobre las cinco tablas deliberadamente sin RLS
+ * (migración `0013`, SEC-09). Debe coincidir exactamente con los `REVOKE`/`GRANT` de esa migración.
+ *
+ * `invitations` es la fila que importa más: `UPDATE` tiene que quedar en `true` porque
+ * `SELECT … FOR UPDATE` (el lock que hace que una invitación se use una sola vez) exige ese
+ * privilegio además de `SELECT`. Revocarlo de más rompería el registro por invitación en
+ * producción y solo se vería como un `42501` en el primer intento real — este assert existe para
+ * que se vea antes, al arrancar.
+ */
+const LOOP_APP_GRANT_MATRIX: ReadonlyArray<{
+  table: string;
+  privilege: "SELECT" | "INSERT" | "UPDATE" | "DELETE";
+  /** `true` = el privilegio DEBE estar presente. `false` = DEBE estar ausente. */
+  expected: boolean;
+}> = [
+  ...(["SELECT", "INSERT", "UPDATE", "DELETE"] as const).flatMap((privilege) => [
+    { table: "admins", privilege, expected: false },
+    { table: "admin_valid_emails", privilege, expected: false },
+  ]),
+  { table: "communities", privilege: "SELECT", expected: true },
+  { table: "communities", privilege: "INSERT", expected: false },
+  { table: "communities", privilege: "UPDATE", expected: false },
+  { table: "communities", privilege: "DELETE", expected: false },
+  { table: "community_email_domains", privilege: "SELECT", expected: true },
+  { table: "community_email_domains", privilege: "INSERT", expected: false },
+  { table: "community_email_domains", privilege: "UPDATE", expected: false },
+  { table: "community_email_domains", privilege: "DELETE", expected: false },
+  { table: "invitations", privilege: "SELECT", expected: true },
+  { table: "invitations", privilege: "UPDATE", expected: true },
+  { table: "invitations", privilege: "INSERT", expected: false },
+  { table: "invitations", privilege: "DELETE", expected: false },
+];
+
 const poolConfig = {
   database: DB_NAME,
   host: DB_HOST,
@@ -236,6 +270,26 @@ export const assertDbHardening = async () => {
   if (rlsRows.length > 0) {
     problems.push(`RLS deshabilitada en: ${rlsRows.map((r) => r.relname).join(", ")}`);
   }
+
+  // Matriz de privilegios (D6 / SEC-09): ninguna de las tres verificaciones de arriba ve un
+  // GRANT/REVOKE mal aplicado. Sin esto, un `0013` incorrecto queda invisible al arrancar y
+  // solo aparece como un `42501` en el primer registro por invitación real.
+  const { rows: grantRows } = await scopedPool.query<{ has: boolean }>(
+    `SELECT has_table_privilege(current_user, t.tbl, t.priv) AS has
+       FROM unnest($1::text[], $2::text[]) AS t(tbl, priv)`,
+    [LOOP_APP_GRANT_MATRIX.map((e) => e.table), LOOP_APP_GRANT_MATRIX.map((e) => e.privilege)],
+  );
+  LOOP_APP_GRANT_MATRIX.forEach((entry, i) => {
+    const has = grantRows[i]?.has;
+    if (has === undefined || has === entry.expected) return;
+    problems.push(
+      entry.expected
+        ? `falta el privilegio ${entry.privilege} en ${entry.table} para loop_app (debería estar ` +
+            `retenido — ver 0013_revoke_loop_app_dml.sql)`
+        : `loop_app tiene el privilegio ${entry.privilege} de más en ${entry.table} (debería estar ` +
+            `revocado — ver 0013_revoke_loop_app_dml.sql)`,
+    );
+  });
 
   // Prueba de humo del fail-closed: sin comunidad fijada, no se ve ninguna fila.
   const probe = await scopedPool.connect();

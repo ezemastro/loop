@@ -49,6 +49,8 @@ describeDb("Row-Level Security", () => {
     listingA: "",
     listingB: "",
     categoryId: "",
+    adminA: "",
+    invitationA: "",
   };
 
   beforeAll(async () => {
@@ -95,17 +97,38 @@ describeDb("Row-Level Security", () => {
     ids.userB = await user(ids.communityB, "b@test.local");
     ids.listingA = await listing(ids.communityA, ids.userA);
     ids.listingB = await listing(ids.communityB, ids.userB);
+
+    // Fixture para la matriz de privilegios (SEC-09): un admin y una invitación reales, sembrados
+    // por el rol dueño — igual que en producción, `loop_app` nunca los crea.
+    const { rows: adminRows } = await owner.query<{ id: string }>(
+      `INSERT INTO admins (email, full_name, password, role, community_id)
+       VALUES ($1, 'RLS Admin', 'x', 'community_admin', $2) RETURNING id`,
+      [`${SUFFIX}-admin@test.local`, ids.communityA],
+    );
+    ids.adminA = adminRows[0]!.id;
+
+    const { rows: invitationRows } = await owner.query<{ id: string }>(
+      `INSERT INTO invitations (token, community_id, created_by_admin_id)
+       VALUES ($1, $2, $3) RETURNING id`,
+      [`${SUFFIX}-invitation`, ids.communityA, ids.adminA],
+    );
+    ids.invitationA = invitationRows[0]!.id;
   });
 
   afterAll(async () => {
     if (owner) {
-      // Las FK de community_id son ON DELETE CASCADE, así que borrar la comunidad arrastra el resto.
+      // Las FK de community_id son ON DELETE CASCADE, así que borrar la comunidad arrastra el
+      // resto. Dos excepciones que hay que borrar a mano, en orden, antes de llegar ahí:
+      // `invitations.created_by_admin_id` referencia `admins` sin ON DELETE (0006), así que la
+      // invitación tiene que irse antes que el admin, y el admin antes que la comunidad.
       await owner.query(`DELETE FROM listings WHERE community_id = ANY($1::uuid[])`, [
         [ids.communityA, ids.communityB],
       ]);
       await owner.query(`DELETE FROM users WHERE community_id = ANY($1::uuid[])`, [
         [ids.communityA, ids.communityB],
       ]);
+      await owner.query(`DELETE FROM invitations WHERE id = $1`, [ids.invitationA]);
+      await owner.query(`DELETE FROM admins WHERE id = $1`, [ids.adminA]);
       await owner.query(`DELETE FROM communities WHERE slug LIKE $1`, [`${SUFFIX}-%`]);
       await owner.query(`DELETE FROM categories WHERE name = $1`, [`${SUFFIX}-cat`]);
       await owner.end();
@@ -189,5 +212,94 @@ describeDb("Row-Level Security", () => {
     const desdeB = await app.query(`SELECT id FROM categories WHERE id = $1`, [ids.categoryId]);
     expect(desdeA.rowCount).toBe(1);
     expect(desdeB.rowCount).toBe(1);
+  });
+
+  /**
+   * Matriz de privilegios de `loop_app` sobre las cinco tablas sin RLS (migración `0013`, SEC-09).
+   * A diferencia de los tests de arriba, estos no dependen de RLS ni del scope de comunidad: son
+   * permisos de tabla lisos y llanos, así que `loop_app` los ve o no los ve sin importar
+   * `app.community_id`. Las fixtures de seed usan siempre el cliente `owner` (`:35`, `:61`), que es
+   * dueño de las tablas y está exento del grant que se está probando.
+   */
+  describe("Matriz de privilegios (SEC-09)", () => {
+    it("no tiene ningún privilegio sobre admins", async () => {
+      await expect(app.query(`SELECT * FROM admins`)).rejects.toMatchObject({ code: "42501" });
+    });
+
+    it("no puede escribir en admin_valid_emails", async () => {
+      await expect(
+        app.query(
+          `INSERT INTO admin_valid_emails (email, role, community_id) VALUES ($1, 'community_admin', $2)`,
+          [`${SUFFIX}-intruso@test.local`, ids.communityA],
+        ),
+      ).rejects.toMatchObject({ code: "42501" });
+    });
+
+    it("no puede crear una comunidad", async () => {
+      await expect(
+        app.query(`INSERT INTO communities (slug, name) VALUES ($1, 'intruso')`, [
+          `${SUFFIX}-intruso`,
+        ]),
+      ).rejects.toMatchObject({ code: "42501" });
+    });
+
+    it("no puede modificar una comunidad", async () => {
+      await expect(
+        app.query(`UPDATE communities SET name = 'intruso' WHERE id = $1`, [ids.communityA]),
+      ).rejects.toMatchObject({ code: "42501" });
+    });
+
+    it("no puede borrar un dominio de comunidad", async () => {
+      await expect(
+        app.query(`DELETE FROM community_email_domains WHERE community_id = $1`, [ids.communityA]),
+      ).rejects.toMatchObject({ code: "42501" });
+    });
+
+    it("no puede crear una invitación", async () => {
+      await expect(
+        app.query(
+          `INSERT INTO invitations (token, community_id, created_by_admin_id) VALUES ($1, $2, $3)`,
+          [`${SUFFIX}-intruso-invitation`, ids.communityA, ids.adminA],
+        ),
+      ).rejects.toMatchObject({ code: "42501" });
+    });
+
+    it("no puede borrar una invitación", async () => {
+      await expect(
+        app.query(`DELETE FROM invitations WHERE id = $1`, [ids.invitationA]),
+      ).rejects.toMatchObject({ code: "42501" });
+    });
+
+    it("retiene SELECT sobre communities y community_email_domains", async () => {
+      const communities = await app.query(`SELECT id FROM communities WHERE id = $1`, [
+        ids.communityA,
+      ]);
+      expect(communities.rowCount).toBe(1);
+      const domains = await app.query(
+        `SELECT id FROM community_email_domains WHERE community_id = $1`,
+        [ids.communityA],
+      );
+      expect(domains.rowCount).toBe(0); // No hay dominios sembrados; la query igual tiene que correr sin 42501.
+    });
+
+    it("retiene SELECT … FOR UPDATE y UPDATE sobre invitations — lo que sostiene el registro por invitación", async () => {
+      await app.query("BEGIN");
+      try {
+        const locked = await app.query(`SELECT * FROM invitations WHERE id = $1 FOR UPDATE`, [
+          ids.invitationA,
+        ]);
+        expect(locked.rowCount).toBe(1);
+
+        const consumed = await app.query(
+          `UPDATE invitations SET used_by_user_id = $1, used_at = NOW() WHERE id = $2 AND used_by_user_id IS NULL RETURNING id`,
+          [ids.userA, ids.invitationA],
+        );
+        expect(consumed.rowCount).toBe(1);
+      } finally {
+        // No se comitea: deja la invitación libre para que otro test (o una corrida futura) la
+        // pueda volver a usar sin necesitar una fixture nueva.
+        await app.query("ROLLBACK");
+      }
+    });
   });
 });

@@ -45,11 +45,29 @@ export const getUserByEmail = (email: string) =>
     email,
   ]);
 
-/** Token del mail de verificación: se usa para completar el flujo real de registro en los tests. */
-export const getVerificationTokenByEmail = (email: string) =>
-  query<{ id: string; email_verification_token: string | null }>(
-    `SELECT id, email_verification_token FROM users WHERE email = $1`,
-    [email],
+/**
+ * Siembra un token de verificación conocido, escribiendo directamente su hash SHA-256 (migración
+ * 0012, SEC-10: la base solo guarda el digest, nunca el cleartext, así que ya no hay forma de
+ * "leer" un token — el harness tiene que fijarlo él mismo antes de llamar al endpoint real).
+ * `sha256()` es un built-in de PostgreSQL desde la versión 11: no hace falta `pgcrypto`.
+ */
+export const seedVerificationToken = (email: string, token: string) =>
+  query(
+    `UPDATE users
+        SET email_verification_token_hash = encode(sha256($2::bytea), 'hex'),
+            email_verification_expires_at = NOW() + INTERVAL '24 hours'
+      WHERE lower(email) = lower($1)`,
+    [email, token],
+  );
+
+/** Igual que `seedVerificationToken`, pero con una expiración ya vencida (para el test de expiry). */
+export const seedExpiredVerificationToken = (email: string, token: string) =>
+  query(
+    `UPDATE users
+        SET email_verification_token_hash = encode(sha256($2::bytea), 'hex'),
+            email_verification_expires_at = NOW() - INTERVAL '1 hour'
+      WHERE lower(email) = lower($1)`,
+    [email, token],
   );
 
 export const getUserSchools = (userId: string) =>
