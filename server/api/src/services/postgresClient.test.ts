@@ -5,6 +5,9 @@
  * las operaciones sobre la conexión. Si `set_config` corriera después del `BEGIN`, un rollback
  * desharía el scope y la conexión volvería al pool con la comunidad equivocada — que es la forma
  * más silenciosa que tiene este sistema de filtrar datos entre comunidades.
+ *
+ * La segunda mitad cubre `assertDbHardening()`, el chequeo de arranque: rol sin RLS, tablas tenant
+ * con RLS apagada y la matriz de privilegios de `loop_app` (SEC-09).
  */
 
 /** Registro de todo lo que se le pidió a la conexión, en orden. */
@@ -32,13 +35,57 @@ const makeClient = () => ({
 const scopedClient = makeClient();
 const unscopedClient = makeClient();
 
+/**
+ * Privilegios que `0013_revoke_loop_app_dml.sql` deja efectivamente en pie para `loop_app` sobre
+ * las tablas sin RLS. Está escrito a mano a propósito: es la fuente independiente contra la que se
+ * contrasta la matriz declarada en `postgresClient.ts`. Todo lo que no figure acá debe estar
+ * revocado.
+ */
+const GRANTED_BY_0013 = new Set([
+  "communities:SELECT",
+  "community_email_domains:SELECT",
+  "invitations:SELECT",
+  "invitations:UPDATE",
+]);
+
+type RoleRow = { rolsuper: boolean; rolbypassrls: boolean; current_user: string };
+
+/** Estado del catálogo del sistema que ve `assertDbHardening()` en cada test. */
+const catalog = {
+  role: null as RoleRow | null,
+  tablesWithoutRls: [] as string[],
+  /** Desvíos respecto de `GRANTED_BY_0013`, con clave `tabla:PRIVILEGIO`. */
+  grantOverrides: new Map<string, boolean>(),
+};
+
+const hasGrant = (table: string, privilege: string): boolean =>
+  catalog.grantOverrides.get(`${table}:${privilege}`) ??
+  GRANTED_BY_0013.has(`${table}:${privilege}`);
+
+/** Responde las tres consultas al catálogo que hace `assertDbHardening()`, en cualquier orden. */
+const poolQuery = jest.fn(async (text: string, params?: unknown[]) => {
+  if (text.includes("pg_roles")) {
+    return { rows: catalog.role ? [catalog.role] : [] };
+  }
+  if (text.includes("relrowsecurity")) {
+    return { rows: catalog.tablesWithoutRls.map((relname) => ({ relname })) };
+  }
+  if (text.includes("has_table_privilege")) {
+    const [tables, privileges] = (params ?? []) as [string[], string[]];
+    return {
+      rows: tables.map((table, i) => ({ has: hasGrant(table, privileges[i] as string) })),
+    };
+  }
+  return { rows: [], rowCount: 0 };
+});
+
 jest.mock("pg", () => ({
   Pool: jest.fn().mockImplementation((config: { user?: string }) => ({
     // Los dos pools se distinguen por el rol con el que se conectan.
     connect: jest.fn(async () =>
       config.user === "loop_app_unscoped" ? unscopedClient : scopedClient,
     ),
-    query: jest.fn(async () => ({ rows: [], rowCount: 0 })),
+    query: poolQuery,
     end: jest.fn(async () => undefined),
   })),
 }));
@@ -54,7 +101,7 @@ jest.mock("../config.js", () => ({
   ERROR_MESSAGES: { DATABASE_ERROR: "Error al conectar a la base de datos" },
 }));
 
-import { inCommunity, unscoped, withClient } from "./postgresClient";
+import { assertDbHardening, inCommunity, unscoped, withClient } from "./postgresClient";
 
 const COMMUNITY_A = "11111111-1111-4111-8111-111111111111";
 
@@ -65,6 +112,9 @@ beforeEach(() => {
   state.calls = [];
   state.released = [];
   state.failSetConfig = false;
+  catalog.role = { rolsuper: false, rolbypassrls: false, current_user: "loop_app" };
+  catalog.tablesWithoutRls = [];
+  catalog.grantOverrides = new Map();
   jest.clearAllMocks();
 });
 
@@ -90,7 +140,11 @@ describe("withClient", () => {
 
     const calls = setConfigCalls();
     expect(calls).toHaveLength(2);
-    expect(calls[1]?.params).toEqual(["app.community_id", ""]);
+    // El reset del release lleva el valor vacío **en el texto** (`set_config($1, '', false)`), no
+    // como parámetro: el único parámetro es el nombre de la variable. Lo que importa es que la
+    // segunda llamada deje `app.community_id` en vacío, no cómo viaja ese vacío.
+    expect(calls[1]?.params).toEqual(["app.community_id"]);
+    expect(calls[1]?.text).toContain("set_config($1, '', false)");
     expect(state.released).toEqual([false]);
   });
 
@@ -161,9 +215,77 @@ describe("withClient", () => {
     expect(scopedClient.query).not.toHaveBeenCalled();
   });
 
-  it("exige el scope en tiempo de compilación", async () => {
+  it("exige el scope, y sin scope falla cerrado en runtime", async () => {
+    const fn = jest.fn(async () => undefined);
+
     // @ts-expect-error — `options` es obligatorio a propósito: no hay default seguro para
     // "¿de qué comunidad son estos datos?". Si este error deja de aparecer, se perdió la garantía.
-    await withClient(async () => undefined);
+    await expect(withClient(fn)).rejects.toBeInstanceOf(Error);
+
+    // Y si alguien esquiva al compilador (un caller en JS plano), tampoco corre sin scope: no se
+    // llega a ejecutar el callback ni a tocar la conexión.
+    expect(fn).not.toHaveBeenCalled();
+    expect(state.calls).toHaveLength(0);
+  });
+});
+
+/**
+ * `assertDbHardening()` es el chequeo de arranque. Fuera de producción no tira: avisa por
+ * `console.warn`, así que lo que se observa acá es exactamente lo que vería alguien levantando la
+ * API con la base mal configurada.
+ */
+describe("assertDbHardening", () => {
+  let warn: jest.SpyInstance<void, Parameters<typeof console.warn>>;
+
+  beforeEach(() => {
+    warn = jest.spyOn(console, "warn").mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    warn.mockRestore();
+  });
+
+  const reported = () => warn.mock.calls.map(([message]) => String(message)).join("\n");
+
+  it("no reporta nada cuando el rol, la RLS y los privilegios están como los dejan las migraciones", async () => {
+    await assertDbHardening();
+
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("delata que la API se conecta con un rol que ignora RLS", async () => {
+    // El caso real: apuntar la API al usuario de `POSTGRES_USER`, que es SUPERUSER.
+    catalog.role = { rolsuper: true, rolbypassrls: false, current_user: "postgres" };
+
+    await assertDbHardening();
+
+    expect(reported()).toContain("SUPERUSER o tiene BYPASSRLS");
+  });
+
+  it("delata las tablas tenant que quedaron sin RLS", async () => {
+    catalog.tablesWithoutRls = ["listings", "messages"];
+
+    await assertDbHardening();
+
+    expect(reported()).toContain("RLS deshabilitada en: listings, messages");
+  });
+
+  it("delata que a loop_app le falta UPDATE en invitations", async () => {
+    // Es la fila que más importa de la matriz: `SELECT … FOR UPDATE` —el lock que hace que una
+    // invitación se use una sola vez— exige UPDATE. Revocarlo de más rompe el registro por
+    // invitación en producción, y sin este assert solo se vería como un 42501 en el primer intento.
+    catalog.grantOverrides.set("invitations:UPDATE", false);
+
+    await assertDbHardening();
+
+    expect(reported()).toContain("falta el privilegio UPDATE en invitations");
+  });
+
+  it("delata un privilegio de más sobre una tabla que loop_app no debería tocar", async () => {
+    catalog.grantOverrides.set("admins:SELECT", true);
+
+    await assertDbHardening();
+
+    expect(reported()).toContain("privilegio SELECT de más en admins");
   });
 });
