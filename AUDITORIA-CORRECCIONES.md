@@ -181,3 +181,34 @@ Tres bloques planificaron migraciones en paralelo y dos reclamaron el `0014`. As
 | `0009`–`0013` | `db-integrity-migrations` |
 | `0014` | `credit-economy-integrity` |
 | `0015`–`0016` | `legal-public-routes` |
+
+---
+
+## Hallazgos de la fase de consolidación
+
+### `showAlert` con acciones **auto-confirma** en web
+`client/services/showAlert.ts` (nuevo en esta sesión) es seguro **sin** acciones: emite un toast en
+web y delega en `Alert.alert` en nativo. Pero **con** acciones, en `Platform.OS === "web"` emite el
+toast y llama `primaryAction?.onPress?.()` **inmediatamente**. Un diálogo de confirmación armado así
+confirma solo, sin preguntarle nada al usuario — y en el caso del botón Cancelar eso movería créditos.
+
+Su propio docblock lo anticipa: *"with actions the caller is expected to degrade (open its own web
+fallback UI) rather than showAlert guessing"*.
+
+**Regla:** `showAlert` sin acciones sirve para avisos en las dos plataformas. Para **confirmaciones**,
+nativo usa `showAlert` con dos acciones y web tiene que degradar a un `CustomModal` propio.
+
+### La estandarización de `parseApiError` no está completa
+Varios hooks (`useUpdateListing`, `useSendMessage`, `useUploadFiles`, …) siguen armando a mano
+`message: response.data.error || "Error desconocido"` en vez de usar `parseApiError`. La guarda de
+`client/__tests__/api-errors.test.ts` solo mira bloques `catch`, así que no los detecta.
+Queda como follow-up.
+
+### El baseline de tests del cliente estaba mal medido
+No eran 843 tests preexistentes sino **849** (verificado excluyendo el archivo nuevo y volviendo a
+correr). Cualquier comparación futura tiene que medir así, no confiar en el número reportado.
+
+### El botón "Cancelar" del comprador nunca existió en la UI
+El servidor **siempre** permitió que el comprador cancelara un loop `accepted`; la UI solo se lo
+ofrecía al vendedor — y a ese botón le faltaba el `onPress`, así que tampoco hacía nada.
+Ahora las dos partes lo tienen y funciona.
