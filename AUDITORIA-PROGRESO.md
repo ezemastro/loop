@@ -6,15 +6,36 @@
 
 ## Bloques SDD
 
-| Bloque | Change SDD | IDs de auditoría | Estado |
-|---|---|---|---|
-| A | `sec-hardening-api` | SEC-01, SEC-02, SEC-03, SEC-06, SEC-07, SEC-12, SEC-13, SEC-15, SEC-16, INF-11 | pendiente |
-| B | `db-integrity-migrations` | SEC-05, SEC-09, SEC-10, ECO-01 (DB), ECO-09 | pendiente |
-| C | `credit-economy-integrity` | ECO-01, ECO-02, ECO-03, ECO-04, ECO-05, ECO-06, ECO-08, ECO-10, ECO-11, ECO-12 | pendiente |
-| D | `client-critical-fixes` | CLI-01, CLI-02, CLI-03, CLI-04, CLI-05, CLI-06, CLI-07, CLI-09 | pendiente |
-| E | `admin-panel-fixes` | ADM-02, ADM-03, ADM-04, ADM-05, ADM-06, ADM-08 | pendiente |
-| F | `delivery-and-ci` | INF-01, INF-02, INF-03, INF-04, INF-07, INF-08, INF-09, INF-10, INF-12 | pendiente |
-| G | `legal-public-routes` | ADM-01, SEC-11, PROD-05 (parcial) | pendiente |
+| Bloque | Change SDD | IDs de auditoría | Plan | Implementación |
+|---|---|---|---|---|
+| A | `sec-hardening-api` | SEC-01, 02, 03, 04, 06(parcial), 07, 12, 13, 15, 16, INF-11 | ✅ | pendiente |
+| B | `db-integrity-migrations` | SEC-05, SEC-09, SEC-10, ECO-01 (DB), ECO-09 | ✅ | en curso |
+| C | `credit-economy-integrity` | ECO-01, 02, 03, 04, 05, 06, 08, 10, 11, 12 | ✅ | pendiente |
+| D | `client-critical-fixes` | CLI-01, 02, 03, 04, 05, 06, 07, 09, 12(parcial), 13(parcial) | ✅ | pendiente |
+| E | `admin-panel-fixes` | ADM-02, 03, 04, 05, 06, 08, 10(parcial) | ✅ | en curso |
+| F | `delivery-and-ci` | INF-01, 02, 03, 04, 06, 07, 08, 09, 10, 12 | ✅ | pendiente |
+| G | `legal-public-routes` | ADM-01, SEC-08, SEC-11, PROD-05(parcial) | ✅ | pendiente |
+
+Cada bloque tiene `proposal.md`, `design.md`, `tasks.md` y sus delta specs en
+`openspec/changes/<id>/`. Las correcciones a la auditoría que salieron de leer el código están en
+`AUDITORIA-CORRECCIONES.md` — son sustanciales, incluida una que habría roto producción (SEC-09) y
+otra que habría abierto una escalada de privilegios (SEC-04).
+
+## Entorno de validación
+
+Base descartable para migraciones y tests con DB real:
+
+```
+docker run -d --name loop-audit-db --rm \
+  -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=audit_password -e POSTGRES_DB=loop_db \
+  -p 5433:5432 postgres:16
+docker exec -i loop-audit-db psql -U postgres -d loop_db -v ON_ERROR_STOP=1 < server/database_creation.sql
+docker exec -i loop-audit-db psql -U postgres -d loop_db -v ON_ERROR_STOP=1 < server/create_categories.sql
+cd server/api && PGHOST=localhost POSTGRES_PORT=5433 POSTGRES_USER=postgres POSTGRES_PASSWORD=audit_password \
+  POSTGRES_DB=loop_db DB_APP_USER=loop_app DB_APP_PASSWORD=audit_app_password \
+  DB_UNSCOPED_USER=loop_app_unscoped DB_UNSCOPED_PASSWORD=audit_unscoped_password \
+  AUTHORIZED_ADMIN_EMAIL=admin@northfield.edu.ar npx tsx src/scripts/migrate.ts
+```
 
 ## Salteados a propósito
 
