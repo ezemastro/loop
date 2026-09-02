@@ -15,6 +15,7 @@ import {
   Field,
   Input,
   LoadingBlock,
+  Modal,
   PageHeader,
   TBody,
   Table,
@@ -33,7 +34,13 @@ const stateOf = (invitation: Invitation): InvitationState => {
 };
 
 const formatDate = (value: Date | string | null) =>
-  value ? new Date(value).toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+  value
+    ? new Date(value).toLocaleDateString("es-AR", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : "—";
 
 /**
  * Invitaciones de un solo uso.
@@ -61,6 +68,8 @@ export default function Invitations() {
   const [creating, setCreating] = useState(false);
   const [lastCreated, setLastCreated] = useState<Invitation | null>(null);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
+  const [revoking, setRevoking] = useState<Invitation | null>(null);
+  const [revokingInFlight, setRevokingInFlight] = useState(false);
 
   const loadInvitations = useCallback(async () => {
     setLoading(true);
@@ -115,14 +124,18 @@ export default function Invitations() {
 
   const handleRevoke = async (invitation: Invitation) => {
     setError(null);
+    setRevokingInFlight(true);
     try {
       await adminApi.deleteInvitation(invitation.id, {
         ...(scopeCommunityId ? { communityId: scopeCommunityId } : {}),
       });
       if (lastCreated?.id === invitation.id) setLastCreated(null);
+      setRevoking(null);
       await loadInvitations();
     } catch (err) {
       setError(getErrorMessage(err, "No se pudo revocar la invitación"));
+    } finally {
+      setRevokingInFlight(false);
     }
   };
 
@@ -252,7 +265,7 @@ export default function Invitations() {
                           <Button
                             variant="danger"
                             size="sm"
-                            onClick={() => void handleRevoke(invitation)}
+                            onClick={() => setRevoking(invitation)}
                           >
                             Revocar
                           </Button>
@@ -266,6 +279,34 @@ export default function Invitations() {
           </Table>
         </Card>
       )}
+
+      {/* Revocar es irreversible: pide confirmación en dos pasos, igual que las bajas de cuenta. */}
+      <Modal
+        isOpen={revoking !== null}
+        onClose={() => setRevoking(null)}
+        title="¿Revocar esta invitación?"
+        description={
+          revoking?.note || `Invitación sin nota (token ${revoking?.token.slice(0, 8)}…)`
+        }
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setRevoking(null)} disabled={revokingInFlight}>
+              Cancelar
+            </Button>
+            <Button
+              variant="danger"
+              loading={revokingInFlight}
+              onClick={() => revoking && void handleRevoke(revoking)}
+            >
+              Sí, revocar
+            </Button>
+          </>
+        }
+      >
+        <Alert tone="warning">
+          El enlace deja de funcionar de inmediato. Esta acción no se puede deshacer.
+        </Alert>
+      </Modal>
     </Layout>
   );
 }

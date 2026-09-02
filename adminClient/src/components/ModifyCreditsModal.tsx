@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import adminApi from "@/api/adminApi";
-import { AxiosError } from "axios";
+import { getErrorMessage } from "@/services/errors";
+import { Alert, Button, Field, Input, Modal, Textarea } from "@/components/ui";
 
 interface ModifyCreditsModalProps {
   user: PrivateUser;
@@ -8,6 +9,8 @@ interface ModifyCreditsModalProps {
   onClose: () => void;
   onSuccess: () => void;
 }
+
+const FORM_ID = "modify-credits-form";
 
 export default function ModifyCreditsModal({
   user,
@@ -17,6 +20,7 @@ export default function ModifyCreditsModal({
 }: ModifyCreditsModalProps) {
   const [amount, setAmount] = useState("");
   const [isPositive, setIsPositive] = useState(true);
+  const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{
@@ -42,9 +46,16 @@ export default function ModifyCreditsModal({
       return;
     }
 
+    if (!reason.trim()) {
+      setError("El motivo es obligatorio");
+      return;
+    }
+
     try {
       setLoading(true);
-      const response = await adminApi.modifyUserCredits(user.id, creditAmount, isPositive);
+      const response = await adminApi.modifyUserCredits(user.id, creditAmount, isPositive, {
+        reason: reason.trim(),
+      });
 
       if (response.success) {
         setFeedback({ type: "success", message: "Créditos modificados exitosamente" });
@@ -52,11 +63,7 @@ export default function ModifyCreditsModal({
         onSuccess();
       }
     } catch (err) {
-      if (err instanceof AxiosError) {
-        setError(err.response?.data?.error || "Error al modificar créditos");
-      } else {
-        setError("Error al modificar créditos");
-      }
+      setError(getErrorMessage(err, "Error al modificar créditos"));
       console.error(err);
     } finally {
       setLoading(false);
@@ -66,81 +73,81 @@ export default function ModifyCreditsModal({
   const handleClose = () => {
     setAmount("");
     setIsPositive(true);
+    setReason("");
     setError(null);
     setFeedback(null);
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full m-4">
-        <h2 className="text-xl font-bold mb-4">
-          Modificar Créditos - {user.firstName} {user.lastName}
-        </h2>
-        <p className="mb-4 text-gray-600">
-          Créditos actuales: <span className="font-semibold">{user.credits.balance}</span>
-        </p>
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={`Modificar créditos — ${user.firstName} ${user.lastName}`}
+      size="md"
+      footer={
+        <>
+          <Button variant="ghost" type="button" onClick={handleClose} disabled={loading}>
+            Cancelar
+          </Button>
+          <Button type="submit" form={FORM_ID} loading={loading}>
+            Modificar
+          </Button>
+        </>
+      }
+    >
+      <p className="mb-4 text-sm text-slate-600">
+        Créditos actuales: <span className="font-semibold">{user.credits.balance}</span>
+      </p>
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block mb-2 font-semibold">Cantidad:</label>
+      <form id={FORM_ID} onSubmit={handleSubmit} className="space-y-4">
+        <Field label="Cantidad" htmlFor="credits-amount" required>
+          <Input
+            id="credits-amount"
+            type="number"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            required
+            min="1"
+          />
+        </Field>
+
+        <fieldset className="space-y-2">
+          <legend className="mb-1.5 text-sm font-medium text-slate-700">Operación</legend>
+          <label className="flex items-center gap-2 text-sm text-slate-700">
             <input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="border border-gray-300 rounded px-3 py-2 w-full"
-              required
-              min="1"
+              type="radio"
+              checked={isPositive}
+              onChange={() => setIsPositive(true)}
+              className="text-indigo-600 focus:ring-indigo-500"
             />
-          </div>
+            Sumar créditos
+          </label>
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            <input
+              type="radio"
+              checked={!isPositive}
+              onChange={() => setIsPositive(false)}
+              className="text-indigo-600 focus:ring-indigo-500"
+            />
+            Restar créditos
+          </label>
+        </fieldset>
 
-          <div className="mb-4">
-            <label className="flex items-center mb-2">
-              <input
-                type="radio"
-                checked={isPositive}
-                onChange={() => setIsPositive(true)}
-                className="mr-2"
-              />
-              Sumar créditos
-            </label>
-            <label className="flex items-center">
-              <input
-                type="radio"
-                checked={!isPositive}
-                onChange={() => setIsPositive(false)}
-                className="mr-2"
-              />
-              Restar créditos
-            </label>
-          </div>
+        <Field label="Motivo" htmlFor="credits-reason" required>
+          <Textarea
+            id="credits-reason"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="Ej: Ajuste por error de carga"
+            rows={2}
+            required
+          />
+        </Field>
 
-          {feedback && (
-            <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">{feedback.message}</div>
-          )}
-          {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>}
-
-          <div className="flex gap-2">
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:opacity-50 flex-1"
-            >
-              {loading ? "Modificando..." : "Modificar"}
-            </button>
-            <button
-              type="button"
-              onClick={handleClose}
-              disabled={loading}
-              className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 disabled:opacity-50 flex-1"
-            >
-              Cancelar
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        {feedback && <Alert tone="success">{feedback.message}</Alert>}
+        {error && <Alert tone="error">{error}</Alert>}
+      </form>
+    </Modal>
   );
 }

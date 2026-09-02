@@ -6,6 +6,9 @@ import ModifyCreditsModal from "@/components/ModifyCreditsModal";
 import ResetPasswordModal from "@/components/ResetPasswordModal";
 import { AxiosError } from "axios";
 
+/** Respaldo cuando la respuesta no trae `pagination` (revert independiente del lado servidor). Ver `server/api/src/config.ts:156`. */
+const DEFAULT_PAGE_SIZE = 10;
+
 export default function Users() {
   const [users, setUsers] = useState<PrivateUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,13 +27,13 @@ export default function Users() {
         page,
         search: search || undefined,
       });
-      console.log(response);
 
       if (response.success && response.data) {
         setUsers(response.data.users);
-        // Calcular páginas basado en total
+        // Calcular páginas basado en el tamaño de página que reporta el servidor.
         const total = response.data.total;
-        setTotalPages(Math.ceil(total / 20)); // 20 por página
+        const pageSize = response.pagination?.pageSize ?? DEFAULT_PAGE_SIZE;
+        setTotalPages(Math.max(1, Math.ceil(total / pageSize)));
       }
     } catch (err) {
       if (err instanceof AxiosError) {

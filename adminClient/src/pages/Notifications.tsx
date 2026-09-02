@@ -162,8 +162,14 @@ export default function Notifications() {
           {/* Formulario de notificación */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block mb-2 font-semibold text-gray-700">Título*:</label>
+              <label
+                htmlFor="notification-title"
+                className="block mb-2 font-semibold text-gray-700"
+              >
+                Título*:
+              </label>
               <input
+                id="notification-title"
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -174,8 +180,14 @@ export default function Notifications() {
             </div>
 
             <div>
-              <label className="block mb-2 font-semibold text-gray-700">Mensaje*:</label>
+              <label
+                htmlFor="notification-message"
+                className="block mb-2 font-semibold text-gray-700"
+              >
+                Mensaje*:
+              </label>
               <textarea
+                id="notification-message"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 className="border border-gray-300 rounded px-4 py-2 w-full"

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import adminApi, { type AdminCommunity } from "@/api/adminApi";
 import { commonApi } from "@/api/commonApi";
 import { getErrorMessage } from "@/services/errors";
+import { getUrl } from "@/services/getUrl";
 import { Alert, Button, Field, Input, Modal, Toggle } from "@/components/ui";
 
 /**
@@ -214,7 +215,7 @@ export default function CommunityFormModal({
           <div className="flex items-center gap-4">
             {logoUrl && (
               <img
-                src={logoUrl}
+                src={getUrl(logoUrl)}
                 alt=""
                 className="h-14 w-14 rounded-lg border border-slate-200 object-contain"
               />

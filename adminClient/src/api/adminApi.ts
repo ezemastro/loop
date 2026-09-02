@@ -55,6 +55,14 @@ export const adminApi = {
     });
     return response.data;
   },
+
+  /**
+   * Cerrar sesión. Va sin auth: el punto es poder terminar una sesión que ya puede no servir.
+   */
+  logout: async () => {
+    const response = await api.post<PostAdminLogoutResponse>("/admin/logout");
+    return response.data;
+  },
   /**
    * Validar un nuevo email para registro de administradores.
    * `role: "super_admin"` solo lo acepta el backend si quien autoriza ya es super admin.

@@ -54,6 +54,7 @@ export default function DeletionRequests() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<AccountDeletionRequest | null>(null);
+  const [rejecting, setRejecting] = useState<AccountDeletionRequest | null>(null);
   const [resolving, setResolving] = useState(false);
 
   const loadRequests = useCallback(async () => {
@@ -82,6 +83,7 @@ export default function DeletionRequests() {
     try {
       await adminApi.resolveDeletionRequest(request.id, action);
       setConfirming(null);
+      setRejecting(null);
       await loadRequests();
     } catch (err) {
       setError(getErrorMessage(err, "No se pudo resolver la solicitud"));
@@ -171,7 +173,7 @@ export default function DeletionRequests() {
                         <Button
                           variant="secondary"
                           size="sm"
-                          onClick={() => void resolve(request, "rejected")}
+                          onClick={() => setRejecting(request)}
                           disabled={resolving}
                         >
                           Rechazar
@@ -217,6 +219,32 @@ export default function DeletionRequests() {
         <Alert tone="error" title="Esta acción no se puede deshacer">
           Se eliminan la cuenta y todo su contenido: publicaciones, mensajes, notificaciones,
           misiones, movimientos de loopies y deseos.
+        </Alert>
+      </Modal>
+
+      {/* Instancia separada de la de "Borrar cuenta": son dos acciones distintas y no se generalizan. */}
+      <Modal
+        isOpen={rejecting !== null}
+        onClose={() => setRejecting(null)}
+        title="¿Rechazar esta solicitud?"
+        description={rejecting?.email}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setRejecting(null)} disabled={resolving}>
+              Cancelar
+            </Button>
+            <Button
+              variant="danger"
+              loading={resolving}
+              onClick={() => rejecting && void resolve(rejecting, "rejected")}
+            >
+              Sí, rechazar
+            </Button>
+          </>
+        }
+      >
+        <Alert tone="warning">
+          La cuenta queda activa; la solicitud de baja pasa a "Rechazadas".
         </Alert>
       </Modal>
     </Layout>

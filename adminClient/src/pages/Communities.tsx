@@ -4,6 +4,7 @@ import CommunityFormModal from "@/components/CommunityFormModal";
 import adminApi, { type AdminCommunity } from "@/api/adminApi";
 import { useCommunitiesStore } from "@/stores/communities";
 import { getErrorMessage } from "@/services/errors";
+import { getUrl } from "@/services/getUrl";
 import {
   Alert,
   Badge,
@@ -14,6 +15,7 @@ import {
   EmptyState,
   Input,
   LoadingBlock,
+  Modal,
   PageHeader,
 } from "@/components/ui";
 
@@ -107,7 +109,7 @@ function CommunityCard({
           <span className="flex items-center gap-3">
             {community.media?.url ? (
               <img
-                src={community.media.url}
+                src={getUrl(community.media.url)}
                 alt=""
                 className="h-9 w-9 rounded-lg border border-slate-200 object-contain"
               />
@@ -179,6 +181,7 @@ function CommunityDomains({
   const [domain, setDomain] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [removingDomain, setRemovingDomain] = useState<CommunityEmailDomain | null>(null);
 
   const add = async () => {
     const value = domain.trim().toLowerCase();
@@ -196,11 +199,12 @@ function CommunityDomains({
     }
   };
 
-  const remove = async (domainId: UUID) => {
+  const remove = async (entry: CommunityEmailDomain) => {
     setBusy(true);
     setError(null);
     try {
-      await adminApi.removeCommunityDomain(community.id, domainId);
+      await adminApi.removeCommunityDomain(community.id, entry.id);
+      setRemovingDomain(null);
       onChanged();
     } catch (err) {
       setError(getErrorMessage(err, "No se pudo quitar el dominio"));
@@ -208,6 +212,8 @@ function CommunityDomains({
       setBusy(false);
     }
   };
+
+  const isLastDomain = community.domains.length === 1;
 
   return (
     <div>
@@ -229,7 +235,7 @@ function CommunityDomains({
               @{entry.domain}
               <button
                 type="button"
-                onClick={() => void remove(entry.id)}
+                onClick={() => setRemovingDomain(entry)}
                 disabled={busy}
                 aria-label={`Quitar ${entry.domain}`}
                 className="flex h-4 w-4 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-300 hover:text-slate-700 disabled:opacity-50"
@@ -259,6 +265,35 @@ function CommunityDomains({
           {error}
         </Alert>
       )}
+
+      {/* Quitar un dominio corta la puerta de entrada de esa comunidad, así que pide confirmación. */}
+      <Modal
+        isOpen={removingDomain !== null}
+        onClose={() => setRemovingDomain(null)}
+        title="¿Quitar este dominio?"
+        description={removingDomain ? `@${removingDomain.domain}` : undefined}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setRemovingDomain(null)} disabled={busy}>
+              Cancelar
+            </Button>
+            <Button
+              variant="danger"
+              loading={busy}
+              onClick={() => removingDomain && void remove(removingDomain)}
+            >
+              Sí, quitar
+            </Button>
+          </>
+        }
+      >
+        {isLastDomain && (
+          <Alert tone="warning">
+            Es el único dominio de la comunidad: nadie va a poder auto-registrarse hasta que
+            agregues otro.
+          </Alert>
+        )}
+      </Modal>
     </div>
   );
 }

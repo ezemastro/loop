@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { commonApi } from "@/api/commonApi";
 import adminApi from "@/api/adminApi";
-import { AxiosError } from "axios";
+import { getErrorMessage } from "@/services/errors";
 import { getUrl } from "@/services/getUrl";
+import { Alert, Button, Field, Input, Modal } from "@/components/ui";
 
 interface EditSchoolModalProps {
   isOpen: boolean;
@@ -10,6 +11,8 @@ interface EditSchoolModalProps {
   onSuccess: () => void;
   school: School | null;
 }
+
+const FORM_ID = "edit-school-form";
 
 export default function EditSchoolModal({
   isOpen,
@@ -85,7 +88,7 @@ export default function EditSchoolModal({
         setFeedback({ type: "success", message: "Imagen subida exitosamente" });
       }
     } catch (err) {
-      setError(err instanceof AxiosError ? err.response?.data?.error : "Error al subir la imagen");
+      setError(getErrorMessage(err, "Error al subir la imagen"));
       console.error(err);
     } finally {
       setUploading(false);
@@ -121,9 +124,7 @@ export default function EditSchoolModal({
         onSuccess();
       }
     } catch (err) {
-      setError(
-        err instanceof AxiosError ? err.response?.data?.error : "Error al actualizar la escuela",
-      );
+      setError(getErrorMessage(err, "Error al actualizar la escuela"));
       console.error(err);
     } finally {
       setUpdating(false);
@@ -140,93 +141,85 @@ export default function EditSchoolModal({
     onClose();
   };
 
-  if (!isOpen || !school) return null;
+  // `ui/Modal` ya resuelve `!isOpen`; el `!school` se mantiene porque el cuerpo lee `school.*`
+  // sin más chequeos.
+  if (!school) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full m-4 max-h-[90vh] overflow-y-auto">
-        <h2 className="text-xl font-bold mb-4">Editar Escuela</h2>
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Editar escuela"
+      size="md"
+      footer={
+        <>
+          <Button variant="ghost" type="button" onClick={handleClose}>
+            Cancelar
+          </Button>
+          <Button variant="success" type="submit" form={FORM_ID} loading={updating}>
+            Guardar cambios
+          </Button>
+        </>
+      }
+    >
+      <form id={FORM_ID} onSubmit={handleSubmit} className="space-y-4">
+        <Field label="Nombre de la escuela" htmlFor="edit-school-name" required>
+          <Input
+            id="edit-school-name"
+            type="text"
+            value={schoolName}
+            onChange={(e) => setSchoolName(e.target.value)}
+            required
+            placeholder="Ej: Universidad Nacional"
+          />
+        </Field>
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block mb-2 font-semibold">Nombre de la Escuela*:</label>
-            <input
-              type="text"
-              value={schoolName}
-              onChange={(e) => setSchoolName(e.target.value)}
-              className="border border-gray-300 rounded px-3 py-2 w-full"
-              required
-              placeholder="Ej: Universidad Nacional"
-            />
-          </div>
-
-          <div className="mb-4">
-            <label className="block mb-2 font-semibold">Logo de la Escuela (Opcional):</label>
-
-            <div className="mb-3">
-              <p className="text-sm text-gray-600 mb-2">Logo actual:</p>
-              {school.media && (
-                <img
-                  src={getUrl(school.media.url)}
-                  alt={school.name}
-                  className="w-24 h-24 object-cover rounded border border-gray-300"
-                />
-              )}
-            </div>
-
-            {previewUrl && (
-              <div className="mb-3">
-                <p className="text-sm text-gray-600 mb-2">Nuevo logo:</p>
-                <img
-                  src={previewUrl}
-                  alt="Preview"
-                  className="w-24 h-24 object-cover rounded border border-gray-300"
-                />
-              </div>
+        <Field label="Logo de la escuela" htmlFor="edit-school-logo" hint="Opcional">
+          <div className="mb-3">
+            <p className="mb-2 text-sm text-slate-600">Logo actual:</p>
+            {school.media && (
+              <img
+                src={getUrl(school.media.url)}
+                alt={school.name}
+                className="h-24 w-24 rounded border border-slate-300 object-cover"
+              />
             )}
-
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileSelect}
-              className="border border-gray-300 rounded px-3 py-2 w-full"
-            />
           </div>
 
-          {selectedFile && !uploadedMediaId && (
-            <button
-              type="button"
-              onClick={handleUploadFile}
-              disabled={uploading}
-              className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition disabled:bg-gray-400 mb-4"
-            >
-              {uploading ? "Subiendo..." : "Subir Logo"}
-            </button>
+          {previewUrl && (
+            <div className="mb-3">
+              <p className="mb-2 text-sm text-slate-600">Nuevo logo:</p>
+              <img
+                src={previewUrl}
+                alt="Preview"
+                className="h-24 w-24 rounded border border-slate-300 object-cover"
+              />
+            </div>
           )}
 
-          {feedback && (
-            <div className="bg-green-100 text-green-700 p-3 rounded mb-4">{feedback.message}</div>
-          )}
-          {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
+          <input
+            id="edit-school-logo"
+            type="file"
+            accept="image/*"
+            onChange={handleFileSelect}
+            className="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-indigo-700 hover:file:bg-indigo-100"
+          />
+        </Field>
 
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              disabled={updating}
-              className="flex-1 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition disabled:bg-gray-400"
-            >
-              {updating ? "Actualizando..." : "Guardar Cambios"}
-            </button>
-            <button
-              type="button"
-              onClick={handleClose}
-              className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 transition"
-            >
-              Cancelar
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        {selectedFile && !uploadedMediaId && (
+          <Button
+            type="button"
+            onClick={() => void handleUploadFile()}
+            loading={uploading}
+            className="w-full"
+          >
+            Subir logo
+          </Button>
+        )}
+
+        {feedback && <Alert tone="success">{feedback.message}</Alert>}
+        {error && <Alert tone="error">{error}</Alert>}
+      </form>
+    </Modal>
   );
 }

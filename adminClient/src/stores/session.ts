@@ -40,10 +40,18 @@ export const useSessionStore = create<SessionStore>()(
     }),
     {
       name: "session-storage",
-      version: 2,
+      version: 3,
       // Las sesiones viejas no guardaban rol ni comunidad. Adivinarlos daría un panel con los
       // permisos equivocados, así que se fuerza un login nuevo.
       migrate: () => ({ ...LOGGED_OUT }),
+      // `email`, `fullName` y `communityName` no se persisten: son datos personales y no hace
+      // falta tenerlos antes del primer login. El costo aceptado es que el sidebar muestra sus
+      // fallbacks hasta el siguiente login exitoso.
+      partialize: (state) => ({
+        isLoggedIn: state.isLoggedIn,
+        role: state.role,
+        communityId: state.communityId,
+      }),
     },
   ),
 );

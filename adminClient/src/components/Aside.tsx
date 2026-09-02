@@ -1,5 +1,6 @@
 import { useIsSuperAdmin, useSessionStore } from "@/stores/session";
 import { NavLink, useNavigate } from "react-router";
+import adminApi from "@/api/adminApi";
 
 interface NavItem {
   to: string;
@@ -42,7 +43,14 @@ export default function Aside() {
   const logout = useSessionStore((state) => state.logout);
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Si el servidor está inaccesible, la sesión local se limpia igual: la cookie quedará vigente
+    // en el servidor, pero el panel no debe quedar atascado esperando una respuesta que no llega.
+    try {
+      await adminApi.logout();
+    } catch {
+      // ignorado a propósito
+    }
     logout();
     navigate("/login");
   };
@@ -99,7 +107,7 @@ export default function Aside() {
 
       <div className="border-t border-slate-800 p-3">
         <button
-          onClick={handleLogout}
+          onClick={() => void handleLogout()}
           className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
         >
           <span aria-hidden>🚪</span>
