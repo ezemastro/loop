@@ -8,13 +8,13 @@
 
 | Bloque | Change SDD | IDs de auditoría | Plan | Implementación |
 |---|---|---|---|---|
-| A | `sec-hardening-api` | SEC-01, 02, 03, 04, 06(parcial), 07, 12, 13, 15, 16, INF-11 | ✅ | pendiente |
-| B | `db-integrity-migrations` | SEC-05, SEC-09, SEC-10, ECO-01 (DB), ECO-09 | ✅ | en curso |
-| C | `credit-economy-integrity` | ECO-01, 02, 03, 04, 05, 06, 08, 10, 11, 12 | ✅ | pendiente |
-| D | `client-critical-fixes` | CLI-01, 02, 03, 04, 05, 06, 07, 09, 12(parcial), 13(parcial) | ✅ | pendiente |
-| E | `admin-panel-fixes` | ADM-02, 03, 04, 05, 06, 08, 10(parcial) | ✅ | en curso |
-| F | `delivery-and-ci` | INF-01, 02, 03, 04, 06, 07, 08, 09, 10, 12 | ✅ | pendiente |
-| G | `legal-public-routes` | ADM-01, SEC-08, SEC-11, PROD-05(parcial) | ✅ | pendiente |
+| A | `sec-hardening-api` | SEC-01, 02, 03, 04, 06(parcial), 07, 12, 13, 15, 16, INF-11 | ✅ | en curso |
+| B | `db-integrity-migrations` | SEC-05, SEC-09, SEC-10, ECO-01 (DB), ECO-09 | ✅ | ✅ `a3a026e` |
+| C | `credit-economy-integrity` | ECO-01, 02, 03, 04, 05, 06, 08, 10, 11, 12 | ✅ | en curso |
+| D | `client-critical-fixes` | CLI-01, 02, 03, 04, 05, 06, 07, 09, 12(parcial), 13(parcial) | ✅ | ✅ `d6b50b3` |
+| E | `admin-panel-fixes` | ADM-02, 03, 04, 05, 06, 08, 10(parcial) | ✅ | ✅ `fe7f886` |
+| F | `delivery-and-ci` | INF-01, 02, 03, 04, 06, 07, 08, 09, 10, 12 | ✅ | en curso — fases 1-6 y 8-9 aplicadas; fase 7 (observabilidad/INF-10) diferida a `sec-hardening-api` (dueño de `index.ts`/`/health`, aún no aplicado) |
+| G | `legal-public-routes` | ADM-01, SEC-08, SEC-11, PROD-05(parcial) | ✅ | en curso |
 
 Cada bloque tiene `proposal.md`, `design.md`, `tasks.md` y sus delta specs en
 `openspec/changes/<id>/`. Las correcciones a la auditoría que salieron de leer el código están en
@@ -129,3 +129,23 @@ imposible apuntar a una base en otro puerto. Se agregó `DB_PORT` en `config.ts`
 Con eso se pudo levantar una base de validación descartable y **la cadena completa de migraciones
 `0000`→`0008` corre limpia contra un `postgres:16` real**. Ese es el entorno que se usa para
 validar las migraciones nuevas de esta sesión.
+
+### D-07 — La migración `0000` no puede correr sobre un volumen vacío
+`server/migrations/0000_baseline_reconcile.sql` asume que el schema base de `database_creation.sql`
+ya existe. En un volumen realmente vacío, correr solo el runner falla con
+`relation "admins" does not exist`.
+
+Es decir: el fix de INF-01 (servicio `migrate` en `compose.yml`) **no alcanza solo**. El servicio `db`
+tiene que sembrar el schema base primero. Ya quedó resuelto montando `database_creation.sql` y
+`create_categories.sql` en `/docker-entrypoint-initdb.d/`, el mismo patrón que ya usaba
+`e2e/Dockerfile.db-init`.
+
+### D-08 — El bloqueo real de INF-01 no era el que decía la auditoría
+`tsconfig.prod.json` **sí** compila `migrate.ts` a `dist/scripts/`. Lo que faltaba era el `COPY` de
+`server/migrations` **y**, sobre todo, que `tsx` es devDependency y `--omit=dev` la borra: por eso
+`npm run migrate` nunca iba a correr en la imagen de producción. El servicio invoca
+`node dist/scripts/migrate.js`.
+
+### D-09 — ESLint flat config no ignora `dist/` solo
+Un build local inundaba el lint con 8904 hallazgos. `server/api/eslint.config.ts` no tenía el ignore
+de `dist/**`. Agregado.
