@@ -284,7 +284,7 @@ change to accept the mapped constant type rather than `string`, so the compiler 
 at a fourth call site. `LIKE` terms get `%`, `_` and `\` escaped in one shared helper used by all
 four search queries.
 
-**Reuse.** Zod 4.0.17 is already a dependency (`server/api/package.json:38`) and
+**Reuse.** Zod 4.0.17 is already a dependency (`server/api/package.json:39`) and
 `services/validations.ts` is the established home for schemas, so SEC-01 and SEC-07 add no
 dependency. Only `helmet` and `express-rate-limit` are new.
 
@@ -345,9 +345,9 @@ migration is added, so there is no data to roll back. `git rm --cached client/.e
 
 - New: `helmet@^8` (8.3.0 current) and `express-rate-limit@^8` (8.7.0 current). Both verified
   compatible: `express-rate-limit` peers `express >= 4.11`, `helmet` needs Node ≥ 18; the repo is
-  Express 5.1.0 (`server/api/package.json:31`) on Node 24.
-- Existing: Zod 4.0.17 (`server/api/package.json:38`) — no new validation dependency.
-- `dotenv` is currently a **devDependency** (`server/api/package.json:60`) loaded through `require()`
+  Express 5.1.0 (`server/api/package.json:32`) on Node 24.
+- Existing: Zod 4.0.17 (`server/api/package.json:39`) — no new validation dependency.
+- `dotenv` is currently a **devDependency** (`server/api/package.json:61`) loaded through `require()`
   inside a silent `try/catch` (`config.ts:4-12`). That is acceptable because it is only loaded when
   `NODE_ENV !== "production"`, but the new schema must not depend on it having succeeded.
 - No dependency on `db-integrity-migrations`; this change adds no migration.

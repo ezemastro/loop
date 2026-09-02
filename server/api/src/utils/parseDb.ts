@@ -1,8 +1,18 @@
 import { PAGE_SIZE } from "../config";
 import { safeNumber } from "./safeNumber";
 
-const parseDateFromDb = (date: ISODateString): Date => {
-  return new Date(date);
+/**
+ * Fecha de la base a la forma pública. Devuelve **string ISO**, no `Date`: es lo único que existe
+ * del otro lado del cable — `res.json` serializa cualquier `Date` a ISO igual, así que el cliente
+ * nunca vio otra cosa, y los tipos compartidos ahora lo dicen.
+ *
+ * El `new Date(...)` intermedio no sobra: el driver `pg` no tiene un `setTypeParser` registrado
+ * para `TIMESTAMP(0)` (oid 1114), así que en runtime `row.created_at` llega como `Date` aunque
+ * `ISODateString` diga lo contrario. Normalizarlo acá garantiza que el valor sea realmente un
+ * string, venga como venga.
+ */
+const parseDateFromDb = (date: ISODateString): string => {
+  return new Date(date).toISOString();
 };
 const parseDateToDb = (date: Date): ISODateString => {
   return date.toISOString() as ISODateString;
@@ -383,7 +393,7 @@ export const parseListingToDb = (listing: Listing, communityId: UUID): DB_Listin
     description: listing.description,
     price_credits: listing.price.toString() as DbNumber,
     seller_id: listing.sellerId,
-    created_at: listing.createdAt.toISOString(),
+    created_at: listing.createdAt,
     buyer_id: listing.buyerId,
     category_id: listing.categoryId,
     disabled: listing.disabled,

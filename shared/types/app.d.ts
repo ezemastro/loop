@@ -151,7 +151,7 @@ interface ListingBase {
   disabled: boolean;
   buyerId: UUID | null;
   offeredCredits: number | null;
-  createdAt: Date;
+  createdAt: string;
 }
 interface Listing extends ListingBase {
   seller: PublicUser;
@@ -179,7 +179,7 @@ interface UserMissionBase {
   userId: UUID;
   missionTemplateId: UUID;
   completed: boolean;
-  completedAt: Date | null;
+  completedAt: string | null;
   progress: {
     total: number;
     current: number;
@@ -198,7 +198,7 @@ interface WalletTransactionBase {
   balanceAfter: number;
   referenceId: UUID | null;
   meta: JsonObject | null;
-  createdAt: Date;
+  createdAt: string;
 }
 interface WalletTransaction extends WalletTransactionBase {
   user: User;
@@ -251,9 +251,9 @@ interface NotificationBase {
   id: UUID;
   userId: UUID;
   type: NotificationType;
-  createdAt: Date;
+  createdAt: string;
   isRead: boolean;
-  readAt: Date | null;
+  readAt: string | null;
   payload:
     | MissionNotificationPayloadBase
     | LoopNotificationPayloadBase
@@ -274,7 +274,7 @@ interface MessageBase {
   recipientId: UUID;
   text: string;
   attachedListingId?: UUID | null;
-  createdAt: Date;
+  createdAt: string;
 }
 interface Message extends MessageBase {
   attachedListing: Listing | null;
@@ -312,10 +312,10 @@ interface InvitationBase {
   token: string;
   communityId: UUID;
   usedByUserId: UUID | null;
-  usedAt: Date | null;
-  expiresAt: Date | null;
+  usedAt: string | null;
+  expiresAt: string | null;
   note: string | null;
-  createdAt: Date;
+  createdAt: string;
 }
 interface Invitation extends InvitationBase {
   /** Link listo para compartir, armado con APP_BASE_URL. */

@@ -824,8 +824,8 @@ interface AccountDeletionRequest {
   communityId: UUID;
   email: string;
   status: "pending" | "completed" | "rejected";
-  createdAt: Date;
-  resolvedAt: Date | null;
+  createdAt: string;
+  resolvedAt: string | null;
   user: PublicUser | null;
 }
 

@@ -190,7 +190,7 @@ Each was verified in the source. Where they conflict, the code wins.
      in a comment and `DEMO.md` publishes it. The audit's `*(a confirmar)*` on credential leakage
      resolves to "not a secret". The real cost is bundle weight and a shipped mock API surface.
    - The one real, safe win: `client/demo/handlers/auth.ts:10-15` **ignores the password entirely**
-     ("Cualquier credencial entra a la demo"), so `useLoginForm.ts:62` passing `DEMO_PASSWORD` is
+     ("Cualquier credencial entra a la demo"), so `useLoginForm.ts:74` passing `DEMO_PASSWORD` is
      dead weight. `DEMO_PASSWORD` has exactly one client consumer; removing it lets the re-export
      chain (`demo/index.ts:28`, `demo/db/dataset.ts:15,24`) go too, and application code stops
      referencing a credential. Bundle-size reduction requires an entry-point split and is deferred.

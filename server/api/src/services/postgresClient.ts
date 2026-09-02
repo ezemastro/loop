@@ -4,6 +4,7 @@ import {
   DB_APP_USER,
   DB_HOST,
   DB_NAME,
+  DB_PORT,
   DB_UNSCOPED_PASSWORD,
   DB_UNSCOPED_USER,
   ERROR_MESSAGES,
@@ -44,7 +45,7 @@ export const TENANT_TABLES = [
 const poolConfig = {
   database: DB_NAME,
   host: DB_HOST,
-  port: 5432,
+  port: DB_PORT,
   idleTimeoutMillis: 30_000,
   connectionTimeoutMillis: 5_000,
 };

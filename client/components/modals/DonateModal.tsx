@@ -17,7 +17,10 @@ import Error from "../Error";
 
 export default function DonateModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const queryClient = useQueryClient();
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  // `PublicUser`, no `User`: lo que elige `UserSelector` viene de `GET /users`, y por la
+  // invariante de privacidad esa lista nunca trae email, teléfono ni créditos. Un `User` completo
+  // no cruza la red.
+  const [selectedUser, setSelectedUser] = useState<PublicUser | null>(null);
   const [amount, setAmount] = useState<number | null>(null);
   const { user } = useAuth();
   const { mutate: donate } = useUserDonate();

@@ -321,7 +321,7 @@ export const MOCK_LISTING: Listing = {
   description: "This is a test listing",
   price: 100,
   media: [MOCK_RANDOM_MEDIA],
-  createdAt: new Date(),
+  createdAt: new Date().toISOString(),
 };
 export const MOCK_LISTING_DB = parseListingToDb(MOCK_LISTING, MOCK_COMMUNITY.id);
 export const MOCK_MISSION_TEMPLATE_DB: DB_MissionTemplates = {

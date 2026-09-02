@@ -24,6 +24,7 @@ import {
   DB_APP_USER,
   DB_HOST,
   DB_NAME,
+  DB_PORT,
   DB_PASSWORD,
   DB_UNSCOPED_PASSWORD,
   DB_UNSCOPED_USER,
@@ -204,7 +205,7 @@ const run = async () => {
     password: DB_PASSWORD,
     database: DB_NAME,
     host: DB_HOST,
-    port: 5432,
+    port: DB_PORT,
   });
   await client.connect();
 

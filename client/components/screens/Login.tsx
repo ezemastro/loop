@@ -35,8 +35,8 @@ export default function Login() {
     handleSubmit,
     isLoginError,
     loginErrorMessage,
+    loginErrorCode,
     isLoginLoading,
-    loginError,
   } = useLoginForm();
   const { showToast } = useToast();
   const resendVerification = useResendVerification();
@@ -50,9 +50,7 @@ export default function Login() {
   };
 
   // Si el correo existe pero no verificó, además del mensaje se ofrece reenviar el mail.
-  const isUnverifiedEmail =
-    isLoginError &&
-    (loginError as { errorCode?: string } | undefined)?.errorCode === "EMAIL_NOT_VERIFIED";
+  const isUnverifiedEmail = isLoginError && loginErrorCode === "EMAIL_NOT_VERIFIED";
 
   const handleResend = () => {
     resendVerification.mutate(

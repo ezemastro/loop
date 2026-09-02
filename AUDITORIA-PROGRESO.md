@@ -80,3 +80,31 @@ La auditoría decía "Lint raíz roto". Era peor: **ningún** paquete linteaba.
 
 No se corrió `--fix` todavía: eso mueve muchas líneas y taparía los diffs reales de los bloques.
 Queda para el final de la sesión.
+
+### D-05 — El proxy activo es Traefik (de Coolify), no Caddy — INF-09 resuelto por observación
+La auditoría marcaba INF-09 como "a confirmar si Caddy es el proxy activo". Confirmado en el host:
+
+```
+$ docker inspect coolify-proxy --format '{{.Config.Image}}'
+traefik:v3.6
+$ docker ps --filter name=coolify-proxy --format '{{.Ports}}'
+0.0.0.0:80->80/tcp, 0.0.0.0:443->443/tcp, 0.0.0.0:8080->8080/tcp, 0.0.0.0:443->443/udp
+```
+
+Traefik ocupa 80, 443 y 8080. **Caddy no puede estar sirviendo nada**: no hay contenedor Caddy
+corriendo y los puertos que su config pide ya están tomados. Por lo tanto `Caddyfile` y
+`compose.caddy.yml` son código muerto, y el bug de `admin:3002` vs puerto 80 nunca se manifestó
+porque ese subdominio jamás pasó por Caddy.
+
+**Decisión:** se borran `Caddyfile` y `compose.caddy.yml` en el bloque F en vez de arreglarlos.
+Ojo también: la red `loop_default` existe pero está **vacía** — no hay ningún contenedor de Loop
+corriendo en esta máquina hoy.
+
+### D-06 — `POSTGRES_PORT` se ignoraba: 5432 hardcodeado en 3 lugares (INF-11, resuelto)
+`migrate.ts:207`, `postgresClient.ts:47` y `rls.test.ts:35` fijaban `port: 5432`, así que era
+imposible apuntar a una base en otro puerto. Se agregó `DB_PORT` en `config.ts` (desde
+`POSTGRES_PORT`, default 5432) y se usa en los tres lugares.
+
+Con eso se pudo levantar una base de validación descartable y **la cadena completa de migraciones
+`0000`→`0008` corre limpia contra un `postgres:16` real**. Ese es el entorno que se usa para
+validar las migraciones nuevas de esta sesión.

@@ -4,6 +4,7 @@ import ButtonText from "./bases/ButtonText";
 import CustomButton from "./bases/CustomButton";
 import MailFallbackSheet from "./bases/MailFallbackSheet";
 import { useMailComposer } from "@/hooks/useMailComposer";
+import { useAuth } from "@/hooks/useAuth";
 
 type ReportButtonProps = PressableProps & {
   label?: string;
@@ -18,6 +19,18 @@ export default function ReportButton({
   ...props
 }: ReportButtonProps) {
   const { manualCopyText, sendMail, closeFallback } = useMailComposer();
+  // El denunciante sale de la sesión, no del denunciado: `PrivateUser` es el único que lleva
+  // email. Sirve para poder responderle, sobre todo cuando el envío cae en el fallback de copiar
+  // y compartir, donde el remitente del mail puede no ser el de la cuenta.
+  const { user: reporter } = useAuth();
+
+  const reporterLines = reporter
+    ? [
+        `- Denunciante: ${reporter.firstName} ${reporter.lastName}`,
+        `- Email del denunciante: ${reporter.email}`,
+        `- ID del denunciante: ${reporter.id}`,
+      ]
+    : ["- Denunciante: sin sesión iniciada"];
 
   const getReportData = () => {
     if (listing) {
@@ -40,6 +53,8 @@ export default function ReportButton({
           `- Colegios: ${sellerSchools || "Sin colegios"}`,
           `- Link interno: ${listingUrl}`,
           "",
+          ...reporterLines,
+          "",
           "Motivo de la denuncia:",
           "",
           "",
@@ -60,9 +75,10 @@ export default function ReportButton({
           "Quiero denunciar al siguiente usuario:",
           `- Usuario ID: ${user.id}`,
           `- Nombre: ${user.firstName} ${user.lastName}`,
-          `- Email: ${user.email}`,
           `- Colegios: ${schools || "Sin colegios"}`,
           `- Link interno: ${userUrl}`,
+          "",
+          ...reporterLines,
           "",
           "Motivo de la denuncia:",
           "",

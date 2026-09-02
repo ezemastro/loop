@@ -52,7 +52,7 @@ that strand credits.
   `moveUserToCommunity` reassigns missions.
 - **ECO-12** — `listing_sold` notification text; `getSchoolsByIds` and `getNotificationsByUserId`
   stop silently dropping rows.
-- One new migration, `server/migrations/0009_credit_ledger_integrity.sql`.
+- One new migration, `server/migrations/0014_credit_ledger_integrity.sql`.
 
 ### Out of Scope
 
@@ -130,7 +130,7 @@ new table.
 
 | Area | Impact | Description |
 |------|--------|-------------|
-| `server/migrations/0009_credit_ledger_integrity.sql` | New | Ledger columns, genesis rows, unique indexes, `status_changed_at` |
+| `server/migrations/0014_credit_ledger_integrity.sql` | New | Ledger columns, genesis rows, unique indexes, `status_changed_at` |
 | `server/api/src/services/queries.ts` | Modified | Remove `updateUserBalance`; add guarded movement, guarded offer/sold, ledger insert, reconciliation |
 | `server/api/src/utils/credits.ts` | New | `applyCreditMovement` — the single choke point |
 | `server/api/src/models/listings.ts` | Modified | All six credit flows rewritten; `cancelListing` reworked and made reachable |
@@ -159,7 +159,7 @@ new table.
 
 ## Rollback Plan
 
-The migration `0009` is additive: four nullable/defaulted columns, three indexes, and genesis rows.
+The migration `0014` is additive: four nullable/defaulted columns, three indexes, and genesis rows.
 Reverting the application code leaves the extra columns unused and harmless — no existing read path
 selects them by name (`SELECT *` consumers ignore unknown keys through `parseDb`). There is no
 destructive DDL and no data is dropped, so a code-only revert is a complete rollback. The one
@@ -196,12 +196,15 @@ an invariant to preserve so that the rewrite does not silently pick a side.
 ## Dependencies
 
 - Branch `fix/auditoria-2026-09` (current).
-- `db-integrity-migrations` is planned in parallel and owns `CHECK (credits_balance >= 0)`,
-  `CHECK (credits_locked >= 0)` and ECO-09. Its artifact directory does not exist yet. This block
-  assumes those constraints **will** exist and is designed to never trip them. Migration numbering
-  must be coordinated: this block claims `0009`; if the other block lands first, renumber before
-  applying (the runner sorts lexicographically and checksums by basename —
-  `server/api/src/scripts/migrate.ts`).
+- `db-integrity-migrations` runs in parallel and owns `CHECK (credits_balance >= 0)`,
+  `CHECK (credits_locked >= 0)` and ECO-09. Its artifacts exist at
+  `openspec/changes/db-integrity-migrations/` and claim migrations `0009`–`0013`, landing the credit
+  constraints in `0010_credit_balance_checks.sql`. This block therefore claims **`0014`** and is
+  designed to never trip those constraints: the guarded update returns zero rows and raises a clean
+  domain error before a constraint can fire. Because the runner applies files in lexicographic order
+  (`server/api/src/scripts/migrate.ts`), `0014` is guaranteed to run after that clamp and those
+  checks — the required order, since the genesis ledger rows assume balances are already
+  non-negative.
 - Test command for the concurrency proof requires the dockerised Postgres from
   `docker-compose.dev.yml` (the e2e stack publishes no ports).
 

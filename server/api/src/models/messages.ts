@@ -92,7 +92,7 @@ export class MessagesModel {
         const message = parseMessageFromBase({
           message: {
             id: newMessage!.id,
-            createdAt: new Date(),
+            createdAt: new Date().toISOString(),
             senderId,
             recipientId,
             text,

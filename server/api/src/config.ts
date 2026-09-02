@@ -18,6 +18,7 @@ export const {
   POSTGRES_DB: DB_NAME,
   POSTGRES_PASSWORD: DB_PASSWORD,
   PGHOST: DB_HOST = "db",
+  POSTGRES_PORT: DB_PORT_RAW = "5432",
   PORT = 3000,
   JWT_SECRET = "jwt_secret_dev",
   TOKEN_EXP = 30 * 24 * 60 * 60, // 30 días
@@ -33,6 +34,10 @@ export const {
   AUTHORIZED_ADMIN_EMAIL,
   RESEND_API_KEY,
 } = process.env;
+/** Puerto de Postgres. `docker-compose.dev.yml` ya publica `POSTGRES_PORT`, pero hasta ahora
+ * el 5432 estaba hardcodeado en tres lugares y la variable se ignoraba (INF-11). */
+export const DB_PORT = Number(DB_PORT_RAW);
+
 export const INITIAL_CREDITS = 0;
 
 /** Remitente de los mails transaccionales. En dev Resend exige su dominio de pruebas. */

@@ -11,6 +11,18 @@ interface FormData {
 }
 type FormErrors = Record<keyof FormData, boolean>;
 
+/**
+ * `errorCode` que puso `parseApiError` sobre el error del login. React Query tipa el error del
+ * mutation como `Error`, que no lo declara, así que se lee con un type guard y no con un cast.
+ */
+const errorCodeOf = (error: unknown): string | undefined =>
+  error !== null &&
+  typeof error === "object" &&
+  "errorCode" in error &&
+  typeof error.errorCode === "string"
+    ? error.errorCode
+    : undefined;
+
 export const useLoginForm = () => {
   const {
     mutateAsync: login,
@@ -63,6 +75,7 @@ export const useLoginForm = () => {
   };
 
   const loginErrorMessage = loginError ? getUserFriendlyErrorMessage(loginError) : undefined;
+  const loginErrorCode = errorCodeOf(loginError);
 
   return {
     formData,
@@ -72,6 +85,7 @@ export const useLoginForm = () => {
     loginAsDemo,
     isLoginError,
     loginErrorMessage,
+    loginErrorCode,
     isLoginLoading,
     loginData,
   };

@@ -57,17 +57,24 @@ export const CONTACT_EMAIL = "loop@reditinere.com";
 export const GOOGLE_OAUTH_READY = process.env.GOOGLE_OAUTH_READY !== "false";
 export const NODE_ENV = process.env.NODE_ENV;
 
+/**
+ * `as const satisfies` y no `as ProductStatus` en cada valor: el `as` ensanchaba cada literal al
+ * union entero, así que las claves computadas de los `Record<ProductStatus, ...>` de abajo
+ * quedaban tipadas como `ProductStatus` y TS no podía probar que estuvieran todas. El `satisfies`
+ * conserva la validación contra `ProductStatus` — si el union crece, esto sigue compilando pero
+ * los dos records de abajo pasan a fallar, que es exactamente donde hay que agregar el valor.
+ */
 export const PRODUCT_STATUSES = {
-  LIKE_NEW: "like_new" as ProductStatus,
-  GOOD: "good" as ProductStatus,
-  FAIR: "fair" as ProductStatus,
-};
+  LIKE_NEW: "like_new",
+  GOOD: "good",
+  FAIR: "fair",
+} as const satisfies Record<string, ProductStatus>;
 
-export const STATUS_TRANSLATIONS = {
+export const STATUS_TRANSLATIONS: Record<ProductStatus, string> = {
   [PRODUCT_STATUSES.LIKE_NEW]: "Como nuevo",
   [PRODUCT_STATUSES.GOOD]: "Bueno",
   [PRODUCT_STATUSES.FAIR]: "Regular",
-} as Record<ProductStatus, string>;
+};
 
 export const PRICE_STATUS_MULTIPLIERS: Record<ProductStatus, number> = {
   [PRODUCT_STATUSES.LIKE_NEW]: 1,

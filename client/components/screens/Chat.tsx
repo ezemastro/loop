@@ -58,7 +58,7 @@ export default function Chat() {
     const optimisticMessage: Message & { isOptimistic: boolean } = {
       id: `optimistic-${Date.now()}`,
       text: parsedMessage,
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
       senderId: currentUser!.id,
       attachedListingId: null,
       attachedListing: null,

@@ -22,6 +22,7 @@ import {
   DB_APP_USER,
   DB_HOST,
   DB_NAME,
+  DB_PORT,
   DB_PASSWORD,
   DB_USER,
 } from "../config.js";
@@ -32,7 +33,7 @@ const describeDb = shouldRun ? describe : describe.skip;
 
 const SUFFIX = `rls-${Date.now()}`;
 const connect = (user?: string, password?: string) =>
-  new Client({ user, password, database: DB_NAME, host: DB_HOST, port: 5432 });
+  new Client({ user, password, database: DB_NAME, host: DB_HOST, port: DB_PORT });
 
 describeDb("Row-Level Security", () => {
   /** Rol dueño: siembra y limpia. Al no ser el rol de la app, no está sujeto a las policies. */

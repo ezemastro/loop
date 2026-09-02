@@ -66,8 +66,8 @@ export class AccountDeletionModel {
           communityId: row.community_id,
           email: row.email,
           status: row.status,
-          createdAt: new Date(row.created_at),
-          resolvedAt: row.resolved_at ? new Date(row.resolved_at) : null,
+          createdAt: new Date(row.created_at).toISOString(),
+          resolvedAt: row.resolved_at ? new Date(row.resolved_at).toISOString() : null,
           user: usersById.get(row.user_id) ?? null,
         }));
 
