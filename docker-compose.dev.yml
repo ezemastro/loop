@@ -39,6 +39,7 @@ services:
       target: development
     container_name: loop-dev-api
     ports:
+      # API_PORT publishes the host-side port only; the container always listens on PORT (default 3000, see env.ts). Setting API_PORT alone does not move the in-container port.
       - "${API_PORT:-3000}:3000"
     # Ver la nota de `db`: la raíz gana, `./server/.env` es el puente opcional de la migración.
     env_file:
@@ -58,6 +59,15 @@ services:
       - APP_BASE_URL=${APP_BASE_URL:-http://${DEV_HOST:-localhost}:${WEB_PORT:-8081}}
       # URL pública del api: la usa el link de verificación de email (BASE_URL)
       - BASE_URL=${BASE_URL:-http://${DEV_HOST:-localhost}:3000}
+      # sec-hardening-api (task 7.8, hand-off). Sin `=`, como EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID
+      # arriba: si no están en el `.env` de la raíz, no se definen en el contenedor y env.ts cae a
+      # sus propios defaults de desarrollo (sentinels para los secretos, 30 días/30 minutos para
+      # los TTL, "true" para RATE_LIMIT_ENABLED) en vez de recibir un string vacío.
+      - ADMIN_JWT_SECRET
+      - ADMIN_PASS_TOKEN
+      - TOKEN_EXP
+      - ADMIN_TOKEN_EXP
+      - RATE_LIMIT_ENABLED
     volumes:
       - /app/server/api/node_modules
       - ./server/uploads:/uploads

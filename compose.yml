@@ -95,10 +95,40 @@ services:
       - DB_UNSCOPED_USER=${DB_UNSCOPED_USER:-loop_app_unscoped}
       - DB_UNSCOPED_PASSWORD=${DB_UNSCOPED_PASSWORD}
       - APP_BASE_URL=${APP_BASE_URL}
+      # sec-hardening-api (task 7.8, hand-off): declarados acá explícitamente para que el
+      # requisito quede visible en la infraestructura, no solo en env.ts. Sin `=` a propósito
+      # (mismo patrón que docker-compose.dev.yml): si la variable no está definida donde corre
+      # `docker compose` (shell o el `.env` de la raíz que Compose ya lee para interpolación), la
+      # clave queda sin declarar en el contenedor en vez de mandarse como string vacío. Un string
+      # vacío rompería `env.ts` incondicionalmente al arrancar (`z.string().min(1)`/
+      # `z.coerce.number()` no aplican su default ante `""`, solo ante `undefined`) — con la clave
+      # ausente, en cambio, `env.ts` decide: fuera de producción cae a su default seguro, y en
+      # producción la validación estricta aborta con un mensaje claro si el secreto realmente
+      # falta, en vez de un crash de coerción.
+      - ADMIN_JWT_SECRET
+      - ADMIN_PASS_TOKEN
+      - TOKEN_EXP
+      - ADMIN_TOKEN_EXP
+      - RATE_LIMIT_ENABLED
     env_file:
       - .env
     volumes:
       - ./uploads:/uploads
+    # runtime-observability (INF-10): a diferencia de /status (liveness, no toca la base),
+    # /health hace un SELECT real y reporta si la base y RLS están arriba. Mismo patrón que
+    # docker-compose.e2e.yml:94-104, apuntado al endpoint real de dependencias.
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     depends_on:
       db:
         condition: service_healthy

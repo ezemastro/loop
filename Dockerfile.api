@@ -47,6 +47,14 @@ RUN find dist -name "index.js"
 
 # ===== ETAPA 2: Producción =====
 FROM node:22-alpine AS production
+
+# sec-hardening-api (SEC-01, task 7.10): sin esto, un contenedor arrancado sin pasar NODE_ENV
+# explícitamente (por ejemplo, `docker run` directo, sin compose) cae en la rama permisiva de
+# `env.ts` — secretos dev-sentinel, CORS abierto a cualquier origen local, `assertDbHardening()`
+# no bloqueante. `compose.yml` ya fija `NODE_ENV=production` en su propio `environment:`, que
+# sigue ganando por precedencia; esto es la defensa en profundidad para cuando la imagen corre
+# fuera de ese compose.
+ENV NODE_ENV=production
 WORKDIR /app
 
 # Instalamos solo dependencias de producción
