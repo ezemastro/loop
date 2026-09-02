@@ -68,6 +68,7 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@babel/plugin-syntax-import-meta": "^7.10.4",
+    "@types/jest": "^30.0.0",
     "@types/react": "~19.1.10",
     "autoprefixer": "^10.4.19",
     "babel-plugin-transform-import-meta": "^2.3.3",
