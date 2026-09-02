@@ -16,7 +16,10 @@
     },
     "preview": {
       "distribution": "internal",
-      "environment": "preview"
+      "environment": "preview",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://loopreditinere.duckdns.org"
+      }
     },
     "production": {
       "autoIncrement": true,

@@ -1,8 +1,10 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import * as Notification from "expo-notifications";
+import { useRouter } from "expo-router";
 import { registerPushNotification } from "@/services/registerPushNotifications";
 import { useRegisterPushToken } from "@/hooks/useRegisterToken";
 import { useSessionStore } from "@/stores/session";
+import { NOTIFICATIONS_CATEGORIES } from "@/config";
 
 export const useNotification = () => {
   const context = useContext(NotificationContext);
@@ -20,7 +22,33 @@ interface NotificationContextType {
   error: Error | null;
 }
 
+/**
+ * Routes a push tap using whatever the payload actually carries today, written so the first two
+ * branches start working the day the server adds routing identifiers to the push `data` — see
+ * design D6. `server/api/src/services/expoNotifications.ts` currently sends no `data` at all, so
+ * only the last two branches can fire; they are not dead code.
+ */
+const routeFromPushResponse = (
+  router: ReturnType<typeof useRouter>,
+  response: Notification.NotificationResponse,
+) => {
+  const { data, categoryIdentifier } = response.notification.request.content;
+  const listingId = data?.listingId;
+  const userId = data?.userId;
+
+  if (typeof listingId === "string" && listingId) {
+    router.push({ pathname: "/(main)/listing/[listingId]", params: { listingId } });
+  } else if (typeof userId === "string" && userId) {
+    router.push({ pathname: "/(main)/(tabs)/messages/[userId]", params: { userId } });
+  } else if (categoryIdentifier === NOTIFICATIONS_CATEGORIES.MESSAGE) {
+    router.push("/(main)/(tabs)/messages");
+  } else {
+    router.push("/(main)/(tabs)/notifications");
+  }
+};
+
 export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
+  const router = useRouter();
   const authToken = useSessionStore((state) => state.authToken);
   const isLoggedIn = useSessionStore((state) => !!state.user);
   const demoMode = useSessionStore((state) => state.demoMode);
@@ -57,8 +85,10 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     notificationListener.current = Notification.addNotificationReceivedListener((notification) => {
       setNotification(notification);
     });
+    // A tap (response), not a delivery (`addNotificationReceivedListener` above) — routing must
+    // only run for a real user action.
     responseListener.current = Notification.addNotificationResponseReceivedListener((response) => {
-      console.log(response);
+      routeFromPushResponse(router, response);
     });
 
     return () => {
@@ -69,7 +99,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
         responseListener.current.remove();
       }
     };
-  }, [savePushToken, isLoggedIn, authToken, demoMode]);
+  }, [savePushToken, isLoggedIn, authToken, demoMode, router]);
   return (
     <NotificationContext.Provider
       value={{

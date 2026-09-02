@@ -1,11 +1,13 @@
 import { API_URL, DEMO_MODE } from "@/config";
 import { useSessionStore } from "@/stores/session";
 import { DEMO_READ_ONLY_ERROR_CODE, demoAdapter, enableDemoMode } from "@/demo";
-import axios, { type AxiosAdapter, type AxiosResponse } from "axios";
+import axios, { type AxiosAdapter, type AxiosError, type AxiosResponse } from "axios";
 
+// Sin `withCredentials`: la API se autentica por bearer token (interceptor de request más abajo),
+// así que mandar cookies cross-origin solo agrega un requisito de CORS credentials sin ningún
+// beneficio.
 export const api = axios.create({
   baseURL: API_URL,
-  withCredentials: true,
   timeout: 10000,
 });
 
@@ -34,6 +36,16 @@ export const onGlobalApiError = (handler: GlobalErrorHandler) => {
   };
 };
 
+/**
+ * Publishes to the same handler list `onGlobalApiError` subscribes to — `ToastProvider` is already
+ * listening, so `services/showAlert.ts` reaches the toast on web without needing a hook or a
+ * second notification system. No `errorCode` is passed, so `getUserFriendlyErrorMessage` returns
+ * the message verbatim rather than mapping it.
+ */
+export const emitGlobalApiError = (message: string) => {
+  globalErrorHandlers.forEach((handler) => handler(message));
+};
+
 api.interceptors.request.use((config) => {
   const token = useSessionStore.getState().authToken;
   if (token) {
@@ -55,16 +67,33 @@ const applyRefreshedToken = (response?: AxiosResponse) => {
   }
 };
 
+/**
+ * Un 401 solo cierra la sesión cuando la request que falló llevaba el header `Authorization` (así
+ * que usaba el token guardado) y no era contra `/auth/*` (donde un 401 es un veredicto de
+ * credenciales — contraseña incorrecta, email sin verificar — no una sesión vencida). El header lo
+ * pone el interceptor de request de acá arriba solo cuando hay token, así que su presencia es un
+ * proxy exacto de "esta request usaba la sesión guardada": ambas condiciones son necesarias, porque
+ * `/auth/login` no lleva header estando deslogueado, pero sí lo lleva cuando alguien ya logueado se
+ * reautentica, y ese 401 tampoco debe cerrarle la sesión.
+ */
+export const shouldLogout = (error: AxiosError): boolean => {
+  if (error.response?.status !== 401) return false;
+  if (!error.config?.headers?.Authorization) return false;
+  const path = (error.config.url ?? "").replace(/^https?:\/\/[^/]+/, "");
+  return !path.startsWith("/auth/");
+};
+
 api.interceptors.response.use(
   (response) => {
     applyRefreshedToken(response);
     return response;
   },
   (error) => {
-    if (error.response?.status === 401) {
+    if (shouldLogout(error)) {
       useSessionStore.getState().logout();
-    } else {
-      // En un 401 el token ya no vale; en cualquier otro error la respuesta pudo venir autenticada.
+    } else if (error.response?.status !== 401) {
+      // En cualquier 401 el token que se usó ya no vale, se cierre sesión o no; en cualquier otro
+      // error la respuesta pudo venir autenticada.
       applyRefreshedToken(error.response);
     }
 

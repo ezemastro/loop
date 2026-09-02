@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, View, Text, Pressable, Image, ActivityIndicator } from "react-native";
+import { View, Text, Pressable, Image, ActivityIndicator } from "react-native";
 import { useDebounce } from "use-debounce";
 import * as Clipboard from "expo-clipboard";
 import CustomModal from "./bases/CustomModal";
@@ -12,6 +12,7 @@ import { resolveThemeColors } from "@/stores/theme";
 import { getUrl } from "@/services/getUrl";
 import { CONTACT_EMAIL } from "@/config";
 import { openMailComposer } from "@/services/emailComposer";
+import { showAlert } from "@/services/showAlert";
 
 /** Mismo debounce que el del formulario para que ambos compartan la entrada de caché de react-query. */
 const RESOLVE_DEBOUNCE_MS = 400;
@@ -33,11 +34,11 @@ export default function AllowedDomainsNotice({ email }: { email?: string }) {
     const opened = await openMailComposer(CONTACT_EMAIL);
     if (opened) return;
 
-    Alert.alert("No se pudo abrir la app de correo", `Escribinos a ${CONTACT_EMAIL}`, [
+    showAlert("No se pudo abrir la app de correo", `Escribinos a ${CONTACT_EMAIL}`, [
       {
         text: "Copiar mail",
-        onPress: async () => {
-          await Clipboard.setStringAsync(CONTACT_EMAIL);
+        onPress: () => {
+          void Clipboard.setStringAsync(CONTACT_EMAIL);
           setIsCopied(true);
           setTimeout(() => setIsCopied(false), 2000);
         },

@@ -102,7 +102,7 @@ export default function Offer() {
   }
   const listing = listingData?.listing;
   const buyerListings = listing?.buyerId
-    ? buyerListingsData?.pages.flatMap((page) => page!.data!.listings)
+    ? buyerListingsData?.pages.flatMap((page) => page.data?.listings ?? [])
     : [];
   const totalCredits =
     (listing?.price || 0) - (selectedListings.reduce((acc, curr) => acc + curr.price, 0) || 0);

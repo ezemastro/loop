@@ -39,10 +39,19 @@ export const ALLOWED_IMAGE_MIME_TYPES = [
 export const WEB_IMAGE_ACCEPT_ATTR = ALLOWED_IMAGE_MIME_TYPES.join(",");
 export const IMAGE_FORMAT_ERROR_MESSAGE = "Solo se permiten imágenes JPG, PNG, WEBP o AVIF.";
 
-export const API_URL = process.env.EXPO_PUBLIC_API_URL;
-export const FILE_BASE_URL = API_URL + "/uploads/";
-console.log("API_URL:", API_URL);
-console.log(".env working: ", process.env.EXPO_PUBLIC_ENV_WORKING);
+/**
+ * Fails loudly at module load when the build is missing this value, instead of letting a
+ * concatenation like `FILE_BASE_URL` silently produce `"undefined/uploads/"`.
+ */
+function requireEnv(name: string, value: string | undefined): string {
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+  return value;
+}
+
+export const API_URL = requireEnv("EXPO_PUBLIC_API_URL", process.env.EXPO_PUBLIC_API_URL);
+export const FILE_BASE_URL = `${API_URL}/uploads/`;
 
 /** Modo demo: intercepta las llamadas a la API con datos simulados (no toca la red). */
 export const DEMO_MODE = process.env.EXPO_PUBLIC_DEMO_MODE === "true";

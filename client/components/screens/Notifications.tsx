@@ -15,7 +15,7 @@ export default function Notifications() {
   const queryClient = useQueryClient();
   const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetching } = useNotifications();
   const { mutateAsync: readAllNotifications } = useReadNotifications();
-  const notifications = data?.pages.flatMap((page) => page.data!.notifications) || [];
+  const notifications = data?.pages.flatMap((page) => page.data?.notifications ?? []) || [];
   const hasUnread = notifications.some((notification) => !notification.isRead);
   const headerClassName = pageContentClassName("narrow", "mb-3");
   const listContentClassName = pageContentClassName("narrow", "gap-2");

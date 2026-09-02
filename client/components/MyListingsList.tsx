@@ -12,7 +12,7 @@ export default function MyListingsList({
   const { data, isError, isLoading, fetchNextPage, hasNextPage } = useMyListings({
     sellerId: user?.id,
   });
-  const listings = data?.pages.flatMap((page) => page!.data!.listings) || [];
+  const listings = data?.pages.flatMap((page) => page.data?.listings ?? []) || [];
   useEffect(() => {
     onHasResults?.(listings.length > 0);
   }, [listings.length, onHasResults]);

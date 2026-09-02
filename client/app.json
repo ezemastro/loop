@@ -28,8 +28,7 @@
       "edgeToEdgeEnabled": true,
       "package": "com.reditinere.loop",
       "softwareKeyboardLayoutMode": "resize",
-      "googleServicesFile": "./google-services.json",
-      "permissions": ["android.permission.RECORD_AUDIO"]
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -51,14 +50,6 @@
       "expo-router",
       "expo-font",
       "expo-web-browser",
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "usesCleartextTraffic": true
-          }
-        }
-      ],
       [
         "expo-image-picker",
         {

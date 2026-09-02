@@ -1,9 +1,14 @@
 import { api } from "@/api/loop";
+import { parseApiError } from "@/services/errors";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const fetchWishes = async () => {
-  const response = await api.get<GetSelfWishesResponse>("/me/wishes");
-  return response.data.data;
+  try {
+    const response = await api.get<GetSelfWishesResponse>("/me/wishes");
+    return response.data.data;
+  } catch (error) {
+    throw parseApiError(error);
+  }
 };
 export const useWishes = () => {
   return useQuery({

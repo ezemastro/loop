@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLogin } from "./useLogin";
 import { validateLoginForm } from "@/services/validations";
 import { getUserFriendlyErrorMessage } from "@/services/errorMapping";
-import { DEMO_PASSWORD, DEMO_SHOWCASE_EMAIL } from "@/demo";
+import { DEMO_SHOWCASE_EMAIL } from "@/demo";
 import { useSessionStore } from "@/stores/session";
 
 interface FormData {
@@ -71,7 +71,9 @@ export const useLoginForm = () => {
   const loginAsDemo = () => {
     setErrors({ email: false, password: false });
     useSessionStore.getState().enterDemoMode();
-    login({ email: DEMO_SHOWCASE_EMAIL, password: DEMO_PASSWORD });
+    // The demo login handler ignores the submitted password entirely (`demo/handlers/auth.ts`),
+    // so application code has nothing to send here and never imports the demo credential.
+    login({ email: DEMO_SHOWCASE_EMAIL, password: "" });
   };
 
   const loginErrorMessage = loginError ? getUserFriendlyErrorMessage(loginError) : undefined;

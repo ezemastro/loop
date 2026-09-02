@@ -1,11 +1,16 @@
 import { api } from "@/api/loop";
+import { parseApiError } from "@/services/errors";
 import { useQuery } from "@tanstack/react-query";
 
 const fetchResolveCommunity = async (params: GetCommunityResolveRequest["query"]) => {
-  const response = await api.get<GetCommunityResolveResponse>("/communities/resolve", {
-    params,
-  });
-  return response.data.data!.community;
+  try {
+    const response = await api.get<GetCommunityResolveResponse>("/communities/resolve", {
+      params,
+    });
+    return response.data.data!.community;
+  } catch (error) {
+    throw parseApiError(error);
+  }
 };
 
 /**

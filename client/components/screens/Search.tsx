@@ -39,7 +39,7 @@ export default function Search() {
   const filterRowClassName = pageContentClassName("wide", "flex-row p-4 gap-4 flex-shrink-0");
   const gridContentClassName = pageContentClassName("wide", GRID_ROW_CLASS);
   const { data, isLoading } = useListings(query);
-  const listings = data?.pages.flatMap((page) => page!.data!.listings) || [];
+  const listings = data?.pages.flatMap((page) => page.data?.listings ?? []) || [];
   useEffect(() => {
     setQuery((prev) => ({
       ...prev,

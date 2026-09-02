@@ -1,8 +1,7 @@
 import { api } from "@/api/loop";
-import { ERROR_NAMES, parseErrorName } from "@/services/errors";
+import { ERROR_NAMES, parseApiError } from "@/services/errors";
 import { useSessionStore } from "@/stores/session";
 import { useQuery } from "@tanstack/react-query";
-import { AxiosError } from "axios";
 import { useEffect } from "react";
 
 const fetchSelf = async () => {
@@ -10,12 +9,7 @@ const fetchSelf = async () => {
     const response = await api.get<GetSelfResponse>(`/me`);
     return response.data.data;
   } catch (error) {
-    if (error instanceof AxiosError) {
-      throw {
-        name: parseErrorName({ status: error.response?.status || 500 }),
-        message: error.message,
-      };
-    }
+    throw parseApiError(error);
   }
 };
 

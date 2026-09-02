@@ -29,7 +29,8 @@ export const registerPushNotification = async () => {
       const pushTokenString = (await Notification.getExpoPushTokenAsync({ projectId })).data;
       return pushTokenString;
     } catch (error) {
-      throw new Error("Error getting push token: " + error);
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Error getting push token: ${message}`, { cause: error });
     }
   } else {
     throw new Error("Must use physical device for Push Notifications");

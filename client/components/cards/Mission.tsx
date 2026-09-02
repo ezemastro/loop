@@ -1,6 +1,7 @@
 import { View, Text } from "react-native";
 import CreditsBadge from "../badges/CreditsBadge";
 import { twMerge } from "tailwind-merge";
+import { missionProgressPercent } from "@/utils/missionProgressPercent";
 
 export default function Mission({
   mission,
@@ -27,7 +28,7 @@ export default function Mission({
             <View
               className="bg-credits h-full rounded-full absolute left-0 top-0"
               style={{
-                width: `${(mission.progress.current / mission.progress.total) * 100}%`,
+                width: `${missionProgressPercent(mission.progress.current, mission.progress.total)}%`,
               }}
             />
             <Text className="font-semibold w-full text-center text-sm text-white">

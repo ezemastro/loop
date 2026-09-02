@@ -90,7 +90,11 @@ export default function RootLayout() {
                     />
                   </Stack.Protected>
                 </Stack.Protected>
-                <Stack.Screen name="debug" />
+                {/* Dumps the whole user object as JSON — `__DEV__` is a literal Metro replaces at
+                    build time, so this branch is statically dead in every production build. */}
+                <Stack.Protected guard={__DEV__}>
+                  <Stack.Screen name="debug" />
+                </Stack.Protected>
               </Stack>
               <PwaInstallPrompt />
             </ToastProvider>

@@ -56,7 +56,7 @@ export default function MyPendingList({
     }
   };
   const { data, isError, isLoading, fetchNextPage, hasNextPage } = useMyListings(getParams());
-  const listings = data?.pages.flatMap((page) => page!.data!.listings) || [];
+  const listings = data?.pages.flatMap((page) => page.data?.listings ?? []) || [];
   useEffect(() => {
     if ((listings.length !== 0) === hasResults) return;
     setHasResults?.(listings.length !== 0);

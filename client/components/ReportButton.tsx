@@ -1,10 +1,11 @@
 import { REPORT_EMAIL } from "@/config";
-import { Alert, type PressableProps } from "react-native";
+import { type PressableProps } from "react-native";
 import ButtonText from "./bases/ButtonText";
 import CustomButton from "./bases/CustomButton";
 import MailFallbackSheet from "./bases/MailFallbackSheet";
 import { useMailComposer } from "@/hooks/useMailComposer";
 import { useAuth } from "@/hooks/useAuth";
+import { showAlert } from "@/services/showAlert";
 
 type ReportButtonProps = PressableProps & {
   label?: string;
@@ -97,7 +98,7 @@ export default function ReportButton({
 
     const to = REPORT_EMAIL ?? "";
     if (!to) {
-      Alert.alert("No disponible", "No hay un correo de denuncia configurado por ahora.");
+      showAlert("No disponible", "No hay un correo de denuncia configurado por ahora.");
       return;
     }
 

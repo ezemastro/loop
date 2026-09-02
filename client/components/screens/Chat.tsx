@@ -40,7 +40,7 @@ export default function Chat() {
   const messagesContentClassName = pageContentClassName("narrow", "flex-grow gap-1 max-w-xl");
 
   const user = userData?.user;
-  const messages = data?.pages.flatMap((page) => page!.data!.messages) ?? [];
+  const messages = data?.pages.flatMap((page) => page.data?.messages ?? []) ?? [];
 
   useEffect(() => {
     if (isSuccess) {

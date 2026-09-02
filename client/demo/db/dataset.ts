@@ -12,17 +12,10 @@ import {
   DEMO_CATEGORIES as SHARED_CATEGORIES,
   DEMO_COMMUNITY as SHARED_COMMUNITY,
   DEMO_MISSION_TEMPLATES as SHARED_MISSIONS,
-  DEMO_PASSWORD,
 } from "../../../shared/demo-data";
 import type { DemoMedia } from "../../../shared/demo-data";
 
-export {
-  SHARED_CATEGORIES,
-  SHARED_COMMUNITY,
-  SHARED_MISSIONS,
-  /** Contraseña de las cuentas demo. Con ella entra el modo demo. */
-  DEMO_PASSWORD,
-};
+export { SHARED_CATEGORIES, SHARED_COMMUNITY, SHARED_MISSIONS };
 
 /**
  * Antigüedad relativa → fecha ISO.

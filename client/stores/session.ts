@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { queryClient } from "@/api/queryClient";
 import { useThemeStore } from "@/stores/theme";
 import { disableDemoMode, enableDemoMode } from "@/demo";
+import { sessionStorage } from "@/services/secureStorage";
 
 interface SessionStore {
   user: PrivateUser | null;
@@ -92,7 +92,23 @@ export const useSessionStore = create<SessionStore>()(
     }),
     {
       name: "session-storage",
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => sessionStorage),
+      /**
+       * SecureStore has a per-value size limit on Android (2048 bytes) and the full `PrivateUser`
+       * (community, schools, profileMedia, credits, stats) can easily exceed it. Only the token and
+       * the session flags are persisted; `user` is re-fetched by `useSelf` on every launch and
+       * written back through `setUser`, which already re-runs `syncCommunityTheme`.
+       *
+       * `demoMode` MUST stay in this same persisted object: the token and the flag have to
+       * rehydrate in the same turn, or a window opens where a demo token is loaded and demo mode is
+       * still off, and requests would escape to the real API.
+       */
+      partialize: (state) => ({
+        authToken: state.authToken,
+        hasAcceptedTerms: state.hasAcceptedTerms,
+        hasToken: state.hasToken,
+        demoMode: state.demoMode,
+      }),
       /**
        * Al volver de disco hay que reinstalar el modo demo antes de que la app pida nada: el token
        * persistido es de la demo y contra la API real no significa nada.

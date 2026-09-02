@@ -1,15 +1,20 @@
-import { View, Text } from "react-native";
+import { View, Text, Pressable } from "react-native";
+import { useRouter } from "expo-router";
 import { twMerge } from "tailwind-merge";
 import Mission from "./Mission";
 import Listing from "./Listing";
 import { DateBadge } from "../bases/DateBadge";
 import CreditsBadge from "../badges/CreditsBadge";
 import User from "./User";
+import { notificationRoute } from "@/services/notificationRoute";
 
 export default function NotificationCard({ notification }: { notification: AppNotification }) {
+  const router = useRouter();
   const date = new Date(notification.createdAt);
   const isRead = notification.isRead;
-  return (
+  const destination = notificationRoute(notification);
+
+  const content = (
     // Unread state used to be a 1px border-colour swap (easy to miss). It now reads through a
     // left accent bar + a soft tinted background instead, both of which recede to plain
     // white/stroke once read -- flat, no depth effects, so it renders identically on web and
@@ -27,6 +32,12 @@ export default function NotificationCard({ notification }: { notification: AppNo
       </View>
     </View>
   );
+
+  // A card whose payload identifies no destination (a mission, or a malformed payload) MUST NOT
+  // present a press affordance — there is nowhere for it to go.
+  if (!destination) return content;
+
+  return <Pressable onPress={() => router.push(destination)}>{content}</Pressable>;
 }
 
 function NotificationContent({

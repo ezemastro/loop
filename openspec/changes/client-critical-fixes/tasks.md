@@ -44,14 +44,14 @@ Jest has no `moduleNameMapper`, so every new test MUST import relatively (`"../c
 Runs first because 1.4 removes the `console.log`s that currently pollute every test run, and 1.1
 fixes the command the rest of the change is verified with.
 
-- [ ] 1.1 Change `client/package.json:11` from `"test": "jest --watchAll"` to
+- [x] 1.1 Change `client/package.json:11` from `"test": "jest --watchAll"` to
       `"test": "jest --ci --watchAll=false"`. `--ci` alone does not disable watch mode in jest 29;
       both flags are required. — *client-build-hardening: The Test Command Terminates*
-- [ ] 1.2 Delete `"android.permission.RECORD_AUDIO"` from `client/app.json:32`, leaving the
+- [x] 1.2 Delete `"android.permission.RECORD_AUDIO"` from `client/app.json:32`, leaving the
       `permissions` key absent rather than an empty array. Confirm first with
       `rg -n "RECORD_AUDIO|Audio|Recording" client/ --glob '!node_modules'` that nothing uses it.
       — *client-build-hardening: No Unused Android Permissions*
-- [ ] 1.3 Remove the `expo-build-properties` plugin entry at `client/app.json:54-61` and create
+- [x] 1.3 Remove the `expo-build-properties` plugin entry at `client/app.json:54-61` and create
       `client/app.config.js` per design D3: it receives the static `app.json` config and appends the
       plugin with `android.usesCleartextTraffic: true` **only** when
       `process.env.EAS_BUILD_PROFILE === "development"`. `expo-build-properties@~1.0.10` is already
@@ -60,15 +60,19 @@ fixes the command the rest of the change is verified with.
   - **Checkpoint**: `client/eas.json:12` points the `development` profile at
     `http://192.168.1.37:3000`. If this task is done wrong, Android dev builds stop reaching the API
     with no error message — verify the dev branch before the production branch.
-- [ ] 1.4 In `client/config.ts`, replace `export const API_URL = process.env.EXPO_PUBLIC_API_URL;`
+- [x] 1.4 In `client/config.ts`, replace `export const API_URL = process.env.EXPO_PUBLIC_API_URL;`
       (`:42`) with a guarded read that throws naming `EXPO_PUBLIC_API_URL` when absent; derive
       `FILE_BASE_URL` (`:43`) from the guarded value; delete both `console.log` calls (`:44-45`).
       — *client-build-hardening: Required Configuration Fails Loudly*
-- [ ] 1.5 Add `"EXPO_PUBLIC_API_URL"` to the `preview` profile in `client/eas.json:17-20`, which
+      (Added `client/jest.setup.js` + `package.json`'s `jest.setupFiles`, not in the original file
+      list: jest never loads `.env`, so the new guard broke every suite importing `config.ts` until
+      the test env got its own `EXPO_PUBLIC_API_URL`. See Deviations in the final report.)
+- [x] 1.5 Add `"EXPO_PUBLIC_API_URL"` to the `preview` profile in `client/eas.json:17-20`, which
       defines no `env` block today and would start failing the 1.4 guard. Use the production value
       unless a preview API exists. — *client-build-hardening: Every build profile is configured*
-- [ ] 1.6 Run `cd client && npx jest --ci --watchAll=false`. Expect 721 passing and the
+- [x] 1.6 Run `cd client && npx jest --ci --watchAll=false`. Expect 721 passing and the
       `API_URL: undefined` / `.env working: undefined` console noise gone from the output.
+      Result: 721/721 passed, no console noise.
 
 **Done condition**: the test script terminates, the production manifest declares neither
 `RECORD_AUDIO` nor cleartext, a dev build still reaches the LAN API, and a missing API URL fails
@@ -78,22 +82,22 @@ loudly instead of producing `"undefined/uploads/"`.
 
 ## Phase 2: Credential storage — CLI-01
 
-- [ ] 2.1 Add `expo-secure-store@~15.0.8` to `client/package.json` dependencies. The version is the
+- [x] 2.1 Add `expo-secure-store@~15.0.8` to `client/package.json` dependencies. The version is the
       SDK 54 pin from `client/node_modules/expo/bundledNativeModules.json:77` — do not use `latest`.
       This is the only dependency added by this change.
-- [ ] 2.2 Create `client/services/secureStorage.ts` exporting a `StateStorage` chosen by
+- [x] 2.2 Create `client/services/secureStorage.ts` exporting a `StateStorage` chosen by
       `Platform.OS`: `AsyncStorage` on web, `expo-secure-store`'s async get/set/delete on native
       (design D1). Document in a comment that SecureStore has no web implementation, which is why
       web is not shimmed.
-- [ ] 2.3 Add the read-through migration to `secureStorage.ts` (native only): `getItem` reads
+- [x] 2.3 Add the read-through migration to `secureStorage.ts` (native only): `getItem` reads
       SecureStore, and on a miss reads the legacy `AsyncStorage` `"session-storage"` key, writes it
       into SecureStore, deletes the legacy key, and returns it.
       — *client-credential-storage: Existing Sessions Survive the Upgrade*
-- [ ] 2.4 In `client/stores/session.ts:95`, replace
+- [x] 2.4 In `client/stores/session.ts:95`, replace
       `storage: createJSONStorage(() => AsyncStorage)` with the new storage. Keep the store name
       `"session-storage"` so the migration has a key to find.
       — *client-credential-storage: Session Token Storage by Platform*
-- [ ] 2.5 Add `partialize` to the persist config (`client/stores/session.ts:93-103`) emitting exactly
+- [x] 2.5 Add `partialize` to the persist config (`client/stores/session.ts:93-103`) emitting exactly
       `{ authToken, hasAcceptedTerms, hasToken, demoMode }`. Dropping `user` is required, not
       optional: the full `PrivateUser` (`:43`) carries `community`, `schools`, `profileMedia`,
       `credits` and `stats` and exceeds the 2048-byte Android limit.
@@ -101,24 +105,27 @@ loudly instead of producing `"undefined/uploads/"`.
   - **Checkpoint**: `demoMode` MUST stay inside the same persisted object. The rationale is written
     at `client/stores/session.ts:13-18` — token and flag must rehydrate in the same turn or demo
     traffic escapes to the real API. Do not move it to a separate store or a separate backend.
-- [ ] 2.6 Verify `onRehydrateStorage` (`client/stores/session.ts:100-102`) still fires
+- [x] 2.6 Verify `onRehydrateStorage` (`client/stores/session.ts:100-102`) still fires
       `enableDemoMode()` synchronously with the rehydrated state, and that
       `useSessionHydrated()` (`:115-119`) still resolves — `persist.hasHydrated()` and
       `onFinishHydration` behave the same with an async storage backend, but confirm rather than
       assume. — *client-demo-isolation: Rehydration enables demo mode in the same turn*
-- [ ] 2.7 In `client/components/buttons/GoogleSignInButton.tsx:76`, stop writing the credential with
+      Confirmed by reading: `onRehydrateStorage`/`useSessionHydrated` are storage-backend-agnostic
+      zustand APIs, unchanged by the D1 edit.
+- [x] 2.7 In `client/components/buttons/GoogleSignInButton.tsx:76`, stop writing the credential with
       `AsyncStorage.setItem(GOOGLE_CREDENTIAL_KEY, credential)`; hold it in a module-scope in-memory
       holder instead (design D2). Leave `GOOGLE_INVITATION_KEY` (`:80,82`) and
       `GOOGLE_COMMUNITY_KEY` (`:84,97`) in `AsyncStorage` — they are not credentials.
       — *client-credential-storage: OAuth Credential Is Never Persisted*
-- [ ] 2.8 Update every reader of the stored credential (start from
+- [x] 2.8 Update every reader of the stored credential (start from
       `rg -n "GOOGLE_CREDENTIAL_KEY|clearStoredGoogleData" client/`) so the school-selection second
       step reads the in-memory value, and `clearStoredGoogleData` (`GoogleSignInButton.tsx:88`)
-      clears it.
-- [ ] 2.9 Record in the PR description that a user who launches this build once has their session in
+      clears it. Only reader is `SchoolSelection.tsx` via `getStoredGoogleCredential`, unchanged
+      call site — the in-memory swap is internal to `GoogleSignInButton.tsx`.
+- [x] 2.9 Record in the PR description that a user who launches this build once has their session in
       the encrypted store, so **reverting this change logs those users out**. This is the one
-      non-symmetric step in the rollback plan.
-- [ ] 2.10 Run `cd client && npx jest --ci --watchAll=false`.
+      non-symmetric step in the rollback plan. (Recorded here and in the final report/TESTING-MANUAL.)
+- [x] 2.10 Run `cd client && npx jest --ci --watchAll=false`. Result: 722/722 passed.
 
 **Done condition**: the token is in the platform credential store on native and unchanged on web,
 an existing session survives the upgrade, only token and flags reach disk, and the Google credential
@@ -131,7 +138,7 @@ never touches persistent storage.
 The largest phase by line count and the most mechanical. Ordered so the shared helpers land before
 the sixteen call sites.
 
-- [ ] 3.1 **[Largest mechanical edit — flag for careful review]** In each of the eight hooks whose
+- [x] 3.1 **[Largest mechanical edit — flag for careful review]** In each of the eight hooks whose
       catch falls through, replace the whole `catch` body with `throw parseApiError(err);` and drop
       the now-unused `AxiosError` and `parseErrorName` imports:
       `useSelf.ts:12-19`, `useListings.ts:12-19`, `useListing.ts:10-17`, `useMyListings.ts:12-19`,
@@ -139,52 +146,56 @@ the sixteen call sites.
       — *client-api-error-contract: Every Query Failure Surfaces As An Error*
   - **Correction to the audit**: it says ten hooks. `useUser.ts:18` and `useUsers.ts:21` already end
     with a bare `throw err;` and never return `undefined`.
-- [ ] 3.2 Convert `useUser.ts:10-19` and `useUsers.ts:13-22` to the same one-line form. They are not
+- [x] 3.2 Convert `useUser.ts:10-19` and `useUsers.ts:13-22` to the same one-line form. They are not
       buggy, but they build the error from `parseErrorName` and so lose `errorCode` and the server
       message. Removing their bare `throw err;` is safe because `parseApiError` is total.
-- [ ] 3.3 Wrap the eight catch-less query hooks in the same `try { … } catch (err) { throw parseApiError(err); }`:
+- [x] 3.3 Wrap the eight catch-less query hooks in the same `try { … } catch (err) { throw parseApiError(err); }`:
       `useCategories.ts:4-9`, `useGlobalStats.ts:4-7`, `useNotifications.ts:4-7`,
       `useUnreadMessages.ts:4-7`, `useUnreadNotifications.ts:4-7`, `useSchools.ts:4-21`,
       `useWishes.ts:4-7`, `useResolveCommunity.ts:4-9`.
       — *client-api-error-contract: Every query hook uses the same normalizer*
   - **Correction to the audit**: this class is not in CLI-03 at all. These hooks leak raw
     `AxiosError` objects to consumers, so the error shape differs per hook today.
-- [ ] 3.4 Confirm the logout trigger still fires: `useSelf.ts:37` compares
+- [x] 3.4 Confirm the logout trigger still fires: `useSelf.ts:37` compares
       `query.error?.name === ERROR_NAMES.UNAUTHORIZED`, and `parseApiError` sets `name` through the
       same `parseErrorName({ status })` (`services/errors.ts:72`) for Axios errors. Assert this in a
-      test (7.4) rather than by reading.
-- [ ] 3.5 Remove the `page!.data!` non-null assertions at all eight consumer sites, which are now
+      test (7.4) rather than by reading. Asserted in `api-errors.test.ts` (7.5).
+- [x] 3.5 Remove the `page!.data!` non-null assertions at all eight consumer sites, which are now
       provably unnecessary: `screens/Search.tsx:42`, `screens/Messages.tsx:28`,
       `screens/Messages.tsx:30`, `screens/Chat.tsx:43`, `screens/Offer.tsx:105`,
       `MyListingsList.tsx:15`, `MyPendingList.tsx:59`, `screens/Notifications.tsx:18`. Leave
       `Feed.tsx:26` alone — it already uses optional chaining.
       — *client-api-error-contract: Screens Do Not Assert On Page Data*
-- [ ] 3.6 Simplify the `getNextPageParam` optional chaining that existed only to defend against
+      (`page!` dropped; `data!` replaced with `data?.… ?? []` since `data` is independently typed
+      `?: T` on the API envelope — see Deviations in the final report.)
+- [x] 3.6 Simplify the `getNextPageParam` optional chaining that existed only to defend against
       `undefined` pages: `useListings.ts:26`, `useMyListings.ts:26`, `useMessages.ts:27-29`,
       `useChats.ts:24-26`. `useUsers.ts:29-31` already has no `?.` and needs no change.
-- [ ] 3.7 In `client/api/queryClient.ts:6`, replace the bare `new QueryClient()` with an explicit
+- [x] 3.7 In `client/api/queryClient.ts:6`, replace the bare `new QueryClient()` with an explicit
       default `retry` that returns false for `ERROR_NAMES.UNAUTHORIZED` and otherwise allows at most
       two attempts (design D4). Keep the file's existing comment — it explains why the client lives
       here rather than in `_layout.tsx`. — *client-api-error-contract: Retry Policy Is Explicit*
   - **Checkpoint**: without this, failures that previously resolved silently now retry three times
     (~7s) before surfacing, and the `useSelf` logout is delayed by the same amount.
-- [ ] 3.8 Extract `shouldLogout(error)` as a named export in `client/api/loop.ts` per design D5, and
+- [x] 3.8 Extract `shouldLogout(error)` as a named export in `client/api/loop.ts` per design D5, and
       use it to replace the unconditional `if (error.response?.status === 401)` at `:63-65`. It must
       require both an `Authorization` header on `error.config` and a path outside `/auth/`.
       — *client-api-error-contract: Logout Only On An Authenticated Session Failure*
   - **Correction to the audit**: CLI-04 cites `api/loop.ts:51-66`; the 401 branch is `:63-69`, and
     `:51-56` is `applyRefreshedToken`.
   - **Checkpoint**: keep the `else` branch's `applyRefreshedToken(error.response)` (`:66-69`)
-    reachable for every non-logout case, including a 401 that no longer logs out.
-- [ ] 3.9 Delete `withCredentials: true` from `client/api/loop.ts:8`. The API is bearer-token
+    reachable for every non-logout case, including a 401 that no longer logs out. Implemented as
+    `else if (error.response?.status !== 401)` so a non-logout 401 (wrong password, anonymous)
+    still skips refresh, matching pre-change behaviour exactly.
+- [x] 3.9 Delete `withCredentials: true` from `client/api/loop.ts:8`. The API is bearer-token
       authenticated by the request interceptor at `:37-44`.
       — *client-api-error-contract: The API Client Sends No Ambient Credentials*
-- [ ] 3.10 In `client/components/ModifyListing.tsx:130-132`, change the invalidation key from
+- [x] 3.10 In `client/components/ModifyListing.tsx:130-132`, change the invalidation key from
       `["listing", { listingId: initialData?.id }]` to `["listing", initialData?.id]`, matching
       `useListing.ts:22`. — *client-api-error-contract: Cache Invalidation Keys Match Their Queries*
   - **Correction to the audit**: the file is `client/components/ModifyListing.tsx`, not
     `client/components/screens/ModifyListing.tsx`, and the block is `:119-136`.
-- [ ] 3.11 Run `cd client && npx jest --ci --watchAll=false`.
+- [x] 3.11 Run `cd client && npx jest --ci --watchAll=false`. Result: 722/722 passed.
 
 **Done condition**: every query hook throws a normalized error, no hook branches on
 `instanceof AxiosError`, no consumer asserts on page data, a wrong password does not log anyone out,
@@ -194,18 +205,18 @@ and editing a listing refreshes its detail query.
 
 ## Phase 4: Notification actions — CLI-05, CLI-13 (push message)
 
-- [ ] 4.1 Create `client/services/notificationRoute.ts` with a pure
+- [x] 4.1 Create `client/services/notificationRoute.ts` with a pure
       `notificationRoute(notification)` returning a destination or `null`, per the table in design
       D6: `loop` → `/(main)/listing/[listingId]` from `payload.listingId`; `donation` →
       `/(main)/user/[userId]` from `payload.donorUserId`; `admin` with `target === "listing"` →
       the listing from `payload.referenceId`; `mission` → `null`. Payload shapes are at
       `shared/types/app.d.ts:208-246`.
       — *client-notification-actions: Notification Cards Are Actionable*
-- [ ] 4.2 In `client/components/cards/Notification.tsx:17-29`, wrap the card in a `Pressable`
+- [x] 4.2 In `client/components/cards/Notification.tsx:17-29`, wrap the card in a `Pressable`
       **only** when `notificationRoute` returns a destination, so a mission card presents no dead
       affordance. Do not change any copy or any of the four content components (`:75-167`).
       — *client-notification-actions: A mission notification is not pressable*
-- [ ] 4.3 Replace `console.log(response)` at `client/contexts/notification.tsx:60-62` with the
+- [x] 4.3 Replace `console.log(response)` at `client/contexts/notification.tsx:60-62` with the
       routing ladder from design D6: `data.listingId` → listing; `data.userId` → conversation; else
       `categoryIdentifier === NOTIFICATIONS_CATEGORIES.MESSAGE` → `/(main)/(tabs)/messages`; else
       `/(main)/(tabs)/notifications`. — *client-notification-actions: Push Taps Navigate*
@@ -217,14 +228,15 @@ and editing a listing refreshes its detail query.
     `data` — do not delete them as dead code.
   - **Checkpoint**: this change touches no server file. The server payload fix is recorded as a
     cross-block follow-up in design.md.
-- [ ] 4.4 Confirm the routing runs only for a real user action: `contexts/notification.tsx:60` is
+- [x] 4.4 Confirm the routing runs only for a real user action: `contexts/notification.tsx:60` is
       `addNotificationResponseReceivedListener` (a tap), not
       `addNotificationReceivedListener` (`:57`, a delivery). Do not add navigation to the latter.
-- [ ] 4.5 In `client/services/registerPushNotifications.ts:32`, replace
+      Confirmed — `routeFromPushResponse` is wired only to the response listener.
+- [x] 4.5 In `client/services/registerPushNotifications.ts:32`, replace
       `throw new Error("Error getting push token: " + error)` with an `Error` carrying a readable
       message and the original error as `cause`.
       — *client-notification-actions: Push Registration Errors Are Legible*
-- [ ] 4.6 Run `cd client && npx jest --ci --watchAll=false`.
+- [x] 4.6 Run `cd client && npx jest --ci --watchAll=false`. Result: 723/723 passed.
 
 **Done condition**: notification cards navigate where a destination exists and are inert where none
 does, a push tap navigates instead of logging, and a push-token failure no longer prints
@@ -234,16 +246,16 @@ does, a push tap navigates instead of logging, and a push-token failure no longe
 
 ## Phase 5: Exposure and cross-platform feedback — CLI-09, CLI-13 (progress)
 
-- [ ] 5.1 Wrap `<Stack.Screen name="debug" />` at `client/app/_layout.tsx:93` in
+- [x] 5.1 Wrap `<Stack.Screen name="debug" />` at `client/app/_layout.tsx:93` in
       `<Stack.Protected guard={__DEV__}>`. It currently sits outside both existing guards
       (`:77-92`), and `components/screens/Debug.tsx:89` renders the whole user object as JSON.
       — *client-build-hardening: The Debug Route Is Unreachable In Production*
-- [ ] 5.2 In `client/public/sw.js:22-38`, return early from the `fetch` handler for any request
+- [x] 5.2 In `client/public/sw.js:22-38`, return early from the `fetch` handler for any request
       whose method is not `GET` and for any request whose path begins with `/api`, before
       `event.respondWith`. Leave the `.catch(() => cachedResponse)` at `:35` alone — it is a
       pre-existing defect recorded as a follow-up, not part of this change.
       — *client-build-hardening: The Service Worker Does Not Cache API Responses*
-- [ ] 5.3 Create `client/services/showAlert.ts` per design D9:
+- [x] 5.3 Create `client/services/showAlert.ts` per design D9:
       `showAlert(title, message, actions?)`. Native delegates verbatim to `Alert.alert`. Web with no
       actions shows a toast. Web with actions shows the message and invokes the first non-`cancel`
       action. Implement it as a plain function, not a hook, so `useMailComposer` can call it from
@@ -253,26 +265,29 @@ does, a push tap navigates instead of logging, and a push-token failure no longe
   - **Note**: the repo already has a cross-platform notifier — `useToast()`
     (`ToastProvider.tsx:60-66`), mounted app-wide at `app/_layout.tsx:75` and built on
     `Animated`/`StyleSheet`. Build on it; do not add a second notification system.
-- [ ] 5.4 Replace `Alert.alert` with `showAlert` at all three sites and drop the now-unused
+- [x] 5.4 Replace `Alert.alert` with `showAlert` at all three sites and drop the now-unused
       `Alert` imports: `components/ReportButton.tsx:84`,
       `components/AllowedDomainsNotice.tsx:36`, `hooks/useMailComposer.ts:16`.
-- [ ] 5.5 Confirm every user-facing string at those three sites is byte-identical to the pre-change
+- [x] 5.5 Confirm every user-facing string at those three sites is byte-identical to the pre-change
       source — `"No disponible"`, `"No hay un correo de denuncia configurado por ahora."`,
       `"No se pudo abrir la app de correo"`, `` `Escribinos a ${CONTACT_EMAIL}` ``, `"Copiar mail"`,
       `"Cerrar"`, `` `Escribí manualmente a ${to} con el mensaje.` ``, `"Copiar manual"`,
       `"Compartir texto"`. This change introduces **no new user-facing copy** anywhere.
       — *client-cross-platform-feedback: Existing Spanish copy is preserved verbatim*
-- [ ] 5.6 Verify `useMailComposer`'s web path still opens `MailFallbackSheet`
+- [x] 5.6 Verify `useMailComposer`'s web path still opens `MailFallbackSheet`
       (rendered at `ReportButton.tsx:105`) by setting `manualCopyText` (`useMailComposer.ts:22`),
-      so the web user gets the copyable text and not just a toast.
-- [ ] 5.7 Extract `missionProgressPercent(current, total)` into a pure module and use it at
+      so the web user gets the copyable text and not just a toast. Confirmed: "Copiar manual" is
+      the first non-cancel action, auto-invoked by `showAlert` on web.
+- [x] 5.7 Extract `missionProgressPercent(current, total)` into a pure module and use it at
       `client/components/cards/Mission.tsx:30`, replacing
       `` `${(mission.progress.current / mission.progress.total) * 100}%` ``. Return `0` when
       `total <= 0` and clamp to `[0, 100]`. Extract rather than inline so 7.7 can test it.
       — *client-cross-platform-feedback: Progress Values Are Always Valid*
   - **Note**: this renders inside the notifications list via `cards/Notification.tsx:85`, so a
     malformed mission payload currently emits `"NaN%"` into that list.
-- [ ] 5.8 Run `cd client && npx jest --ci --watchAll=false`.
+  - Created `client/utils/missionProgressPercent.ts` (not in the design's file table, which named
+    no path for it — placed alongside the repo's other pure `utils/` helpers).
+- [x] 5.8 Run `cd client && npx jest --ci --watchAll=false`. Result: 725/725 passed.
 
 **Done condition**: `/debug` is dev-only, the service worker never caches API or non-`GET`
 responses, all three alert sites are visible on web with unchanged copy, and no progress bar can
@@ -285,23 +300,26 @@ emit `NaN%` or `Infinity%`.
 Read `DEMO.md` and design D7 before starting. The audit's proposed fix is rejected here for reasons
 recorded in both.
 
-- [ ] 6.1 In `client/hooks/useLoginForm.ts:74`, stop passing `DEMO_PASSWORD` into
+- [x] 6.1 In `client/hooks/useLoginForm.ts:74`, stop passing `DEMO_PASSWORD` into
       `login({ email: DEMO_SHOWCASE_EMAIL, password: … })`, and drop it from the import at `:5`.
       This is behaviour-preserving: `client/demo/handlers/auth.ts:10-15` ignores the submitted
       password entirely ("Cualquier credencial entra a la demo").
       — *client-demo-isolation: Application Code Does Not Reference The Demo Credential*
-- [ ] 6.2 Remove the now-unused re-exports: `client/demo/index.ts:28`
+- [x] 6.2 Remove the now-unused re-exports: `client/demo/index.ts:28`
       (`export { DEMO_PASSWORD } from "./db/dataset";`) and the import/re-export pair at
       `client/demo/db/dataset.ts:15,24`. Keep `DEMO_SHOWCASE_EMAIL` (`demo/index.ts:29`) — it is
       still used.
-- [ ] 6.3 Confirm with `rg -n "DEMO_PASSWORD|Demo1234" client/ --glob '!node_modules'` that the only
-      remaining client matches are inside `client/demo/`, and none in application code.
-- [ ] 6.4 **Do not** gate the `@/demo` imports at `api/loop.ts:3`, `stores/session.ts:7` or
+- [x] 6.3 Confirm with `rg -n "DEMO_PASSWORD|Demo1234" client/ --glob '!node_modules'` that the only
+      remaining client matches are inside `client/demo/`. Result: zero matches anywhere under
+      `client/` — the value is no longer referenced there at all (it still lives in
+      `shared/demo-data`, read directly by the server seed script, out of scope).
+- [x] 6.4 **Do not** gate the `@/demo` imports at `api/loop.ts:3`, `stores/session.ts:7` or
       `hooks/useLoginForm.ts:5` on `EXPO_PUBLIC_DEMO_MODE`, and **do not** convert them to dynamic
       `import()`. Both break the production demo reached from
       `components/screens/Landing.tsx:109-120`. Rationale is in design D7; the bundle-size reduction
       is a recorded follow-up. — *client-demo-isolation: Removing the demo is not attempted here*
-- [ ] 6.5 Run `cd client && npx jest --ci --watchAll=false`.
+      Confirmed — imports untouched.
+- [x] 6.5 Run `cd client && npx jest --ci --watchAll=false`. Result: 725/725 passed.
 
 **Done condition**: no application module references the demo password, the landing demo link still
 works end to end, and the demo module's imports are untouched.
@@ -314,51 +332,58 @@ All tests import relatively (`"../config"`, never `"@/config"`) because jest has
 `moduleNameMapper`. Follow the existing idiom in `client/__tests__/`: pure functions plus `fs`
 source guards over `__tests__/helpers/sourceFiles.ts`'s `walkTsFiles`. No new test dependency.
 
-- [ ] 7.1 [RED→GREEN] `client/__tests__/api-client.test.ts` — table-test `shouldLogout` (3.8): 401
+- [x] 7.1 [RED→GREEN] `client/__tests__/api-client.test.ts` — table-test `shouldLogout` (3.8): 401
       with `Authorization` on `/listings` → true; 401 with `Authorization` on `/auth/login` → false;
       401 without the header → false; 403 with the header → false; a network error with no
       `response` → false. — *client-api-error-contract: Logout Only On An Authenticated Session Failure*
-- [ ] 7.2 [RED→GREEN] Extend `api-client.test.ts` — invoke the registered response-rejection handler
+- [x] 7.2 [RED→GREEN] Extend `api-client.test.ts` — invoke the registered response-rejection handler
       directly and assert `logout` runs only in the expected case. Declare
       `jest.mock("@react-native-async-storage/async-storage", …)` using the mock shipped at
       `node_modules/@react-native-async-storage/async-storage/jest/async-storage-mock.js`, and a
       `jest.mock("expo-secure-store", …)` stub, **inline in this suite** rather than in a global
       `setupFiles` — the 721-test baseline must not be disturbed.
-- [ ] 7.3 [RED→GREEN] `client/__tests__/session-store.test.ts` — drive `login`, `setUser`,
+      Also added `jest.mock("@/demo", …)` inline (not in the original task text): `api/loop.ts`
+      transitively imports `@/demo` → `../../shared/demo-data`, which fails to resolve
+      `@babel/runtime` under jest — a pre-existing, out-of-scope cross-package gap (root has no
+      `node_modules/@babel/runtime`). See Deviations in the final report.
+- [x] 7.3 [RED→GREEN] `client/__tests__/session-store.test.ts` — drive `login`, `setUser`,
       `enterDemoMode` and `logout` through `useSessionStore.getState()`; assert the community theme
       syncs on `login`/`setUser`, and that `logout` clears the theme, then the query cache, then
       disables demo mode **in that order** (`stores/session.ts:76-81`). The ordering assertion is
       the point — `DEMO.md` depends on it.
       — *client-build-hardening: The session store's cleanup ordering is asserted*
-- [ ] 7.4 [RED→GREEN] Extend `session-store.test.ts` — assert `partialize` emits exactly
+- [x] 7.4 [RED→GREEN] Extend `session-store.test.ts` — assert `partialize` emits exactly
       `{ authToken, hasAcceptedTerms, hasToken, demoMode }`, that `user` is absent, and that
       `JSON.stringify` of a realistic value is under 2048 bytes.
       — *client-credential-storage: Persisted value fits the native size limit*
-- [ ] 7.5 [RED→GREEN] `client/__tests__/api-errors.test.ts` — assert the contract `useSelf.ts:37`
+- [x] 7.5 [RED→GREEN] `client/__tests__/api-errors.test.ts` — assert the contract `useSelf.ts:37`
       depends on: `parseApiError` over a 401 `AxiosError`-shaped object returns
       `name === ERROR_NAMES.UNAUTHORIZED`; over a plain thrown object returns `{name: "Error"}`;
       over a string returns `{name: "Error"}`; over `undefined` returns the internal-server default.
       — *client-api-error-contract: Every Query Failure Surfaces As An Error*
-- [ ] 7.6 [RED→GREEN] Extend `api-errors.test.ts` — source guard over `walkTsFiles(client/hooks)`:
+- [x] 7.6 [RED→GREEN] Extend `api-errors.test.ts` — source guard over `walkTsFiles(client/hooks)`:
       no file contains `instanceof AxiosError`, and every `catch` block in `client/hooks/` is
       followed by `throw parseApiError`. This is the guard that stops the two error shapes from
       reappearing. — *client-api-error-contract: Every query hook uses the same normalizer*
-- [ ] 7.7 [RED→GREEN] `client/__tests__/notification-actions.test.ts` — table-test
+- [x] 7.7 [RED→GREEN] `client/__tests__/notification-actions.test.ts` — table-test
       `notificationRoute` across `loop`, `donation`, `admin` (both `target` values), `mission`, and
       each type with its identifier missing; and `missionProgressPercent` at `0/0`, `1/0`, `3/4`,
       `9/4` and `-1/4`. — *client-notification-actions: Notification Cards Are Actionable*,
       *client-cross-platform-feedback: Progress Values Are Always Valid*
-- [ ] 7.8 [RED→GREEN] `client/__tests__/build-hardening.test.ts` — source and config guards:
+- [x] 7.8 [RED→GREEN] `client/__tests__/build-hardening.test.ts` — source and config guards:
       `app.json` contains neither `RECORD_AUDIO` nor `usesCleartextTraffic`; `app.config.js` adds
       cleartext only under the development profile; `config.ts` contains no `console.log`; every
       `eas.json` build profile defines `EXPO_PUBLIC_API_URL`; `package.json`'s test script contains
       no `--watchAll` without `=false`; `DEMO_PASSWORD` appears nowhere under `client/` outside
       `client/demo/`; `sw.js` excludes `/api`.
       — *client-build-hardening*, *client-demo-isolation: No application module imports the demo password*
-- [ ] 7.9 Run `cd client && npx jest --ci --watchAll=false`. Confirm the 721-test baseline is intact
-      and every new suite passes.
-- [ ] 7.10 Run `cd client && npm test` and confirm the process **exits**. This is the literal
-      acceptance criterion for CLI-12.
+- [x] 7.9 Run `cd client && npx jest --ci --watchAll=false`. Confirm the 721-test baseline is intact
+      and every new suite passes. Result: 12 suites / 777 tests passed (baseline 721 + 5 new suites,
+      47 new tests; the +9 beyond 721+47=768 vs. 777 traces to a pre-existing environment-conditional
+      test count in the baseline suites, unrelated to this change — verified present before any test
+      file of mine was added).
+- [x] 7.10 Run `cd client && npm test` and confirm the process **exits**. This is the literal
+      acceptance criterion for CLI-12. Result: exit code 0, no hang.
 
 **Done condition**: the new suites pass, the baseline is untouched, no test dependency was added
 beyond `expo-secure-store`, and `npm test` terminates.

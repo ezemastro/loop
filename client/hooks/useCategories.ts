@@ -1,11 +1,16 @@
 import { api } from "@/api/loop";
+import { parseApiError } from "@/services/errors";
 import { useQuery } from "@tanstack/react-query";
 
 const fetchCategories = async () => {
-  const response = await api.get<GetCategoriesResponse>("/categories");
-  return {
-    categories: response.data.data!.categories,
-  };
+  try {
+    const response = await api.get<GetCategoriesResponse>("/categories");
+    return {
+      categories: response.data.data!.categories,
+    };
+  } catch (error) {
+    throw parseApiError(error);
+  }
 };
 
 export const useCategories = () => {

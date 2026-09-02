@@ -1,7 +1,6 @@
 import { api } from "@/api/loop";
-import { ApiError, parseErrorName } from "@/services/errors";
+import { parseApiError } from "@/services/errors";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { AxiosError } from "axios";
 
 const fetchUsers = async (params: GetUsersRequest["query"]) => {
   try {
@@ -11,14 +10,7 @@ const fetchUsers = async (params: GetUsersRequest["query"]) => {
     });
     return response.data;
   } catch (err) {
-    if (err instanceof AxiosError) {
-      const errName = parseErrorName({ status: err.response?.status || 500 });
-      throw {
-        name: errName,
-        message: err.message,
-      } as ApiError;
-    }
-    throw err;
+    throw parseApiError(err);
   }
 };
 

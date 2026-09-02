@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Alert, Share } from "react-native";
+import { Share } from "react-native";
 import { openMailComposer } from "@/services/emailComposer";
+import { showAlert } from "@/services/showAlert";
 
 /**
  * Shared send + fallback state for any screen that opens the user's mail composer. Extracted so
@@ -13,23 +14,19 @@ export function useMailComposer() {
   const showFallback = (to: string, subject: string, body: string) => {
     const textToCopy = `Para: ${to}\nAsunto: ${subject}\n\n${body}`;
 
-    Alert.alert(
-      "No se pudo abrir la app de correo",
-      `Escribí manualmente a ${to} con el mensaje.`,
-      [
-        {
-          text: "Copiar manual",
-          onPress: () => setManualCopyText(textToCopy),
+    showAlert("No se pudo abrir la app de correo", `Escribí manualmente a ${to} con el mensaje.`, [
+      {
+        text: "Copiar manual",
+        onPress: () => setManualCopyText(textToCopy),
+      },
+      {
+        text: "Compartir texto",
+        onPress: () => {
+          void Share.share({ message: textToCopy });
         },
-        {
-          text: "Compartir texto",
-          onPress: async () => {
-            await Share.share({ message: textToCopy });
-          },
-        },
-        { text: "Cerrar", style: "cancel" },
-      ],
-    );
+      },
+      { text: "Cerrar", style: "cancel" },
+    ]);
   };
 
   const sendMail = async (to: string, subject: string, body: string): Promise<boolean> => {

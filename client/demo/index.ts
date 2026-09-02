@@ -22,10 +22,10 @@ import { DEMO_READ_ONLY_ERROR_CODE, DEMO_READ_ONLY_MESSAGE, isReadOnlyBlocked } 
 export { DEMO_READ_ONLY_ERROR_CODE, DEMO_READ_ONLY_MESSAGE } from "./readOnly";
 
 /**
- * Credenciales de la cuenta con la que entra el modo demo. Son las mismas que siembra el seed en
- * desarrollo, así que la demo hace un login normal — la única diferencia es quién lo contesta.
+ * Cuenta con la que entra el modo demo. El seed de desarrollo comparte el mismo email; la
+ * contraseña no se re-exporta acá porque `demo/handlers/auth.ts` la ignora por completo, así que
+ * ningún consumidor fuera de `client/demo/` la necesita.
  */
-export { DEMO_PASSWORD } from "./db/dataset";
 export { DEMO_SHOWCASE_EMAIL } from "./db/users";
 
 let enabled = false;

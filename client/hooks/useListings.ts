@@ -1,7 +1,6 @@
 import { api } from "@/api/loop";
-import { parseErrorName } from "@/services/errors";
+import { parseApiError } from "@/services/errors";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { AxiosError } from "axios";
 
 const fetchListings = async (params: GetListingsRequest["query"]) => {
   try {
@@ -10,12 +9,7 @@ const fetchListings = async (params: GetListingsRequest["query"]) => {
     });
     return response.data;
   } catch (error) {
-    if (error instanceof AxiosError) {
-      throw {
-        name: parseErrorName({ status: error.response?.status || 500 }),
-        message: error.message,
-      };
-    }
+    throw parseApiError(error);
   }
 };
 
@@ -23,7 +17,7 @@ export const useListings = (params: GetListingsRequest["query"]) => {
   return useInfiniteQuery({
     queryKey: ["listings", params],
     queryFn: ({ pageParam }) => fetchListings({ ...params, page: pageParam }),
-    getNextPageParam: (lastPage) => lastPage?.pagination.nextPage || null,
+    getNextPageParam: (lastPage) => lastPage.pagination.nextPage || null,
     initialPageParam: 1,
   });
 };

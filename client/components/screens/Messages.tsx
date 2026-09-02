@@ -25,9 +25,9 @@ export default function Messages() {
     userId: currentUser?.id,
     searchTerm: debouncedSearchTerm,
   });
-  const chats = data?.pages.flatMap((page) => page!.data!.chats) || [];
+  const chats = data?.pages.flatMap((page) => page.data?.chats ?? []) || [];
 
-  const users = usersData?.pages.flatMap((page) => page!.data!.users) || [];
+  const users = usersData?.pages.flatMap((page) => page.data?.users ?? []) || [];
   const localFilteredUsers = users.filter(
     (user) =>
       `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) &&

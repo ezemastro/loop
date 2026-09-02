@@ -23,6 +23,14 @@ const GOOGLE_CREDENTIAL_KEY = "@google_credential";
 const GOOGLE_INVITATION_KEY = "@google_invitation_token";
 const GOOGLE_COMMUNITY_KEY = "@google_community";
 
+/**
+ * The raw Google ID token never reaches disk. The two-step registration flow (this screen, then
+ * `SchoolSelection`) is single-session by design: if the app is killed in between, the credential
+ * is gone and the correct recovery is signing in again — the same experience a user already gets
+ * today when a stored credential has aged out.
+ */
+let inMemoryGoogleCredential: string | null = null;
+
 interface GoogleSignInButtonProps {
   onError?: (error: string) => void;
   disabled?: boolean;
@@ -73,7 +81,7 @@ const GoogleSignInButtonInner: React.FC<GoogleSignInButtonProps> = ({
   }, []);
 
   const loginWithGoogleCredential = async (credential: string) => {
-    await AsyncStorage.setItem(GOOGLE_CREDENTIAL_KEY, credential);
+    inMemoryGoogleCredential = credential;
     // La invitación viaja junto al credential porque el registro con Google es en dos pasos y el
     // segundo ocurre en otra pantalla, que tiene que reenviar exactamente lo mismo.
     if (invitationToken) {
@@ -301,8 +309,7 @@ export interface StoredGoogleSignIn {
  */
 export const getStoredGoogleCredential = async (): Promise<StoredGoogleSignIn> => {
   try {
-    const [credential, invitationToken, rawCommunity] = await Promise.all([
-      AsyncStorage.getItem(GOOGLE_CREDENTIAL_KEY),
+    const [invitationToken, rawCommunity] = await Promise.all([
       AsyncStorage.getItem(GOOGLE_INVITATION_KEY),
       AsyncStorage.getItem(GOOGLE_COMMUNITY_KEY),
     ]);
@@ -316,15 +323,22 @@ export const getStoredGoogleCredential = async (): Promise<StoredGoogleSignIn> =
       }
     }
 
-    return { credential, invitationToken: invitationToken ?? undefined, community };
+    return {
+      credential: inMemoryGoogleCredential,
+      invitationToken: invitationToken ?? undefined,
+      community,
+    };
   } catch (error) {
     console.error("Error al obtener credential guardado:", error);
-    return { credential: null, community: null };
+    return { credential: inMemoryGoogleCredential, community: null };
   }
 };
 
 export const clearStoredGoogleData = async (): Promise<void> => {
+  inMemoryGoogleCredential = null;
   try {
+    // `GOOGLE_CREDENTIAL_KEY` is removed opportunistically: a device upgrading from a build that
+    // still wrote the credential to disk should not keep that residual copy around.
     await AsyncStorage.multiRemove([
       GOOGLE_CREDENTIAL_KEY,
       GOOGLE_INVITATION_KEY,

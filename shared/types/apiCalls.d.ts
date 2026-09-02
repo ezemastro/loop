@@ -489,6 +489,9 @@ type PostAdminGoogleLoginResponse = ApiResponse<{
   admin: Admin;
 }>;
 
+// POST /admin/logout — sin body ni auth; limpia la cookie del lado del servidor.
+type PostAdminLogoutResponse = ApiResponse;
+
 // POST /admin/register
 interface PostAdminRegisterRequest {
   body: {
@@ -516,7 +519,7 @@ interface GetAdminUsersRequest {
     search?: string;
   };
 }
-type GetAdminUsersResponse = ApiResponse<{
+type GetAdminUsersResponse = PaginatedApiResponse<{
   users: PrivateUser[];
   total: number;
 }>;

@@ -128,7 +128,7 @@ export default function ModifyListing({
       } else {
         queryClient.invalidateQueries({ queryKey: ["listings"], exact: false });
         queryClient.invalidateQueries({
-          queryKey: ["listing", { listingId: initialData?.id }],
+          queryKey: ["listing", initialData?.id],
         });
         router.back();
       }

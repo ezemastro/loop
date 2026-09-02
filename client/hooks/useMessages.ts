@@ -1,7 +1,6 @@
 import { api } from "@/api/loop";
-import { parseErrorName } from "@/services/errors";
+import { parseApiError } from "@/services/errors";
 import { type QueryClient, useInfiniteQuery } from "@tanstack/react-query";
-import { AxiosError } from "axios";
 
 type Params = GetMessagesByUserIdRequest["params"] & GetMessagesByUserIdRequest["query"];
 const fetchChats = async (params: Params) => {
@@ -11,12 +10,7 @@ const fetchChats = async (params: Params) => {
     });
     return response.data;
   } catch (error) {
-    if (error instanceof AxiosError) {
-      throw {
-        name: parseErrorName({ status: error.response?.status || 500 }),
-        message: error.message,
-      };
-    }
+    throw parseApiError(error);
   }
 };
 
@@ -25,7 +19,7 @@ export const useMessages = (params: Params) => {
     queryKey: ["messages", params.userId],
     queryFn: ({ pageParam }) => fetchChats({ ...params, page: pageParam }),
     getNextPageParam: (lastPage) => {
-      return lastPage?.pagination?.nextPage || null;
+      return lastPage.pagination?.nextPage || null;
     },
     initialPageParam: 1,
     refetchInterval: 1000 * 5,

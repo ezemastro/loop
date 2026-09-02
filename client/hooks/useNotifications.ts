@@ -1,9 +1,14 @@
 import { api } from "@/api/loop";
+import { parseApiError } from "@/services/errors";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
 const fetchNotifications = async () => {
-  const response = await api.get<GetSelfNotificationsResponse>("/me/notifications");
-  return response.data;
+  try {
+    const response = await api.get<GetSelfNotificationsResponse>("/me/notifications");
+    return response.data;
+  } catch (error) {
+    throw parseApiError(error);
+  }
 };
 
 export const useNotifications = () => {
