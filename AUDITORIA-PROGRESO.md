@@ -211,3 +211,38 @@ El contenido exacto (todas las variables que ahora exige el esquema de entorno, 
 obligatorias en producción) está en `openspec/changes/sec-hardening-api/tasks.md`.
 Sin ese archivo, el próximo que clone el repo no sabe qué variables necesita — y la API ahora
 **aborta el arranque en producción** si falta alguna.
+
+---
+
+## Verificación final de la sesión
+
+Base **desde cero** (`postgres:16` limpio → `database_creation.sql` → `create_categories.sql` →
+migraciones `0000`–`0016`):
+
+```
+✓ 0009_unique_user_email          ✓ 0013_revoke_loop_app_dml
+✓ 0010_credit_balance_checks      ✓ 0014_credit_ledger_integrity
+✓ 0011_message_listing_on_delete  ✓ 0015_terms_acceptance
+✓ 0012_verification_token_hash    ✓ 0016_password_reset
+Migraciones al día.
+```
+
+Suite completa del API **con base real** (`RUN_DB_TESTS=1`), o sea incluidos RLS, concurrencia de
+créditos y rutas legales:
+
+```
+Test Suites: 17 passed, 17 total
+Tests:       163 passed, 163 total
+```
+
+| Chequeo | Al empezar | Al terminar |
+|---|---|---|
+| `server/api` `tsc --noEmit` | ✅ limpio | ✅ limpio |
+| `client` `tsc --noEmit` | ❌ 209 errores | ✅ limpio |
+| `adminClient` `tsc -b --noEmit` | no medible (sin `node_modules` ni lockfile) | ✅ limpio |
+| `npm run lint` | ❌ roto en **los tres** paquetes | ✅ corre en los tres |
+| Suite del API (sin DB) | ❌ 9 suites en rojo / 4 en verde · 20 tests en rojo / 54 en verde | ✅ 14 en verde, 0 en rojo · 134 tests |
+| Suite del API (con DB real) | nunca se corría | ✅ **17/17 suites, 163/163 tests** |
+| Suite del cliente | 721 (con `--watchAll`, no terminaba en CI) | ✅ 857 con `--ci` |
+| Migraciones desde cero | ❌ imposible: puerto hardcodeado | ✅ `0000`–`0016` limpias |
+| `npm audit` | 4 high en raíz, 53 en cliente, admin no auditable | ✅ sin vulnerabilidades |
