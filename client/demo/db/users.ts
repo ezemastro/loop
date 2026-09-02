@@ -1,6 +1,7 @@
 /** Usuarios del modo demo, hidratados desde el dataset compartido. */
 import { DEMO_COMMUNITY, DEMO_SCHOOLS } from "./community";
 import { SHARED_COMMUNITY, toMedia } from "./dataset";
+import { TERMS_VERSION } from "@/content/legal/termsDocument";
 
 export const DEMO_USERS: PrivateUser[] = SHARED_COMMUNITY.users.map((user) => ({
   id: user.id,
@@ -15,6 +16,10 @@ export const DEMO_USERS: PrivateUser[] = SHARED_COMMUNITY.users.map((user) => ({
   profileMedia: user.avatar ? toMedia(user.avatar) : null,
   schools: DEMO_SCHOOLS.filter((school) => user.schoolIds.includes(school.id)),
   community: DEMO_COMMUNITY,
+  // Demo accounts already accepted the current terms — the demo is meant to showcase the app,
+  // not to be interrupted by the terms screen.
+  termsAcceptedAt: new Date().toISOString(),
+  termsVersion: TERMS_VERSION,
 }));
 
 export const demoUserByEmail = (email: string) =>

@@ -3,6 +3,7 @@ import { InternalServerError, NotFoundError } from "../services/errors";
 import { queries } from "../services/queries";
 import type { DatabaseClient } from "../types/dbClient";
 import { getCommunityByIdWithClient } from "./communities.js";
+import { applyCreditMovements } from "./credits.js";
 import { sendMissionNotification } from "./notifications";
 import {
   parseCategoryBaseFromDb,
@@ -127,14 +128,14 @@ export const getSchoolsByIds = async ({
   const mediaIds = [...new Set(schoolsDb.map((s) => s.media_id))];
   const mediaDb = await client.query(queries.mediaByIds(mediaIds), [mediaIds, client.communityId]);
   const mediaMap = new Map(mediaDb.map((m) => [m.id, parseMediaFromDb(m)]));
-  return schoolsDb
-    .map((schoolDb) => {
-      const schoolBase = parseSchoolFromDb(schoolDb);
-      const media = mediaMap.get(schoolBase.mediaId);
-      if (!media) return null;
-      return parseSchoolFromBase({ school: schoolBase, media });
-    })
-    .filter((s): s is School => s !== null);
+  // notification-integrity: "A school with unreachable media is still listed" — antes, un colegio
+  // cuyo logo no resolvía (media borrada, o fuera de scope) se descartaba en silencio de la lista
+  // entera. Ahora se devuelve igual, con `media: null`.
+  return schoolsDb.map((schoolDb) => {
+    const schoolBase = parseSchoolFromDb(schoolDb);
+    const media = mediaMap.get(schoolBase.mediaId) ?? null;
+    return parseSchoolFromBase({ school: schoolBase, media });
+  });
 };
 
 export const getUserSchools = async ({
@@ -165,10 +166,14 @@ export const getSchoolById = async ({
   const [schoolDb] = await client.query(queries.schoolById, [schoolId, client.communityId]);
   if (!schoolDb) throw new NotFoundError(ERROR_MESSAGES.SCHOOL_NOT_FOUND);
   const schoolBase = parseSchoolFromDb(schoolDb);
-  const schoolMedia = await getMediaById({
-    client,
-    mediaId: schoolBase.mediaId,
-  });
+  // notification-integrity: "Reads Do Not Silently Drop Rows" — un logo que dejó de resolver no
+  // puede convertir un colegio que SÍ existe en un 404 entero.
+  let schoolMedia: Media | null = null;
+  try {
+    schoolMedia = await getMediaById({ client, mediaId: schoolBase.mediaId });
+  } catch (err) {
+    if (!(err instanceof NotFoundError)) throw err;
+  }
   return parseSchoolFromBase({ school: schoolBase, media: schoolMedia });
 };
 
@@ -550,61 +555,72 @@ export const getNotificationsByUserId = async ({
     };
   }
   const notificationsBase = notificationsDb.map(parseNotificationBaseFromDb);
-  const notificationsWithGaps = await Promise.all(
+  // notification-integrity: "Reads Do Not Silently Drop Rows", "Pagination Counts Match Returned
+  // Rows". Antes, si el listing/usuario/misión referenciado ya no existía, la notificación entera
+  // se descartaba (`return null` más abajo, filtrado después) — pero `total_records` viene de un
+  // `COUNT(*) OVER()` calculado ANTES de ese descarte, así que la página podía prometer más
+  // elementos de los que realmente entregaba. Ahora cada referencia rota se resuelve a `null`/
+  // `undefined` en vez de tirar toda la notificación, así que lo que se cuenta y lo que se entrega
+  // vuelven a coincidir por construcción — no hace falta un cálculo de paginación aparte.
+  const notifications = await Promise.all(
     notificationsBase.map(async (notification) => {
-      try {
-        const buyer =
-          notification.type === "loop"
-            ? (notification.payload as LoopNotificationPayload).buyerId
-              ? await getUserById({
-                  client,
-                  userId: (notification.payload as LoopNotificationPayload).buyerId!,
-                })
-              : null
-            : undefined;
-        const donorUser =
-          notification.type === "donation"
-            ? await getUserById({
+      const safe = async <T>(fn: () => Promise<T>): Promise<T | undefined> => {
+        try {
+          return await fn();
+        } catch (error) {
+          if (isRecoverableNotificationError(error)) return undefined;
+          throw error;
+        }
+      };
+
+      const buyerId =
+        notification.type === "loop"
+          ? (notification.payload as LoopNotificationPayload).buyerId
+          : null;
+      const buyer = buyerId
+        ? await safe(() => getUserById({ client, userId: buyerId }))
+        : undefined;
+
+      const donorUser =
+        notification.type === "donation"
+          ? await safe(() =>
+              getUserById({
                 client,
                 userId: (notification.payload as DonationNotificationPayload).donorUserId,
-              })
-            : undefined;
-        const listingReferenceId =
-          notification.type === "loop"
-            ? (notification.payload as LoopNotificationPayload).listingId
-            : notification.type === "admin" &&
-                (notification.payload as AdminNotificationPayload).target === "listing" &&
-                (notification.payload as AdminNotificationPayload).referenceId
-              ? (notification.payload as AdminNotificationPayload).referenceId
-              : null;
-        const listing = listingReferenceId
-          ? await getListingById({
-              client,
-              listingId: listingReferenceId,
-            })
+              }),
+            )
           : undefined;
-        const userMission =
-          notification.type === "mission"
-            ? await getUserMissionById({
+
+      const listingReferenceId =
+        notification.type === "loop"
+          ? (notification.payload as LoopNotificationPayload).listingId
+          : notification.type === "admin" &&
+              (notification.payload as AdminNotificationPayload).target === "listing" &&
+              (notification.payload as AdminNotificationPayload).referenceId
+            ? (notification.payload as AdminNotificationPayload).referenceId
+            : null;
+      const listing = listingReferenceId
+        ? await safe(() => getListingById({ client, listingId: listingReferenceId }))
+        : undefined;
+
+      const userMission =
+        notification.type === "mission"
+          ? await safe(() =>
+              getUserMissionById({
                 client,
                 userMissionId: (notification.payload as MissionNotificationPayload).userMissionId,
-              })
-            : undefined;
-        return parseNotificationFromBase({
-          notification,
-          buyer,
-          donorUser,
-          userMission,
-          listing,
-        });
-      } catch (error) {
-        if (isRecoverableNotificationError(error)) return null;
-        throw error;
-      }
+              }),
+            )
+          : undefined;
+
+      return parseNotificationFromBase({
+        notification,
+        buyer,
+        donorUser,
+        userMission,
+        listing,
+      });
     }),
-  );
-  const notifications = notificationsWithGaps.filter(
-    (notification): notification is AppNotification => notification !== null,
   );
   const pagination = parsePagination({
     currentPage: page ?? 1,
@@ -638,6 +654,13 @@ export const getMessageById = async ({
 
 // ── Mission Progress ──
 
+/**
+ * mission-progress: "A Mission Rewards Once", "Completion Timestamp Records Completion". El
+ * `UPDATE` guardado (`queries.progressMission`, `AND completed = false`) corre ANTES de otorgar
+ * nada, y su cantidad de filas es lo único que decide si hay recompensa — si otro request ya
+ * completó esta misión entre la lectura de arriba y este punto, el UPDATE devuelve cero filas y
+ * acá se corta sin conceder créditos ni mandar notificación duplicada.
+ */
 export const progressMission = async ({
   client,
   userId,
@@ -665,16 +688,27 @@ export const progressMission = async ({
   });
   const current = userMission.progress.current + 1;
   const completed = current >= userMission.progress.total;
-  if (completed && !userMission.completed) {
+
+  const [updatedDb] = await client.query(queries.progressMission, [
+    { current, total: userMission.progress.total },
+    completed,
+    userMission.id,
+    client.communityId,
+  ]);
+  if (!updatedDb) return;
+
+  if (completed) {
     const userDb = await client.query(queries.userById, [userId, client.communityId]);
     if (userDb.length === 0) return;
     const userBase = parseUserBaseFromDb(userDb[0]!);
-    const newCredits = (userBase.credits.balance ?? 0) + missionTemplate.rewardCredits;
-    await client.query(queries.updateUserBalance, [
-      newCredits,
-      userBase.credits.locked,
-      userId,
-      client.communityId,
+    await applyCreditMovements(client, [
+      {
+        userId,
+        balanceDelta: missionTemplate.rewardCredits,
+        lockedDelta: 0,
+        reason: "mission_reward",
+        referenceId: userMission.id,
+      },
     ]);
     await sendMissionNotification({
       client,
@@ -683,12 +717,6 @@ export const progressMission = async ({
       notificationToken: userBase.notificationToken,
     });
   }
-  await client.query(queries.progressMission, [
-    { current, total: userMission.progress.total },
-    completed,
-    userMission.id,
-    client.communityId,
-  ]);
 };
 
 export const assignMissionToUser = async ({
@@ -720,25 +748,35 @@ export const assignMissionToUser = async ({
 };
 
 /**
- * Se llama durante el registro. El `withClient` del alta ya está scopeado a la comunidad del
- * usuario nuevo, así que `client.communityId` es la comunidad correcta para las misiones que se
- * insertan acá.
+ * Se llama durante el registro y desde `moveUserToCommunity` (mission-progress: "Missions Follow A
+ * Moved User"). `communityId` es opcional y por defecto es `client.communityId` — alcanza para el
+ * alta, donde el `withClient` ya está scopeado a la comunidad del usuario nuevo. `moveUserToCommunity`
+ * corre `unscoped("admin")` (`client.communityId` siempre `null` ahí), así que ese caller pasa la
+ * comunidad de destino explícita; sin este parámetro, la inserción violaría el `NOT NULL` de
+ * `user_missions.community_id`.
+ *
+ * Solo trae plantillas activas (mission-progress: "Only Active Templates Are Assigned",
+ * `queries.activeMissionTemplates`) — `allMissionTemplates` es a propósito una query distinta que
+ * sigue usando el panel de admin para poder reactivar una plantilla.
  */
 export const assignAllMissionsToUser = async ({
   client,
   userId,
+  communityId,
 }: {
   client: DatabaseClient;
   userId: UUID;
+  communityId?: UUID;
 }) => {
-  const missionTemplatesDb = await client.query(queries.allMissionTemplates);
+  const targetCommunityId = communityId ?? client.communityId;
+  const missionTemplatesDb = await client.query(queries.activeMissionTemplates);
   if (missionTemplatesDb.length === 0) return;
   const missionTemplates = missionTemplatesDb.map(parseMissionTemplateFromDb);
   for (const missionTemplate of missionTemplates) {
     const userMissionDb = await client.query(queries.userMissionsByUserIdAndTemplateId, [
       userId,
       missionTemplate.id,
-      client.communityId,
+      targetCommunityId,
     ]);
     if (userMissionDb.length > 0) continue;
     await client.query(queries.assignMissionToUser, [
@@ -751,20 +789,20 @@ export const assignAllMissionsToUser = async ({
           1,
       },
       false,
-      client.communityId,
+      targetCommunityId,
     ]);
   }
 };
 
 /**
- * TODO: reescribir como un solo `INSERT INTO user_missions (...) SELECT ... FROM users WHERE ...
- * ON CONFLICT DO NOTHING`. Hoy recorre todos los usuarios de la comunidad haciendo dos queries por
- * cabeza (N+1), y encima la ventana entre el SELECT y el INSERT permite duplicados si dos admins
- * lo disparan a la vez. No se reescribe en esta migración para no mezclar cambios de aislamiento
- * con cambios de comportamiento.
+ * mission-progress: "Set-Based, Idempotent Fan-Out". Reemplaza el loop `2 + 2·U` de antes (un
+ * `SELECT`/`INSERT` por cada usuario, con una ventana entre ambos que dejaba duplicar la
+ * asignación si dos admins lo disparaban a la vez) por un único `INSERT … SELECT … ON CONFLICT DO
+ * NOTHING`, apoyado en `uq_user_missions_user_template` (migración `0014`).
  *
- * `client.communityId` es `null` para un super admin, y en ese caso `getAllUsersAdmin` devuelve
- * los usuarios de todas las comunidades: eso es intencional, es una acción de panel.
+ * Nada se asigna si la plantilla está inactiva (mission-progress: "Creating an inactive template
+ * assigns nothing"). `client.communityId` es `null` para un super admin, y en ese caso alcanza a
+ * los usuarios de todas las comunidades: es una acción de panel, intencional.
  */
 export const assignMissionToAllUsers = async ({
   client,
@@ -778,25 +816,12 @@ export const assignMissionToAllUsers = async ({
     throw new NotFoundError(ERROR_MESSAGES.MISSION_TEMPLATE_NOT_FOUND);
   }
   const missionTemplate = parseMissionTemplateFromDb(missionTemplateDb[0]!);
-  const usersDb = await client.query(queries.getAllUsersAdmin, [client.communityId]);
-  if (usersDb.length === 0) return;
+  if (!missionTemplate.active) return;
   const total =
     safeNumber(missionTemplate.key.split("-")[missionTemplate.key.split("-").length - 1]) ?? 1;
-  for (const userDb of usersDb) {
-    const userId = userDb.id;
-    const userMissionDb = await client.query(queries.userMissionsByUserIdAndTemplateId, [
-      userId,
-      missionTemplate.id,
-      // La misión se inserta en la comunidad del usuario, que no siempre es la del client.
-      userDb.community_id,
-    ]);
-    if (userMissionDb.length > 0) continue;
-    await client.query(queries.assignMissionToUser, [
-      userId,
-      missionTemplate.id,
-      { current: 0, total },
-      false,
-      userDb.community_id,
-    ]);
-  }
+  await client.query(queries.assignMissionToAllUsersSetBased, [
+    missionTemplate.id,
+    { current: 0, total },
+    client.communityId,
+  ]);
 };

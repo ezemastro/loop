@@ -1,4 +1,5 @@
 import { Text, TextInput, View, FlatList, ActivityIndicator } from "react-native";
+import { Link } from "expo-router";
 import { MainView, pageContentClassName } from "../bases/MainView";
 import SchoolSelector from "../selectors/SchoolSelector";
 import CustomButton from "../bases/CustomButton";
@@ -209,6 +210,17 @@ export default function Register({ invite }: { invite?: string }) {
               <CustomButton onPress={handleSubmit} className={isRegisterError ? "mt-2" : "mt-6"}>
                 <ButtonText>Registrarse</ButtonText>
               </CustomButton>
+              <Text className="text-center text-secondary-text text-sm mt-3">
+                Al registrarte aceptás nuestros{" "}
+                <Link href="/terminos" className="text-tertiary">
+                  términos y condiciones
+                </Link>{" "}
+                y nuestra{" "}
+                <Link href="/privacidad" className="text-tertiary">
+                  política de privacidad
+                </Link>
+                .
+              </Text>
               <View className="w-full h-0.5 bg-secondary-text/30 my-6" />
               {GOOGLE_OAUTH_READY || NODE_ENV !== "production" ? (
                 <View>

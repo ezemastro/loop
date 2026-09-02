@@ -68,7 +68,11 @@ describe("Database Helpers", () => {
   });
 
   describe("Notifications Helpers", () => {
-    it("should skip notifications that reference missing entities", async () => {
+    // notification-integrity: "Reads Do Not Silently Drop Rows", "Pagination Counts Match
+    // Returned Rows". Antes esto se llamaba "should skip..." y esperaba que la notificación con
+    // el listing roto desapareciera de la respuesta; ahora se devuelve igual, con `listing:
+    // undefined`, y el total de paginación sigue coincidiendo con lo que realmente se entrega.
+    it("should still return notifications whose referenced entity is missing", async () => {
       const missingListingId = randomUUID() as UUID;
       const notificationUserId = randomUUID() as UUID;
       const donorUserId = MOCK_USER_DB.id;
@@ -138,9 +142,16 @@ describe("Database Helpers", () => {
         page: 1,
       });
 
-      expect(notifications).toHaveLength(1);
-      expect(notifications[0]!.type).toBe("donation");
+      expect(notifications).toHaveLength(2);
+      const loopNotification = notifications.find((n) => n.type === "loop");
+      expect(loopNotification).toBeDefined();
+      expect((loopNotification!.payload as { listing?: unknown }).listing).toBeUndefined();
+      const donationNotification = notifications.find((n) => n.type === "donation");
+      expect(donationNotification).toBeDefined();
+      // El total de paginación viene de `COUNT(*) OVER()` (mockeado en `total_records`) y ahora
+      // coincide con lo que realmente se devuelve, porque nada se descarta.
       expect(pagination.totalRecords).toBe(2);
+      expect(notifications).toHaveLength(pagination.totalRecords);
     });
   });
 });

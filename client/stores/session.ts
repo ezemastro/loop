@@ -5,6 +5,17 @@ import { queryClient } from "@/api/queryClient";
 import { useThemeStore } from "@/stores/theme";
 import { disableDemoMode, enableDemoMode } from "@/demo";
 import { sessionStorage } from "@/services/secureStorage";
+import { TERMS_VERSION } from "@/content/legal/termsDocument";
+
+/**
+ * The server row is the source of truth once a `user` exists (design D5): a fresh `login`/
+ * `setUser` always recomputes this from `user.termsVersion`, so acceptance survives logout
+ * (proposal C6) and a `TERMS_VERSION` bump re-prompts every user without any migration. The
+ * persisted local flag only matters in the narrow window covered by `setHasAcceptedTerms`
+ * directly — the "acceptance POST failed, don't lock the user out this session" fallback (spec
+ * `terms-acceptance`, "Acceptance Failure Must Not Lock Users Out").
+ */
+const deriveHasAcceptedTerms = (user: PrivateUser): boolean => user.termsVersion === TERMS_VERSION;
 
 interface SessionStore {
   user: PrivateUser | null;
@@ -59,6 +70,7 @@ export const useSessionStore = create<SessionStore>()(
         set((state) => ({
           user,
           authToken: token ?? state.authToken,
+          hasAcceptedTerms: deriveHasAcceptedTerms(user),
         }));
         syncCommunityTheme(user);
       },
@@ -81,7 +93,7 @@ export const useSessionStore = create<SessionStore>()(
         disableDemoMode();
       },
       setUser: (user) => {
-        set({ user });
+        set({ user, hasAcceptedTerms: deriveHasAcceptedTerms(user) });
         syncCommunityTheme(user);
       },
       setAuthToken: (token) => set({ authToken: token }),

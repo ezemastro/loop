@@ -14,4 +14,7 @@ uploadsRouter.post(
   optimizeUploadedImage,
   UploadsController.upload,
 );
-uploadsRouter.use("/", express.static(UPLOAD_DIR));
+// SEC-08: `verifySignature` gates access when `MEDIA_URL_SIGNING_ENABLED` is on, refusing an
+// unsigned/tampered/expired request with 403 before it ever reaches the filesystem. It is a no-op
+// pass-through while the flag is off, so `express.static` still owns 100% of today's behaviour.
+uploadsRouter.use("/", UploadsController.verifySignature, express.static(UPLOAD_DIR));

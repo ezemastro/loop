@@ -22,6 +22,7 @@
     "migrate": "tsx src/scripts/migrate.ts",
     "migrate:status": "tsx src/scripts/migrate.ts --status",
     "seed": "cross-env NODE_ENV=development tsx src/scripts/seed.ts",
+    "reconcile-credits": "tsx src/scripts/reconcileCredits.ts",
     "check-sql": "python3 ../scripts/check-sql-arity.py",
     "lint": "eslint ."
   },
@@ -32,7 +33,9 @@
     "cross-env": "^10.0.0",
     "expo-server-sdk": "4.0.0",
     "express": "5.1.0",
+    "express-rate-limit": "^8.7.0",
     "google-auth-library": "10.5.0",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "9.0.2",
     "multer": "^2.0.2",
     "pg": "8.16.3",

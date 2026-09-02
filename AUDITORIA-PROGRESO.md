@@ -10,11 +10,11 @@
 |---|---|---|---|---|
 | A | `sec-hardening-api` | SEC-01, 02, 03, 04, 06(parcial), 07, 12, 13, 15, 16, INF-11 | ✅ | en curso |
 | B | `db-integrity-migrations` | SEC-05, SEC-09, SEC-10, ECO-01 (DB), ECO-09 | ✅ | ✅ `a3a026e` |
-| C | `credit-economy-integrity` | ECO-01, 02, 03, 04, 05, 06, 08, 10, 11, 12 | ✅ | en curso |
+| C | `credit-economy-integrity` | ECO-01, 02, 03, 04, 05, 06, 08, 10, 11, 12 | ✅ | ✅ código de servidor completo y validado contra DB real; falta conectar el botón "Cancelar" del cliente (fuera de los archivos que este bloque podía tocar) — ver `TESTING-MANUAL.md` §7 |
 | D | `client-critical-fixes` | CLI-01, 02, 03, 04, 05, 06, 07, 09, 12(parcial), 13(parcial) | ✅ | ✅ `d6b50b3` |
 | E | `admin-panel-fixes` | ADM-02, 03, 04, 05, 06, 08, 10(parcial) | ✅ | ✅ `fe7f886` |
 | F | `delivery-and-ci` | INF-01, 02, 03, 04, 06, 07, 08, 09, 10, 12 | ✅ | en curso — fases 1-6 y 8-9 aplicadas; fase 7 (observabilidad/INF-10) diferida a `sec-hardening-api` (dueño de `index.ts`/`/health`, aún no aplicado) |
-| G | `legal-public-routes` | ADM-01, SEC-08, SEC-11, PROD-05(parcial) | ✅ | en curso |
+| G | `legal-public-routes` | ADM-01, SEC-08, SEC-11, PROD-05(parcial) | ✅ | ✅ código completo, migraciones `0015`/`0016` aplicadas y validadas; **gate legal (6.6) pendiente de un humano — ver `TESTING-MANUAL.md` §0** |
 
 Cada bloque tiene `proposal.md`, `design.md`, `tasks.md` y sus delta specs en
 `openspec/changes/<id>/`. Las correcciones a la auditoría que salieron de leer el código están en
@@ -39,11 +39,39 @@ cd server/api && PGHOST=localhost POSTGRES_PORT=5433 POSTGRES_USER=postgres POST
 
 ## Salteados a propósito
 
-(se completa al cerrar la sesión)
+- **ECO-07** (`credit-economy-integrity`) — una oferta por debajo del precio pedido, sin ningún
+  ítem de intercambio de por medio, sigue sin poder aceptarse (`TOTAL_PRICE_EXCEEDED`). Es una
+  regla real y preexistente que necesita una decisión de producto (¿precio fijo, o el vendedor
+  puede aceptar con descuento?), documentada en `openspec/changes/credit-economy-integrity/proposal.md`
+  ("Deferred"). El comportamiento queda byte-a-byte igual a como estaba.
+- **Wiring del cliente para `POST /listings/:listingId/cancel`** (`credit-economy-integrity`,
+  ECO-05) — el endpoint existe, está guardado y probado directamente contra la base real; el
+  botón "Cancelar" del cliente (`client/components/ListingButtons.tsx:114-116`) sigue sin
+  `onPress`. Se salteó porque `client/` estaba fuera de los archivos que este bloque podía tocar
+  en la sesión concurrente. Ver `TESTING-MANUAL.md` §7.
 
 ## Descubrimientos nuevos
 
-(se completa a medida que aparecen)
+- **`receiveListing` reescribía `credits_balance` del comprador a su propio valor sin necesidad**
+  (`credit-economy-integrity`, corrección al audit original): un lost-update sin ningún propósito
+  — solo pretendía tocar `credits_locked`. Corregido: el bucket que no cambia ya no aparece en el
+  UPDATE.
+- **`cancelListing` (la implementación vieja) cobraba de más al vendedor y de más al comprador**
+  (`credit-economy-integrity`): cargaba `price - offeredCredits` de bolsillo al vendedor y
+  acreditaba el `price` completo al comprador en vez de lo que tenía bloqueado. Nunca corrió en
+  producción (bug de aridad documentado en el propio código), así que no hay comportamiento que
+  preservar — la regla nueva es simétrica: cada parte recupera exactamente lo que ese loop le
+  tenía bloqueado.
+- **`makeOffer` no tenía ningún schema de validación** (`credit-economy-integrity`, más amplio de
+  lo que decía el audit original): `offeredCredits: undefined` pasaba las tres comparaciones de
+  guardas porque todas son `false` contra `undefined`.
+- **`assignMissionToAllUsers` tenía una ventana de duplicación real entre dos admins simultáneos**
+  (`credit-economy-integrity`, ECO-11): el SELECT→INSERT por usuario (N+1) no tenía ningún
+  constraint de unicidad debajo — confirmado y cerrado con `uq_user_missions_user_template`
+  (migración `0014`) más un único `INSERT … SELECT … ON CONFLICT DO NOTHING`.
+- **No había ningún `UNIQUE` real sobre `mission_templates.key`** (`credit-economy-integrity`): la
+  unicidad solo la vigilaba la aplicación — una carrera TOCTOU real entre dos altas de plantilla
+  simultáneas. Cerrado con `uq_mission_templates_key` (migración `0014`).
 
 ---
 

@@ -4,8 +4,14 @@ import {
   validateAdminLogin,
   validateAdminRegister,
   validateCreateMissionTemplate,
+  validateCreateSchool,
+  validateGetAdminUsersRequest,
   validateId,
+  validateModifyCredits,
+  validateResetUserPassword,
+  validateSendNotification,
   validateUpdateMissionTemplate,
+  validateUpdateSchool,
 } from "../services/validations.js";
 import { InvalidInputError, UnauthorizedError } from "../services/errors.js";
 import { adminCookieOptions, COOKIE_NAMES, ERROR_MESSAGES } from "../config.js";
@@ -128,6 +134,18 @@ export class AdminController {
   };
 
   /**
+   * Termina una sesión que puede ya estar rota, así que va sin autenticación: no lee sesión ni
+   * toca la base, y limpiar la cookie sin cookie o dos veces sigue respondiendo éxito. `maxAge` no
+   * tiene sentido en un clear y se descarta; el resto de las opciones tiene que ser exactamente el
+   * mismo objeto con el que se seteó, o el navegador se niega a borrarla.
+   */
+  static logout = async (_req: Request, res: Response) => {
+    const { maxAge: _maxAge, ...clearOptions } = adminCookieOptions;
+    res.clearCookie(COOKIE_NAMES.ADMIN_TOKEN, clearOptions);
+    return res.status(200).json(successResponse({}));
+  };
+
+  /**
    * Autorizar un correo es delegar permisos, así que se limita al alcance del que autoriza:
    * un community_admin solo puede sumar admins a su comunidad, y solo un super admin puede
    * crear otro super admin.
@@ -161,14 +179,23 @@ export class AdminController {
 
   // Gestión de usuarios
   static getUsers = async (req: Request, res: Response, next: NextFunction) => {
-    const { page, search, communityId } = req.query;
+    // Antes `page` se parseaba a mano (`page ? Number(page) : 1`), sin pasar por Zod, y `limit`
+    // ni siquiera existía como parámetro — la página se armaba siempre con la constante
+    // `PAGE_SIZE` (SEC-16, D9).
+    let query: { page: number; limit: number; search?: string; communityId?: UUID };
     try {
-      const { users, total } = await AdminModel.getUsers({
-        page: page ? Number(page) : 1,
-        search: queryString(search),
-        communityId: adminScopeCommunityId(req, queryString(communityId)),
+      query = await validateGetAdminUsersRequest(req.query);
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    try {
+      const { users, total, pagination } = await AdminModel.getUsers({
+        page: query.page,
+        limit: query.limit,
+        search: query.search,
+        communityId: adminScopeCommunityId(req, query.communityId),
       });
-      return res.status(200).json(successResponse({ data: { users, total } }));
+      return res.status(200).json(successResponse({ data: { users, total }, pagination }));
     } catch (error) {
       next(error);
     }
@@ -176,16 +203,24 @@ export class AdminController {
 
   static modifyUserCredits = async (req: Request, res: Response, next: NextFunction) => {
     const userId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
-    const { amount, positive, meta } = req.body;
     if (!userId) {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    // `amount` era `any` (SEC-07, D8): un valor negativo con `positive: true` llegaba a
+    // `increaseUserBalance` y restaba — manipulación de saldo arbitraria.
+    let body: { amount: number; positive: boolean; meta?: Record<string, unknown> };
+    try {
+      body = await validateModifyCredits(req.body);
+    } catch {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     try {
       const { user } = await AdminModel.modifyUserCredits({
         userId,
-        amount,
-        positive,
-        meta,
+        amount: body.amount,
+        positive: body.positive,
+        meta: body.meta,
+        adminId: requireAdminId(req),
         communityId: adminScopeCommunityId(req, queryString(req.query.communityId)),
       });
       return res.status(200).json(successResponse({ data: { user } }));
@@ -195,18 +230,22 @@ export class AdminController {
   };
 
   static resetUserPassword = async (req: Request, res: Response, next: NextFunction) => {
-    const { newPassword } = req.body as PostAdminUserResetPasswordRequest["body"];
     const { userId } = req.params as PostAdminUserResetPasswordRequest["params"];
     try {
       await validateId(userId);
     } catch {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
-    // No hay validaciones porque es administrador
+    let body: { newPassword: string };
+    try {
+      body = await validateResetUserPassword(req.body);
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
     try {
       await AdminModel.resetUserPassword({
         userId,
-        newPassword,
+        newPassword: body.newPassword,
         communityId: adminScopeCommunityId(req, queryString(req.query.communityId)),
       });
       return res.status(200).json(successResponse({ data: { userId } }));
@@ -244,13 +283,17 @@ export class AdminController {
 
   // Gestión de escuelas
   static createSchool = async (req: Request, res: Response, next: NextFunction) => {
-    const { name, mediaId, communityId } = req.body as PostAdminSchoolsRequest["body"] & {
-      communityId?: UUID;
-    };
+    const { communityId } = req.body as { communityId?: UUID };
+    let body: { name: string; mediaId: UUID };
+    try {
+      body = await validateCreateSchool(req.body);
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
     try {
       const { school } = await AdminModel.createSchool({
-        name,
-        mediaId,
+        name: body.name,
+        mediaId: body.mediaId,
         // Un colegio nace en una comunidad concreta: un super admin tiene que indicarla.
         communityId: requireScopeCommunityId(req, communityId),
       });
@@ -264,17 +307,27 @@ export class AdminController {
     const schoolId = Array.isArray(req.params.schoolId)
       ? req.params.schoolId[0]
       : req.params.schoolId;
-    const { name, mediaId } = req.body;
 
     if (!schoolId) {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    try {
+      await validateId(schoolId);
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    let body: { name?: string; mediaId?: UUID };
+    try {
+      body = await validateUpdateSchool(req.body);
+    } catch {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
 
     try {
       const { school } = await AdminModel.updateSchool({
         schoolId,
-        name,
-        mediaId,
+        name: body.name,
+        mediaId: body.mediaId,
         communityId: adminScopeCommunityId(req, queryString(req.query.communityId)),
       });
       return res.status(200).json(successResponse({ data: { school } }));
@@ -353,12 +406,17 @@ export class AdminController {
 
   // Gestión de notificaciones
   static sendNotification = async (req: Request, res: Response, next: NextFunction) => {
-    const { userId, type, payload } = req.body;
+    let body: { userId: UUID; type: NotificationType; payload: Record<string, unknown> };
+    try {
+      body = (await validateSendNotification(req.body)) as typeof body;
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
     try {
       const { notification } = await AdminModel.sendNotification({
-        userId,
-        type,
-        payload,
+        userId: body.userId,
+        type: body.type,
+        payload: body.payload,
         communityId: adminScopeCommunityId(req, queryString(req.query.communityId)),
       });
       return res.status(201).json(successResponse({ data: { notification } }));

@@ -1,17 +1,12 @@
 import { randomBytes } from "node:crypto";
 import { unscoped, withClient } from "../services/postgresClient.js";
-import {
-  ERROR_MESSAGES,
-  ADMIN_GOOGLE_CLIENT_ID,
-  PAGE_SIZE,
-  AUTHORIZED_ADMIN_EMAIL,
-  APP_BASE_URL,
-} from "../config.js";
+import { ERROR_MESSAGES, PAGE_SIZE, AUTHORIZED_ADMIN_EMAIL, APP_BASE_URL } from "../config.js";
 import {
   ConflictError,
   InternalServerError,
   InvalidInputError,
   NotFoundError,
+  UnauthorizedError,
 } from "../services/errors.js";
 import { isUniqueViolation } from "../services/pgErrors.js";
 import { queries } from "../services/queries.js";
@@ -30,7 +25,9 @@ import {
   parsePagination,
 } from "../utils/parseDb.js";
 import { comparePasswords, hashPassword } from "../services/hash.js";
+import { applyCreditMovements } from "../utils/credits.js";
 import {
+  assignAllMissionsToUser,
   assignMissionToAllUsers,
   getMediaById,
   getUserSchools,
@@ -38,7 +35,8 @@ import {
 } from "../utils/helpersDb.js";
 import { getCommunityByIdWithClient, hydrateCommunity } from "../utils/communities.js";
 import { safeNumber } from "../utils/safeNumber.js";
-import { adminGoogleClient } from "../services/googleOauth.js";
+import { escapeLike } from "../utils/escapeLike.js";
+import { ADMIN_AUDIENCES, adminGoogleClient } from "../services/googleOauth.js";
 import type { DatabaseClient } from "../types/dbClient.js";
 
 /**
@@ -155,12 +153,13 @@ export class AdminModel {
   static async login({ email, password }: { email: string; password: string }) {
     return withClient(async (client) => {
       const adminDb = await client.query(queries.adminByEmail, [email]);
-      if (!adminDb[0]) {
-        throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
-      }
-      const isPasswordCorrect = await comparePasswords(password, adminDb[0].password);
-      if (!isPasswordCorrect) {
-        throw new InvalidInputError(ERROR_MESSAGES.INVALID_CREDENTIALS);
+      // La comparación corre siempre, exista o no la cuenta y tenga o no password: un login de
+      // admin creado por Google no da 500, y no existir / password incorrecta responden idéntico
+      // (SEC-03, SEC-16, D5). Antes esta rama devolvía 400 (`InvalidInputError`) donde el login de
+      // usuario devolvía 401 — ahora ambos endpoints acuerdan el mismo status y el mismo código.
+      const isPasswordCorrect = await comparePasswords(password, adminDb[0]?.password ?? null);
+      if (!adminDb[0] || !isPasswordCorrect) {
+        throw new UnauthorizedError(ERROR_MESSAGES.INVALID_CREDENTIALS, "INVALID_CREDENTIALS");
       }
       const admin = await AdminModel.hydrateAdmin({ client, adminDb: adminDb[0] });
       return { admin };
@@ -212,7 +211,7 @@ export class AdminModel {
       try {
         const ticket = await adminGoogleClient.verifyIdToken({
           idToken: credential,
-          audience: ADMIN_GOOGLE_CLIENT_ID,
+          audience: ADMIN_AUDIENCES,
         });
         payload = ticket.getPayload();
         if (!payload) {
@@ -298,19 +297,21 @@ export class AdminModel {
 
   static async getUsers({
     page = 1,
+    limit = PAGE_SIZE,
     search,
     communityId,
   }: {
     page?: number;
+    limit?: number;
     search?: string;
     communityId: UUID | null;
   }) {
     return withClient(async (client) => {
-      const offset = (page - 1) * PAGE_SIZE;
+      const offset = (page - 1) * limit;
 
       const usersDb = await client.query(queries.adminSearchUsers, [
-        `%${search ?? ""}%`,
-        PAGE_SIZE,
+        `%${escapeLike(search ?? "")}%`,
+        limit,
         offset,
         communityId,
       ]);
@@ -326,17 +327,26 @@ export class AdminModel {
     }, adminScope);
   }
 
+  /**
+   * credit-ledger: "Single Mutation Choke Point" — el único ajuste manual de todo el panel, ahora
+   * por `applyCreditMovements` en vez de `increaseUserBalance`/`decreaseUserBalance` (esta última
+   * sin piso: podía dejar un saldo negativo antes de que el `CHECK` de `0010` lo frenara con un 500
+   * sucio). El `reason` que ya venía viajando por `meta` (bloque `admin-panel-fixes`) se conserva
+   * intacto y se le suma `admin_id`, para que quede quién hizo el ajuste sin duplicar la columna.
+   */
   static async modifyUserCredits({
     userId,
     amount,
     positive,
     meta,
+    adminId,
     communityId,
   }: {
     userId: UUID;
     amount: number;
     positive: boolean;
     meta?: Record<string, unknown>;
+    adminId: UUID;
     communityId: UUID | null;
   }) {
     return withClient(async (client) => {
@@ -344,25 +354,21 @@ export class AdminModel {
       if (!userDb[0]) {
         throw new NotFoundError(ERROR_MESSAGES.USER_NOT_FOUND);
       }
-      // La transacción se inserta en la comunidad del usuario, no en la del filtro: para un super
-      // admin el filtro es null y `community_id` no admite null.
-      const userCommunityId = userDb[0].community_id;
 
-      await client.query(queries.createWalletTransaction, [
-        userId,
-        "admin",
-        positive,
-        amount,
-        null,
-        meta ? JSON.stringify(meta) : null,
-        userCommunityId,
+      await applyCreditMovements(client, [
+        {
+          userId,
+          balanceDelta: positive ? amount : -amount,
+          lockedDelta: 0,
+          reason: positive ? "admin_grant" : "admin_debit",
+          referenceId: adminId,
+          meta: { ...(meta ?? {}), admin_id: adminId },
+          // El filtro real es la restricción del admin (comunidad propia, o null para super
+          // admin) — nunca `client.communityId`, que en esta conexión `unscoped("admin")` siempre
+          // es null y no representaría nada.
+          scopeCommunityId: communityId,
+        },
       ]);
-
-      if (positive) {
-        await client.query(queries.increaseUserBalance, [amount, userId, communityId]);
-      } else {
-        await client.query(queries.decreaseUserBalance, [amount, userId, communityId]);
-      }
 
       const updatedUserDb = await client.query(queries.userById, [userId, communityId]);
       if (!updatedUserDb[0]) {
@@ -1069,6 +1075,12 @@ export class AdminModel {
         ...uniqueSchoolIds,
         communityId,
       ]);
+      // mission-progress: "Missions Follow A Moved User" — `user_missions` se borró arriba porque
+      // su FK compuesta bloquearía el UPDATE de `community_id`; sin esta llamada el usuario
+      // quedaba permanentemente sin poder progresar ninguna misión (`progressMission` corta apenas
+      // no encuentra la fila). `communityId` va explícito: esta conexión es `unscoped("admin")`,
+      // así que `client.communityId` es siempre null y no serviría para el INSERT.
+      await assignAllMissionsToUser({ client, userId, communityId });
 
       const movedUserDb = await client.query(queries.userById, [userId, null]);
       if (!movedUserDb[0]) throw new InternalServerError(ERROR_MESSAGES.DATABASE_QUERY_ERROR);

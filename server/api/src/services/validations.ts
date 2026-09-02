@@ -1,4 +1,11 @@
 import z from "zod";
+import {
+  DONATION_MAX_CREDITS,
+  DONATION_MIN_CREDITS,
+  MAX_CREDITS,
+  MAX_TRADE_LISTINGS,
+  PAGE_SIZE,
+} from "../config";
 import { SORT_OPTIONS } from "../utils/sortOptions";
 const LISTING_STATUS: ListingStatus[] = ["published", "offered", "accepted", "received"];
 const NOTIFICATION_TYPES: NotificationType[] = ["mission", "loop", "donation", "admin"];
@@ -9,7 +16,13 @@ const firstNameSchema = z.string().min(2).max(100);
 const lastNameSchema = z.string().min(2).max(100);
 const emailSchema = z.email();
 const phoneSchema = z.string().min(10).max(20);
-const passwordSchema = z.string().min(6).max(100);
+/**
+ * Mínimo de 8 caracteres para toda password **creada o cambiada** (SEC-03, D6). Nunca se usa en
+ * un schema de *login*: un admin con una password de 6-7 caracteres, creada antes de este cambio,
+ * tiene que poder seguir entrando. `adminLoginSchema` (más abajo) se queda deliberadamente en
+ * `min(6)`.
+ */
+const passwordSchema = z.string().min(8).max(100);
 const orderSchema = z.enum(["asc", "desc"]);
 const sortSchema = z.enum(SORT_OPTIONS);
 
@@ -253,18 +266,43 @@ const updateSelfSchema = z
     lastName: lastNameSchema.optional(),
     phone: phoneSchema.optional(),
     profileMediaId: z.uuid().nullable().optional(),
-    password: passwordSchema.optional(),
+    // `password` fue removido a propósito (SEC-06, D7): un perfil no puede cambiar su password por
+    // esta vía. Como el schema es `.strict()`, mandarlo ahora **rechaza** el request entero en vez
+    // de aceptarlo o ignorarlo en silencio — la falla queda visible, que es el punto. El cambio de
+    // password real es `POST /me/change-password`, más abajo.
     schoolIds: z.array(z.uuid()).min(1).optional(),
   })
   .strict();
 export const validateUpdateSelf = (data: unknown) => updateSelfSchema.parseAsync(data);
 
-const paginatedQuery = z.object({
-  page: z.number().min(1).optional(),
-  limit: z.string().min(1).optional(),
-  sort: sortSchema.optional(),
-  order: orderSchema.optional(),
+/**
+ * Password actual + nueva, para `POST /me/change-password` (D7). `oldPassword` no usa
+ * `passwordSchema`: la cuenta puede tener una password anterior a este cambio, más corta que el
+ * mínimo nuevo, y sigue siendo la que hay que probar. `newPassword` sí usa `passwordSchema`, y por
+ * lo tanto rechaza vacío y —después de que `trimBody` la recorta— también rechaza
+ * "solo espacios".
+ */
+const changePasswordSchema = z.object({
+  oldPassword: z.string().min(1).max(100),
+  newPassword: passwordSchema,
 });
+export const validateChangePassword = (data: unknown) => changePasswordSchema.parseAsync(data);
+
+/**
+ * Página y tamaño de página acotados (SEC-16, D9). El defecto real que cita el audit está
+ * invertido: `page` ya estaba acotado abajo, `limit` era un `z.string()` sin cota que ningún
+ * modelo consumía (el tamaño de página real era la constante `PAGE_SIZE`). `z.coerce.number()`
+ * también es lo que hace que `page=Infinity` se rechace: hoy sobrevive a `safeNumber` y llega tal
+ * cual a `(page - 1) * PAGE_SIZE`.
+ */
+const paginatedQuery = z
+  .object({
+    page: z.coerce.number().int().min(1).max(10_000).default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(PAGE_SIZE),
+    sort: sortSchema.optional(),
+    order: orderSchema.optional(),
+  })
+  .strict();
 export const validatePaginationParams = (data: unknown) => paginatedQuery.parseAsync(data);
 
 const getRolesRequestQuery = paginatedQuery.extend({
@@ -277,6 +315,18 @@ const getUsersRequestQuery = paginatedQuery.extend({
   userId: z.uuid().optional(),
 });
 export const validateGetUsersRequest = (data: unknown) => getUsersRequestQuery.parseAsync(data);
+
+/**
+ * `controllers/admin.ts` parseaba `page` a mano (`page ? Number(page) : 1`), sin pasar por Zod
+ * (SEC-16, D9). Nombres de query distintos de `getUsersRequestQuery` (`search` en vez de
+ * `searchTerm`) porque así los manda hoy `adminClient`.
+ */
+const getAdminUsersRequestQuery = paginatedQuery.extend({
+  search: z.string().max(100).optional(),
+  communityId: z.uuid().optional(),
+});
+export const validateGetAdminUsersRequest = (data: unknown) =>
+  getAdminUsersRequestQuery.parseAsync(data);
 const getSchoolsRequestQuery = paginatedQuery.extend({
   searchTerm: z.string().max(100).optional(),
   // Para la pantalla de registro, que todavía no tiene sesión. Si hay sesión, se ignoran: la
@@ -356,6 +406,9 @@ const postSelfWishRequest = z.object({
 export const validatePostSelfWishRequest = (data: unknown) => postSelfWishRequest.parseAsync(data);
 
 // ADMIN
+// El login de admin se queda deliberadamente en `min(6)` (D6, C13): subir el mínimo acá negaría
+// el login a cualquier admin cuya password —creada antes de este cambio— tenga 6 o 7 caracteres.
+// Nunca usar `passwordSchema` en un schema de login.
 const adminLoginSchema = z.object({
   email: z.email(),
   password: z.string().min(6).max(100),
@@ -368,7 +421,8 @@ export const validateAdminGoogleLogin = (data: unknown) => adminGoogleLoginSchem
 const adminRegisterSchema = z.object({
   email: z.email(),
   fullName: z.string().min(2).max(100),
-  password: z.string().min(6).max(100),
+  // Alta de cuenta: usa el mínimo de 8 (D6), a diferencia del login de arriba.
+  password: passwordSchema,
 });
 export const validateAdminRegister = (data: unknown) => adminRegisterSchema.parseAsync(data);
 
@@ -379,6 +433,111 @@ const userGoogleLoginSchema = z.object({
   invitationToken: z.string().min(1).max(200).optional(),
 });
 export const validateUserGoogleLogin = (data: unknown) => userGoogleLoginSchema.parseAsync(data);
+
+// ─── Admin: endpoints sin validar (SEC-07, D8) ─────────────────────────────
+// Cinco endpoints de admin aceptaban `req.body` sin ningún schema
+// (`controllers/admin.ts` tenía el comentario literal "No hay validaciones porque es
+// administrador"). `amount` en particular era `any`: un valor negativo con `positive: true`
+// llegaba a `increaseUserBalance` y restaba — manipulación de saldo arbitraria.
+
+const modifyCreditsSchema = z
+  .object({
+    amount: z.number().int().positive().max(1_000_000),
+    positive: z.boolean(),
+    meta: z.record(z.string(), z.unknown()).optional(),
+  })
+  .strict();
+export const validateModifyCredits = (data: unknown) => modifyCreditsSchema.parseAsync(data);
+
+const resetUserPasswordSchema = z
+  .object({
+    newPassword: passwordSchema,
+  })
+  .strict();
+export const validateResetUserPassword = (data: unknown) =>
+  resetUserPasswordSchema.parseAsync(data);
+
+/**
+ * Union por `type`, siguiendo la forma real de `shared/types/app.d.ts:208-249`
+ * (`MissionNotificationPayloadBase` / `LoopNotificationPayloadBase` /
+ * `DonationNotificationPayloadBase` / `AdminNotificationPayloadBase`) — **no** la del union de
+ * `notificationSchema` más arriba (`:169-210` en el original), que es un validador de
+ * *respuesta* y ya está en desacuerdo con `app.d.ts` (espera `missionId`/`mission`/`reward` donde
+ * el tipo dice `userMissionId`, y un `target` anidado donde el tipo lo tiene plano). Esa
+ * discrepancia queda registrada como seguimiento, no resuelta acá.
+ */
+const loopNotificationTypeSchema = z.enum([
+  "new_offer",
+  "offer_accepted",
+  "offer_rejected",
+  "offer_deleted",
+  "listing_sold",
+  "listing_received",
+  "listing_cancelled",
+]);
+const sendNotificationSchema = z
+  .object({
+    userId: z.uuid(),
+  })
+  .and(
+    z.discriminatedUnion("type", [
+      z.object({
+        type: z.literal("mission"),
+        payload: z.object({ userMissionId: z.uuid() }).strict(),
+      }),
+      z.object({
+        type: z.literal("loop"),
+        payload: z
+          .object({
+            listingId: z.uuid(),
+            buyerId: z.uuid().nullable(),
+            toListingStatus: z.enum(LISTING_STATUS),
+            toOfferedCredits: z.number().min(0).nullable(),
+            type: loopNotificationTypeSchema,
+          })
+          .strict(),
+      }),
+      z.object({
+        type: z.literal("donation"),
+        payload: z
+          .object({
+            donorUserId: z.uuid(),
+            amount: z.number().min(0),
+            message: z.string().nullable(),
+          })
+          .strict(),
+      }),
+      z.object({
+        type: z.literal("admin"),
+        payload: z
+          .object({
+            message: z.string().nullable(),
+            action: z.enum(["delete", "update", "credits"] as AdminActions[]),
+            target: z.string().nullable(),
+            referenceId: z.uuid().nullable(),
+            amount: z.number().nullable(),
+          })
+          .strict(),
+      }),
+    ]),
+  );
+export const validateSendNotification = (data: unknown) => sendNotificationSchema.parseAsync(data);
+
+const createSchoolSchema = z
+  .object({
+    name: z.string().min(1).max(200),
+    mediaId: z.uuid(),
+  })
+  .strict();
+export const validateCreateSchool = (data: unknown) => createSchoolSchema.parseAsync(data);
+
+const updateSchoolSchema = z
+  .object({
+    name: z.string().min(1).max(200).optional(),
+    mediaId: z.uuid().optional(),
+  })
+  .strict();
+export const validateUpdateSchool = (data: unknown) => updateSchoolSchema.parseAsync(data);
 
 // ─── Comunidades ────────────────────────────────────────────────────────────
 
@@ -472,3 +631,66 @@ const updateMissionTemplateSchema = z.object({
 });
 export const validateUpdateMissionTemplate = (data: unknown) =>
   updateMissionTemplateSchema.parseAsync(data);
+
+// ─── Legal / public routes (`legal-public-routes`) ─────────────────────────
+
+const termsAcceptanceSchema = z.object({
+  termsVersion: z.string().min(1).max(20),
+});
+export const validateTermsAcceptance = (data: unknown) => termsAcceptanceSchema.parseAsync(data);
+
+const forgotPasswordSchema = z.object({
+  email: emailSchema,
+});
+export const validateForgotPassword = (data: unknown) => forgotPasswordSchema.parseAsync(data);
+
+/**
+ * `token` follows the opaque-token precedent already used for `invitationToken` above (`:226`):
+ * a bound-length string, not a UUID — the reset token is 64 hex chars (32 random bytes).
+ */
+const resetPasswordSchema = z.object({
+  token: z.string().min(1).max(200),
+  newPassword: passwordSchema,
+});
+export const validateResetPassword = (data: unknown) => resetPasswordSchema.parseAsync(data);
+
+// ─── credit-economy-integrity (ECO-04/ECO-08/ECO-10) ─────────────────────────
+// Agregados al final a propósito: este archivo lo comparten varios bloques del audit y cada uno
+// solo agrega sus propios schemas nuevos, sin reordenar ni tocar los existentes.
+
+/**
+ * `makeOffer` no tenía NINGÚN schema (design D12, "defectos que el audit no registra"):
+ * `offeredCredits: undefined` pasaba las tres comparaciones en `models/listings.ts` porque todas
+ * son `false` contra `undefined`. `.int()` es lo que cierra ECO-08 para este endpoint en particular
+ * — `offered_credits` es `INTEGER` en la base, y un decimal llegaba a Postgres y tiraba un 500.
+ */
+const makeOfferRequestBody = z.object({
+  price: z.number().int().min(0).max(MAX_CREDITS),
+});
+export const validateMakeOfferRequest = (data: unknown) => makeOfferRequestBody.parseAsync(data);
+
+/**
+ * Cada elemento ya se validaba como UUID uno por uno (`validateId` en el controller), pero no había
+ * ningún schema de **array**: sin tope de cardinalidad y sin rechazo de duplicados, la misma
+ * publicación tradeada dos veces se contaba dos veces (`models/listings.ts:564` en el código
+ * anterior a esta reescritura).
+ */
+const tradingListingIdsSchema = z
+  .array(z.uuid())
+  .max(MAX_TRADE_LISTINGS)
+  .refine((ids) => new Set(ids).size === ids.length, {
+    message: "No se puede tradear la misma publicación dos veces",
+  });
+export const validateTradingListingIds = (data: unknown) =>
+  tradingListingIdsSchema.parseAsync(data);
+
+/**
+ * Reemplaza el chequeo ad-hoc de `controllers/users.ts` (`typeof amount !== "number" || amount <=
+ * 0`), que aceptaba decimales sobre una columna entera. Los límites salen de `config.ts`
+ * (`DONATION_MIN_CREDITS`/`DONATION_MAX_CREDITS`); el tope diario se aplica aparte, contra el
+ * ledger, porque depende de lo ya donado hoy y no de este único request.
+ */
+const donateRequestBody = z.object({
+  amount: z.number().int().min(DONATION_MIN_CREDITS).max(DONATION_MAX_CREDITS),
+});
+export const validateDonateRequest = (data: unknown) => donateRequestBody.parseAsync(data);

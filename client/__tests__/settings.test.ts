@@ -39,8 +39,10 @@ describe("canConfirmAccountDeletion", () => {
 });
 
 describe("SETTINGS_GROUPS", () => {
-  it("has exactly two groups: account and contact", () => {
-    expect(SETTINGS_GROUPS).toHaveLength(2);
+  // Grew to three with `legal-public-routes` task 6.3 (in-app links to the legal pages).
+  it("has exactly three groups: account, legal and contact", () => {
+    expect(SETTINGS_GROUPS).toHaveLength(3);
+    expect(SETTINGS_GROUPS.map((group) => group.key)).toEqual(["account", "legal", "contact"]);
   });
 
   it("every group has a unique, non-empty key and a non-empty Spanish title", () => {
@@ -60,6 +62,14 @@ describe("SETTINGS_GROUPS", () => {
       expect(item.label.length).toBeGreaterThan(0);
       expect(item.Icon).toBeDefined();
     }
+  });
+
+  it("the legal group links to the public privacy and terms routes", () => {
+    const legalGroup = SETTINGS_GROUPS.find((group) => group.key === "legal");
+    expect(legalGroup).toBeDefined();
+    const hrefs = legalGroup!.items.map((item) => item.action).map((action) => action);
+    expect(hrefs).toContainEqual({ kind: "link", href: "/privacidad" });
+    expect(hrefs).toContainEqual({ kind: "link", href: "/terminos" });
   });
 
   it("only the account-deletion row is destructive", () => {

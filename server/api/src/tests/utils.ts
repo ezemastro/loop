@@ -105,6 +105,8 @@ export const MOCK_USER: PrivateUser & { password: string; schoolIds: UUID[] } = 
   profileMediaId: null,
   profileMedia: null,
   schools: [MOCK_SCHOOL],
+  termsAcceptedAt: null,
+  termsVersion: null,
 };
 export const MOCK_USER_DB: DB_Users = {
   id: MOCK_USER.id,
@@ -129,6 +131,10 @@ export const MOCK_USER_DB: DB_Users = {
   email_verified: true,
   email_verification_token_hash: null,
   email_verification_expires_at: null,
+  terms_accepted_at: null,
+  terms_version: null,
+  password_reset_token_hash: null,
+  password_reset_expires_at: null,
 };
 export const MOCK_USER_SCHOOL_DB: DB_UserSchools = {
   id: randomUUID(),

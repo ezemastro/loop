@@ -1,9 +1,4 @@
-import {
-  ERROR_MESSAGES,
-  INITIAL_CREDITS,
-  REQUIRE_EMAIL_VERIFICATION,
-  WEB_GOOGLE_CLIENT_ID,
-} from "../config.js";
+import { ERROR_MESSAGES, INITIAL_CREDITS, REQUIRE_EMAIL_VERIFICATION } from "../config.js";
 import {
   ConflictError,
   InternalServerError,
@@ -29,8 +24,8 @@ import {
   parsePrivateUserFromBase,
   parseUserBaseFromDb,
 } from "../utils/parseDb.js";
-import { webGoogleClient } from "../services/googleOauth.js";
-import { sendVerificationEmail } from "../services/email.js";
+import { END_USER_AUDIENCES, webGoogleClient } from "../services/googleOauth.js";
+import { sendPasswordResetEmail, sendVerificationEmail } from "../services/email.js";
 import { isUniqueViolation } from "../services/pgErrors.js";
 import crypto from "crypto";
 
@@ -287,15 +282,11 @@ export class AuthModel {
       { scope: unscoped("auth:lookup-user") },
     );
 
-    if (!userDb) {
-      throw new UnauthorizedError(ERROR_MESSAGES.USER_NOT_FOUND, "USER_NOT_FOUND");
-    }
-    if (!userDb.password) {
-      throw new UnauthorizedError(ERROR_MESSAGES.INCORRECT_LOGIN_METHOD, "INCORRECT_LOGIN_METHOD");
-    }
-
-    const isPasswordCorrect = await comparePasswords(password, userDb.password);
-    if (!isPasswordCorrect) {
+    // La comparación corre siempre, exista o no la cuenta y tenga o no password: así el tiempo de
+    // respuesta y el código de error no distinguen "no existe", "es cuenta de Google sin
+    // password" e "password incorrecta" (SEC-03, D5) — las tres colapsan en la misma respuesta.
+    const isPasswordCorrect = await comparePasswords(password, userDb?.password ?? null);
+    if (!userDb || !userDb.password || !isPasswordCorrect) {
       throw new UnauthorizedError(ERROR_MESSAGES.INVALID_CREDENTIALS, "INVALID_CREDENTIALS");
     }
 
@@ -388,7 +379,7 @@ export class AuthModel {
   }) => {
     const ticket = await webGoogleClient.verifyIdToken({
       idToken: credential,
-      audience: WEB_GOOGLE_CLIENT_ID,
+      audience: END_USER_AUDIENCES,
     });
 
     const payload = ticket.getPayload();
@@ -518,6 +509,68 @@ export class AuthModel {
         return { user: await buildPrivateUser({ client, userDb: newUserDb }) };
       },
       { scope: inCommunity(communityId), transaction: true },
+    );
+  };
+
+  /**
+   * Reseteo de contraseña por email (SEC-11). Mirror de `resendVerificationEmail`: la respuesta
+   * nunca revela si la cuenta existe, y el mail se manda fire-and-forget para no bloquear ni
+   * fallar la respuesta si Resend está caído.
+   */
+  static requestPasswordReset = async ({ email }: { email: string }) => {
+    const userDb = await withClient(
+      async (client) => {
+        const [row] = await client.query(queries.userByEmail, [email]);
+        return row ?? null;
+      },
+      { scope: unscoped("auth:lookup-user") },
+    );
+
+    if (!userDb) return { sent: false };
+
+    // Token de 32 bytes aleatorios, igual generación que el de verificación de email; se guarda
+    // solo su digest SHA-256 (migración 0016, mismo patrón que 0012/SEC-10).
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    await withClient(
+      async (client) => {
+        await client.query(queries.setPasswordResetToken, [
+          hashVerificationToken(resetToken),
+          userDb.id,
+        ]);
+      },
+      { scope: unscoped("token-lookup") },
+    );
+
+    sendPasswordResetEmail({ to: email, token: resetToken }).catch((err) =>
+      console.error("[EMAIL] Error al enviar email de reseteo de contraseña:", err),
+    );
+
+    return { sent: true };
+  };
+
+  /**
+   * Consume el token y fija la contraseña nueva. Sin scope: el token de 32 bytes ES la
+   * credencial, igual que `verifyEmail`. `queries.consumePasswordResetToken` es un único
+   * `UPDATE ... RETURNING` atómico — matchea, valida vencimiento y limpia el token en la misma
+   * sentencia, así dos envíos concurrentes con el mismo token no pueden ganar los dos.
+   */
+  static resetPassword = async ({ token, newPassword }: { token: string; newPassword: string }) => {
+    const hashedPassword = await hashPassword(newPassword);
+    return withClient(
+      async (client) => {
+        const [row] = await client.query(queries.consumePasswordResetToken, [
+          hashedPassword,
+          hashVerificationToken(token),
+        ]);
+        if (!row) {
+          throw new InvalidInputError(
+            ERROR_MESSAGES.PASSWORD_RESET_TOKEN_INVALID,
+            "PASSWORD_RESET_TOKEN_INVALID",
+          );
+        }
+        return { reset: true };
+      },
+      { scope: unscoped("token-lookup") },
     );
   };
 

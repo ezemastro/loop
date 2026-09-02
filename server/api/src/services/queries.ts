@@ -1,4 +1,5 @@
 import type { NamedQuery } from "../types/dbClient.js";
+import type { SortColumn, SortDirection } from "../utils/sortOptions.js";
 
 // Helper para crear queries nombradas
 const q = <T>(key: string, text: string): NamedQuery<T> => ({
@@ -319,7 +320,7 @@ export const queries = {
        AND ($2::uuid IS NULL OR community_id = $2::uuid)`,
   ),
 
-  searchUsers: ({ sort, order }: { sort: string; order: string }) =>
+  searchUsers: ({ sort, order }: { sort: SortColumn; order: SortDirection }) =>
     q<DB_Users & DB_Pagination>(
       "users.search",
       `SELECT
@@ -328,10 +329,10 @@ export const queries = {
     FROM users u
     WHERE
         ($1::text IS NULL OR $1::text = '' OR
-        LOWER(u.first_name) LIKE LOWER(CONCAT('%', COALESCE($1::text, ''), '%')) OR
-        LOWER(u.last_name) LIKE LOWER(CONCAT('%', COALESCE($1::text, ''), '%')) OR
-        LOWER(CONCAT(u.first_name, ' ', u.last_name)) LIKE LOWER(CONCAT('%', COALESCE($1::text, ''), '%')) OR
-        LOWER(CONCAT(u.last_name, ' ', u.first_name)) LIKE LOWER(CONCAT('%', COALESCE($1::text, ''), '%')))
+        LOWER(u.first_name) LIKE LOWER(CONCAT('%', COALESCE($1::text, ''), '%')) ESCAPE '\\' OR
+        LOWER(u.last_name) LIKE LOWER(CONCAT('%', COALESCE($1::text, ''), '%')) ESCAPE '\\' OR
+        LOWER(CONCAT(u.first_name, ' ', u.last_name)) LIKE LOWER(CONCAT('%', COALESCE($1::text, ''), '%')) ESCAPE '\\' OR
+        LOWER(CONCAT(u.last_name, ' ', u.first_name)) LIKE LOWER(CONCAT('%', COALESCE($1::text, ''), '%')) ESCAPE '\\')
     AND
         ($2::text IS NULL OR $2::text = '' OR EXISTS (SELECT 1 FROM user_schools us WHERE us.user_id = u.id AND us.school_id::text = $2::text))
     AND
@@ -349,7 +350,7 @@ export const queries = {
     FROM schools
     WHERE
         ($1::text IS NULL OR $1::text = '' OR
-        LOWER(name) LIKE LOWER(CONCAT('%', COALESCE($1::text, ''), '%')))
+        LOWER(name) LIKE LOWER(CONCAT('%', COALESCE($1::text, ''), '%')) ESCAPE '\\')
         AND ($6::uuid IS NULL OR community_id = $6::uuid)
     ORDER BY
         CASE
@@ -363,7 +364,7 @@ export const queries = {
     LIMIT $4 OFFSET $5;`,
   ),
 
-  searchListings: ({ sort, order }: { sort: string; order: string }) =>
+  searchListings: ({ sort, order }: { sort: SortColumn; order: SortDirection }) =>
     q<DB_Listings & DB_Pagination>(
       "listings.search",
       `SELECT
@@ -379,8 +380,8 @@ export const queries = {
 
         -- searchTerm: busca en título o descripción
         AND ($1::text IS NULL OR $1::text = '' OR
-            LOWER(l.title) LIKE LOWER(CONCAT('%', $1::text, '%')) OR
-            LOWER(l.description) LIKE LOWER(CONCAT('%', $1::text, '%')))
+            LOWER(l.title) LIKE LOWER(CONCAT('%', $1::text, '%')) ESCAPE '\\' OR
+            LOWER(l.description) LIKE LOWER(CONCAT('%', $1::text, '%')) ESCAPE '\\')
 
         -- categoryId
         AND ($2::uuid IS NULL OR l.category_id = $2::uuid)
@@ -437,18 +438,42 @@ export const queries = {
        AND ($2::uuid IS NULL OR community_id = $2::uuid);`,
   ),
 
+  /**
+   * Guardado (ECO-03): solo puede pasar de `published` sin comprador a `offered`. Cero filas
+   * significa que otro comprador ya lo tomó, o que dejó de estar publicado — el modelo lo trata
+   * como 409, nunca como éxito silencioso.
+   */
   newOffer: q<DB_Listings>(
     "listing.newOffer",
     `UPDATE listings SET listing_status = 'offered', offered_credits = $1, buyer_id = $2
     WHERE id = $3
-      AND ($4::uuid IS NULL OR community_id = $4::uuid);`,
+      AND listing_status = 'published' AND buyer_id IS NULL
+      AND ($4::uuid IS NULL OR community_id = $4::uuid)
+    RETURNING *;`,
   ),
 
-  deleteOffer: q<void>(
+  /**
+   * Guardado sobre `listing_status = 'offered'`. El CTE `previous` es lo que le permite al llamador
+   * (`deleteOffer`/`rejectOffer`) leer `offered_credits` y `buyer_id` **tal como estaban antes** de
+   * este mismo UPDATE, en el mismo statement — el `RETURNING` de un UPDATE solo puede mostrar el
+   * estado posterior, y acá esos campos se pisan con NULL, así que sin el CTE no habría forma de
+   * recuperar cuánto había que devolver sin una lectura previa separada y, por lo tanto, obsoleta.
+   */
+  deleteOffer: q<
+    DB_Listings & { previous_offered_credits: DbNumber | null; previous_buyer_id: UUID | null }
+  >(
     "listing.deleteOffer",
-    `UPDATE listings SET listing_status = 'published', offered_credits = NULL, buyer_id = NULL
-    WHERE id = $1
-      AND ($2::uuid IS NULL OR community_id = $2::uuid);`,
+    `WITH previous AS (
+       SELECT offered_credits, buyer_id FROM listings WHERE id = $1
+     )
+     UPDATE listings
+        SET listing_status = 'published', offered_credits = NULL, buyer_id = NULL
+       FROM previous
+      WHERE listings.id = $1 AND listings.listing_status = 'offered'
+        AND ($2::uuid IS NULL OR listings.community_id = $2::uuid)
+     RETURNING listings.*,
+               previous.offered_credits AS previous_offered_credits,
+               previous.buyer_id AS previous_buyer_id;`,
   ),
 
   updateListingOfferedCreditsById: q<void>(
@@ -458,11 +483,138 @@ export const queries = {
        AND ($3::uuid IS NULL OR community_id = $3::uuid);`,
   ),
 
-  updateUserBalance: q<void>(
-    "user.updateBalance",
-    `UPDATE users SET credits_balance = $1, credits_locked = $2
-     WHERE id = $3
-       AND ($4::uuid IS NULL OR community_id = $4::uuid);`,
+  /**
+   * El único statement que puede mover `users.credits_balance`/`credits_locked` (ver
+   * `utils/credits.ts`, `applyCreditMovements`). `$1`/`$2` son deltas con signo: una carrera de dos
+   * requests concurrentes nunca ve un valor "leído y recalculado" — cada UPDATE es relativo a sí
+   * mismo, y el `WHERE` rechaza cualquier movimiento que dejaría alguno de los dos buckets negativo.
+   * Cero filas afectadas es el caso de "fondos insuficientes o usuario fuera de la comunidad";
+   * `applyCreditMovements` lo distingue con una lectura de más solo en el camino de error.
+   */
+  applyCreditDelta: q<{ credits_balance: DbNumber; credits_locked: DbNumber; community_id: UUID }>(
+    "user.applyCreditDelta",
+    `UPDATE users
+        SET credits_balance = credits_balance + $1,
+            credits_locked  = credits_locked  + $2
+      WHERE id = $3
+        AND credits_balance + $1 >= 0
+        AND credits_locked  + $2 >= 0
+        AND ($4::uuid IS NULL OR community_id = $4::uuid)
+      RETURNING credits_balance, credits_locked, community_id`,
+  ),
+
+  /** Ledger: una fila por movimiento, siempre en la misma transacción que `applyCreditDelta`. */
+  insertCreditLedgerEntry: q<DB_WalletTransactions>(
+    "wallet.insertLedgerEntry",
+    `INSERT INTO wallet_transactions
+        (user_id, type, positive, amount, balance_delta, locked_delta, balance_after, locked_after,
+         reason, reference_id, meta, community_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+     RETURNING *`,
+  ),
+
+  /**
+   * Suma lo donado hoy por un usuario (credit-ledger: "Donation Limits", "The daily cap is
+   * enforced from the ledger"). Posible solo porque ECO-02 finalmente escribe una fila por cada
+   * donación — antes no había de dónde leer esto.
+   */
+  donationSentTodayTotal: q<{ total: DbNumber }>(
+    "wallet.donationSentTodayTotal",
+    `SELECT COALESCE(SUM(amount), 0)::bigint AS total
+       FROM wallet_transactions
+      WHERE user_id = $1 AND reason = 'donation_sent'
+        AND created_at >= date_trunc('day', NOW())
+        AND ($2::uuid IS NULL OR community_id = $2::uuid)`,
+  ),
+
+  /**
+   * credit-ledger: "Reconciliation Invariant" (design D6). Cruza `users.credits_*` contra la suma
+   * de deltas de su propio ledger; solo devuelve las filas que NO cuadran. Read-only por
+   * construcción — no hay ningún UPDATE en este archivo que la acompañe, a propósito
+   * (`scripts/reconcileCredits.ts` nunca repara, solo reporta).
+   */
+  reconciliationDiscrepancies: q<{
+    id: UUID;
+    community_id: UUID;
+    credits_balance: DbNumber;
+    credits_locked: DbNumber;
+    ledger_balance: DbNumber;
+    ledger_locked: DbNumber;
+  }>(
+    "credit.reconciliationDiscrepancies",
+    `SELECT u.id, u.community_id, u.credits_balance, u.credits_locked,
+            COALESCE(SUM(w.balance_delta), 0) AS ledger_balance,
+            COALESCE(SUM(w.locked_delta),  0) AS ledger_locked
+       FROM users u
+       LEFT JOIN wallet_transactions w ON w.user_id = u.id
+      GROUP BY u.id, u.community_id, u.credits_balance, u.credits_locked
+     HAVING u.credits_balance <> COALESCE(SUM(w.balance_delta), 0)
+         OR u.credits_locked  <> COALESCE(SUM(w.locked_delta),  0)`,
+  ),
+
+  /**
+   * Filas retenidas de usuarios ya borrados (account-deletion-integrity: "Reconciliation ignores
+   * orphaned rows"). No son una discrepancia — es historial anonimizado a propósito — así que se
+   * reportan aparte, nunca contra `reconciliationDiscrepancies`.
+   */
+  reconciliationOrphanedLedgerTotals: q<{
+    community_id: UUID;
+    rows: DbNumber;
+    balance_delta_total: DbNumber;
+    locked_delta_total: DbNumber;
+  }>(
+    "credit.reconciliationOrphanedLedgerTotals",
+    `SELECT community_id, COUNT(*) AS rows,
+            COALESCE(SUM(balance_delta), 0) AS balance_delta_total,
+            COALESCE(SUM(locked_delta), 0)  AS locked_delta_total
+       FROM wallet_transactions
+      WHERE user_id IS NULL
+      GROUP BY community_id`,
+  ),
+
+  /**
+   * Toma en una sola sentencia el listing principal y todos los tradeados (design D3 regla 2):
+   * `FOR UPDATE` los bloquea desde acá, antes de cualquier movimiento de crédito, y `ORDER BY id`
+   * fija el orden de lock sin importar en qué orden llegaron `tradingListingIds`.
+   */
+  listingsByIdsForUpdate: (_ids: UUID[]) =>
+    q<DB_Listings>(
+      "listing.byIdsForUpdate",
+      `SELECT * FROM listings
+       WHERE id = ANY($1::uuid[])
+         AND ($2::uuid IS NULL OR community_id = $2::uuid)
+       ORDER BY id
+       FOR UPDATE`,
+    ),
+
+  /** Lectura en lote sin lock: usada para leer precios de listings tradeados (no se van a escribir). */
+  listingsByIds: (_ids: UUID[]) =>
+    q<DB_Listings>(
+      "listing.byIds",
+      `SELECT * FROM listings
+       WHERE id = ANY($1::uuid[])
+         AND ($2::uuid IS NULL OR community_id = $2::uuid)`,
+    ),
+
+  /**
+   * Loops abiertos donde el usuario es vendedor (account-deletion-integrity: "Third-Party Credits
+   * Are Released"). Se leen ANTES de `deleteListingsBySellerId`, que borra sin filtro de estado —
+   * es la única forma de saber a quién hay que devolverle el crédito bloqueado antes de que la fila
+   * desaparezca.
+   */
+  listingsBySellerIdOpen: q<DB_Listings>(
+    "listings.bySellerIdOpen",
+    `SELECT * FROM listings
+     WHERE seller_id = $1 AND listing_status IN ('offered', 'accepted')
+       AND ($2::uuid IS NULL OR community_id = $2::uuid)`,
+  ),
+
+  /** Igual que `listingsBySellerIdOpen`, para el rol de comprador. */
+  listingsByBuyerIdOpen: q<DB_Listings>(
+    "listings.byBuyerIdOpen",
+    `SELECT * FROM listings
+     WHERE buyer_id = $1 AND listing_status IN ('offered', 'accepted')
+       AND ($2::uuid IS NULL OR community_id = $2::uuid)`,
   ),
 
   storeTrade: q<void>(
@@ -471,32 +623,78 @@ export const queries = {
     VALUES ($1, $2, $3);`,
   ),
 
-  acceptOffer: q<void>(
+  tradesByListingId: q<DB_ListingTrades>(
+    "trades.byListingId",
+    `SELECT * FROM listing_trades
+     WHERE listing_id = $1
+       AND ($2::uuid IS NULL OR community_id = $2::uuid)`,
+  ),
+
+  deleteTradesByListingId: q<void>(
+    "trades.deleteByListingId",
+    `DELETE FROM listing_trades
+     WHERE listing_id = $1
+       AND ($2::uuid IS NULL OR community_id = $2::uuid)`,
+  ),
+
+  /** Guardado: solo una oferta `offered` del vendedor dueño puede pasar a `accepted`. */
+  acceptOffer: q<DB_Listings>(
     "listing.acceptOffer",
     `UPDATE listings SET listing_status = 'accepted'
-    WHERE id = $1
-      AND ($2::uuid IS NULL OR community_id = $2::uuid);`,
+    WHERE id = $1 AND listing_status = 'offered' AND seller_id = $3
+      AND ($2::uuid IS NULL OR community_id = $2::uuid)
+    RETURNING *;`,
   ),
 
-  updateListingStatus: q<void>(
-    "listing.updateListingStatus",
-    `UPDATE listings SET listing_status = $1, buyer_id = $2, offered_credits = $3
-    WHERE id = $4
-      AND ($5::uuid IS NULL OR community_id = $5::uuid);`,
+  // `updateListingStatus` (sin guard, 3 columnas libres) se eliminó: era la única consumidora la
+  // `cancelListing` vieja, que tenía un bug de aridad documentado y nunca corrió en producción.
+  // `cancelAcceptedListing` la reemplaza, guardada y con las reglas propias de la transición.
+
+  /**
+   * ECO-05 (design D7, transiciones 7 y 8): vuelve un loop `accepted` a `published` sin comprador.
+   * Cualquiera de las dos partes puede cancelar, así que el guard acepta `seller_id = $actor OR
+   * buyer_id = $actor` en lugar de exigir un rol fijo.
+   */
+  cancelAcceptedListing: q<DB_Listings>(
+    "listing.cancelAccepted",
+    `UPDATE listings
+        SET listing_status = 'published', buyer_id = NULL, offered_credits = NULL
+      WHERE id = $1 AND listing_status = 'accepted'
+        AND (seller_id = $2 OR buyer_id = $2)
+        AND ($3::uuid IS NULL OR community_id = $3::uuid)
+      RETURNING *;`,
   ),
 
-  markListingAsSold: q<void>(
+  /** Devuelve al mercado los listings tradeados de un loop cancelado (design D7). */
+  revertTradedListings: (ids: UUID[]) =>
+    q<void>(
+      "listing.revertTraded",
+      `UPDATE listings SET listing_status = 'published', buyer_id = NULL, offered_credits = NULL
+       WHERE id = ANY($1::uuid[])
+         AND ($2::uuid IS NULL OR community_id = $2::uuid)`,
+    ),
+
+  /**
+   * Guardado (corrección de audit #2 en design.md): cada listing tradeado tiene que seguir
+   * `published`, sin comprador y perteneciente al comprador de la oferta principal en el instante
+   * mismo del claim, no en una lectura anterior sin lock. Cero filas para cualquiera de los
+   * tradeados hace fallar toda la aceptación con 409.
+   */
+  markListingAsSold: q<DB_Listings>(
     "listing.markAsSold",
     `UPDATE listings SET listing_status = 'accepted', buyer_id = $1
-    WHERE id = $2
-      AND ($3::uuid IS NULL OR community_id = $3::uuid);`,
+    WHERE id = $2 AND listing_status = 'published' AND buyer_id IS NULL AND seller_id = $4
+      AND ($3::uuid IS NULL OR community_id = $3::uuid)
+    RETURNING *;`,
   ),
 
-  markListingAsReceived: q<void>(
+  /** Guardado: solo el comprador dueño puede recibir un loop `accepted` (D7 transición 6). */
+  markListingAsReceived: q<DB_Listings>(
     "listing.markAsReceived",
     `UPDATE listings SET listing_status = 'received'
-    WHERE id = $1
-      AND ($2::uuid IS NULL OR community_id = $2::uuid);`,
+    WHERE id = $1 AND listing_status = 'accepted' AND buyer_id = $3
+      AND ($2::uuid IS NULL OR community_id = $2::uuid)
+    RETURNING *;`,
   ),
 
   newMessage: q<{ id: UUID }>(
@@ -540,7 +738,7 @@ export const queries = {
     RETURNING id;`,
   ),
 
-  listings: ({ sort, order }: { sort: string; order: "asc" | "desc" }) =>
+  listings: ({ sort, order }: { sort: SortColumn; order: SortDirection }) =>
     q<DB_Listings & DB_Pagination>(
       "listing.byUserId",
       `SELECT
@@ -553,8 +751,8 @@ export const queries = {
 
         -- searchTerm: busca en título o descripción
         AND ($1::text IS NULL OR $1::text = '' OR
-            LOWER(title) LIKE LOWER(CONCAT('%', $1::text, '%')) OR
-            LOWER(description) LIKE LOWER(CONCAT('%', $1::text, '%')))
+            LOWER(title) LIKE LOWER(CONCAT('%', $1::text, '%')) ESCAPE '\\' OR
+            LOWER(description) LIKE LOWER(CONCAT('%', $1::text, '%')) ESCAPE '\\')
 
         -- listingStatus
         AND (
@@ -587,9 +785,20 @@ export const queries = {
     "missionsTemplates.byKey",
     `SELECT * FROM mission_templates WHERE key = $1`,
   ),
+  /** Panel de admin: intencionalmente incluye inactivas, para poder reactivarlas. */
   allMissionTemplates: q<DB_MissionTemplates>(
     "missionsTemplates.all",
     `SELECT * FROM mission_templates`,
+  ),
+  /**
+   * Solo las activas (ECO-11/mission-progress): la asignación a un usuario nuevo o el fan-out a
+   * toda la comunidad nunca deben crear filas para una plantilla inactiva. Es una query separada de
+   * `allMissionTemplates` a propósito — esa la sigue usando el panel de admin para poder reactivar
+   * una plantilla, y filtrarla ahí la volvería invisible para siempre.
+   */
+  activeMissionTemplates: q<DB_MissionTemplates>(
+    "missionsTemplates.active",
+    `SELECT * FROM mission_templates WHERE active = true`,
   ),
   missionTemplatesByIds: (ids: UUID[]) =>
     q<DB_MissionTemplates>(
@@ -603,16 +812,47 @@ export const queries = {
      WHERE user_id = $1 AND mission_template_id = $2
        AND ($3::uuid IS NULL OR community_id = $3::uuid)`,
   ),
-  progressMission: q<void>(
+  /**
+   * `completed_at` solo se fija la primera vez que la misión queda completa (mission-progress:
+   * "Completion Timestamp Records Completion"): `COALESCE` preserva la fecha original si ya estaba
+   * completa, y el `CASE` no la toca en absoluto cuando este tick no completa nada.
+   * `AND completed = false` es el guard que hace que el conteo de filas afectadas decida si se
+   * otorga la recompensa (mission-progress: "A Mission Rewards Once") — cero filas significa que
+   * otro request ya la completó primero.
+   */
+  progressMission: q<DB_UserMissions>(
     "missions.progressMission",
-    `UPDATE user_missions SET progress = $1, completed = $2, completed_at = NOW()
-     WHERE id = $3
-       AND ($4::uuid IS NULL OR community_id = $4::uuid)`,
+    `UPDATE user_missions
+        SET progress = $1,
+            completed = $2,
+            completed_at = CASE WHEN $2 THEN COALESCE(completed_at, NOW()) ELSE completed_at END
+     WHERE id = $3 AND completed = false
+       AND ($4::uuid IS NULL OR community_id = $4::uuid)
+     RETURNING *`,
   ),
   assignMissionToUser: q<{ id: UUID }>(
     "missions.assignToUser",
     `INSERT INTO user_missions (user_id, mission_template_id, progress, completed, community_id)
-     VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+     VALUES ($1, $2, $3, $4, $5)
+     ON CONFLICT (user_id, mission_template_id) DO NOTHING
+     RETURNING id`,
+  ),
+
+  /**
+   * Fan-out set-based (mission-progress: "Set-Based, Idempotent Fan-Out", design D11). Reemplaza el
+   * loop `2 + 2·U` de `assignMissionToAllUsers` (`utils/helpersDb.ts`, antes con una ventana
+   * SELECT→INSERT que duplicaba filas si dos admins lo disparaban a la vez): un solo INSERT que
+   * ignora a quien ya tiene la fila, apoyado en `uq_user_missions_user_template` (migración `0014`).
+   * `$3` es `null` para un super admin — así alcanza a todas las comunidades a la vez, que es el
+   * comportamiento actual documentado en `helpersDb.ts`.
+   */
+  assignMissionToAllUsersSetBased: q<void>(
+    "missions.assignToAllUsersSetBased",
+    `INSERT INTO user_missions (user_id, mission_template_id, progress, completed, community_id)
+     SELECT u.id, $1, $2::jsonb, false, u.community_id
+       FROM users u
+      WHERE ($3::uuid IS NULL OR u.community_id = $3::uuid)
+     ON CONFLICT (user_id, mission_template_id) DO NOTHING`,
   ),
 
   // ─── Comunidades ──────────────────────────────────────────────────────────
@@ -850,7 +1090,7 @@ export const queries = {
       u.*,
       COUNT(*) OVER() as total_records
     FROM users u
-    WHERE LOWER(u.first_name || ' ' || u.last_name || ' ' || u.email) LIKE LOWER($1)
+    WHERE LOWER(u.first_name || ' ' || u.last_name || ' ' || u.email) LIKE LOWER($1) ESCAPE '\\'
       AND ($4::uuid IS NULL OR u.community_id = $4::uuid)
     ORDER BY u.created_at DESC
     LIMIT $2 OFFSET $3`,
@@ -865,23 +1105,10 @@ export const queries = {
     ORDER BY u.created_at DESC`,
   ),
 
-  createWalletTransaction: q<DB_WalletTransactions>(
-    "admin.createWalletTransaction",
-    `INSERT INTO wallet_transactions (user_id, type, positive, amount, reference_id, meta, community_id)
-    VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-  ),
-  increaseUserBalance: q<void>(
-    "admin.increaseUserBalance",
-    `UPDATE users SET credits_balance = credits_balance + $1
-     WHERE id = $2
-       AND ($3::uuid IS NULL OR community_id = $3::uuid)`,
-  ),
-  decreaseUserBalance: q<void>(
-    "admin.decreaseUserBalance",
-    `UPDATE users SET credits_balance = credits_balance - $1
-     WHERE id = $2
-       AND ($3::uuid IS NULL OR community_id = $3::uuid)`,
-  ),
+  // `createWalletTransaction`, `increaseUserBalance` y `decreaseUserBalance` se eliminaron
+  // (credit-ledger: Single Mutation Choke Point). El ajuste manual del admin ahora pasa por
+  // `applyCreditMovements`, igual que todo lo demás — `decreaseUserBalance` no tenía piso y podía
+  // dejar un saldo negativo antes de que el CHECK de `0010` lo detectara con un 500 sucio.
   createSchool: q<DB_Schools>(
     "admin.createSchool",
     `INSERT INTO schools (name, media_id, community_id) VALUES ($1, $2, $3) RETURNING *`,
@@ -1021,10 +1248,15 @@ export const queries = {
        WHERE (listing_id = ANY($1::uuid[]) OR trade_listing_id = ANY($1::uuid[]))
          AND ($2::uuid IS NULL OR community_id = $2::uuid)`,
     ),
+  /**
+   * `AND listing_status IN ('offered','accepted')` (account-deletion-integrity: "A settled loop is
+   * not reopened"): sin este filtro, borrar un comprador reabría también sus loops `received` —
+   * ya liquidados, terminales — de vuelta a `published`.
+   */
   updateListingsBuyerToNullByUserId: q<void>(
     "listings.updateBuyerToNullByUserId",
     `UPDATE listings SET buyer_id = NULL, listing_status = 'published', offered_credits = NULL
-     WHERE buyer_id = $1
+     WHERE buyer_id = $1 AND listing_status IN ('offered', 'accepted')
        AND ($2::uuid IS NULL OR community_id = $2::uuid)`,
   ),
   deleteListingsBySellerId: q<void>(
@@ -1033,12 +1265,11 @@ export const queries = {
      WHERE seller_id = $1
        AND ($2::uuid IS NULL OR community_id = $2::uuid)`,
   ),
-  deleteWalletTransactionsByUserId: q<void>(
-    "walletTransactions.deleteByUserId",
-    `DELETE FROM wallet_transactions
-     WHERE user_id = $1
-       AND ($2::uuid IS NULL OR community_id = $2::uuid)`,
-  ),
+  // `deleteWalletTransactionsByUserId` se eliminó (account-deletion-integrity: "The Ledger Survives
+  // Deletion"). La FK compuesta de `wallet_transactions` ahora es `ON DELETE SET NULL (user_id)`
+  // (migración `0014`), así que borrar el usuario anonimiza sus filas del ledger en vez de
+  // destruirlas — necesario para que la reconciliación y el historial de la contraparte sigan
+  // siendo auditables después de un borrado.
   deleteUserSchoolsByUserId: q<void>(
     "userSchools.deleteByUserId",
     `DELETE FROM user_schools
@@ -1106,5 +1337,47 @@ export const queries = {
        (SELECT COUNT(*) FROM wallet_transactions WHERE user_id = $1) +
        (SELECT COUNT(*) FROM users_wishes       WHERE user_id = $1)
      )::text AS total`,
+  ),
+
+  // ─── Legal / public routes (`legal-public-routes`) ────────────────────────
+
+  /** Registra la aceptación de los términos vigentes. Scopeada: escribe la fila del propio caller. */
+  acceptTerms: q<void>(
+    "user.acceptTerms",
+    `UPDATE users
+        SET terms_accepted_at = NOW(), terms_version = $1
+      WHERE id = $2
+        AND ($3::uuid IS NULL OR community_id = $3::uuid)`,
+  ),
+
+  /**
+   * Emite un nuevo token de reseteo de password, pisando cualquiera pendiente — así pedir un reset
+   * nuevo invalida el anterior (spec `password-reset`, "New request invalidates the old token").
+   * Sin filtro de comunidad: todavía no sabemos de qué comunidad es quien pide el reset.
+   */
+  setPasswordResetToken: q<void>(
+    "user.setPasswordResetToken",
+    `UPDATE users
+        SET password_reset_token_hash = $1,
+            password_reset_expires_at = NOW() + INTERVAL '1 hour'
+      WHERE id = $2`,
+  ),
+
+  /**
+   * Consume el token en un único `UPDATE ... RETURNING` atómico: matchea por hash, exige que no
+   * haya vencido, y limpia hash + expiración en la misma sentencia, así dos envíos concurrentes
+   * con el mismo token no pueden ganar los dos (spec `password-reset`, "Concurrent submissions").
+   * También marca `email_verified = TRUE`: probar la casilla alcanza (design D6).
+   */
+  consumePasswordResetToken: q<{ id: UUID }>(
+    "user.consumePasswordResetToken",
+    `UPDATE users
+        SET password = $1,
+            password_reset_token_hash = NULL,
+            password_reset_expires_at = NULL,
+            email_verified = TRUE
+      WHERE password_reset_token_hash = $2
+        AND password_reset_expires_at > NOW()
+      RETURNING id`,
   ),
 } as const;

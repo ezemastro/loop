@@ -6,11 +6,11 @@ import { queries } from "../services/queries";
 import {
   safeValidateFirstName,
   safeValidateLastName,
-  safeValidatePassword,
   safeValidatePhone,
   safeValidateUUID,
 } from "../services/validations";
 import type {
+  AcceptTermsPayload,
   CreateSelfWishPayload,
   DeleteSelfPayload,
   DeleteSelfWishPayload,
@@ -23,7 +23,10 @@ import type {
   UpdateSelfPayload,
   UserScopedPayload,
 } from "../types/models";
+import type { DatabaseClient } from "../types/dbClient.js";
 import { areSchoolsInCommunity } from "../utils/communities.js";
+import type { CreditMovement } from "../utils/credits.js";
+import { applyCreditMovements } from "../utils/credits.js";
 import {
   getUserMissionsByUserId,
   getNotificationsByUserId,
@@ -34,6 +37,7 @@ import {
   progressMission,
   getPrivateUserById,
 } from "../utils/helpersDb";
+import { computeLoopEscrow } from "../utils/loopEscrow.js";
 import {
   parseChatFromDb,
   parseListingBaseFromDb,
@@ -45,6 +49,109 @@ import {
 } from "../utils/parseDb";
 import { safeNumber } from "../utils/safeNumber";
 import { getOrderValue, getSortValue } from "../utils/sortOptions";
+import { escapeLike } from "../utils/escapeLike";
+
+/**
+ * El cuerpo real del borrado, factorizado fuera de `SelfModel.deleteSelf` para que
+ * `AccountDeletionModel.resolveRequest` (borrado disparado por un admin) pueda correrlo dentro de
+ * SU PROPIA transacción `unscoped("admin")` en vez de abrir una segunda conexión aparte
+ * (account-deletion-integrity: "Deletion Is One Transaction") — antes esa ruta marcaba la
+ * solicitud como `completed` y recién después intentaba borrar en un `withClient` distinto, así
+ * que una falla en el borrado dejaba la solicitud mintiendo.
+ *
+ * Nunca abre conexión propia: recibe el `client` ya scopeado (`inCommunity` para el propio
+ * usuario, `unscoped("admin")` para el admin) y confía en que el caller ya está dentro de una
+ * transacción.
+ *
+ * account-deletion-integrity: "Third-Party Credits Are Released" — antes de tocar una sola fila,
+ * se liberan los créditos de la contraparte de cada loop abierto en el que el usuario participa,
+ * como vendedor o como comprador, igual que una cancelación (`ListingsModel.cancelListing`,
+ * `computeLoopEscrow`). Sin esto, borrar la cuenta de un vendedor dejaba el crédito bloqueado del
+ * comprador varado contra una publicación que dejaba de existir.
+ */
+export const performAccountDeletion = async ({
+  client,
+  userId,
+}: {
+  client: DatabaseClient;
+  userId: UUID;
+}): Promise<void> => {
+  const openAsSeller = await client.query(queries.listingsBySellerIdOpen, [
+    userId,
+    client.communityId,
+  ]);
+  const openAsBuyer = await client.query(queries.listingsByBuyerIdOpen, [
+    userId,
+    client.communityId,
+  ]);
+
+  const releaseMovements: CreditMovement[] = [];
+  for (const listingDb of openAsSeller) {
+    const buyerLocked = listingDb.offered_credits !== null ? Number(listingDb.offered_credits) : 0;
+    if (buyerLocked > 0 && listingDb.buyer_id) {
+      releaseMovements.push({
+        userId: listingDb.buyer_id,
+        balanceDelta: buyerLocked,
+        lockedDelta: -buyerLocked,
+        reason: "deletion_release",
+        referenceId: listingDb.id,
+      });
+    }
+  }
+  for (const listingDb of openAsBuyer) {
+    // Solo un loop `accepted` puede tener trade-in de sobra bloqueado del lado del vendedor
+    // (`accept_seller_lock`); uno `offered` nunca tiene `listing_trades` todavía.
+    if (listingDb.listing_status === "accepted") {
+      const { sellerLocked } = await computeLoopEscrow({ client, listing: listingDb });
+      if (sellerLocked > 0) {
+        releaseMovements.push({
+          userId: listingDb.seller_id,
+          balanceDelta: sellerLocked,
+          lockedDelta: -sellerLocked,
+          reason: "deletion_release",
+          referenceId: listingDb.id,
+        });
+      }
+    }
+  }
+  if (releaseMovements.length > 0) {
+    await applyCreditMovements(client, releaseMovements);
+  }
+
+  const sellerListingIds = await client.query(queries.listingIdsBySellerId, [
+    userId,
+    client.communityId,
+  ]);
+  const ids = sellerListingIds.map((row) => row.id);
+
+  if (ids.length > 0) {
+    await client.query(queries.setMessagesAttachedListingNullBySellerId, [
+      userId,
+      client.communityId,
+    ]);
+    await client.query(queries.deleteListingTradesByListingIds(ids), [ids, client.communityId]);
+  }
+
+  await client.query(queries.deleteListingsBySellerId, [userId, client.communityId]);
+  // `AND listing_status IN ('offered','accepted')` (account-deletion-integrity: "A settled loop
+  // is not reopened") ya vive en la query — un loop `received` no vuelve a `published`.
+  await client.query(queries.updateListingsBuyerToNullByUserId, [userId, client.communityId]);
+  await client.query(queries.deleteMessagesByUserId, [userId, client.communityId]);
+  await client.query(queries.deleteNotificationsByUserId, [userId, client.communityId]);
+  await client.query(queries.deleteUserMissionsByUserId, [userId, client.communityId]);
+  // `deleteWalletTransactionsByUserId` ya NO se llama (account-deletion-integrity: "The Ledger
+  // Survives Deletion") — la FK de `wallet_transactions` es `ON DELETE SET NULL (user_id)` desde
+  // la migración `0014`, así que `deleteUserById` anonimiza esas filas en vez de destruirlas.
+  await client.query(queries.deleteUserSchoolsByUserId, [userId, client.communityId]);
+  await client.query(queries.deleteUserWishesByUserId, [userId, client.communityId]);
+  await client.query(queries.updateMediaUploadedByToNullByUserId, [userId, client.communityId]);
+  // Estas dos tablas no llevan community_id en el filtro y apuntan al usuario por FK: si no se
+  // limpian antes, `deleteUserById` falla por `invitations.used_by_user_id` y por
+  // `account_deletion_requests.user_id`.
+  await client.query(queries.clearInvitationUserByUserId, [userId]);
+  await client.query(queries.deleteAccountDeletionRequestsByUserId, [userId]);
+  await client.query(queries.deleteUserById, [userId, client.communityId]);
+};
 
 export class SelfModel {
   static getSelf = async ({ userId, communityId }: GetSelfPayload) => {
@@ -112,10 +219,11 @@ export class SelfModel {
           profileMediaId && (await safeValidateUUID(profileMediaId)).success
             ? profileMediaId
             : user.profileMediaId;
-        password =
-          password && (await safeValidatePassword(password)).success
-            ? await hashPassword(password)
-            : (user.password ?? undefined);
+        // `password` ya no es un campo válido de `updateSelfSchema` (D7, SEC-06): el schema es
+        // `.strict()`, así que `PATCH /me` con `password` se rechaza antes de llegar acá. Se
+        // conserva siempre el hash existente — antes, una password inválida se aceptaba en
+        // silencio y dejaba el hash viejo sin avisar; ahora ese caso no puede ocurrir.
+        password = user.password ?? undefined;
 
         try {
           await client.query(queries.updateUser, [
@@ -172,7 +280,7 @@ export class SelfModel {
         const listingsDb = await client.query(
           queries.listings({ sort: sortValue, order: orderValue }),
           [
-            searchTerm ?? null,
+            searchTerm ? escapeLike(searchTerm) : null,
             listingStatus ?? null,
             categoryId ?? null,
             productStatus ?? null,
@@ -323,6 +431,20 @@ export class SelfModel {
           userId,
           client.communityId,
         ]);
+      },
+      { scope: inCommunity(communityId) },
+    );
+  };
+
+  /**
+   * Registra la aceptación de la versión de términos vigente (`terms-acceptance`, design D5).
+   * Write autenticado sobre la propia fila del caller — `inCommunity` la ata a su comunidad, igual
+   * que el resto de los writes de `/me`.
+   */
+  static acceptTerms = async ({ userId, communityId, termsVersion }: AcceptTermsPayload) => {
+    return withClient(
+      async (client) => {
+        await client.query(queries.acceptTerms, [termsVersion, userId, client.communityId]);
       },
       { scope: inCommunity(communityId) },
     );
@@ -481,41 +603,7 @@ export class SelfModel {
   static deleteSelf = async ({ userId, communityId }: DeleteSelfPayload) => {
     return withClient(
       async (client) => {
-        const sellerListingIds = await client.query(queries.listingIdsBySellerId, [
-          userId,
-          client.communityId,
-        ]);
-        const ids = sellerListingIds.map((row) => row.id);
-
-        if (ids.length > 0) {
-          await client.query(queries.setMessagesAttachedListingNullBySellerId, [
-            userId,
-            client.communityId,
-          ]);
-          await client.query(queries.deleteListingTradesByListingIds(ids), [
-            ids,
-            client.communityId,
-          ]);
-        }
-
-        await client.query(queries.deleteListingsBySellerId, [userId, client.communityId]);
-        await client.query(queries.updateListingsBuyerToNullByUserId, [userId, client.communityId]);
-        await client.query(queries.deleteMessagesByUserId, [userId, client.communityId]);
-        await client.query(queries.deleteNotificationsByUserId, [userId, client.communityId]);
-        await client.query(queries.deleteUserMissionsByUserId, [userId, client.communityId]);
-        await client.query(queries.deleteWalletTransactionsByUserId, [userId, client.communityId]);
-        await client.query(queries.deleteUserSchoolsByUserId, [userId, client.communityId]);
-        await client.query(queries.deleteUserWishesByUserId, [userId, client.communityId]);
-        await client.query(queries.updateMediaUploadedByToNullByUserId, [
-          userId,
-          client.communityId,
-        ]);
-        // Estas dos tablas no llevan community_id en el filtro y apuntan al usuario por FK:
-        // si no se limpian antes, `deleteUserById` falla por `invitations.used_by_user_id` y
-        // por `account_deletion_requests.user_id`.
-        await client.query(queries.clearInvitationUserByUserId, [userId]);
-        await client.query(queries.deleteAccountDeletionRequestsByUserId, [userId]);
-        await client.query(queries.deleteUserById, [userId, client.communityId]);
+        await performAccountDeletion({ client, userId });
       },
       { scope: inCommunity(communityId), transaction: true },
     );

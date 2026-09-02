@@ -15,6 +15,7 @@ selfRouter.get("/messages", SelfController.getSelfChats);
 selfRouter.get("/messages/unread", SelfController.getSelfChatsUnread);
 selfRouter.post("/notification-token", SelfController.updateNotificationToken);
 selfRouter.post("/change-password", SelfController.modifySelfPassword);
+selfRouter.post("/terms-acceptance", SelfController.acceptTerms);
 
 selfRouter.delete("/", SelfController.deleteSelf);
 

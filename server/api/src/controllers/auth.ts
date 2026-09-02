@@ -1,8 +1,10 @@
 import type { NextFunction, Request, Response } from "express";
 import {
+  validateForgotPassword,
   validateLogin,
   validateRegister,
   validateResendVerification,
+  validateResetPassword,
   validateUserGoogleLogin,
 } from "../services/validations.js";
 import { InternalServerError, InvalidInputError } from "../services/errors.js";
@@ -159,6 +161,48 @@ export class AuthController {
     return res
       .status(200)
       .json(successResponse({ data: { message: ERROR_MESSAGES.EMAIL_VERIFICATION_SENT } }));
+  };
+
+  /**
+   * Pide un reseteo de contraseña por email (SEC-11). Siempre 200, con un cuerpo idéntico exista o
+   * no la cuenta — igual criterio que `resendVerification`, para que el endpoint no sirva de
+   * oráculo de qué direcciones están registradas.
+   */
+  static forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await validateForgotPassword(req.body);
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT, "VALIDATION_ERROR"));
+    }
+    const { email } = req.body as PostAuthForgotPasswordRequest["body"];
+    try {
+      await AuthModel.requestPasswordReset({ email });
+    } catch (err) {
+      return next(err);
+    }
+    return res
+      .status(200)
+      .json(successResponse({ data: { message: ERROR_MESSAGES.PASSWORD_RESET_SENT } }));
+  };
+
+  /**
+   * Consume el token del mail de reseteo y fija la contraseña nueva.
+   */
+  static resetPassword = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await validateResetPassword(req.body);
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT, "VALIDATION_ERROR"));
+    }
+    const { token, newPassword } = req.body as PostAuthResetPasswordRequest["body"];
+    try {
+      await AuthModel.resetPassword({ token, newPassword });
+    } catch (err) {
+      return next(err);
+    }
+    return res
+      .status(200)
+      .json(successResponse({ data: { message: "Contraseña actualizada correctamente." } }));
   };
 
   /**

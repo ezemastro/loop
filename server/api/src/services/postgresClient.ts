@@ -76,6 +76,11 @@ const LOOP_APP_GRANT_MATRIX: ReadonlyArray<{
   { table: "invitations", privilege: "DELETE", expected: false },
 ];
 
+/** Mismo SQL que usa `assertDbHardening()` y ahora también `checkHealth()` — no pueden divergir
+ * (D11). */
+const TENANT_RLS_QUERY = `SELECT relname FROM pg_class
+     WHERE relname = ANY($1::text[]) AND relkind = 'r' AND NOT relrowsecurity`;
+
 const poolConfig = {
   database: DB_NAME,
   host: DB_HOST,
@@ -262,11 +267,9 @@ export const assertDbHardening = async () => {
     );
   }
 
-  const { rows: rlsRows } = await scopedPool.query<{ relname: string }>(
-    `SELECT relname FROM pg_class
-     WHERE relname = ANY($1::text[]) AND relkind = 'r' AND NOT relrowsecurity`,
-    [[...TENANT_TABLES]],
-  );
+  const { rows: rlsRows } = await scopedPool.query<{ relname: string }>(TENANT_RLS_QUERY, [
+    [...TENANT_TABLES],
+  ]);
   if (rlsRows.length > 0) {
     problems.push(`RLS deshabilitada en: ${rlsRows.map((r) => r.relname).join(", ")}`);
   }
@@ -309,6 +312,32 @@ export const assertDbHardening = async () => {
     const message = `Aislamiento por comunidad mal configurado:\n  - ${problems.join("\n  - ")}`;
     if (NODE_ENV === "production") throw new Error(message);
     console.warn(`\n⚠️  ${message}\n`);
+  }
+};
+
+export interface HealthStatus {
+  dbUp: boolean;
+  rlsOn: boolean;
+}
+
+/**
+ * Chequeo no autenticado de `/health` (SEC-15, D11): confirma que la base responde y que RLS
+ * sigue activa en las tablas tenant. Reutiliza exactamente el mismo query que
+ * `assertDbHardening()` para que los dos no puedan divergir. No pasa por `withClient`/`DbScope` a
+ * propósito, igual que `assertDbHardening()`: es un chequeo de catálogo del sistema, no de datos
+ * de un tenant, así que no hay comunidad que scopear.
+ *
+ * Deliberadamente coarse: nunca expone el texto del error del driver, la connection string ni
+ * credenciales — solo si la base está arriba y si RLS está activa.
+ */
+export const checkHealth = async (): Promise<HealthStatus> => {
+  try {
+    const { rows } = await scopedPool.query<{ relname: string }>(TENANT_RLS_QUERY, [
+      [...TENANT_TABLES],
+    ]);
+    return { dbUp: true, rlsOn: rows.length === 0 };
+  } catch {
+    return { dbUp: false, rlsOn: false };
   }
 };
 

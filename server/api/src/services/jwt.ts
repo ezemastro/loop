@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { JWT_SECRET, TOKEN_EXP, ADMIN_TOKEN_EXP } from "../config";
+import { ADMIN_JWT_SECRET, ADMIN_TOKEN_EXP, JWT_SECRET, TOKEN_EXP } from "../config";
 
 /**
  * Versión del payload. Los tokens `v1` (los emitidos antes de que existieran las comunidades) no
@@ -9,33 +9,39 @@ import { JWT_SECRET, TOKEN_EXP, ADMIN_TOKEN_EXP } from "../config";
  */
 export const TOKEN_VERSION = 2;
 
+/** Algoritmo fijo en firma y verificación (SEC-02): sin esto un token con `alg: "none"` o
+ * cualquier otro algoritmo alcanzaría a verificar si `jsonwebtoken` alguna vez cambiara su
+ * default. */
+const SIGN_ALGORITHM: jwt.Algorithm = "HS256";
+const VERIFY_OPTIONS: jwt.VerifyOptions = { algorithms: [SIGN_ALGORITHM] };
+
 export interface UserTokenPayload {
   v?: number;
   userId: string;
   communityId?: UUID;
-  isAdmin?: boolean;
-  adminId?: string;
-  adminRole?: AdminRole;
-  adminCommunityId?: UUID | null;
 }
 
-export const generateToken = ({
-  userId,
-  communityId,
-}: {
-  userId: string;
-  communityId: UUID;
-}) => {
-  const payload = { v: TOKEN_VERSION, userId, communityId };
-  const token = jwt.sign(payload, JWT_SECRET as string, {
-    expiresIn: (TOKEN_EXP as number) || "30d",
-  });
-  return token;
+/**
+ * Payload de un token de administrador. Es un tipo **separado** de `UserTokenPayload` (SEC-02,
+ * D2): antes ambos eran el mismo tipo con los campos de admin opcionales, así que un payload de
+ * usuario type-checkeaba donde se esperaba uno de admin. Ahora no compila.
+ */
+export interface AdminTokenPayload {
+  v?: number;
+  adminId: string;
+  isAdmin: true;
+  adminRole: AdminRole;
+  adminCommunityId: UUID | null;
+}
+
+export const generateToken = ({ userId, communityId }: { userId: string; communityId: UUID }) => {
+  const payload: UserTokenPayload = { v: TOKEN_VERSION, userId, communityId };
+  return jwt.sign(payload, JWT_SECRET, { algorithm: SIGN_ALGORITHM, expiresIn: TOKEN_EXP });
 };
 
 export const parseToken = (token: string): UserTokenPayload => {
   try {
-    return jwt.verify(token, JWT_SECRET as string) as UserTokenPayload;
+    return jwt.verify(token, JWT_SECRET, VERIFY_OPTIONS) as unknown as UserTokenPayload;
   } catch {
     throw new Error("Invalid token");
   }
@@ -50,15 +56,23 @@ export const generateAdminToken = ({
   role: AdminRole;
   communityId: UUID | null;
 }) => {
-  const payload = {
+  const payload: AdminTokenPayload = {
     v: TOKEN_VERSION,
     adminId: id,
     isAdmin: true,
     adminRole: role,
     adminCommunityId: communityId,
   };
-  const token = jwt.sign(payload, JWT_SECRET as string, {
-    expiresIn: (ADMIN_TOKEN_EXP as number) || "30m",
+  return jwt.sign(payload, ADMIN_JWT_SECRET, {
+    algorithm: SIGN_ALGORITHM,
+    expiresIn: ADMIN_TOKEN_EXP,
   });
-  return token;
+};
+
+export const parseAdminToken = (token: string): AdminTokenPayload => {
+  try {
+    return jwt.verify(token, ADMIN_JWT_SECRET, VERIFY_OPTIONS) as unknown as AdminTokenPayload;
+  } catch {
+    throw new Error("Invalid admin token");
+  }
 };

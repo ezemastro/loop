@@ -50,6 +50,20 @@ export default function AuthLayout() {
           headerShown: false,
         }}
       />
+      <Tabs.Screen
+        name="forgot-password"
+        options={{
+          href: null,
+          headerShown: false,
+        }}
+      />
+      <Tabs.Screen
+        name="reset-password"
+        options={{
+          href: null,
+          headerShown: false,
+        }}
+      />
     </Tabs>
   );
 }

@@ -1,4 +1,5 @@
-import { PAGE_SIZE } from "../config";
+import { MEDIA_URL_SIGNING_ENABLED, PAGE_SIZE } from "../config";
+import { signMediaUrl } from "../services/mediaSigning";
 import { safeNumber } from "./safeNumber";
 
 /**
@@ -91,7 +92,7 @@ export const parseSchoolFromBase = ({
   media,
 }: {
   school: SchoolBase;
-  media: Media;
+  media: Media | null;
 }): School => {
   return {
     ...school,
@@ -101,7 +102,10 @@ export const parseSchoolFromBase = ({
 export const parseMediaFromDb = (row: DB_Media): Media => {
   return {
     id: row.id,
-    url: row.url,
+    // Single choke point for signed media URLs (SEC-08, design D7): every one of the six callers
+    // of this function inherits the signature automatically. When signing is disabled the row's
+    // bare filename passes through unchanged — today's behaviour, byte for byte.
+    url: MEDIA_URL_SIGNING_ENABLED ? signMediaUrl(row.url) : row.url,
     mediaType: row.media_type,
     mime: row.mime,
   };
@@ -145,6 +149,8 @@ export const parseUserBaseFromDb = (row: DB_Users): UserBase => {
     googleId: row.google_id,
     password: row.password,
     communityId: row.community_id,
+    termsAcceptedAt: row.terms_accepted_at ? parseDateFromDb(row.terms_accepted_at) : null,
+    termsVersion: row.terms_version,
   };
 };
 export const parsePrivateUserFromBase = ({
@@ -171,6 +177,11 @@ export const parsePrivateUserFromBase = ({
     profileMedia,
     schools,
     community,
+    // `?? null`: the register call site builds this object inline without going through
+    // `parseUserBaseFromDb` and legitimately omits these two — a brand-new user has not accepted
+    // anything yet, so `undefined` here means the same thing as an explicit `null`.
+    termsAcceptedAt: user.termsAcceptedAt ?? null,
+    termsVersion: user.termsVersion ?? null,
   };
 };
 
@@ -403,6 +414,7 @@ export const parseListingToDb = (listing: Listing, communityId: UUID): DB_Listin
       : null,
     product_status: listing.productStatus,
     updated_at: parseDateToDb(new Date()),
+    status_changed_at: parseDateToDb(new Date()),
   };
 };
 export const parseChatFromDb = (row: {

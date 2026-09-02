@@ -2,6 +2,7 @@ import { on, httpError, type DemoContext } from "../router";
 import { getDemoDb, userById } from "../state";
 import { demoTokenFor, userIdFromToken } from "../ids";
 import { DEMO_COMMUNITY } from "../db/community";
+import { TERMS_VERSION } from "@/content/legal/termsDocument";
 
 const toPrivateUser = (user: PrivateUser) => ({ ...user });
 
@@ -41,6 +42,8 @@ export const registerAuthHandlers = () => {
       profileMedia: null,
       schools,
       community: db.users[0].community,
+      termsAcceptedAt: new Date().toISOString(),
+      termsVersion: TERMS_VERSION,
     };
     db.users.push(user);
     // Mismo contrato que la API real: el registro no loguea, solo avisa que revise el mail.

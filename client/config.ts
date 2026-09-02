@@ -67,6 +67,17 @@ export const GOOGLE_OAUTH_READY = process.env.GOOGLE_OAUTH_READY !== "false";
 export const NODE_ENV = process.env.NODE_ENV;
 
 /**
+ * Base URL for the public legal pages (task 6.1). Defaults to the production host
+ * (`Caddyfile`), so in-app links resolve identically on native and web without an env var in
+ * most deployments — set explicitly only to point at a different environment.
+ */
+export const LEGAL_BASE_URL =
+  process.env.EXPO_PUBLIC_LEGAL_BASE_URL || "https://loop.reditinere.com";
+export const PRIVACY_POLICY_URL = `${LEGAL_BASE_URL}/privacidad`;
+export const TERMS_URL = `${LEGAL_BASE_URL}/terminos`;
+export const DELETE_ACCOUNT_URL = `${LEGAL_BASE_URL}/borrar-cuenta`;
+
+/**
  * `as const satisfies` y no `as ProductStatus` en cada valor: el `as` ensanchaba cada literal al
  * union entero, así que las claves computadas de los `Record<ProductStatus, ...>` de abajo
  * quedaban tipadas como `ProductStatus` y TS no podía probar que estuvieran todas. El `satisfies`

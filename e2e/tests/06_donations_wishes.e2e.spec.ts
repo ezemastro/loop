@@ -24,8 +24,9 @@ import {
 /**
  * Créditos, donaciones y deseos:
  * - La acreditación del admin SÍ registra wallet_transactions (type=admin) y mueve el saldo.
- * - Las donaciones mueven saldos y crean notificación de recepción, pero NO registran
- *   wallet_transactions (verificado en models/users.ts donate: solo saldos + notificación).
+ * - credit-economy-integrity (ECO-02): las donaciones ahora SÍ registran wallet_transactions en
+ *   ambos lados (`donation_sent`/`donation_received`), no solo saldos + notificación — antes
+ *   `UsersModel.donate` era el único de los tres flujos de crédito que no dejaba ningún rastro.
  * - Los deseos son CRUD completo contra la base.
  */
 
@@ -110,7 +111,7 @@ test.describe.serial("Créditos, donaciones y deseos", () => {
     expect(Number(txs[0].amount)).toBe(5000);
   });
 
-  test("la donación mueve saldos y notifica, pero no crea wallet_transactions", async ({
+  test("la donación mueve saldos, notifica, y registra wallet_transactions en ambos lados", async ({
     api,
   }: LoopFixtures) => {
     await donate(api, donorToken, recipientId, 2000);
@@ -118,9 +119,17 @@ test.describe.serial("Créditos, donaciones y deseos", () => {
     expect(await balanceOf(donorEmail)).toEqual({ balance: 3000, locked: 0 });
     expect(await balanceOf(recipientEmail)).toEqual({ balance: 2000, locked: 0 });
 
-    // El flujo de donación no audita wallet_transactions: solo saldos + notificación.
-    expect(await getWalletTransactionsForUser(donorId)).toHaveLength(1);
-    expect(await getWalletTransactionsForUser(recipientId)).toHaveLength(0);
+    // ECO-02: el donante ya tenía 1 fila (`admin` de la acreditación anterior) y ahora suma la
+    // de `donation_sent`; el receptor arranca en 0 y suma su `donation_received`.
+    const donorTxs = await getWalletTransactionsForUser(donorId);
+    expect(donorTxs).toHaveLength(2);
+    expect(donorTxs.some((t) => t.type === "donation" && t.positive === false)).toBe(true);
+
+    const recipientTxs = await getWalletTransactionsForUser(recipientId);
+    expect(recipientTxs).toHaveLength(1);
+    expect(recipientTxs[0]?.type).toBe("donation");
+    expect(recipientTxs[0]?.positive).toBe(true);
+    expect(Number(recipientTxs[0]?.amount)).toBe(2000);
 
     const recipientNotifs = await getNotificationsForUser(recipientId);
     expect(recipientNotifs.some((n) => n.type === "donation")).toBe(true);
@@ -141,7 +150,8 @@ test.describe.serial("Créditos, donaciones y deseos", () => {
 
     expect(await balanceOf(donorEmail)).toEqual({ balance: 3000, locked: 0 });
     expect(await balanceOf(recipientEmail)).toEqual({ balance: 2000, locked: 0 });
-    expect(await getWalletTransactionsForUser(donorId)).toHaveLength(1);
+    // Sin cambios respecto del test anterior: el intento rechazado no agrega ninguna fila.
+    expect(await getWalletTransactionsForUser(donorId)).toHaveLength(2);
   });
 
   test("la donación cruzada de comunidad se rechaza", async ({

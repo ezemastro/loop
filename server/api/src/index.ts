@@ -1,4 +1,5 @@
 import express from "express";
+import helmet from "helmet";
 import {
   FRONTEND_URL,
   NODE_ENV,
@@ -6,6 +7,7 @@ import {
   ADMIN_FRONTEND_URL,
   AUTHORIZED_ADMIN_EMAIL,
 } from "./config.js";
+import { assertProductionEnv } from "./env.js";
 import cookieParser from "cookie-parser";
 import { optionalTokenMiddleware, tokenMiddleware } from "./middlewares/parseToken.js";
 import { authRouter } from "./routes/auth.js";
@@ -23,11 +25,16 @@ import { uploadsRouter } from "./routes/uploads.js";
 import { safeNumber } from "./utils/safeNumber.js";
 import cors from "cors";
 import { trimBody } from "./middlewares/trimBody.js";
+import { deleteRequestLimiter } from "./middlewares/rateLimit.js";
 import { statsRouter } from "./routes/stats.js";
-import { assertDbHardening, unscoped, withClient } from "./services/postgresClient.js";
+import { assertDbHardening, checkHealth, unscoped, withClient } from "./services/postgresClient.js";
 import { queries } from "./services/queries.js";
 
 import { AccountDeletionController } from "./controllers/accountDeletion.js";
+
+// SEC-01 / C11: la validación de entorno tiene que completarse antes de aceptar cualquier
+// conexión. Fuera de producción no hace nada (la permisividad de `env.ts` ya alcanza).
+assertProductionEnv();
 
 /**
  * En desarrollo el front se abre desde la máquina que corre Docker y también desde otros
@@ -40,8 +47,24 @@ const DEV_ORIGIN_PATTERN =
 
 export const app = express();
 
-app.use(express.json());
-app.use(cookieParser());
+// Un solo hop de proxy (Caddy). `true` dejaría que cualquier cliente falsifique
+// `X-Forwarded-For` y elija su propia clave de rate limit (D3).
+app.set("trust proxy", 1);
+
+// `helmet` va primero: así los headers de seguridad están presentes incluso en una respuesta de
+// error del body parser. `crossOriginResourcePolicy` se fija explícito porque el default de
+// helmet (`same-origin`) bloquearía las imágenes subidas cuando las consume un origen distinto
+// (web de Expo, panel de admin) — es el punto más probable en que este cambio rompe la UI (D12).
+// `contentSecurityPolicy` se apaga: es una API JSON, y el default de helmet aplicaría
+// `default-src 'self'` también a `/uploads`, servido estáticamente.
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  }),
+);
+// CORS antes que el body parser: antes el body se parseaba (`:43` original) antes de evaluar el
+// origen (`:45` original). Ahora el origen se resuelve primero.
 app.use(
   cors({
     credentials: true,
@@ -56,6 +79,10 @@ app.use(
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   }),
 );
+// El límite ya era 100kb por default de Express (SEC-15/C7); esto lo hace explícito en vez de
+// heredarlo en silencio.
+app.use(express.json({ limit: "100kb" }));
+app.use(cookieParser());
 if (NODE_ENV === "development") {
   import("morgan").then((module) => {
     const morgan = module.default;
@@ -63,13 +90,35 @@ if (NODE_ENV === "development") {
   });
 }
 
-app.get("/status", (req, res) => {
-  res.status(200).send(`Server is running. Environment: ${NODE_ENV}`);
+// Liveness: no toca la base, así el orquestador distingue "el proceso está arriba" de "las
+// dependencias están sanas". No debe filtrar el entorno de deploy (SEC-15).
+app.get("/status", (_req, res) => {
+  res.status(200).send("ok");
+});
+
+// Health: sí toca la base. Cuerpo deliberadamente grueso (arriba/abajo, on/off) — nunca versión,
+// hostname, error del driver ni NODE_ENV — porque este endpoint es no autenticado por necesidad.
+// No lleva rate limit: lo consulta un monitor de uptime.
+app.get("/health", async (_req, res) => {
+  const { dbUp, rlsOn } = await checkHealth();
+  res.set("Cache-Control", "no-store");
+  if (!dbUp) {
+    return res.status(503).json({ status: "down", db: "down" });
+  }
+  if (!rlsOn) {
+    return res.status(503).json({ status: "degraded", db: "up", rls: "off" });
+  }
+  return res.status(200).json({ status: "ok", db: "up", rls: "on" });
 });
 
 // Público: la landing lo usa para el borrado de cuenta que exigen las tiendas. Ya no borra nada,
 // solo deja registrada la solicitud para que un admin la ejecute.
-app.post("/me/delete-request", trimBody, AccountDeletionController.requestDeletion);
+app.post(
+  "/me/delete-request",
+  trimBody,
+  deleteRequestLimiter,
+  AccountDeletionController.requestDeletion,
+);
 
 // ─── Rutas públicas ────────────────────────────────────────────────────────────────────────────
 app.use("/auth", trimBody, authRouter);
@@ -115,16 +164,35 @@ if (AUTHORIZED_ADMIN_EMAIL) {
   );
 }
 
-// Verifica que el aislamiento por comunidad esté realmente activo. En producción es fatal: es
-// preferible no levantar a levantar con RLS apagada y no enterarse.
-if (NODE_ENV !== "test") {
+const listen = () =>
+  app.listen(safeNumber(PORT) || 3000, "0.0.0.0", () => {
+    console.log(`Servidor corriendo. Entorno: ${NODE_ENV} en el puerto ${PORT}`);
+  });
+
+/**
+ * Verifica que el aislamiento por comunidad esté realmente activo, y recién ahí abre el puerto.
+ *
+ * Antes (C11) `assertDbHardening()` corría fire-and-forget mientras `app.listen` seguía de largo
+ * sin esperarlo, así que el proceso podía aceptar tráfico antes de que el chequeo resolviera. En
+ * producción ahora se espera y, si falla, el proceso sale sin llegar a escuchar. Fuera de
+ * producción el chequeo sigue sin bloquear el arranque: solo loguea si algo está mal.
+ */
+export let server: ReturnType<typeof listen> | undefined;
+
+if (NODE_ENV === "test") {
+  server = listen();
+} else if (NODE_ENV === "production") {
+  assertDbHardening()
+    .then(() => {
+      server = listen();
+    })
+    .catch((err) => {
+      console.error(err instanceof Error ? err.message : err);
+      process.exit(1);
+    });
+} else {
   assertDbHardening().catch((err) => {
     console.error(err instanceof Error ? err.message : err);
-    if (NODE_ENV === "production") process.exit(1);
   });
+  server = listen();
 }
-
-// Iniciar el servidor
-export const server = app.listen(safeNumber(PORT) || 3000, "0.0.0.0", () => {
-  console.log(`Servidor corriendo. Entorno: ${NODE_ENV} en el puerto ${PORT}`);
-});

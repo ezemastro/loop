@@ -4,7 +4,7 @@ import { unscoped, withClient } from "../services/postgresClient.js";
 import { queries } from "../services/queries.js";
 import { getUsersByIds } from "../utils/helpersDb.js";
 import { parsePagination } from "../utils/parseDb.js";
-import { SelfModel } from "./self.js";
+import { performAccountDeletion } from "./self.js";
 
 /**
  * Solicitudes de borrado de cuenta.
@@ -84,8 +84,14 @@ export class AccountDeletionModel {
   };
 
   /**
-   * Cierra la solicitud. Con `completed` se borra la cuenta de verdad, delegando en la misma
-   * cascada que usa `DELETE /me` para no tener dos implementaciones del borrado.
+   * Cierra la solicitud. Con `completed` se borra la cuenta de verdad, delegando en
+   * `performAccountDeletion` para no tener dos implementaciones del borrado.
+   *
+   * account-deletion-integrity: "Deletion Is One Transaction". Antes eran **tres** `withClient`
+   * separados: la solicitud se marcaba `completed` y quedaba comiteada antes de siquiera intentar
+   * el borrado — si el borrado fallaba, la solicitud mentía. Ahora todo corre dentro de la misma
+   * transacción `unscoped("admin")`: si `performAccountDeletion` falla, el `UPDATE` de más arriba
+   * se revierte junto con todo lo demás y la solicitud sigue `pending`.
    */
   static resolveRequest = async ({
     requestId,
@@ -98,35 +104,30 @@ export class AccountDeletionModel {
     adminId: UUID;
     communityId: UUID | null;
   }) => {
-    const request = await withClient(
+    return withClient(
       async (client) => {
         const [row] = await client.query(queries.accountDeletionRequestById, [
           requestId,
           communityId,
         ]);
-        return row ?? null;
+        if (!row || row.status !== "pending") {
+          throw new NotFoundError(ERROR_MESSAGES.DELETE_REQUEST_INVALID, "DELETE_REQUEST_INVALID");
+        }
+
+        const [resolvedRow] = await client.query(queries.resolveAccountDeletionRequest, [
+          action,
+          adminId,
+          requestId,
+        ]);
+        if (!resolvedRow) {
+          throw new NotFoundError(ERROR_MESSAGES.DELETE_REQUEST_INVALID, "DELETE_REQUEST_INVALID");
+        }
+
+        if (action === "completed") {
+          await performAccountDeletion({ client, userId: row.user_id });
+        }
       },
-      { scope: unscoped("admin") },
+      { scope: unscoped("admin"), transaction: true },
     );
-
-    if (!request || request.status !== "pending") {
-      throw new NotFoundError(ERROR_MESSAGES.DELETE_REQUEST_INVALID, "DELETE_REQUEST_INVALID");
-    }
-
-    // Se marca antes de borrar: `account_deletion_requests` cae por CASCADE al borrar el usuario,
-    // así que si se hiciera al revés la fila ya no existiría.
-    await withClient(
-      async (client) => {
-        await client.query(queries.resolveAccountDeletionRequest, [action, adminId, requestId]);
-      },
-      { scope: unscoped("admin") },
-    );
-
-    if (action === "completed") {
-      await SelfModel.deleteSelf({
-        userId: request.user_id,
-        communityId: request.community_id,
-      });
-    }
   };
 }

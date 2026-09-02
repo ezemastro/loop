@@ -5,6 +5,7 @@ import type { GetSchoolByIdPayload, GetSchoolsPayload } from "../types/models";
 import { getMediaById, getSchoolById } from "../utils/helpersDb";
 import { parsePagination, parseSchoolFromBase, parseSchoolFromDb } from "../utils/parseDb";
 import { safeNumber } from "../utils/safeNumber";
+import { escapeLike } from "../utils/escapeLike";
 
 export class SchoolsModel {
   static getSchools = async ({
@@ -17,7 +18,7 @@ export class SchoolsModel {
     return withClient(
       async (client) => {
         const searchSchoolsDb = await client.query(queries.searchSchools, [
-          searchTerm ?? null,
+          searchTerm ? escapeLike(searchTerm) : null,
           // La query solo ordena cuando `sort` es 'name'; con cualquier otro valor deja el orden
           // natural, que es lo que hacía el default histórico.
           sort ?? "created_at",

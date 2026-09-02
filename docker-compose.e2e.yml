@@ -85,6 +85,10 @@ services:
       # Sin Resend no sale ningún mail, pero la suite igual recorre el flujo real de verificación:
       # lee el token de la base y llama al mismo endpoint que abriría el link.
       REQUIRE_EMAIL_VERIFICATION: "true"
+      # sec-hardening-api (D3): la suite es serial y emite cientos de requests desde un solo
+      # contenedor. NODE_ENV es "development" acá arriba, no "test" — por eso el rate limiter no
+      # puede gatearse por NODE_ENV y existe este flag explícito en su lugar.
+      RATE_LIMIT_ENABLED: "false"
     volumes:
       - uploads-data:/uploads
     healthcheck:

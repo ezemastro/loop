@@ -229,6 +229,35 @@ interface PostSelfDeleteRequest {
 }
 type PostSelfDeleteRequestResponse = ApiResponse;
 
+// POST /me/terms-acceptance
+interface PostSelfTermsAcceptanceRequest extends AuthApiRequest {
+  body: {
+    termsVersion: string;
+  };
+}
+type PostSelfTermsAcceptanceResponse = ApiResponse;
+
+// POST /auth/forgot-password
+interface PostAuthForgotPasswordRequest {
+  body: {
+    email: string;
+  };
+}
+type PostAuthForgotPasswordResponse = ApiResponse<{
+  message: string;
+}>;
+
+// POST /auth/reset-password
+interface PostAuthResetPasswordRequest {
+  body: {
+    token: string;
+    newPassword: string;
+  };
+}
+type PostAuthResetPasswordResponse = ApiResponse<{
+  message: string;
+}>;
+
 // GET /users/:id
 interface GetUserByIdRequest {
   params: {
@@ -412,6 +441,15 @@ interface PostListingReceivedRequest extends AuthRequest {
   };
 }
 type PostListingReceivedResponse = ApiResponse;
+
+// POST /listings/:id/cancel (ECO-05: cancelación de un loop `accepted`, alcanzable por
+// cualquiera de las dos partes — listing-lifecycle: "Cancellation Of An Accepted Loop")
+interface PostListingCancelRequest extends AuthRequest {
+  params: {
+    listingId: UUID;
+  };
+}
+type PostListingCancelResponse = ApiResponse;
 
 // POST /uploads
 interface PostMediaRequest extends AuthRequest {

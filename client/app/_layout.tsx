@@ -95,6 +95,17 @@ export default function RootLayout() {
                 <Stack.Protected guard={__DEV__}>
                   <Stack.Screen name="debug" />
                 </Stack.Protected>
+                {/*
+                  Public legal routes (ADM-01 / PROD-05, `legal-public-routes`). MUST NOT sit
+                  inside ANY `Stack.Protected` — not even a `guard={true}` one: a failing guard
+                  removes the screen from the navigator entirely
+                  (`expo-router/build/useScreens.js`), which would bounce an anonymous store
+                  reviewer to the login screen after hydration. These three are siblings of the
+                  root `<Stack>` itself, unlike `debug` above (which is intentionally gated).
+                */}
+                <Stack.Screen name="privacidad" options={{ statusBarStyle: "dark" }} />
+                <Stack.Screen name="terminos" options={{ statusBarStyle: "dark" }} />
+                <Stack.Screen name="borrar-cuenta" options={{ statusBarStyle: "dark" }} />
               </Stack>
               <PwaInstallPrompt />
             </ToastProvider>

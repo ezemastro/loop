@@ -196,6 +196,15 @@ export const TagIcon = ({
   <Feather size={24} color={color} className={className} {...props} name="tag" />
 );
 
+/** Used for links to the legal documents (privacy policy, terms) in `Settings.tsx`. */
+export const DocumentIcon = ({
+  className,
+  color,
+  ...props
+}: Partial<IconProps<string>> & { color?: string }) => (
+  <Feather size={24} color={color} className={className} {...props} name="file-text" />
+);
+
 export const StarIcon = ({
   className,
   color,

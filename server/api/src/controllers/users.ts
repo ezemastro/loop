@@ -1,5 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
-import { validateGetUsersRequest, validateId } from "../services/validations";
+import {
+  validateDonateRequest,
+  validateGetUsersRequest,
+  validateId,
+} from "../services/validations";
 import { InvalidInputError } from "../services/errors";
 import { ERROR_MESSAGES } from "../config";
 import { UsersModel } from "../models/users";
@@ -66,12 +70,10 @@ export class UsersController {
   static donate = async (req: Request, res: Response, next: NextFunction) => {
     const toUserId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
     const { userId, communityId } = req.session!;
-    const { amount } = req.body;
+    let amount: number;
     try {
       await validateId(toUserId);
-      if (typeof amount !== "number" || amount <= 0) {
-        throw new Error();
-      }
+      ({ amount } = await validateDonateRequest(req.body));
     } catch {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }

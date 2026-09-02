@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    { "source": "/listing/:id/edit", "destination": "/index.html" },
+    { "source": "/listing/:id/offer", "destination": "/index.html" },
+    { "source": "/listing/:id", "destination": "/index.html" },
+    { "source": "/messages/:id", "destination": "/index.html" },
+    { "source": "/user/:id", "destination": "/index.html" }
+  ]
+}

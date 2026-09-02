@@ -227,10 +227,12 @@ test.describe.serial("Journey de publicación→intercambio completado", () => {
     expect(Number(dbListing.offered_credits)).toBe(OFFER);
 
     const tradeRows = await getListingTrades(listingId);
-    // NOTA: acceptOffer NUNCA inserta en listing_trades (storeTrade no se usa en el modelo):
-    // el ítem del comprador se marca como vendido via markListingAsSold. Verificamos el efecto
-    // real: el ítem del trade pasa a accepted con el vendedor original como buyer.
-    expect(tradeRows).toHaveLength(0);
+    // credit-economy-integrity (ECO-04): `acceptOffer` ahora SÍ inserta en `listing_trades` por
+    // cada listing tradeado (queries.storeTrade, antes con cero call sites) — necesario para que
+    // `POST /:listingId/cancel` (ECO-05) sepa qué listings devolver al mercado si el loop se
+    // cancela. La aserción vieja de esta línea esperaba `toHaveLength(0)`; ahora es 1.
+    expect(tradeRows).toHaveLength(1);
+    expect(tradeRows[0]?.trade_listing_id).toBe(tradeListingId);
 
     const [tradeDb] = await getListingById(tradeListingId);
     expect(tradeDb.listing_status).toBe("accepted");

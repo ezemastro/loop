@@ -1,8 +1,9 @@
-import { ERROR_MESSAGES, PAGE_SIZE } from "../config";
+import { DONATION_DAILY_MAX_CREDITS, ERROR_MESSAGES, PAGE_SIZE } from "../config";
 import { InvalidInputError } from "../services/errors";
 import { inCommunity, withClient } from "../services/postgresClient.js";
 import { queries } from "../services/queries";
 import type { DonatePayload, GetUserByIdPayload, GetUsersPayload } from "../types/models";
+import { applyCreditMovements } from "../utils/credits.js";
 import { getCategoryById, getUserById, getUsersByIds } from "../utils/helpersDb";
 import { sendDonationNotification } from "../utils/notifications";
 import {
@@ -13,6 +14,7 @@ import {
 } from "../utils/parseDb";
 import { safeNumber } from "../utils/safeNumber";
 import { getOrderValue, getSortValue } from "../utils/sortOptions";
+import { escapeLike } from "../utils/escapeLike";
 
 export class UsersModel {
   static getUsers = async ({
@@ -31,7 +33,7 @@ export class UsersModel {
         const usersSearchDb = await client.query(
           queries.searchUsers({ sort: dbSort, order: dbOrder }),
           [
-            searchTerm || null,
+            searchTerm ? escapeLike(searchTerm) : null,
             schoolId || null,
             userId || null,
             PAGE_SIZE,
@@ -65,11 +67,20 @@ export class UsersModel {
     );
   };
 
+  /**
+   * credit-ledger: "A donation records both sides", "Donation Limits". El mínimo/máximo por
+   * request ya los aplica el Zod schema (`validateDonateRequest`); acá se aplica el único límite
+   * que depende de estado — el tope diario, leído del ledger — y las dos escrituras pasan por el
+   * choque único en vez de dos escrituras absolutas sueltas.
+   */
   static donate = async ({ fromUserId, toUserId, amount, communityId }: DonatePayload) => {
     return withClient(
       async (client) => {
         if (fromUserId === toUserId) {
-          throw new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT);
+          throw new InvalidInputError(
+            ERROR_MESSAGES.CANNOT_DONATE_TO_SELF,
+            "CANNOT_DONATE_TO_SELF",
+          );
         }
         const [toUserDb] = await client.query(queries.userById, [toUserId, client.communityId]);
         if (!toUserDb) {
@@ -80,22 +91,39 @@ export class UsersModel {
         if (!fromUserDb) {
           throw new InvalidInputError(ERROR_MESSAGES.USER_NOT_FOUND);
         }
-        const fromUser = parseUserBaseFromDb(fromUserDb);
-        if (fromUser.credits.balance < amount) {
-          throw new InvalidInputError(ERROR_MESSAGES.INSUFFICIENT_CREDITS);
-        }
-        await client.query(queries.updateUserBalance, [
-          fromUser.credits.balance - amount,
-          fromUser.credits.locked,
+
+        const [donationTotalRow] = await client.query(queries.donationSentTodayTotal, [
           fromUserId,
           client.communityId,
         ]);
-        await client.query(queries.updateUserBalance, [
-          toUser.credits.balance + amount,
-          toUser.credits.locked,
-          toUserId,
-          client.communityId,
+        const donatedToday = Number(donationTotalRow?.total ?? 0);
+        if (donatedToday + amount > DONATION_DAILY_MAX_CREDITS) {
+          throw new InvalidInputError(
+            ERROR_MESSAGES.DONATION_DAILY_CAP_EXCEEDED,
+            "DONATION_DAILY_CAP_EXCEEDED",
+          );
+        }
+
+        // El guard de `applyCreditMovements` es lo que hace la carrera "dos donaciones simultáneas
+        // de todo el saldo" segura (credit-ledger: "Concurrent donations cannot overdraw") — no el
+        // chequeo de saldo en JS, que quedó afuera a propósito.
+        await applyCreditMovements(client, [
+          {
+            userId: fromUserId,
+            balanceDelta: -amount,
+            lockedDelta: 0,
+            reason: "donation_sent",
+            referenceId: toUserId,
+          },
+          {
+            userId: toUserId,
+            balanceDelta: amount,
+            lockedDelta: 0,
+            reason: "donation_received",
+            referenceId: fromUserId,
+          },
         ]);
+
         await sendDonationNotification({
           client,
           amount,

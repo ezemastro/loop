@@ -7,6 +7,11 @@ declare global {
         [key: string]: string;
       };
       session?: {
+        // Requerido: casi todo call site en rutas de usuario lo lee sin chequear (`req.session!.
+        // userId`). Una sesión de admin nunca lo llena de verdad — `adminTokenMiddleware` construye
+        // el objeto con un cast explícito, ver la nota ahí — pero mantenerlo required acá evita
+        // reintroducir `| undefined` en decenas de call sites de rutas de usuario que no lo
+        // necesitan.
         userId: string;
         /**
          * Comunidad del usuario de la sesión. Es el scope con el que se abren todas las conexiones

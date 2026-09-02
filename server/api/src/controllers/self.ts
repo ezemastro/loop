@@ -1,13 +1,14 @@
 import { SelfModel } from "../models/self";
 import type { Response, Request, NextFunction } from "express";
 import {
-  safeValidateEmail,
   safeValidateUUID,
+  validateChangePassword,
   validateGetSelfListingsRequest,
   validateGetSelfMessagesRequest,
   validateGetSelfNotificationsRequest,
   validatePostSelfWishRequest,
   validatePutSelfWishRequest,
+  validateTermsAcceptance,
   validateUpdateSelf,
   validateUpdateTokenRequest,
 } from "../services/validations";
@@ -293,13 +294,21 @@ export class SelfController {
 
   static modifySelfPassword = async (req: Request, res: Response, next: NextFunction) => {
     const { userId, communityId } = req.session!;
-    const { oldPassword, newPassword } = req.body as PostSelfChangePasswordRequest["body"];
+    // `POST /me/change-password` no validaba nada (D7, SEC-06): `newPassword: ""` llegaba directo
+    // a `hashPassword("")`, y `trimBody` convierte "   " en "" antes de que esto corra, así que
+    // una password de solo espacios era guardable.
+    let body: { oldPassword: string; newPassword: string };
+    try {
+      body = await validateChangePassword(req.body);
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
     try {
       await SelfModel.modifyUserPassword({
         userId,
         communityId: communityId!,
-        oldPassword,
-        newPassword,
+        oldPassword: body.oldPassword,
+        newPassword: body.newPassword,
       });
     } catch (err) {
       return next(err);
@@ -311,6 +320,27 @@ export class SelfController {
     const { userId, communityId } = req.session!;
     try {
       await SelfModel.deleteSelf({ userId, communityId: communityId! });
+    } catch (err) {
+      return next(err);
+    }
+    res.status(204).send(successResponse());
+  };
+
+  /**
+   * Registra la aceptación de la versión de términos vigente (`legal-public-routes`, terms
+   * acceptance). El cliente manda la versión que aceptó, no el server: así una versión vieja en
+   * caché no puede colarse como "aceptada" para la versión nueva.
+   */
+  static acceptTerms = async (req: Request, res: Response, next: NextFunction) => {
+    const { userId, communityId } = req.session!;
+    try {
+      await validateTermsAcceptance(req.body);
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    const { termsVersion } = req.body as PostSelfTermsAcceptanceRequest["body"];
+    try {
+      await SelfModel.acceptTerms({ userId, communityId: communityId!, termsVersion });
     } catch (err) {
       return next(err);
     }

@@ -80,7 +80,13 @@ interface SchoolBase {
   meta: JsonObject | null;
 }
 interface School extends SchoolBase {
-  media: Media;
+  /**
+   * `null` cuando el media referenciado no es visible desde el scope actual (notification-integrity:
+   * "Reads Do Not Silently Drop Rows" — un colegio nunca se omite de un listado solo porque su logo
+   * dejó de resolverse; antes de este cambio, esa fila se descartaba en silencio en vez de mostrarse
+   * con un logo faltante).
+   */
+  media: Media | null;
 }
 
 interface UserBase {
@@ -96,6 +102,12 @@ interface UserBase {
   notificationToken: string | null;
   googleId: string | null;
   password: string | null;
+  /**
+   * Optional here so `PublicUser` (which never sets these) can omit them; `PrivateUser` below
+   * redeclares both as required — it is the only surface that actually needs them.
+   */
+  termsAcceptedAt?: string | null;
+  termsVersion?: string | null;
 }
 interface User extends UserBase {
   profileMedia: Media | null;
@@ -110,6 +122,10 @@ type UserWithoutSecrets = Omit<User, "notificationToken" | "password" | "googleI
  */
 interface PrivateUser extends UserWithoutSecrets {
   community: Community;
+  /** NULL if never accepted under the tracked (versioned) terms regime. */
+  termsAcceptedAt: string | null;
+  /** Compared against the client's `TERMS_VERSION` constant to decide whether to re-prompt. */
+  termsVersion: string | null;
 }
 
 /**

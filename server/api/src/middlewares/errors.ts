@@ -42,7 +42,12 @@ export const errorMiddleware = (err: Error, _req: Request, res: Response, _next:
     return res.status(500).json({ success: false, error: err.message, errorCode: err.code });
   }
   if (err instanceof StepRequired) {
-    return res.status(200).json({
+    // 409, no 200 (SEC-15, D14): un paso pendiente no es un éxito. Antes el 200 hacía que el
+    // cliente tratara la respuesta como un objeto plano sin `data` (rama no-Axios de
+    // `parseApiError`), así que `SCHOOL_IDS_REQUIRED_FOR_GOOGLE_SIGNUP` perdía la comunidad
+    // pre-resuelta que este error trae en `data`. Con 409 la respuesta pasa por la rama Axios, que
+    // sí preserva `data`. `success`, `error`, `errorCode` y `data` mantienen su forma exacta.
+    return res.status(409).json({
       success: false,
       error: err.message,
       errorCode: err.code,

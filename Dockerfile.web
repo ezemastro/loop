@@ -34,9 +34,18 @@ RUN npm install -g serve
 # OJO: Metro exporta a la carpeta 'dist', no a 'web-build'
 COPY --from=build /app/client/dist ./dist
 
-# Inyectar metatags PWA en el HTML estático
-RUN sed -i 's|<head>|<head><link rel="manifest" href="/manifest.json"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Loop"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><meta name="theme-color" content="#FF5900">|' dist/index.html
-RUN sed -i 's|lang="en"|lang="es"|' dist/index.html
+# Inyectar metatags PWA en el HTML estático. Antes solo tocaba `dist/index.html`; ahora que
+# `expo export` prerenderiza un `.html` por ruta (privacidad, terminos, borrar-cuenta incluidos)
+# se aplica a TODOS, así las páginas legales también salen con los mismos <meta> y `lang="es"`
+# (legal-public-routes, proposal Risks — "Prerendered legal HTML ships without the PWA/lang tags").
+RUN find dist -maxdepth 1 -name '*.html' -exec sed -i 's|<head>|<head><link rel="manifest" href="/manifest.json"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Loop"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><meta name="theme-color" content="#FF5900">|' {} \;
+RUN find dist -maxdepth 1 -name '*.html' -exec sed -i 's|lang="en"|lang="es"|' {} \;
 
 EXPOSE 3000
-CMD ["serve", "-s", "dist", "-l", "3000"]
+# `-s`/`--single` prepends a `**` -> `/index.html` rewrite that shadows `client/public/serve.json`
+# (copied into `dist/` by the Expo web export) and defeats `cleanUrls` resolution for every
+# extensionless route — see design.md D2/F4/F5. Dropping it and shipping `serve.json`'s own
+# ordered rewrites (legal routes first, `**` catch-all last) is what makes `/privacidad` etc.
+# serve their own prerendered HTML instead of the SPA shell, while `/listing/<id>` and every other
+# dynamic route keep falling back to it exactly as before.
+CMD ["serve", "dist", "-l", "3000"]

@@ -1,4 +1,5 @@
 import { Text, TextInput, View, FlatList } from "react-native";
+import { Link } from "expo-router";
 import { MainView, pageContentClassName } from "../bases/MainView";
 import CustomButton from "../bases/CustomButton";
 import type { ReactNode } from "react";
@@ -149,6 +150,9 @@ export default function Login() {
               <CustomButton onPress={handleSubmit}>
                 <ButtonText>Iniciar sesión</ButtonText>
               </CustomButton>
+              <Link href="/(auth)/forgot-password" className="text-center text-tertiary text-base py-1">
+                ¿Olvidaste tu contraseña?
+              </Link>
               <View className="w-full h-0.5 bg-secondary-text/30 my-6" />
               {GOOGLE_OAUTH_READY || NODE_ENV !== "production" ? (
                 <View>

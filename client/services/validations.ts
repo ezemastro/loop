@@ -60,3 +60,26 @@ const publishListingFormSchema = z.object({
 export const validatePublishListingForm = (data: unknown) => {
   return publishListingFormSchema.safeParseAsync(data);
 };
+
+const emailFormatSchema = z.email();
+/** Used by the public `/borrar-cuenta` form — no session, no `formik`-style form, just one field. */
+export const isValidEmailFormat = (email: string): boolean => emailFormatSchema.safeParse(email).success;
+
+const forgotPasswordFormSchema = z.object({
+  email: z.email("El correo electrónico no es válido"),
+});
+export const validateForgotPasswordForm = (data: unknown) => forgotPasswordFormSchema.safeParse(data);
+
+const resetPasswordFormSchema = z
+  .object({
+    newPassword: z
+      .string()
+      .min(6, "La contraseña es demasiado corta")
+      .max(100, "La contraseña es demasiado larga"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Las contraseñas no coinciden",
+    path: ["confirmPassword"],
+  });
+export const validateResetPasswordForm = (data: unknown) => resetPasswordFormSchema.safeParse(data);

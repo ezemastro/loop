@@ -1,6 +1,6 @@
 import type { NextFunction, Response, Request } from "express";
 import { COOKIE_NAMES, ERROR_MESSAGES } from "../config.js";
-import { parseToken } from "../services/jwt.js";
+import { parseAdminToken } from "../services/jwt.js";
 import { InvalidInputError, UnauthorizedError } from "../services/errors.js";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -11,11 +11,7 @@ export const adminTokenMiddleware = (req: Request, res: Response, next: NextFunc
     return res.status(401).json({ error: "Unauthorized - Admin access required" });
   }
   try {
-    const decoded = parseToken(token);
-    // Verificar que el token es de admin
-    if (!decoded.isAdmin) {
-      return res.status(403).json({ error: "Forbidden - Admin access required" });
-    }
+    const decoded = parseAdminToken(token);
 
     // Un token de admin sin rol es de antes de las comunidades. No se le puede inferir un rol:
     // asumir `community_admin` sin comunidad lo dejaría con el scope de un super admin, que es
@@ -28,12 +24,17 @@ export const adminTokenMiddleware = (req: Request, res: Response, next: NextFunc
       return res.status(401).json({ error: "Unauthorized - Invalid admin token" });
     }
 
+    // `Express.Request["session"]` es un solo tipo compartido por sesiones de usuario y de admin,
+    // y declara `userId` requerido porque casi todo call site de rutas de usuario lo lee sin
+    // chequear. Una sesión de admin nunca lo llena de verdad — antes tampoco lo hacía, solo que el
+    // tipo lo ocultaba reusando `UserTokenPayload` para decodificar el token de admin. El cast
+    // deja esa realidad explícita en vez de forzar `userId` a "requerido" en cada ruta de usuario.
     req.session = {
       ...decoded,
       adminRole: decoded.adminRole,
       // Invariante que sostiene todo el scopeo: super admin ⇔ sin comunidad.
       adminCommunityId: decoded.adminRole === "super_admin" ? null : decoded.adminCommunityId!,
-    };
+    } as Request["session"];
     next();
   } catch {
     return res.status(401).json({ error: "Unauthorized - Invalid admin token" });

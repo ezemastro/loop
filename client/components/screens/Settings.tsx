@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Platform, ScrollView, Text, TextInput, View } from "react-native";
 import Constants from "expo-constants";
-import { usePathname } from "expo-router";
+import { useRouter, usePathname } from "expo-router";
 import { MainView, pageContentClassName } from "../bases/MainView";
 import BackButton from "../BackButton";
 import CustomModal from "../bases/CustomModal";
@@ -24,6 +24,7 @@ export default function Settings() {
   const user = useSessionStore((state) => state.user);
   const logout = useSessionStore((state) => state.logout);
   const pathname = usePathname();
+  const router = useRouter();
   const contentClassName = pageContentClassName("narrow", "p-4 gap-6");
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -55,6 +56,9 @@ export default function Settings() {
         return;
       case "mail":
         handleMail(item.action.template);
+        return;
+      case "link":
+        router.push(item.action.href);
         return;
     }
   };

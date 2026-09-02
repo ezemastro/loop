@@ -39,8 +39,8 @@ export default function ResetPasswordModal({
     setError(null);
     setFeedback(null);
 
-    if (newPassword.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres");
+    if (newPassword.length < 8) {
+      setError("La contraseña debe tener al menos 8 caracteres");
       return;
     }
 
@@ -100,7 +100,7 @@ export default function ResetPasswordModal({
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             required
-            minLength={6}
+            minLength={8}
           />
         </Field>
 
@@ -111,7 +111,7 @@ export default function ResetPasswordModal({
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
-            minLength={6}
+            minLength={8}
           />
         </Field>
 

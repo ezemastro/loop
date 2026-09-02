@@ -3,8 +3,10 @@ import { ListingsModel } from "../models/listings";
 import {
   validateGetListingsRequest,
   validateId,
+  validateMakeOfferRequest,
   validatePatchListingsRequest,
   validatePostListingsRequest,
+  validateTradingListingIds,
 } from "../services/validations";
 import { InvalidInputError } from "../services/errors";
 import { ERROR_MESSAGES } from "../config";
@@ -151,17 +153,17 @@ export class ListingsController {
   };
 
   static makeOffer = async (req: Request, res: Response, next: NextFunction) => {
-    const parsedBody: PostListingOfferRequest["body"] = {
-      ...req.body,
-      price: safeNumber(req.body.price),
-    };
+    let price: number;
     try {
       await validateId(req.params.listingId);
+      // `makeOffer` no tenía NINGÚN schema antes de esto (design D12, "defectos que el audit no
+      // registra"): `offeredCredits: undefined` pasaba las tres comparaciones porque todas son
+      // `false` contra `undefined`.
+      ({ price } = await validateMakeOfferRequest(req.body));
     } catch {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     const { listingId } = req.params as PostListingOfferRequest["params"];
-    const { price } = parsedBody;
 
     let listing: Listing;
     try {
@@ -218,21 +220,44 @@ export class ListingsController {
   };
 
   static acceptOffer = async (req: Request, res: Response, next: NextFunction) => {
+    let tradingListingIds: UUID[] = [];
     try {
       await validateId(req.params.listingId);
-      if (req.body.tradingListingIds) {
-        await Promise.all(req.body.tradingListingIds.map(validateId));
+      // Array con tope y sin duplicados (listing-lifecycle: "Duplicate traded identifiers are
+      // rejected") — antes cada elemento se validaba como UUID suelto, sin cardinalidad ni dedup,
+      // y un id repetido se contaba dos veces al sumar precio.
+      if (req.body.tradingListingIds !== undefined) {
+        tradingListingIds = await validateTradingListingIds(req.body.tradingListingIds);
       }
     } catch {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
     const { listingId } = req.params as PostListingOfferAcceptRequest["params"];
-    const { tradingListingIds } = (req.body as PostListingOfferAcceptRequest["body"]) || {};
 
     try {
       await ListingsModel.acceptOffer({
         listingId,
-        tradingListingIds: tradingListingIds || [],
+        tradingListingIds,
+        userId: req.session!.userId,
+        communityId: req.session!.communityId!,
+      });
+    } catch (err) {
+      return next(err);
+    }
+    res.status(204).json(successResponse());
+  };
+
+  static cancelListing = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await validateId(req.params.listingId);
+    } catch {
+      return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
+    }
+    const { listingId } = req.params as PostListingCancelRequest["params"];
+
+    try {
+      await ListingsModel.cancelListing({
+        listingId,
         userId: req.session!.userId,
         communityId: req.session!.communityId!,
       });

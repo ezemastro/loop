@@ -92,6 +92,14 @@ interface DB_Users {
   email_verification_token_hash: string | null;
   /** Vencimiento del token de verificación, 24hs después de emitido. NULL junto con el hash. */
   email_verification_expires_at: ISODateString | null;
+  /** Cuándo aceptó los términos vigentes. NULL si nunca aceptó bajo el régimen versionado. */
+  terms_accepted_at: ISODateString | null;
+  /** Versión de términos aceptada; se compara contra `TERMS_VERSION` del cliente para re-preguntar. */
+  terms_version: string | null;
+  /** Digest SHA-256 del token de reseteo de password. Nunca el token en texto plano (SEC-11). */
+  password_reset_token_hash: string | null;
+  /** Vencimiento del token de reseteo, 1h después de emitido. NULL junto con el hash. */
+  password_reset_expires_at: ISODateString | null;
 }
 interface DB_UserSchools {
   id: UUID;
@@ -137,6 +145,8 @@ interface DB_Listings {
   community_id: UUID;
   created_at: ISODateString;
   updated_at: ISODateString | null;
+  /** Migración `0014`. Nada la lee todavía (INF-06/ECO-11: reservada para un futuro job de expiración). */
+  status_changed_at: ISODateString | null;
 }
 interface DB_ListingMedia {
   id: UUID;
@@ -153,11 +163,17 @@ interface DB_ListingTrades {
 }
 interface DB_WalletTransactions {
   id: UUID;
-  user_id: UUID;
+  /** Migración `0014`: nullable — NULL cuando la cuenta se borró (ver account-deletion-integrity). */
+  user_id: UUID | null;
   type: DB_TransactionType;
   positive: boolean;
   amount: DbNumber;
   balance_after: DbNumber | null;
+  /** Signed. Migración `0014`. La verdad contable; `amount`/`positive` son solo presentación. */
+  balance_delta: DbNumber;
+  locked_delta: DbNumber;
+  locked_after: DbNumber | null;
+  reason: string | null;
   reference_id: UUID | null;
   meta: JsonObject | null;
   community_id: UUID;

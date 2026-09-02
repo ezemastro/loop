@@ -60,11 +60,11 @@ saldos, créditos bloqueados, notificaciones, comunidad). Detalle por archivo:
 | Archivo | Flujo | Assertions clave |
 |---|---|---|
 | `01_onboarding_and_tenant.e2e.spec.ts` | Registro por dominio, escuelas por comunidad, dominios desconocidos, login, `/me`, resolución de comunidad | `users.community_id` = comunidad del dominio; registro con escuela de otra comunidad → `SCHOOLS_NOT_IN_COMMUNITY` y rollback (no queda fila); dominio desconocido → `EMAIL_NOT_AUTHORIZED`; credits 0/0 iniciales; `user_schools` correcto. |
-| `02_listing_journey.e2e.spec.ts` | **Journey completo**: publicar → feed → oferta con trade → notificación → aceptar → recibir → saldos liquidados → re-oferta rechazada | Estados `published→offered→accepted→received` en la base; `listing_trades` (se documenta que `acceptOffer` NO escribe en esa tabla, solo marca como vendido); saldo del comprador `baseline - offer` y locked `offer`; vendedor `baseline + offer`; notificaciones `new_offer`, `offer_accepted`, `listing_received` (van al VENDEDOR, no al comprador). Los baselines se miden después de publicar porque completar la misión `publish-listing-1` otorga créditos (cliente recibe +30.000 al publicar y el seller también). |
+| `02_listing_journey.e2e.spec.ts` | **Journey completo**: publicar → feed → oferta con trade → notificación → aceptar → recibir → saldos liquidados → re-oferta rechazada | Estados `published→offered→accepted→received` en la base; `listing_trades` tiene una fila por listing tradeado tras `acceptOffer` (credit-economy-integrity ECO-04: antes `storeTrade` no se usaba en ningún modelo); saldo del comprador `baseline - offer` y locked `offer`; vendedor `baseline + offer`; notificaciones `new_offer`, `offer_accepted`, `listing_received` (van al VENDEDOR, no al comprador). Los baselines se miden después de publicar porque completar la misión `publish-listing-1` otorga créditos (cliente recibe +30.000 al publicar y el seller también). |
 | `03_community_isolation.e2e.spec.ts` | Aislamiento real entre comunidades | El feed scopeado no muestra listings de otra comunidad; `GET /listings/:id` cruzado → `LISTING_NOT_FOUND`; mensaje cruzado → `USER_NOT_FOUND` y cero filas en `messages`; `GET /schools` solo devuelve escuelas de la comunidad; donación cruzada → 400 y saldo del receptor intacto. |
 | `04_offer_negative_cases.e2e.spec.ts` | Casos negativos y autorización de ofertas | Oferta propia → `CANNOT_OFFER_OWN_LISTING`; mayor al precio → `INVALID_OFFER_PRICE`; créditos insuficientes → `INSUFFICIENT_CREDITS`; no-vendedor acepta → 401; no-comprador recibe → 401; cancelar oferta devuelve créditos y notifica `offer_deleted`; rechazar devuelve créditos y notifica `offer_rejected`; oferta sobre listing no publicable → error. |
 | `05_messaging_notifications.e2e.spec.ts` | Mensajería y notificaciones | Persistencia de mensajes (sender/recipient/texto/`is_read`); orden cronológico; contador de no-leídos; marca-como-leído solo afecta los RECIBIDOS; oferta → notificación `new_offer` persistida y visible por API; aceptar → `offer_accepted`; `read-all` (solo marca las propias). |
-| `06_donations_wishes.e2e.spec.ts` | Créditos, donaciones y deseos | Acreditación admin → `wallet_transactions` (type `admin`) + saldo; donación mueve saldos y registra notificación pero **NO** crea `wallet_transactions` (comportamiento real: solo saldos + notificación); donación sin saldo → 400; donación cruzada → rechazada sin tocar saldos; wishes CRUD completo (create/list/update por `:wishId`/delete por `:categoryId`). |
+| `06_donations_wishes.e2e.spec.ts` | Créditos, donaciones y deseos | Acreditación admin → `wallet_transactions` (type `admin`) + saldo; donación mueve saldos, notifica, y registra `wallet_transactions` en ambos lados (`donation_sent`/`donation_received` — credit-economy-integrity ECO-02); donación sin saldo → 400; donación cruzada → rechazada sin tocar saldos; wishes CRUD completo (create/list/update por `:wishId`/delete por `:categoryId`). |
 
 ## Helpers (`e2e/helpers/`)
 
@@ -81,16 +81,19 @@ saldos, créditos bloqueados, notificaciones, comunidad). Detalle por archivo:
 
 Los tests verifican el comportamiento REAL, y en el camino documentan varios hallazgos:
 
-1. **`listing_trades` nunca se inserta en `acceptOffer`** (la query `storeTrade` no se usa en
-   ningún modelo). El ítem del comprador se "vende" con `markListingAsSold`. El journey lo
-   verifica así, no esperando una fila en `listing_trades`.
+1. **`listing_trades` SÍ se inserta en `acceptOffer`** desde credit-economy-integrity (ECO-04):
+   antes la query `storeTrade` no se usaba en ningún modelo y esta misma aserción esperaba cero
+   filas. El ítem del comprador también se marca vendido con `markListingAsSold`, como antes; lo
+   que cambió es que ahora además queda el registro en `listing_trades`, que es lo que le permite
+   a `POST /:listingId/cancel` (ECO-05) saber qué listings devolver al mercado.
 2. **Las misiones de publicación otorgan créditos** (`publish-listing-1` = +30.000): el journey
    mide deltas sobre baselines medidos después de publicar.
 3. **Las notificaciones de loop se guardan con `type='loop'`** y el subtipo (`new_offer`,
    `offer_accepted`, etc.) va en el `payload`. Los tests lo leen del payload.
 4. **`listing_received` notifica al VENDEDOR**, no al comprador.
-5. **Las donaciones no crean `wallet_transactions`**: solo saldos + notificación. Solo
-   acreditaciones admin (y misiones) registran transacciones.
+5. **Las donaciones SÍ crean `wallet_transactions`** desde credit-economy-integrity (ECO-02): una
+   fila `donation_sent` para quien dona y una `donation_received` para quien recibe, además de
+   mover saldos y notificar. Antes era el único de los tres flujos de crédito sin ningún rastro.
 6. **El admin se autentica por cookie** (`admin_token`), no por bearer.
 7. Los `InvalidInputError` sin código explícito (p.ej. donación sin saldo) devuelven
    `errorCode: "INVALID_INPUT"` aunque el mensaje sea el de la causa real.

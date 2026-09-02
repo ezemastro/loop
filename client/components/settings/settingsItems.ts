@@ -1,12 +1,22 @@
 import type { ComponentType } from "react";
 import type { IconProps } from "@expo/vector-icons/build/createIconSet";
-import { DeleteIcon, EmailIcon, LogoutIcon, MessageIcon, ReportProblemIcon } from "../Icons";
+import {
+  DeleteIcon,
+  DocumentIcon,
+  EmailIcon,
+  LockIcon,
+  LogoutIcon,
+  MessageIcon,
+  ReportProblemIcon,
+} from "../Icons";
 import type { SupportMailTemplate } from "@/services/supportMail";
+import type { Href } from "expo-router";
 
 export type SettingsAction =
   | { kind: "logout" }
   | { kind: "deleteAccount" }
-  | { kind: "mail"; template: SupportMailTemplate };
+  | { kind: "mail"; template: SupportMailTemplate }
+  | { kind: "link"; href: Href };
 
 export interface SettingsItem {
   key: string;
@@ -49,6 +59,24 @@ export const SETTINGS_GROUPS: SettingsGroup[] = [
         Icon: DeleteIcon,
         variant: "destructive",
         action: { kind: "deleteAccount" },
+      },
+    ],
+  },
+  {
+    key: "legal",
+    title: "Legal",
+    items: [
+      {
+        key: "privacyPolicy",
+        label: "Política de privacidad",
+        Icon: LockIcon,
+        action: { kind: "link", href: "/privacidad" },
+      },
+      {
+        key: "terms",
+        label: "Términos y condiciones",
+        Icon: DocumentIcon,
+        action: { kind: "link", href: "/terminos" },
       },
     ],
   },

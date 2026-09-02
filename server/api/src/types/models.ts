@@ -93,6 +93,10 @@ export interface ModifyUserPasswordPayload extends UserScopedPayload {
   oldPassword: string;
 }
 
+export interface AcceptTermsPayload extends UserScopedPayload {
+  termsVersion: string;
+}
+
 export type DeleteSelfPayload = UserScopedPayload;
 
 // ── Users ──

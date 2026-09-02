@@ -17,9 +17,11 @@ export class AccountDeletionController {
    */
   static requestDeletion = async (req: Request, res: Response, next: NextFunction) => {
     const { email } = req.body as PostSelfDeleteRequest["body"];
-    try {
-      await safeValidateEmail(email);
-    } catch {
+    // `safeValidateEmail` uses `.safeParseAsync`, which never throws — it was wrapped in a
+    // try/catch that could never fire, so a malformed address flowed straight into the model
+    // (proposal C8). The result must be checked explicitly.
+    const validation = await safeValidateEmail(email);
+    if (!validation.success) {
       return next(new InvalidInputError(ERROR_MESSAGES.INVALID_INPUT));
     }
 

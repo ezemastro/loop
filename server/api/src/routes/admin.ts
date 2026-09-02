@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { AdminController } from "../controllers/admin.js";
 import { adminTokenMiddleware, requireSuperAdmin } from "../middlewares/parseAdminToken.js";
+import { adminLoginLimiter, adminRegisterLimiter } from "../middlewares/rateLimit.js";
 
 export const adminRouter = Router();
 
@@ -15,9 +16,13 @@ export const adminRouter = Router();
  */
 
 // Admin session (sin autenticación)
-adminRouter.post("/login", AdminController.login);
-adminRouter.post("/register", AdminController.register);
+adminRouter.post("/login", adminLoginLimiter, AdminController.login);
+adminRouter.post("/register", adminRegisterLimiter, AdminController.register);
 adminRouter.post("/google-login", AdminController.googleLogin);
+// Termina una sesión que puede ya estar rota; deliberadamente sin `adminTokenMiddleware` — si lo
+// tuviera, una cookie vencida daría 401, el interceptor del cliente llamaría a logout, y volvería
+// a dar 401: un loop. El handler no lee sesión ni toca la base.
+adminRouter.post("/logout", AdminController.logout);
 // Agregar nuevo email autorizado para registro de admin (solo un super admin puede autorizar
 // otro super admin; el resto queda atado a la comunidad de quien autoriza)
 adminRouter.post(
