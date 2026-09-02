@@ -39,3 +39,21 @@ Chequear `free -m` antes de cualquier trabajo pesado con Docker.
 
 **Versiones reales del host:** Docker 29.3.1 · Compose v5.1.1 · Node v24.14.1 · npm 11.11.0 · aarch64.
 Ojo: Node 24 local vs Node 20/22 en los Dockerfiles (INF-08 confirma la desalineación).
+
+### D-02 — Línea base de typecheck antes de tocar nada
+Medido en `main` (`7acced3`), para poder distinguir lo roto de antes de lo que rompamos nosotros:
+
+| Paquete | `tsc --noEmit` | Detalle |
+|---|---|---|
+| `server/api` | ✅ limpio (exit 0) | — |
+| `client` | ❌ **209 errores** | 200 son de `__tests__/*` (falta `@types/jest` / `include` del tsconfig). Solo **9 son de código real**: `demo/state.ts` (5, `string` vs `Date`), `config.ts:72` (`Record<ProductStatus, number>` incompleto: faltan `like_new`, `good`, `fair`), `components/screens/Login.tsx:39` (`loginError` no existe), `components/ReportButton.tsx:63` (`PublicUser.email` no existe), `components/modals/DonateModal.tsx:57` (`PublicUser` vs `User`). |
+| `adminClient` | no medible al empezar | No tenía `node_modules` **ni** `package-lock.json`. |
+
+**Hallazgo nuevo, no está en la auditoría:** el cliente no typechequea en `main`. `expo lint` no lo
+detecta porque no corre `tsc`. Cualquier CI que agregue `tsc --noEmit` (INF-02) va a fallar de entrada
+si no se arregla esto primero o se excluye `__tests__` del `tsconfig`.
+
+### D-03 — `adminClient` sin lockfile (ADM-10 / INF-07)
+`adminClient/.gitignore` excluía `package-lock.json`, así que el paquete no era auditable ni
+reproducible. Corregido en esta sesión: se quitó la línea del `.gitignore` y se generó y commiteó
+el lockfile.
