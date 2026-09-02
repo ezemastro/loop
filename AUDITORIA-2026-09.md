@@ -314,6 +314,16 @@ Cada bloque está pensado como uno o pocos cambios SDD. Orden por relación ries
 | Fecha | IDs cerrados | Commit / cambio SDD | Notas |
 |---|---|---|---|
 | 2026-09-01 | — | — | Auditoría inicial. |
+| 2026-09-02 | SEC-01, SEC-02, SEC-03, SEC-04, SEC-05, SEC-06(parcial), SEC-07, SEC-08, SEC-09, SEC-10, SEC-11, SEC-12, SEC-13, SEC-15, SEC-16 | `sec-hardening-api`, `db-integrity-migrations`, `legal-public-routes` | Rama `fix/auditoria-2026-09`. SEC-06: `password_changed_at` queda fuera (necesita época de token). |
+| 2026-09-02 | ECO-01, ECO-02, ECO-03, ECO-04, ECO-05, ECO-06, ECO-08, ECO-09, ECO-10, ECO-11, ECO-12 | `credit-economy-integrity`, `db-integrity-migrations` | ECO-07 sin tocar: es decisión de producto, ambas opciones documentadas. |
+| 2026-09-02 | INF-01, INF-02, INF-03, INF-04, INF-06, INF-07, INF-08, INF-09, INF-11, INF-12 | `delivery-and-ci`, `sec-hardening-api` | INF-05 (backups off-site) y INF-10 (observabilidad) diferidos. |
+| 2026-09-02 | CLI-01, CLI-02, CLI-03, CLI-04, CLI-05(parcial), CLI-06(replanteado), CLI-07, CLI-09, CLI-12(parcial), CLI-13(parcial) | `client-critical-fixes` | CLI-05 no se puede cerrar sin cambiar el payload de push del servidor. CLI-06 no se implementó como pedía la auditoría: ver `AUDITORIA-CORRECCIONES.md`. |
+| 2026-09-02 | ADM-01, ADM-02, ADM-03, ADM-04, ADM-05, ADM-06, ADM-08, ADM-10(parcial) | `admin-panel-fixes`, `legal-public-routes` | ADM-07 (tests del admin) y ADM-09 (migración de UI) siguen abiertos. |
+
+> **Ojo:** varios hallazgos de esta auditoría estaban mal o eran peligrosos tal como se
+> recomendaban. Las correcciones, con evidencia en el código, están en `AUDITORIA-CORRECCIONES.md`.
+> El estado por bloque está en `AUDITORIA-PROGRESO.md` y lo que hay que probar a mano en
+> `TESTING-MANUAL.md`.
 
 ---
 
