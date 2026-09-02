@@ -11,10 +11,11 @@
 #   bash scripts/build-images.sh api             # solo la imagen de la API
 #   bash scripts/build-images.sh web admin       # solo web y admin
 #
-# Variables de entorno esperadas (build args públicos, no secretos — EXPO_PUBLIC_*/VITE_* viajan
-# igual al bundle del cliente):
-#   EXPO_PUBLIC_API_URL, EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID   (imagen web)
-#   VITE_API_URL, VITE_GOOGLE_CLIENT_ID                     (imagen admin)
+# Variables esperadas (build args públicos, no secretos — se hornean igual en el bundle del
+# cliente): se leen de `.build.env` en la raíz del repo si existe (ver `.build.env.example`
+# para la lista completa con descripciones), o pueden venir ya exportadas en el shell.
+#   WEB_API_BASE_URL, WEB_GOOGLE_CLIENT_ID       (imagen web   -> ARGs EXPO_PUBLIC_*)
+#   ADMIN_API_BASE_URL, ADMIN_GOOGLE_CLIENT_ID   (imagen admin -> ARGs VITE_*)
 #
 # Requiere: `docker buildx` con un builder que soporte `linux/amd64,linux/arm64` (QEMU en runners
 # x86-64; nativo en un host arm64), y sesión iniciada contra el registro de destino.
@@ -22,6 +23,13 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
+
+if [ -f .build.env ]; then
+  set -a
+  # shellcheck disable=SC1091
+  source .build.env
+  set +a
+fi
 
 PLATFORMS="linux/amd64,linux/arm64"
 
@@ -48,16 +56,16 @@ build_api() {
 build_web() {
   local version
   version="$(pkg_version client)"
-  : "${EXPO_PUBLIC_API_URL:?EXPO_PUBLIC_API_URL is required to build the web image}"
-  : "${EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID:?EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID is required to build the web image}"
+  : "${WEB_API_BASE_URL:?WEB_API_BASE_URL is required (ver .build.env.example) to build the web image}"
+  : "${WEB_GOOGLE_CLIENT_ID:?WEB_GOOGLE_CLIENT_ID is required (ver .build.env.example) to build the web image}"
   echo "==> Building ezemastro/loop-web:${version}"
   # Cada `--build-arg` es su propio elemento de array: un valor con espacios o `;` llega intacto,
   # a diferencia de `client/publish.js:38-39`, que los interpolaba en un string de shell.
   docker buildx build \
     --platform "$PLATFORMS" \
     -f Dockerfile.web \
-    --build-arg "EXPO_PUBLIC_API_URL=${EXPO_PUBLIC_API_URL}" \
-    --build-arg "EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID=${EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID}" \
+    --build-arg "EXPO_PUBLIC_API_URL=${WEB_API_BASE_URL}" \
+    --build-arg "EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID=${WEB_GOOGLE_CLIENT_ID}" \
     -t "ezemastro/loop-web:${version}" \
     -t "ezemastro/loop-web:latest" \
     --push \
@@ -67,14 +75,14 @@ build_web() {
 build_admin() {
   local version
   version="$(pkg_version adminClient)"
-  : "${VITE_API_URL:?VITE_API_URL is required to build the admin image}"
-  : "${VITE_GOOGLE_CLIENT_ID:?VITE_GOOGLE_CLIENT_ID is required to build the admin image}"
+  : "${ADMIN_API_BASE_URL:?ADMIN_API_BASE_URL is required (ver .build.env.example) to build the admin image}"
+  : "${ADMIN_GOOGLE_CLIENT_ID:?ADMIN_GOOGLE_CLIENT_ID is required (ver .build.env.example) to build the admin image}"
   echo "==> Building ezemastro/loop-admin:${version}"
   docker buildx build \
     --platform "$PLATFORMS" \
     -f Dockerfile.admin \
-    --build-arg "VITE_API_URL=${VITE_API_URL}" \
-    --build-arg "VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}" \
+    --build-arg "VITE_API_URL=${ADMIN_API_BASE_URL}" \
+    --build-arg "VITE_GOOGLE_CLIENT_ID=${ADMIN_GOOGLE_CLIENT_ID}" \
     -t "ezemastro/loop-admin:${version}" \
     -t "ezemastro/loop-admin:latest" \
     --push \
