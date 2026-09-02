@@ -8,12 +8,12 @@
 
 | Bloque | Change SDD | IDs de auditoría | Plan | Implementación |
 |---|---|---|---|---|
-| A | `sec-hardening-api` | SEC-01, 02, 03, 04, 06(parcial), 07, 12, 13, 15, 16, INF-11 | ✅ | en curso |
+| A | `sec-hardening-api` | SEC-01, 02, 03, 04, 06(parcial), 07, 12, 13, 15, 16, INF-11 | ✅ | ✅ `c6b3f74` — falta escribir `.env.template` a mano (bloqueado por permisos) |
 | B | `db-integrity-migrations` | SEC-05, SEC-09, SEC-10, ECO-01 (DB), ECO-09 | ✅ | ✅ `a3a026e` |
-| C | `credit-economy-integrity` | ECO-01, 02, 03, 04, 05, 06, 08, 10, 11, 12 | ✅ | ✅ código de servidor completo y validado contra DB real; falta conectar el botón "Cancelar" del cliente (fuera de los archivos que este bloque podía tocar) — ver `TESTING-MANUAL.md` §7 |
+| C | `credit-economy-integrity` | ECO-01, 02, 03, 04, 05, 06, 08, 10, 11, 12 | ✅ | ✅ código de servidor completo y validado contra DB real; botón "Cancelar" del cliente ya conectado en `38cbc6e` |
 | D | `client-critical-fixes` | CLI-01, 02, 03, 04, 05, 06, 07, 09, 12(parcial), 13(parcial) | ✅ | ✅ `d6b50b3` |
 | E | `admin-panel-fixes` | ADM-02, 03, 04, 05, 06, 08, 10(parcial) | ✅ | ✅ `fe7f886` |
-| F | `delivery-and-ci` | INF-01, 02, 03, 04, 06, 07, 08, 09, 10, 12 | ✅ | en curso — fases 1-6 y 8-9 aplicadas; fase 7 (observabilidad/INF-10) diferida a `sec-hardening-api` (dueño de `index.ts`/`/health`, aún no aplicado) |
+| F | `delivery-and-ci` | INF-01, 02, 03, 04, 06, 07, 08, 09, 12 | ✅ | ✅ `3ba569f` — fases 1-6 y 8-9 aplicadas; fase 7 (observabilidad/INF-10) diferida a `sec-hardening-api` (dueño de `index.ts`/`/health`, aún no aplicado) |
 | G | `legal-public-routes` | ADM-01, SEC-08, SEC-11, PROD-05(parcial) | ✅ | ✅ código completo, migraciones `0015`/`0016` aplicadas y validadas; **gate legal (6.6) pendiente de un humano — ver `TESTING-MANUAL.md` §0** |
 
 Cada bloque tiene `proposal.md`, `design.md`, `tasks.md` y sus delta specs en
@@ -177,3 +177,37 @@ tiene que sembrar el schema base primero. Ya quedó resuelto montando `database_
 ### D-09 — ESLint flat config no ignora `dist/` solo
 Un build local inundaba el lint con 8904 hallazgos. `server/api/eslint.config.ts` no tenía el ignore
 de `dist/**`. Agregado.
+
+
+---
+
+## Follow-ups nuevos que salieron de esta sesión
+
+Ninguno estaba en la auditoría. Ordenados por valor:
+
+1. **`withClient` se traga los fallos de COMMIT.** Un movimiento de créditos puede parecer
+   commiteado y haberse perdido. Es el de mayor valor de toda la lista.
+2. **El payload de push del servidor no manda `data`** (`services/expoNotifications.ts`), así que
+   el deep-link de notificaciones no se puede cerrar del lado del cliente. CLI-05 quedó a medias
+   por esto, no por el cliente.
+3. **`useNotifications` ignora `pageParam`**: pagina para siempre sobre la página 1.
+4. **`sw.js` no tiene listener de `push` ni de `notificationclick`.**
+5. **La estandarización de `parseApiError` no está completa** — `useUpdateListing`, `useSendMessage`,
+   `useUploadFiles` y otros siguen armando el mensaje a mano. La guarda de
+   `client/__tests__/api-errors.test.ts` solo mira bloques `catch`, así que no los ve.
+6. **`services/uploads.ts` hace `fs.mkdirSync("/uploads")` en tiempo de carga del módulo.** Hoy
+   ningún test lo toca, pero es una mina para cualquier test unitario fuera de un contenedor.
+7. **El enum `product_status` de Postgres tiene 5 valores contra 3 en TypeScript**, y los seis
+   `validate*` de `services/validations.ts` son código muerto ya derivado.
+8. **La API nunca valida el precio contra categoría/estado**: `PRICE_STATUS_MULTIPLIERS` es solo del
+   cliente e `INVALID_PRICE_FOR_CATEGORY` no tiene un solo call site.
+9. **`showAlert` con acciones auto-confirma en web** — ver `AUDITORIA-CORRECCIONES.md`. Cualquier
+   confirmación futura tiene que degradar a un modal propio en web.
+
+## Bloqueado por permisos, hay que hacerlo a mano
+
+**`.env.template`.** El deny list de esta sesión bloquea toda ruta `.env*`, incluso para lectura.
+El contenido exacto (todas las variables que ahora exige el esquema de entorno, con qué son
+obligatorias en producción) está en `openspec/changes/sec-hardening-api/tasks.md`.
+Sin ese archivo, el próximo que clone el repo no sabe qué variables necesita — y la API ahora
+**aborta el arranque en producción** si falta alguna.
