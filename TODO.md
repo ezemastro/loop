@@ -1,42 +1,72 @@
-# List of TODOs
+# TODO
 
-- [ ] Eliminar usaurio TEST
+Ítems abiertos, en español. Los cumplidos se sacaron de esta lista (ver git history si hace falta
+el rastro). Trabajo real y no trivial debería vivir como issue, no acá — esta lista es para
+recordatorios chicos.
 
-- [ ] add functionality for admins to modify schools (media and name)
-  - [ ] add the route
-  - [ ] add the types
-  - [ ] add to the adminApi
-  - [ ] include functionality in the Schools page
-
-- [x] Permitir dominos que no sean @northfield.edu.ar en el login de google
-- [ ] Crear archivo .env.template
-- [ ] Agregar botones de google en /login y /register del adminClient
-- [ ] Ver que pasa con el push notification token que devuelve error
-- [x] Revisar logo por si se puede usar o tiene licencia
-- [ ] Enviar icono a Morena
+- [ ] Eliminar usuario TEST (dato de prueba en la base, no relacionado con el seed de demo)
+- [ ] Agregar funcionalidad para que los admins modifiquen colegios (media y nombre): ruta, tipos,
+      `adminApi`, y la pantalla de Schools
+- [ ] Agregar botones de Google en `/login` y `/register` del adminClient
+- [ ] Investigar por qué falla el push notification token en algunos casos
+- [ ] Enviar ícono a Morena
 - [ ] Agregar botón de configuración en la app
-- [x] Actualizar servidor de producción
-- [ ] Incluir en docker backup
-- [ ] Incluir en docker servidor web de adminClient
-- [ ] Agradecimiento por icono:
+- [ ] Incluir el servicio de backup y el servidor web de adminClient en el flujo de Docker de dev
+- [ ] Agradecimiento por ícono:
       <a href="https://www.flaticon.com/free-icons/infinity" title="infinity icons">Infinity icons created by Freepik - Flaticon</a>
 - [ ] Revisar que solo los dominios autorizados puedan loguearse (northfield, faro...)
-- [ ] Revisar google oauth en prod
-- [ ] Revisar google oauth para web, que no funciona
-- [ ] Agregar botón de olvide mi contraseña
-- [ ] Ajustar padding de icono en el header
+- [ ] Revisar Google OAuth en producción y en web (hoy no funciona en web)
+- [ ] Agregar botón de "olvidé mi contraseña"
+- [ ] Ajustar padding del ícono en el header
 - [ ] Agregar versión web del carrusel de imágenes de un producto en la página de producto
+- [ ] Cambiar la API URL de la versión Android
+- [ ] Al publicar aparece "ha ocurrido un error al subir los archivos" sin detalle — mostrar en el
+      frontend qué tipo de archivo rechaza el backend antes de intentar subirlo
+- [ ] Cambiar el `title` de la pestaña en web
+- [ ] Probar la versión web en celular
+- [ ] Chat vacío: cuando se abre un chat sin mensajes aparece un texto invertido (boca abajo)
+- [ ] En celular solo se puede elegir cámara/galería la primera vez que se sube una foto
+- [ ] En celular, al borrar una publicación no hay navegación de vuelta — parece que el botón no
+      hizo nada
 
-- [x] Conseguir 3 dominios, uno para el admin, uno de loop para la landing y uno para la api
-- [ ] Cambiar api url de la version androids
-- [ ] Al publicar da error dice ha ocurrido un error al subir los arhcivos. Ver que archivo acepta el backend para que el frontend te lo diga antes de intentar subirlo.
-- [x] Agregar uan forma de optimizar las iamgenes antes de subirlas, para que no sean tan pesadas y llenen todo el espacio de la vps
-- [ ] Cambiaqr title en web
-- [ ] probarlo en celu la web
-- [ ] Dentro de un chat osea cuando abris el chat con alguien y esta vacio aparece un texto boca abajo
-- [ ] En celu solo podes elegir la primera vez si las fotos salen de la camara o de la galeria
-- [ ] Al menos en celu al borrar una publicacion no hay navegacion por lo que parece que el boton de borrar no hace nada
-- [ ] Borrar usuario test
+## Endpoints y métodos de admin faltantes
+
+**Categories**
+- `DELETE /admin/categories/:categoryId` — eliminar categoría (no existe en el backend)
+- `GET /admin/missions` — listar mission templates (`adminApi.getMissionTemplates()` asume que existe)
+- `DELETE /admin/missions/:missionTemplateId` — eliminar mission template
+
+**Notifications**
+- `GET /admin/notifications` — historial de notificaciones enviadas
+- `GET /admin/notifications/user/:userId` — notificaciones de un usuario específico
+
+**Users**
+- `PATCH /admin/users/:userId` — actualizar datos de usuario (email, nombre, etc.)
+- `DELETE /admin/users/:userId` — eliminar/desactivar usuario
+- `GET /admin/users/:userId` — detalle completo de un usuario
+
+**Schools**
+- `PATCH /admin/schools/:schoolId` — actualizar nombre o logo de escuela
+- `DELETE /admin/schools/:schoolId` — eliminar escuela
+
+**Stats/Dashboard**
+- `GET /admin/schools/stats` existe pero solo devuelve datos ambientales por escuela
+
+**Admin Authorization**
+- Falta la página `/authorize-admin` para el endpoint `POST /admin/authorize`, que ya existe
+
+## Error observado en producción (sin triage aún)
+
+```
+api | Servidor corriendo. Entorno: production en el puerto 3000
+api | Datos de entrada inválidos
+api | ZodError: [{ "code": "invalid_format", "format": "uuid", "path": [], "message": "Invalid UUID" }]
+api |   at validateId (/app/dist/services/validations.js:41:51)
+api |   at getUserById (/app/dist/controllers/users.js:51:42)
+```
+
+Un `:userId` no-UUID llega hasta `getUserById` y el `ZodError` no se atrapa antes de loguearse
+crudo. Falta reproducir con el input real que lo dispara.
 
 📋 Endpoints y Métodos Faltantes
 Categories

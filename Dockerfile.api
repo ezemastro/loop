@@ -1,13 +1,13 @@
 # ===== ETAPA 0: Desarrollo (TS con hot reload) =====
-FROM node:20-slim AS development
+FROM node:22-slim AS development
 WORKDIR /app
 
 # Instalamos dependencias raíz y del API para monorepo
 COPY package*.json ./
 COPY server/api/package*.json ./server/api/
-RUN npm install
+RUN npm ci
 WORKDIR /app/server/api
-RUN npm install --include=dev
+RUN npm ci --include=dev
 
 # Copiamos código del API, tipos compartidos y migraciones (el runner `npm run migrate` las busca en ../migrations)
 WORKDIR /app
@@ -17,10 +17,10 @@ COPY server/migrations ./server/migrations
 
 WORKDIR /app/server/api
 EXPOSE 3000
-CMD ["sh", "-c", "npm install --include=dev && npm run dev"]
+CMD ["sh", "-c", "npm ci --include=dev && npm run dev"]
 
 # ===== ETAPA 1: Build (Compilación de TS a JS) =====
-FROM node:20-slim AS build
+FROM node:22-slim AS build
 WORKDIR /app
 
 # Copiamos archivos de configuración
@@ -29,9 +29,9 @@ COPY server/api/package*.json ./server/api/
 # Copiamos AMBOS tsconfig
 COPY server/api/tsconfig*.json ./server/api/
 
-RUN npm install
+RUN npm ci
 WORKDIR /app/server/api
-RUN npm install
+RUN npm ci
 
 # Copiamos shared y api
 WORKDIR /app
@@ -51,7 +51,7 @@ WORKDIR /app
 
 # Instalamos solo dependencias de producción
 COPY server/api/package*.json ./
-RUN npm install --omit=dev
+RUN npm ci --omit=dev
 
 # Copiamos el JS compilado
 COPY --from=build /app/server/api/dist ./dist
@@ -61,6 +61,10 @@ RUN if [ -d "./dist/server/api/src" ]; then \
         cp -r ./dist/server/api/src/* ./dist/ && \
         rm -rf ./dist/server; \
     fi
+
+# Migraciones SQL: son datos, no salida compilada. El runner (dist/scripts/migrate.js) las lee
+# desde MIGRATIONS_DIR=/app/migrations (ver compose.yml, servicio `migrate`).
+COPY server/migrations ./migrations
 
 RUN mkdir -p uploads
 EXPOSE 3000

@@ -1,7 +1,6 @@
 /server/.env
 /server/postgres
 /server/api/node_modules
-/server/**/package-lock.json
 node_modules
 server/uploads
 logs/

@@ -19,15 +19,13 @@ School-based marketplace app (iOS/Android/Web) with admin panel. Monorepo with 4
 ### Root level
 
 ```
-npm run lint              # Lints all packages (sequential fallback, no workspaces)
+npm run lint              # Lints all packages (sequential --prefix fallback, no workspaces)
 npm run lint:fix          # Fixes lint in all packages
 npm run format            # Prettier write (root config applies to all)
 npm run format:check      # Prettier check
-npm run docker:build      # Builds Docker images, bumps version from package.json
-npm run docker:build:patch/npm run docker:build:minor/npm run docker:build:major  # Version bump + build
-npm run docker:push       # Pushes images to registry
-npm run start             # docker compose -f docker-compose.prod.yml up
-npm run docker:deploy     # docker compose up -d --pull always
+npm run docker:build      # scripts/build-images.sh — one `docker buildx` path for api/web/admin,
+                           # multi-arch (linux/amd64,linux/arm64), tags each package's own version + latest
+npm run docker:deploy     # docker compose up -d (pinned image tags, no --pull always)
 npm run dev:migrate       # Runs `npm run migrate` inside the dev `api` container
 npm run dev:seed          # Seeds the 3 dev communities (see DEMO.md)
 npm run dev:seed:demo     # Seeds only the demo community, same as production demo mode
@@ -37,7 +35,7 @@ npm run dev:seed:demo     # Seeds only the demo community, same as production de
 
 ```
 npm run dev               # nodemon + tsx, watches src/
-npm run test              # Jest (ts-jest), NODE_ENV=test
+npm run test              # Jest --ci (ts-jest), NODE_ENV=test
 npm run test:watch        # Jest --watch
 npm run seed              # Seeds shared/demo-data into Postgres (dev only, idempotent)
 npm run check-types       # tsc --noEmit
@@ -52,7 +50,7 @@ npm start                 # expo start
 npm run web               # expo start --web
 npm run ios               # expo run:ios
 npm run android           # expo run:android
-npm run test              # jest-expo preset, --watchAll
+npm run test              # jest-expo preset, --ci --watchAll=false
 npm run lint              # expo lint
 ```
 
@@ -118,13 +116,16 @@ it only shows up at runtime.
 
 ### Docker/Deploy
 
-- `compose.yml` - full stack: db, api, web, admin, backup (requires external `proxy-network`)
-- `compose.caddy.yml` - Caddy reverse proxy for TLS
+- `compose.yml` - full stack: db, migrate (one-shot, gates `api` on
+  `service_completed_successfully`), api, web, admin, backup (requires external `proxy-network`)
+- No Caddy: the deploy host's own proxy (Traefik, via Coolify) owns ports 80/443/8080. `Caddyfile`
+  and `compose.caddy.yml` were dead code and were removed — see `AUDITORIA-PROGRESO.md` for the
+  discriminating evidence.
 - `server/docker-compose.yml` - dev: db + api with watch mode sync
-- `server/docker-compose.prod.yml` - prod: db + api + caddy
-- `Dockerfile.api` - multi-stage: development → build (tsc) → production (node:22-alpine)
+- `Dockerfile.api` - multi-stage: development → build (tsc) → production (node:22-alpine); the
+  production stage also copies `server/migrations` and installs with `npm ci`
 - `Dockerfile.web` - builds Expo web export, serves with `serve`
-- `api.Dockerfile` does NOT exist (referenced in root scripts but missing)
+- `scripts/build-images.sh` - the single `docker buildx` build/publish path (see `npm run docker:build` above)
 
 ## Testing
 
@@ -132,34 +133,45 @@ it only shows up at runtime.
 
 Two Jest projects in `jest.config.js`:
 
-1. **api** - integration tests: `server/api/src/tests/**/*.test.ts` (has globalTeardown for DB cleanup)
-2. **unit** - unit tests: `**/*.test.ts` in models/, controllers/, routes/, utils/, services/
+1. **unit** - `**/*.test.ts` in models/, controllers/, routes/, utils/, services/ — no database, no
+   listener, hermetic
+2. **integration** - `server/api/src/tests/**/*.test.ts` (currently just `rls.test.ts`), guarded by
+   `RUN_DB_TESTS === "1"` and run against a real, migrated Postgres. No `setupFilesAfterEnv`, no
+   `globalTeardown` — it does not boot a server.
 
 - `moduleNameMapper` strips `.js` extensions from imports
-- `setupFilesAfterEnv` in `src/tests/setupAfterEnv.ts`
-- Run from `server/api/` directory: `npm run test`
+- `collectCoverage` is on; no `coverageThreshold` yet (baseline not measured long enough to set one)
+- Run from `server/api/` directory: `npm run test` (unit + integration; integration skips cleanly
+  without `RUN_DB_TESTS=1`), or `npx jest --ci --selectProjects unit|integration` to target one
 
 ### Client Tests
 
 - Uses `jest-expo` preset
-- `npm run test` runs with `--watchAll` (interactive, not CI-friendly)
+- `npm run test` runs `--ci --watchAll=false` (CI-friendly, terminates)
 
 ### E2E Tests (Playwright)
 
 - Located in `e2e/` directory
 - Requires API running on `localhost:3000`
 - `cd e2e && npm install && npx playwright install chromium`
-- `npx playwright test` runs all tests
-- `npx playwright test --project api` for API-only tests
-- `npx playwright test --project admin` for admin UI tests (requires admin dev server)
-- `npx playwright test --project fullstack` for cross-package flows
+- `npx playwright test --project=e2e` — the only project defined (`e2e/playwright.config.ts`);
+  there is no `api`, `admin` or `fullstack` project
+- `bash scripts/run-e2e.sh` builds, runs and tears down the self-contained `docker-compose.e2e.yml`
+  stack (disposable DB + migrations + API), then runs the suite against it
 - See `e2e/README.md` for full instructions
 
 ## Gotchas
 
-- **No npm workspaces** - root `package.json` has no `workspaces` field. The `--workspace` flags in lint scripts silently fail and fall back to sequential `cd && npx eslint` commands.
-- **API build uses `tsx` at runtime** - nodemon runs `npx tsx ./src/index.ts`, not compiled JS.
-- **`api.Dockerfile` missing** - root `build:server` script references `api.Dockerfile` which does not exist. Use `Dockerfile.api` instead.
+- **No npm workspaces, deliberately** - root `package.json` has no `workspaces` field, and this is
+  a considered decision, not an oversight: `shared/` isn't an npm package (two plain TS directories
+  consumed via relative paths + `COPY shared ./shared` in every Dockerfile), workspaces wouldn't
+  align the three divergent `zod` versions by themselves, and hoisting would force a rewrite of
+  every Dockerfile install layer — including the `--omit=dev` production stage. Root lint runs its
+  own sequential `cd && npx eslint` fallback per package instead.
+- **API build uses `tsx` at runtime** - nodemon runs `npx tsx ./src/index.ts`, not compiled JS. The
+  production image, however, invokes the *compiled* migration runner directly with `node` (`node
+  dist/scripts/migrate.js`) — `tsx` is a devDependency stripped by `--omit=dev`, so `npm run
+  migrate` cannot run in production.
 - **External Docker network** - `compose.yml` requires `proxy-network` to be created manually (`docker network create proxy-network`).
 - **Env files** - `.env` at root for compose; `server/.env` for API dev. Copy from `server/.env.template`.
 - **`shared/` and the admin tsconfig** - `adminClient` has its own type definitions. The API and the

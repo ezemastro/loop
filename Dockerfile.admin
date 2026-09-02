@@ -1,5 +1,5 @@
 # Etapa de compilación
-FROM node:20-slim AS build
+FROM node:22-slim AS build
 WORKDIR /app
 
 # Copiamos package.json de la raíz y del admin
@@ -7,9 +7,9 @@ COPY package*.json ./
 COPY adminClient/package*.json ./adminClient/
 
 # Instalamos dependencias
-RUN npm install
+RUN npm ci
 WORKDIR /app/adminClient
-RUN npm install
+RUN npm ci
 
 # Copiamos el código necesario (shared y el cliente)
 WORKDIR /app

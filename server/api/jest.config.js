@@ -1,17 +1,9 @@
 export default {
   testEnvironment: "node",
+  collectCoverage: true,
+  collectCoverageFrom: ["src/**/*.ts", "!src/tests/**", "!src/scripts/**", "!src/**/*.test.ts"],
+  coverageReporters: ["text-summary", "lcov"],
   projects: [
-    {
-      moduleNameMapper: {
-        "^(\\.{1,2}/.*)\\.js$": "$1", // le saca el .js en tests
-      },
-      roots: ["<rootDir>/src"],
-      preset: "ts-jest",
-      displayName: "api",
-      testMatch: ["**/tests/**/*.test.ts"],
-      globalTeardown: "./src/tests/teardown.ts",
-      setupFilesAfterEnv: ["./src/tests/setupAfterEnv.ts"],
-    },
     {
       moduleNameMapper: {
         "^(\\.{1,2}/.*)\\.js$": "$1", // le saca el .js en tests
@@ -26,6 +18,15 @@ export default {
         "**/utils/**/*.test.ts",
         "**/services/**/*.test.ts",
       ],
+    },
+    {
+      moduleNameMapper: {
+        "^(\\.{1,2}/.*)\\.js$": "$1", // le saca el .js en tests
+      },
+      roots: ["<rootDir>/src"],
+      preset: "ts-jest",
+      displayName: "integration",
+      testMatch: ["**/tests/**/*.test.ts"],
     },
   ],
 };

@@ -5,13 +5,16 @@
   "license": "Apache-2.0",
   "author": "",
   "main": "index.ts",
+  "engines": {
+    "node": ">=22 <23"
+  },
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon",
     "docker:dev": "docker compose up --build",
     "build": "tsc",
     "build:docker": "tsc -p tsconfig.prod.json",
-    "start": "cross-env NODE_ENV=production node dist/app.js",
-    "test": "cross-env NODE_ENV=test jest",
+    "start": "cross-env NODE_ENV=production node dist/index.js",
+    "test": "cross-env NODE_ENV=test jest --ci",
     "test:debug": "cross-env NODE_ENV=test jest --detectOpenHandles --verbose",
     "test:watch": "npm run test -- --watch",
     "docker:test": "docker compose run --rm api npm run test",
@@ -20,7 +23,6 @@
     "migrate:status": "tsx src/scripts/migrate.ts --status",
     "seed": "cross-env NODE_ENV=development tsx src/scripts/seed.ts",
     "check-sql": "python3 ../scripts/check-sql-arity.py",
-    "deploy": "node publish.js",
     "lint": "eslint ."
   },
   "dependencies": {
@@ -35,7 +37,7 @@
     "multer": "^2.0.2",
     "pg": "8.16.3",
     "resend": "^6.22.0",
-    "sharp": "^0.34.5",
+    "sharp": "^0.35.4",
     "zod": "4.0.17"
   },
   "devDependencies": {

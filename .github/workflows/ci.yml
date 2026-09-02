@@ -1,0 +1,202 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+
+# Cancela corridas anteriores del mismo PR/rama cuando llega un push nuevo.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-typecheck:
+    name: lint-typecheck (${{ matrix.package }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [server/api, client, adminClient]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: npm ci
+        working-directory: ${{ matrix.package }}
+        run: npm ci
+
+      - name: eslint
+        working-directory: ${{ matrix.package }}
+        run: npx eslint .
+
+      - name: tsc --noEmit
+        working-directory: ${{ matrix.package }}
+        run: npx tsc --noEmit
+
+      # `check-sql-arity.py` cross-checks every `$n` placeholder against its call site's argument
+      # array — TypeScript can't catch this because `DatabaseClient.query` takes `unknown[]`.
+      - name: check-sql (server/api only)
+        if: matrix.package == 'server/api'
+        working-directory: server/api
+        run: npm run check-sql
+
+  unit:
+    name: unit (${{ matrix.package }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [server/api, client]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: npm ci
+        working-directory: ${{ matrix.package }}
+        run: npm ci
+
+      # `server/api`: solo el proyecto `unit` de Jest (sin base de datos). `client`:
+      # `client/package.json:11` puede seguir siendo `jest --watchAll` hasta que el bloque
+      # `client-critical-fixes` lo cambie — este job invoca Jest directo, nunca `npm test`, para no
+      # depender de esa migración ni quedarse colgado en watch mode.
+      - name: server/api unit tests
+        if: matrix.package == 'server/api'
+        working-directory: server/api
+        env:
+          NODE_ENV: test
+        run: npx jest --ci --selectProjects unit --detectOpenHandles
+
+      - name: client unit tests
+        if: matrix.package == 'client'
+        working-directory: client
+        run: npx jest --ci --watchAll=false
+
+  api-integration:
+    name: api-integration
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci_password
+          POSTGRES_DB: loop_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d loop_db"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      NODE_ENV: test
+      RUN_DB_TESTS: "1"
+      PGHOST: localhost
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ci_password
+      POSTGRES_DB: loop_db
+      # `server/migrations/0007_db_roles_and_rls.sql` crea estos roles de aplicación y falla (RAISE)
+      # si sus contraseñas llegan vacías — mismos valores de forma que `docker-compose.e2e.yml`.
+      DB_APP_USER: loop_app
+      DB_APP_PASSWORD: ci_app_password
+      DB_UNSCOPED_USER: loop_app_unscoped
+      DB_UNSCOPED_PASSWORD: ci_unscoped_password
+      AUTHORIZED_ADMIN_EMAIL: admin@northfield.edu.ar
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: npm ci
+        working-directory: server/api
+        run: npm ci
+
+      # Bootstrap del esquema base + catálogo, igual que `e2e/Dockerfile.db-init`: el servicio
+      # `migrate` (compose.yml) y este job aplican *migraciones*, no crean el esquema desde cero —
+      # `0000_baseline_reconcile.sql` asume que `database_creation.sql` ya corrió.
+      - name: bootstrap base schema + categories
+        env:
+          PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
+        run: |
+          psql -h localhost -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f server/database_creation.sql
+          psql -h localhost -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f server/create_categories.sql
+
+      # Contexto de desarrollo: `tsx` está disponible acá (a diferencia de la imagen de producción,
+      # que invoca el runner ya compilado — ver `deployable-migrations`).
+      - name: apply migrations
+        working-directory: server/api
+        run: npm run migrate
+
+      - name: RLS integration tests
+        working-directory: server/api
+        run: npx jest --ci --selectProjects integration
+
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: run E2E suite
+        run: bash scripts/run-e2e.sh
+
+  audit:
+    name: audit (${{ matrix.package }})
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [server/api, client, adminClient]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: npm audit (informational, never blocking)
+        working-directory: ${{ matrix.package }}
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+  docker:
+    name: docker (build + push)
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: [lint-typecheck, unit, api-integration]
+    runs-on: ubuntu-latest
+    env:
+      EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
+      EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID: ${{ vars.EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID }}
+      VITE_API_URL: ${{ vars.VITE_API_URL }}
+      VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # `scripts/build-images.sh` es el único camino de build: multi-arch (linux/amd64,linux/arm64),
+      # `--push` obligatorio (buildx no puede cargar un resultado multi-plataforma al daemon local),
+      # nunca corre en `pull_request` — solo en push de un tag `v*`.
+      - name: build and push all images
+        run: bash scripts/build-images.sh

@@ -61,21 +61,31 @@ describe("lockInvitation", () => {
   });
 
   it("rechaza una invitación ya usada", async () => {
-    const usada = { ...baseInvitation, used_by_user_id: USER_ID, used_at: new Date().toISOString() };
+    const usada = {
+      ...baseInvitation,
+      used_by_user_id: USER_ID,
+      used_at: new Date().toISOString(),
+    };
     await expect(
       lockInvitation({ client: makeClient([usada]), token: "un-token" }),
     ).rejects.toBeInstanceOf(ConflictError);
   });
 
   it("rechaza una invitación vencida", async () => {
-    const vencida = { ...baseInvitation, expires_at: new Date(Date.now() - 86_400_000).toISOString() };
+    const vencida = {
+      ...baseInvitation,
+      expires_at: new Date(Date.now() - 86_400_000).toISOString(),
+    };
     await expect(
       lockInvitation({ client: makeClient([vencida]), token: "un-token" }),
     ).rejects.toBeInstanceOf(InvalidInputError);
   });
 
   it("acepta una invitación cuyo vencimiento todavía no llegó", async () => {
-    const vigente = { ...baseInvitation, expires_at: new Date(Date.now() + 86_400_000).toISOString() };
+    const vigente = {
+      ...baseInvitation,
+      expires_at: new Date(Date.now() + 86_400_000).toISOString(),
+    };
     await expect(
       lockInvitation({ client: makeClient([vigente]), token: "un-token" }),
     ).resolves.toMatchObject({ id: INVITATION_ID });
