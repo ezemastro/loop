@@ -23,3 +23,19 @@
 ## Descubrimientos nuevos
 
 (se completa a medida que aparecen)
+
+---
+
+## Descubrimientos de esta sesión
+
+### D-01 — La RPi de desarrollo ES el host de producción de Coolify
+`docker ps` muestra `coolify`, `coolify-db`, `coolify-redis`, `coolify-realtime`, `coolify-sentinel`
+y contenedores de apps vivas (`task-manager-*`, `hormigon-*`, `viga-continua-*`, `ai_virtual_office`),
+todos healthy. RAM total 8 GB, disponible ~2.7 GB al arrancar la sesión.
+
+**Consecuencia:** levantar el stack completo de `docker-compose.e2e.yml` puede tirar producción.
+Para validar migraciones se usa **un solo contenedor `postgres:16` descartable**, no el compose entero.
+Chequear `free -m` antes de cualquier trabajo pesado con Docker.
+
+**Versiones reales del host:** Docker 29.3.1 · Compose v5.1.1 · Node v24.14.1 · npm 11.11.0 · aarch64.
+Ojo: Node 24 local vs Node 20/22 en los Dockerfiles (INF-08 confirma la desalineación).
