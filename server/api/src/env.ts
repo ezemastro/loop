@@ -81,6 +81,12 @@ const baseShape = {
   RESEND_API_KEY: z.string().optional(),
   REQUIRE_EMAIL_VERIFICATION: z.enum(["true", "false"]).optional(),
   SALT_ROUNDS: z.string().optional(),
+
+  // Observabilidad (INF-10, runtime-observability). Ninguna de las dos requiere valor en
+  // producción: LOG_LEVEL tiene un default seguro y SENTRY_DSN es opt-in por diseño — sin
+  // configurar, el SDK de Sentry no se inicializa y no sale tráfico de red (D9).
+  LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info"),
+  SENTRY_DSN: z.string().optional(),
 };
 
 const permissiveSchema = z.object(baseShape);

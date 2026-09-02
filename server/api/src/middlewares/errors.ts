@@ -9,8 +9,14 @@ import {
   UnauthorizedError,
 } from "../services/errors";
 import multer from "multer";
+import { logger } from "../services/logger";
 
-export const errorMiddleware = (err: Error, _req: Request, res: Response, _next: NextFunction) => {
+export const errorMiddleware = (err: Error, req: Request, res: Response, _next: NextFunction) => {
+  // `req.log` es el logger hijo que crea `pino-http` por request (index.ts): ya trae el id de
+  // correlación inyectado, así que un registro de error acá cae en el mismo stream que el resto
+  // de esa request. Si por lo que sea `pino-http` no llegó a correr (por ejemplo, un error que
+  // ocurre fuera de una request real, en un test), se cae al logger base.
+  const requestLogger = req.log ?? logger;
   if (err instanceof multer.MulterError) {
     if (err.code === "LIMIT_FILE_SIZE") {
       return res.status(400).json({
@@ -38,7 +44,7 @@ export const errorMiddleware = (err: Error, _req: Request, res: Response, _next:
     return res.status(401).json({ success: false, error: err.message, errorCode: err.code });
   }
   if (err instanceof InternalServerError) {
-    console.error("Error en la aplicación:", err);
+    requestLogger.error({ err }, "Error en la aplicación");
     return res.status(500).json({ success: false, error: err.message, errorCode: err.code });
   }
   if (err instanceof StepRequired) {
@@ -54,7 +60,7 @@ export const errorMiddleware = (err: Error, _req: Request, res: Response, _next:
       ...(err.data ? { data: err.data } : {}),
     });
   }
-  console.error("Error no manejado:", err);
+  requestLogger.error({ err }, "Error no manejado");
   return res
     .status(500)
     .json({ success: false, error: "Error interno del servidor", errorCode: "INTERNAL_ERROR" });

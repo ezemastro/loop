@@ -49,6 +49,10 @@ export const AUTHORIZED_ADMIN_EMAIL = env.AUTHORIZED_ADMIN_EMAIL;
 export const RESEND_API_KEY = env.RESEND_API_KEY;
 /** `false` en producción por defecto; en el resto queda prendida salvo que se apague a mano. */
 export const RATE_LIMIT_ENABLED = env.RATE_LIMIT_ENABLED;
+/** Nivel mínimo de log de `pino` (runtime-observability, INF-10). Default `"info"`. */
+export const LOG_LEVEL = env.LOG_LEVEL;
+/** DSN de Sentry. Vacío por defecto: sin valor, el SDK nunca se inicializa (D9). */
+export const SENTRY_DSN = env.SENTRY_DSN;
 
 export const INITIAL_CREDITS = 0;
 

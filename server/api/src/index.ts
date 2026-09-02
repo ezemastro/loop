@@ -1,5 +1,7 @@
 import express from "express";
 import helmet from "helmet";
+import { randomUUID } from "crypto";
+import pinoHttp from "pino-http";
 import {
   FRONTEND_URL,
   NODE_ENV,
@@ -8,6 +10,8 @@ import {
   AUTHORIZED_ADMIN_EMAIL,
 } from "./config.js";
 import { assertProductionEnv } from "./env.js";
+import { logger } from "./services/logger.js";
+import { initSentry, attachSentryErrorHandler } from "./services/sentry.js";
 import cookieParser from "cookie-parser";
 import { optionalTokenMiddleware, tokenMiddleware } from "./middlewares/parseToken.js";
 import { authRouter } from "./routes/auth.js";
@@ -35,6 +39,11 @@ import { AccountDeletionController } from "./controllers/accountDeletion.js";
 // SEC-01 / C11: la validación de entorno tiene que completarse antes de aceptar cualquier
 // conexión. Fuera de producción no hace nada (la permisividad de `env.ts` ya alcanza).
 assertProductionEnv();
+
+// runtime-observability (INF-10, D9): no-op si `SENTRY_DSN` no está seteada — ni se inicializa el
+// SDK ni sale tráfico de red. Antes de montar cualquier middleware para que capture todo lo que
+// pase por la app.
+initSentry();
 
 /**
  * En desarrollo el front se abre desde la máquina que corre Docker y también desde otros
@@ -83,12 +92,22 @@ app.use(
 // heredarlo en silencio.
 app.use(express.json({ limit: "100kb" }));
 app.use(cookieParser());
-if (NODE_ENV === "development") {
-  import("morgan").then((module) => {
-    const morgan = module.default;
-    app.use(morgan("dev"));
-  });
-}
+// runtime-observability (INF-10, D9): reemplaza a `morgan`, que solo corría en desarrollo
+// (`NODE_ENV === "development"`) y dejaba a producción sin ningún log de request. `genReqId`
+// reutiliza el `X-Request-Id` entrante si el caller (o un proxy upstream) ya lo trae, y si no
+// genera uno nuevo; en ambos casos se devuelve en la respuesta para poder correlacionar un
+// reporte de un usuario con sus propios registros.
+app.use(
+  pinoHttp({
+    logger,
+    genReqId: (req, res) => {
+      const inbound = req.headers["x-request-id"];
+      const id = (Array.isArray(inbound) ? inbound[0] : inbound) || randomUUID();
+      res.setHeader("X-Request-Id", id);
+      return id;
+    },
+  }),
+);
 
 // Liveness: no toca la base, así el orquestador distingue "el proceso está arriba" de "las
 // dependencias están sanas". No debe filtrar el entorno de deploy (SEC-15).
@@ -147,6 +166,10 @@ app.use("/uploads", trimBody, uploadsRouter);
 app.use("/admin", trimBody, adminRouter);
 app.use("/admin/deletion-requests", trimBody, accountDeletionAdminRouter);
 
+// runtime-observability (INF-10, D9): debe montarse después de todas las rutas y antes del
+// `errorMiddleware` propio, para no interferir con el formato de respuesta de los errores
+// conocidos de la aplicación. No-op si Sentry nunca se inicializó (sin `SENTRY_DSN`).
+attachSentryErrorHandler(app);
 app.use(errorMiddleware);
 
 // Asegurar que el email de admin autorizado por env esté en admin_valid_emails
