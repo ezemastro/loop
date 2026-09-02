@@ -120,3 +120,205 @@ Si este cambio se revierte **después** de que algún usuario ya haya abierto el
 una vez, ese usuario queda con la sesión en el almacenamiento encriptado (SecureStore) y el build
 viejo no sabe leerla de ahí — quedaría deslogueado. Es el único paso no simétrico del plan de
 rollback. No es motivo para no revertir si hace falta, pero hay que saberlo de antemano.
+
+---
+
+# Pruebas manuales — `delivery-and-ci` (bloque F, auditoría 2026-09)
+
+Este bloque toca infraestructura de deploy, CI y build. Todo lo verificable con `npx tsc --noEmit`,
+`npx jest`, `docker build` (single-arch, este host es ARM64 nativo) y `docker compose up` en un
+stack aislado ya se corrió y quedó documentado con evidencia real en
+`openspec/changes/delivery-and-ci/tasks.md`. Lo que sigue **no se pudo verificar desde esta sesión**
+porque necesita credenciales de registry, un push real a GitHub, o acceso al host de producción real
+(este host es el host de producción, pero verificar ahí significa afectar el stack real — no se
+tocó).
+
+## 1. Abrir un PR real y confirmar que el pipeline corre verde (crítico)
+
+`.github/workflows/ci.yml` nunca corrió en GitHub Actions — solo se validó que el YAML parsea y que
+cada comando que referencia existe y sale con código 0 localmente. Antes de confiar en el pipeline:
+
+1. Abrir un PR real contra `main` con esta rama (o un subconjunto).
+2. Confirmar que corren y pasan: `lint-typecheck` (matriz de 3), `unit` (matriz de 2),
+   `api-integration` (con el servicio `postgres:16`), `e2e`, y que `audit` reporta sin bloquear.
+3. Confirmar que el job `docker` **no** corre en el PR (solo debe correr en un push de tag `v*`).
+4. Si algo falla que no falló localmente, es casi seguro un problema del entorno del runner
+   (versión de Docker en `ubuntu-latest`, disponibilidad de `psql`, etc.) — no un error de lógica.
+
+## 2. Primer build y push real de las tres imágenes (crítico, antes del primer tag)
+
+`scripts/build-images.sh` nunca se corrió de punta a punta — ni localmente (necesita credenciales de
+Docker Hub y `--push`, que no se puede simular sin publicar de verdad) ni en CI (nunca se pusheó un
+tag `v*`).
+
+1. Confirmar que existen los secrets `DOCKERHUB_USERNAME` y `DOCKERHUB_TOKEN` en el repo de GitHub, y
+   las variables `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID`, `VITE_API_URL`,
+   `VITE_GOOGLE_CLIENT_ID` (como repository/environment variables, no secrets — son públicas).
+2. Pushear un tag `v0.0.0-test` (o similar, no un release real) y confirmar que el job `docker`
+   construye y publica las tres imágenes.
+3. **Inspeccionar el manifest publicado de cada una** (`docker buildx imagetools inspect
+   ezemastro/loop-api:<tag>`) y confirmar que lista **ambas** plataformas: `linux/amd64` y
+   `linux/arm64`. Esto nunca se verificó porque `buildx` no puede cargar un resultado multi-plataforma
+   al daemon local sin `--push`.
+4. Confirmar en el host ARM64 real que `docker pull` de la imagen recién publicada y arranca **sin**
+   ningún warning de "platform mismatch" (esto sí confirma que la imagen es nativa, no emulada).
+
+## 3. Primer deploy en el host de producción real (crítico — leer `docs/runbook-deploy.md` primero)
+
+Todo lo de migraciones/compose se verificó en un stack **aislado** (red y volumen propios, nunca la
+`proxy-network` ni el volumen `postgres-data` real) — nunca contra la base de datos de producción
+real. `MIGRACION-COMUNIDADES.md` confirma que las migraciones de comunidades nunca se aplicaron ahí.
+
+1. **Tomar un snapshot/backup de la base de producción antes de cualquier otra cosa.**
+2. Confirmar que `DB_APP_PASSWORD` y `DB_UNSCOPED_PASSWORD` están seteadas en el `.env` real del
+   host (no vacías) — si están vacías, la migración `0007_db_roles_and_rls.sql` va a abortar
+   (`RAISE`), lo cual es la conducta esperada, no un bug.
+3. Crear la red externa si todavía no existe: `docker network create proxy-network`.
+4. Seguir la secuencia de `docs/runbook-deploy.md` §2 (`docker compose pull && docker compose up -d`)
+   y observar `docker compose logs -f migrate` hasta que salga con código 0.
+5. Confirmar que `api` llega a estado healthy y **no reinicia** — si reinicia, es la señal exacta del
+   crash-loop que este cambio existe para evitar (`assertDbHardening()` fallando).
+6. Repetir el deploy una segunda vez contra el mismo volumen ya migrado y confirmar que `migrate`
+   reporta "Migraciones al día." — la idempotencia solo se probó contra un volumen de prueba, no
+   contra el volumen real.
+
+## 4. `npm run docker:deploy` sin `--pull always`
+
+Antes se hacía `docker compose up -d --pull always`, que siempre traía `:latest`. Ahora
+`compose.yml` referencia tags fijas (`${API_IMAGE_TAG}` etc., con default a la versión actual de cada
+`package.json`). **Confirmar en el `.env` real del host** que esas variables están seteadas
+explícitamente a la versión que se quiere correr — si no están, el default hardcodeado en
+`compose.yml` es el que se usa, lo cual puede no ser lo que se esperaba.
+
+## 5. Límites de memoria del compose de producción
+
+Los límites (`db` 1g, `api` 512m, `web` 256m, `admin` 128m, `backup` 256m) son estimaciones por rol,
+**no medidos bajo carga real**. Antes de confiar en ellos en producción: observar el uso real de
+memoria de cada contenedor durante uso normal (`docker stats`) y ajustar si algún servicio se acerca
+al límite (Docker mata el proceso sin aviso elegante si lo excede).
+
+## 6. `server/README.md` deploy y build de Docker
+
+Correr localmente los dos `docker build` documentados en `server/README.md` (`--target development`
+y `--target production`) para confirmar que el texto describe exactamente lo que hoy funciona — se
+verificaron equivalentes durante esta sesión pero no exactamente esos dos comandos copiados y
+pegados tal cual quedaron en el archivo.
+
+## 7. Pendiente conocido, no de esta sesión: fase de observabilidad (INF-10)
+
+`pino`, el request id y `GET /health` quedaron **completamente sin tocar** — el bloque
+`sec-hardening-api`, dueño de `index.ts` y de `/health`, todavía no se aplicó. Cuando se aplique,
+retomar la fase 7 de `openspec/changes/delivery-and-ci/tasks.md` (11 tareas, ninguna marcada).
+`compose.yml`'s `api` no tiene healthcheck todavía por la misma razón — no apunta a `/health` porque
+ese endpoint no existe aún en el árbol de trabajo.
+
+## 8. Pendiente conocido: `client/package.json`'s `deploy` script
+
+Ya estaba así antes de esta sesión (commit `d6b50b3` de `client-critical-fixes` borró
+`client/publish.js` pero dejó el script `"deploy": "node publish.js"` en `client/package.json`
+apuntando a un archivo que ya no existe). No se tocó por pertenecer a ese bloque — alguien debería
+borrar esa línea o restaurar el archivo.
+
+---
+
+# Pruebas manuales — `db-integrity-migrations` (bloque B, auditoría 2026-09)
+
+> Migraciones `0009`–`0013`. Todo lo de acá se validó contra un Postgres 16 real a nivel SQL,
+> pero **el flujo HTTP completo no se corrió**.
+
+## 1. Correr el e2e completo de verdad (crítico)
+Esta sesión lo tuvo prohibido por carga de máquina.
+```
+npm run test:e2e     # con REQUIRE_EMAIL_VERIFICATION=true
+```
+Tiene que levantar una base desde cero (`database_creation.sql` + migraciones `0000`–`0013`) y pasar
+los 41 tests, incluido el nuevo de token vencido.
+
+## 2. Verificación de email real
+Crear una cuenta desde la app, confirmar que llega el mail (o que queda en el log si no hay Resend
+configurado), hacer clic en el link y confirmar que se destraba el login. Después pedir "reenviar
+verificación" y confirmar que **el link viejo ya no sirve** (se rotó el hash).
+
+## 3. Dos registros simultáneos con el mismo email
+Dos pestañas o dos requests a la vez. Tiene que crearse **una sola** cuenta y la segunda debe
+devolver un 409 claro ("el usuario ya existe"), no un 500 ni una pantalla en blanco.
+
+## 4. Borrar una publicación que tiene mensajes asociados
+Un chat donde se adjuntó esa publicación. El borrado tiene que funcionar y la conversación seguir
+existiendo: solo desaparece la tarjeta adjunta del mensaje.
+
+## 5. Registro por invitación
+Generar una invitación desde el admin, registrarse con ese link, confirmar que la cuenta se crea y
+la invitación queda marcada como usada (el link no se puede reusar).
+
+## 6. Auto-borrado de cuenta en una cuenta creada por invitación
+`DELETE /me` desde el perfil. Tiene que funcionar sin error. **Esto es exactamente lo que se habría
+roto** si se aplicaba la recomendación literal de la auditoría (revocarle a `loop_app` todo permiso
+sobre `invitations`).
+
+## 7. Auditoría de emails duplicados EN PRODUCCIÓN — antes de desplegar
+```
+psql <prod> -f server/scripts/audit-duplicate-emails.sql
+```
+Si devuelve alguna fila, la migración `0009` **aborta el despliegue**. Los duplicados hay que
+resolverlos a mano: es una decisión humana (qué cuenta sobrevive, qué pasa con sus publicaciones,
+créditos y mensajes), no algo que la migración pueda decidir sola.
+
+## 8. Arranque de la API sin warnings
+Después de aplicar las migraciones, revisar los logs de arranque en staging/producción y confirmar
+que **no** aparece `⚠️ Aislamiento por comunidad mal configurado`. Si aparece, algún grant de `0013`
+no coincide con la matriz esperada.
+
+## 9. Pase manual por el panel de admin
+Crear un admin, dar de alta un colegio, acreditar y descontar créditos. Usan la conexión unscoped,
+que no se tocó, pero comparten tablas con lo que sí cambió.
+
+---
+
+# Pruebas manuales — `admin-panel-fixes` (bloque E, auditoría 2026-09)
+
+> Necesitás dos cuentas de `DEMO.md` (una `super_admin`, una `community_admin`) y el panel corriendo
+> (`npm run dev --prefix adminClient`).
+
+## 1. Autorizar admin (ADM-02)
+Entrá como super admin → "Autorizar admin" → tiene que aparecer el selector de rol (default
+"Administrador de comunidad") → con ese rol y sin comunidad elegida el botón queda deshabilitado →
+elegí comunidad y autorizá: **ya no debe salir "Hay que elegir una comunidad"** → cambiá a "Super
+administrador" y confirmá que desaparece el selector de comunidad y autoriza igual → entrá como
+community admin y confirmá que no ve ningún selector → provocá un error y confirmá que se ve en
+español, no el texto crudo del backend.
+
+## 2. Paginación de usuarios (ADM-03)
+Como super admin, en "Usuarios" con más de 10 usuarios: confirmá 2+ páginas y que **la última carga
+bien** (antes la mitad de los usuarios era inalcanzable). Con la consola abierta, navegá la lista y
+confirmá que no se loguea nada.
+
+## 3. Logos de comunidad (ADM-05)
+En "Comunidades" los logos cargados tienen que verse. En "Editar comunidad", subí un logo y confirmá
+que la vista previa carga.
+
+## 4. Sesión y logout (ADM-06)
+Cerrá sesión y confirmá en DevTools que `admin_token` desaparece y responde 401 después → borrá la
+cookie a mano y confirmá redirect a `/login` en el siguiente pedido → **probá una contraseña
+incorrecta en login y confirmá que muestra el error sin redirigir** (este es el riesgo más alto del
+bloque) → revisá `localStorage.session-storage` y confirmá que no tiene `email`/`fullName`/
+`communityName` → recargá como super admin y confirmá que el menú de super admin sigue visible antes
+de que responda la API.
+
+## 5. Modales migrados (ADM-04)
+Modificar créditos, Reiniciar contraseña, Crear/Editar colegio, Categoría, Misión: fondo
+**semitransparente** (antes era negro opaco), el envío funciona igual, Enter sigue enviando el
+formulario, clic en la etiqueta enfoca el campo, y en "Categoría" con contenido desbordado hay una
+sola barra de scroll.
+
+## 6. Motivo obligatorio en créditos (ADM-08)
+En "Modificar créditos": motivo vacío o solo espacios se rechaza **sin mandar pedido**; con motivo
+real se aplica.
+
+## 7. Confirmaciones destructivas (ADM-08)
+Revocar invitación, quitar dominio (con un solo dominio tiene que avisar que nadie va a poder
+autoregistrarse) y rechazar solicitud de borrado piden confirmación antes de ejecutar. Doble clic en
+el botón de peligro no dispara doble pedido. El modal de "Borrar cuenta" sigue igual que antes.
+
+## 8. Documento (ADM-10)
+La pestaña muestra el ícono de Loop (no el de Vite) y el HTML es `<html lang="es">`.
