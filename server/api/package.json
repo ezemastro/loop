@@ -20,7 +20,8 @@
     "migrate:status": "tsx src/scripts/migrate.ts --status",
     "seed": "cross-env NODE_ENV=development tsx src/scripts/seed.ts",
     "check-sql": "python3 ../scripts/check-sql-arity.py",
-    "deploy": "node publish.js"
+    "deploy": "node publish.js",
+    "lint": "eslint ."
   },
   "dependencies": {
     "bcrypt": "6.0.0",

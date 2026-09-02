@@ -1,7 +1,7 @@
 import globals from "globals";
 import tseslint from "typescript-eslint";
 import { defineConfig } from "eslint/config";
-import sharedConfig from "../../eslint.shared.config.js";
+import sharedConfig, { typescriptUnusedVars } from "../../eslint.shared.config.mjs";
 
 export default defineConfig([
   ...sharedConfig,
@@ -15,4 +15,5 @@ export default defineConfig([
     },
   },
   tseslint.configs.recommended,
+  typescriptUnusedVars,
 ]);

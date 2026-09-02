@@ -1,12 +1,10 @@
 import { defineConfig } from "eslint/config";
-import expoConfig from "eslint-config-expo/flat";
-import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
-import sharedConfig from "../eslint.shared.config.js";
+import expoConfig from "eslint-config-expo/flat.js";
+import sharedConfig, { typescriptUnusedVars } from "../eslint.shared.config.mjs";
 
 export default defineConfig([
   ...sharedConfig,
   expoConfig,
-  eslintPluginPrettierRecommended,
   {
     ignores: ["dist/*"],
     rules: {
@@ -16,4 +14,5 @@ export default defineConfig([
       "import/no-unused-modules": "off",
     },
   },
+  typescriptUnusedVars,
 ]);

@@ -57,3 +57,26 @@ si no se arregla esto primero o se excluye `__tests__` del `tsconfig`.
 `adminClient/.gitignore` excluía `package-lock.json`, así que el paquete no era auditable ni
 reproducible. Corregido en esta sesión: se quitó la línea del `.gitignore` y se generó y commiteó
 el lockfile.
+
+### D-04 — `npm run lint` estaba roto en 3 de 3 paquetes (INF-12, resuelto)
+La auditoría decía "Lint raíz roto". Era peor: **ningún** paquete linteaba.
+
+| Síntoma | Causa | Arreglo |
+|---|---|---|
+| `SyntaxError: Cannot use import statement outside a module` | `eslint.shared.config.js` es ESM pero el `package.json` raíz es `commonjs` | renombrado a `eslint.shared.config.mjs` |
+| `@typescript-eslint plugin is not defined` (admin) | la config compartida aplicaba `@typescript-eslint/no-unused-vars` sin registrar el plugin | la regla se exporta aparte como `typescriptUnusedVars` y cada paquete la agrega **después** de su propio `tseslint` |
+| `Cannot redefine plugin "@typescript-eslint"` (api) | registrar el plugin en la compartida chocaba con el spread de `tseslint` del paquete | mismo arreglo |
+| `ERR_UNSUPPORTED_DIR_IMPORT` (client) | `import expoConfig from "eslint-config-expo/flat"` sin extensión | `"eslint-config-expo/flat.js"` |
+| `Cannot redefine plugin "prettier"` (client) | el cliente importaba `eslint-plugin-prettier/recommended` **además** del que ya trae la config compartida | se quitó el duplicado |
+| `npm run lint` raíz no hacía nada | `--workspace` sin campo `workspaces` en el `package.json` raíz | reescrito con `--prefix`; se agregó script `lint` al `server/api` que no tenía |
+
+**Línea base de lint una vez que corre** (todo preexistente, ninguno introducido por esta sesión):
+
+| Paquete | Problemas |
+|---|---|
+| `server/api` | 25 errores (14 auto-corregibles) |
+| `client` | 22 errores + 3 warnings (14 auto-corregibles) |
+| `adminClient` | 28 errores (3 auto-corregibles) |
+
+No se corrió `--fix` todavía: eso mueve muchas líneas y taparía los diffs reales de los bloques.
+Queda para el final de la sesión.

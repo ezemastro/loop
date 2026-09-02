@@ -20,8 +20,8 @@
   "type": "commonjs",
   "main": "",
   "scripts": {
-    "lint": "npm run lint --workspace=server/api --workspace=client --workspace=adminClient 2>/dev/null || (cd server/api && npx eslint . && cd ../.. && cd client && npx eslint . && cd ../.. && cd adminClient && npx eslint .)",
-    "lint:fix": "cd server/api && npx eslint . --fix && cd ../.. && cd client && npx eslint . --fix && cd ../.. && cd adminClient && npx eslint . --fix",
+    "lint": "npm run lint --prefix server/api && npm run lint --prefix client && npm run lint --prefix adminClient",
+    "lint:fix": "npm run lint --prefix server/api -- --fix && npm run lint --prefix client -- --fix && npm run lint --prefix adminClient -- --fix",
     "format": "npx prettier --write \"**/*.{js,ts,tsx,mts,cts,json,css,scss,md}\"",
     "format:check": "npx prettier --check \"**/*.{js,ts,tsx,mts,cts,json,css,scss,md}\"",
     "build:server": "docker build -f api.Dockerfile -t ezemastro/loop:$npm_package_version -t ezemastro/loop:latest .",
