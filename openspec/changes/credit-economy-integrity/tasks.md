@@ -163,16 +163,17 @@ ports (`docker-compose.e2e.yml:18-19`) and cannot be reached from a host-side Je
       validating `listingId` with `validateId` as its siblings do (`:222`).
 - [x] 4.5 Add `listingsRouter.post("/:listingId/cancel", tokenMiddleware, ListingsController.cancelListing)`
       to `server/api/src/routes/listings.ts` (currently 16 lines, no cancel route). — *listing-lifecycle: "The client can reach cancellation"*
-- [ ] 4.6 Add `client/hooks/useListingCancel.ts` following `client/hooks/useListingRejectOffer.ts:8-9`,
+- [x] 4.6 Add `client/hooks/useListingCancel.ts` following `client/hooks/useListingRejectOffer.ts:8-9`,
       posting to `/listings/${listingId}/cancel`, with the same query-key invalidation as its siblings.
-      **SKIPPED**: `client/` is explicitly out of the file boundaries this apply pass was authorized
-      to touch (concurrent-agent session preflight). The endpoint itself (4.4/4.5) is implemented,
-      guarded, and verified directly against the real DB — only the client wiring is missing. See
-      `TESTING-MANUAL.md` §7 for the manual follow-up.
-- [ ] 4.7 Wire the dead Cancel button at `client/components/ListingButtons.tsx:114-116` to that hook.
+      **HECHO** en el commit `38cbc6e` (`fix(client): conecta el boton Cancelar al endpoint de
+      cancelacion`), en un pase posterior que sí tenía autorizado tocar `client/`. El hook existe en
+      `client/hooks/useListingCancel.ts` e invalida `["listing", id]` y `["listings"]` con
+      `exact: false`. La nota de SKIPPED de abajo quedó desactualizada; se corrige acá.
+- [x] 4.7 Wire the dead Cancel button at `client/components/ListingButtons.tsx:114-116` to that hook.
       Do **not** touch the working "Cancelar" at `:93` — that is the buyer retracting an offer, bound
       to `handleDeleteOffer`. Show the control for the buyer too, per design D7 transition 8.
-      **SKIPPED** — same reason as 4.6.
+      **HECHO** en el mismo commit `38cbc6e`: `ListingButtons.tsx` calcula `canCancel` (estado
+      `accepted` y el llamador es vendedor o comprador) y renderiza el botón contra el hook.
 
 ## Phase 5: Deletion (ECO-06)
 

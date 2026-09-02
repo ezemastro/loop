@@ -486,14 +486,22 @@ script points at a missing file.
       entry is `dist/index.js` (`Dockerfile.api:68` uses the correct path). Correct it or remove the
       script — it is dead either way (design correction #6).
       **Fixed**: corrected to `node dist/index.js`.
-- [ ] 6.7 Align `zod` to a single version across `server/api/package.json:38` (`4.0.17`),
+- [x] 6.7 Align `zod` to a single version across `server/api/package.json:38` (`4.0.17`),
       `client/package.json:65` (`^4.1.5`) and `adminClient/package.json:21` (`4.3.5`). Regenerate
       the three lockfiles and re-run each package's typecheck — zod's inferred types are the likely
       breakage point. **This task is droppable**: nothing else in this change depends on it.
-      **Dropped**, using the design's explicit droppability. Reason: all three packages' `src/` are
-      under active concurrent edit by other blocks this session; a cross-package version bump that
-      re-runs typecheck everywhere risks colliding with in-flight work for a cosmetic alignment with
-      zero other dependents in this change. Left for a follow-up.
+      **Re-attempted and landed in a later apply pass.** Re-checked the actual *resolved* versions in
+      each lockfile rather than only the declared ranges: `client/package-lock.json` and
+      `adminClient/package-lock.json` had already both converged on `zod@4.3.5` on disk (their
+      declared ranges — `^4.1.5` and `4.3.5` — just hadn't been touched since). Only `server/api` was
+      genuinely stuck on the old exact `4.0.17`. Bumped `server/api/package.json`'s `zod` to `4.3.5`
+      (npm normalized it to `^4.3.5` on `npm install`) and regenerated `server/api/package-lock.json`.
+      `client`/`adminClient` `package.json` left untouched — their `src/` is owned by other
+      concurrently-applying blocks, and their resolved version already matches. Result: all three
+      packages now resolve the identical `zod@4.3.5`. `server/api`'s `npx tsc --noEmit` is clean and
+      `npx jest --ci --selectProjects unit` is 151/151 after the bump; `client`/`adminClient` were not
+      re-typechecked since their `package.json` didn't change and their lockfile was already on this
+      version before this pass.
 - [x] 6.8 Rewrite `server/README.md` (currently 3 lines of stale `docker build` commands referencing
       `mi-api:dev`/`mi-api:prod`).
 - [x] 6.9 Fix `AGENTS.md`: remove the Playwright project references at `:153-155` (`--project api`,
@@ -518,48 +526,104 @@ docs describe the repository that actually exists.
 
 ## Phase 7: Observability (INF-10)
 
-**DEFERRED — entire phase skipped in this apply.** `server/api/src/index.ts`,
-`middlewares/errors.ts` and `GET /health` are owned by block `sec-hardening-api`, which has not
-been applied yet this session. Editing `index.ts` (7.2/7.6/7.7) or `middlewares/errors.ts` (7.5)
-here would collide with that block's not-yet-landed work rather than build on it. None of
-`.github/workflows/ci.yml`'s jobs depend on `pino`, request-id logging, or `/health` — the workflow
-was written without that dependency so this phase can land independently later. All 11 tasks below
-(7.1–7.11) are left unchecked and untouched; re-run this phase after `sec-hardening-api` applies.
+**Un-deferred and applied in a later apply pass.** `sec-hardening-api` has since landed `GET
+/health` (`server/api/src/index.ts:102`, a real `SELECT`-backed check via `checkHealth()`), so the
+collision this phase was originally deferred to avoid no longer exists. Tasks 7.1–7.9 are
+implemented below. 7.10 and 7.11 remain `[VERIFY]` — manual/live checks, not performed by an apply
+session — and stay unchecked.
 
-- [ ] 7.1 Add `pino` and `pino-http` to `server/api/package.json` dependencies; create
+- [x] 7.1 Add `pino` and `pino-http` to `server/api/package.json` dependencies; create
       `server/api/src/services/logger.ts` exporting a configured logger (pretty transport in
       development, JSON in production). — *runtime-observability: Logs Are Structured and Emitted in
       Production*
-- [ ] 7.2 Mount `pino-http` in `server/api/src/index.ts`, replacing the development-only `morgan`
+      **Done**: `pino@^10.3.1`, `pino-http@^11.0.0` added as dependencies; `pino-pretty@^13.1.3` added
+      as a devDependency (needed at runtime by `pino`'s `transport: { target: "pino-pretty" }` in
+      development — not itself required by the task text, but required for the pretty transport it
+      asks for to actually work rather than throw on `require`). `server/api/src/services/logger.ts`
+      created: `pino-pretty` transport when `NODE_ENV === "development"`, plain JSON otherwise; `level`
+      from the new `LOG_LEVEL` env var (default `"info"`).
+- [x] 7.2 Mount `pino-http` in `server/api/src/index.ts`, replacing the development-only `morgan`
       block at `:59-63`, so production finally has a request log.
-- [ ] 7.3 Configure `genReqId` to reuse an inbound `X-Request-Id` when present and otherwise
+      **Done**: `morgan`'s conditional `import()` block replaced with `app.use(pinoHttp({ logger, genReqId }))`,
+      mounted unconditionally (not gated on `NODE_ENV`) so production finally gets a request log.
+      `morgan` and `@types/morgan` removed from `package.json` (`npm uninstall`) since nothing else
+      references them.
+- [x] 7.3 Configure `genReqId` to reuse an inbound `X-Request-Id` when present and otherwise
       generate a UUID, and echo it on the response. — *runtime-observability: Every Request Carries
       a Correlation Identifier*
-- [ ] 7.4 Configure redaction for `req.headers.authorization`, `req.headers.cookie` and any
+      **Done**: `genReqId` reads `req.headers["x-request-id"]` (first value if an array), falls back to
+      `crypto.randomUUID()`, and sets it on the response via `res.setHeader("X-Request-Id", id)`.
+      **Verified live**: booted the API locally; a request with no header got a generated UUID back on
+      `X-Request-Id`; a request with `X-Request-Id: my-custom-id-123` echoed that exact value back and
+      it appeared as `reqId` in the corresponding pino-http log line.
+- [x] 7.4 Configure redaction for `req.headers.authorization`, `req.headers.cookie` and any
       `password` field so credentials cannot reach the log stream. — *runtime-observability:
       "Secrets never reach the log stream"*
-- [ ] 7.5 Replace the `console.error`/`console.log` calls in
+      **Done**: `logger.ts`'s `redact.paths` covers `req.headers.authorization`, `req.headers.cookie`,
+      `req.body.password` and a `*.password` wildcard for any other top-level object with a `password`
+      field; `censor: "[REDACTED]"`. **Verified live**: sent a request with a real `Authorization`
+      Bearer token and a `Cookie` header — the emitted log line showed
+      `"authorization": "[REDACTED]"` and `"cookie": "[REDACTED]"`, never the real values.
+- [x] 7.5 Replace the `console.error`/`console.log` calls in
       `server/api/src/middlewares/errors.ts:41,52` with structured logger calls carrying the request
       id.
-- [ ] 7.6 `GET /health` — **coordinate with block `sec-hardening-api`, which owns this endpoint.**
+      **Done**: both `console.error` calls in `errorMiddleware` (the `InternalServerError` branch and
+      the final unhandled-error fallback) replaced with `requestLogger.error({ err }, "...")`, where
+      `requestLogger = req.log ?? logger` — `req.log` is the per-request child logger `pino-http`
+      attaches (already carrying the correlation id), with a fallback to the base `logger` for the
+      unlikely case the middleware runs outside a `pino-http`-instrumented request (e.g. a unit test
+      constructing a bare mock request).
+- [x] 7.6 `GET /health` — **coordinate with block `sec-hardening-api`, which owns this endpoint.**
       If it does not exist when this phase is applied, add it; if it already exists, contribute only
       the observability behavior: a real `SELECT 1` through the pool, a bounded timeout, a success
       status only when the database responded, and no leakage of connection strings, hostnames or
       raw driver error text. Do **not** create a competing route. — *runtime-observability: A Health
       Endpoint Reports Real Dependency Reachability*
-- [ ] 7.7 Leave `GET /status` (`server/api/src/index.ts:65-67`) exactly as it is. It returns a
+      **Already satisfied by `sec-hardening-api`, no change made.** `GET /health`
+      (`server/api/src/index.ts:102-112`) calls `checkHealth()`
+      (`services/postgresClient.ts:333-342`), which runs a real query through the scoped pool
+      (`TENANT_RLS_QUERY`, the same one `assertDbHardening()` uses) and reports `dbUp`/`rlsOn`; the
+      pool's `connectionTimeoutMillis: 5_000` (`postgresClient.ts:89`) bounds how long an unreachable
+      database can stall the check; on any failure it returns `{ dbUp: false, rlsOn: false }` inside a
+      `try/catch` — no connection string, hostname, or raw driver error ever reaches the response body,
+      matching the "coarse by design" doc comment on `checkHealth`. **Verified live**: with no database
+      reachable, `curl /health` returned `503 {"status":"down","db":"down"}` in well under a second, no
+      leaked internals. No code change needed; only confirmed the requirement holds.
+- [x] 7.7 Leave `GET /status` (`server/api/src/index.ts:65-67`) exactly as it is. It returns a
       static string and touches nothing, but `docker-compose.e2e.yml:90-101` uses it as the API
       healthcheck and `scripts/run-e2e.sh:26`'s `--wait` depends on that. `/health` is the
       replacement, not a rename.
-- [ ] 7.8 Add an `api` healthcheck to `compose.yml` targeting `/health`, modelled on
+      **Confirmed, no-op.** `GET /status` untouched; still returns a static `"ok"` and touches nothing.
+      **Verified live**: `curl /status` → `200 ok`.
+- [x] 7.8 Add an `api` healthcheck to `compose.yml` targeting `/health`, modelled on
       `docker-compose.e2e.yml:90-101`.
-- [ ] 7.9 Wire Sentry in the API, initialized **only** when `SENTRY_DSN` is set and non-empty. With
+      **Done**: added a `healthcheck` block to `compose.yml`'s `api` service, same
+      `node -e "fetch(...)"` pattern `docker-compose.e2e.yml` already uses for `/status`, pointed at
+      `http://localhost:3000/health` instead. `interval: 10s`, `timeout: 5s`, `retries: 5`,
+      `start_period: 15s` (looser than the e2e stack's, since production `/health` also waits on a real
+      DB round trip rather than a static string). `docker compose -f compose.yml config -q` → exit 0.
+- [x] 7.9 Wire Sentry in the API, initialized **only** when `SENTRY_DSN` is set and non-empty. With
       no DSN the SDK must not initialize and must make no outbound request. Add `SENTRY_DSN` to the
       environment template as an optional, empty, documented value. — *runtime-observability: Error
       Reporting Is Wired but Disabled by Default*
   - **Checkpoint**: block `sec-hardening-api` owns the env template (INF-11). Add the variable in a
     way that does not conflict; if that block has already restructured the template, follow its
     structure.
+      **Done, with one deviation on the checkpoint.** `@sentry/node@^10.73.0` added.
+      `server/api/src/services/sentry.ts` created: `initSentry()` is a hard no-op when `SENTRY_DSN` is
+      falsy (never calls `Sentry.init`, so the SDK never initializes and no network call is possible);
+      `attachSentryErrorHandler(app)` wraps `Sentry.setupExpressErrorHandler(app)`, itself also a no-op
+      without a DSN, mounted after all routes and before the app's own `errorMiddleware` so it doesn't
+      change any existing error response shape. `SENTRY_DSN` (and a `LOG_LEVEL` companion for 7.1)
+      registered as optional strings in `env.ts`'s schema and re-exported from `config.ts`.
+      **Deviation on the checkpoint**: `.env.template` is a denied path in this apply session (blanket
+      secrets-path guard), same permission wall `sec-hardening-api` hit on its own env-template tasks
+      (7.5/7.6 in that change) — so `SENTRY_DSN` (and `LOG_LEVEL`, 7.1's companion) could not be added
+      there directly. Documented instead in `docs/variables-entorno-produccion.md`, which a concurrent
+      block already created this session as the authoritative variable reference precisely *because*
+      `.env.template` is stuck behind that same wall (its own header explains why): added both to its
+      "Opcionales" tables and to its pasteable template block (§5), so once a human or an unblocked
+      agent copies that block into the real `.env.template`, both are already there.
 - [ ] 7.10 [VERIFY] Start the API with `SENTRY_DSN` unset, trigger an unhandled error, and confirm
       it is logged locally with no outbound network request. — *runtime-observability: "No reporting
       occurs without configuration"*
@@ -665,6 +729,10 @@ E2E; a `v*` tag publishes multi-arch images; the audit job reports without block
       **Note**: found INF-06 already present in the block F row's ID list when re-read this session
       (added by a concurrent process before this apply ran). Updated the "Implementación" column
       instead to reflect phases 1-6 and 8-9 applied, phase 7 deferred to `sec-hardening-api`.
+      **Follow-up (later apply pass)**: phase 7 is no longer deferred — `sec-hardening-api` landed
+      `GET /health` in the meantime, unblocking it. Re-updated the same row: added **INF-10**
+      (observability) to the ID list, since phase 7 is now applied, and rewrote the "Implementación"
+      note to say all nine phases are complete instead of "1-6 and 8-9".
 
 **Done condition**: an operator can deploy, migrate, inspect and roll back from the runbook alone,
 and knows exactly which backup guarantees do not yet exist.

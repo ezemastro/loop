@@ -13,7 +13,7 @@
 | C | `credit-economy-integrity` | ECO-01, 02, 03, 04, 05, 06, 08, 10, 11, 12 | ✅ | ✅ código de servidor completo y validado contra DB real; botón "Cancelar" del cliente ya conectado en `38cbc6e` |
 | D | `client-critical-fixes` | CLI-01, 02, 03, 04, 05, 06, 07, 09, 12(parcial), 13(parcial) | ✅ | ✅ `d6b50b3` |
 | E | `admin-panel-fixes` | ADM-02, 03, 04, 05, 06, 08, 10(parcial) | ✅ | ✅ `fe7f886` |
-| F | `delivery-and-ci` | INF-01, 02, 03, 04, 06, 07, 08, 09, 12 | ✅ | ✅ `3ba569f` — fases 1-6 y 8-9 aplicadas; fase 7 (observabilidad/INF-10) diferida a `sec-hardening-api` (dueño de `index.ts`/`/health`, aún no aplicado) |
+| F | `delivery-and-ci` | INF-01, 02, 03, 04, 06, 07, 08, 09, 10, 12 | ✅ | ✅ `3ba569f` + pase posterior — fases 1-9 aplicadas completas; fase 7 (observabilidad/INF-10) ya no está diferida: `sec-hardening-api` aplicó `GET /health`, así que este pase agregó `pino`/`pino-http`, id de correlación, redacción de secretos y Sentry (inerte sin `SENTRY_DSN`) sobre esa base. Tareas `[VERIFY]` 7.10/7.11 (Sentry sin DSN, `/health` con la base caída) quedan pendientes de chequeo manual |
 | G | `legal-public-routes` | ADM-01, SEC-08, SEC-11, PROD-05(parcial) | ✅ | ✅ código completo, migraciones `0015`/`0016` aplicadas y validadas; **gate legal (6.6) pendiente de un humano — ver `TESTING-MANUAL.md` §0** |
 
 Cada bloque tiene `proposal.md`, `design.md`, `tasks.md` y sus delta specs en

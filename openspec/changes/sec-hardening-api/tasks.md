@@ -272,10 +272,16 @@ change.
       new minimum, used by `adminLoginSchema`) — a shared schema would have wrongly raised the client-
       side *login* minimum too. `adminClient/src/components/ResetPasswordModal.tsx`: `minLength`/inline
       check moved from 6 to 8.
-- [ ] 5.14 [RED→GREEN] `validations.test.ts` for the new admin/pagination schemas — **not written**,
-      time-boxed out this session. The schemas were exercised indirectly via the live-server manual
-      checks (Validation section) and are typechecked, but no dedicated Zod-level unit test exists yet.
-      Recorded as a follow-up.
+- [x] 5.14 [RED→GREEN] Added `server/api/src/services/validations.test.ts` (17 assertions, all
+      green) covering `validatePaginationParams` bounds (defaults, coercion, lower/upper bounds,
+      non-finite/fractional rejection, `.strict()`), `validateGetAdminUsersRequest`'s inherited
+      bounds plus its own `search`/`communityId` fields, and `validateUpdateSelf` rejecting any
+      request carrying `password`. **adminClient's `passwordCreationSchema`/`passwordLoginSchema`
+      split (5.13) is not covered** — `adminClient` has no test runner at all (confirmed
+      independently by `delivery-and-ci` tasks.md: "adminClient tests — the package has no test
+      runner and no tests. Adding one is its own change"); adding one here would be scope creep
+      into that owned decision. Recorded as a follow-up for whichever change adds `adminClient`
+      test infra.
 - [ ] 5.15 Manual: admin-panel credits/reset-password/school create-update — **not run**, no running
       admin-panel build in this sandbox. Added to `TESTING-MANUAL.md`.
 
@@ -338,6 +344,8 @@ follow-ups, not blockers for the code itself.
 - [x] 7.4 `PORT` vs `API_PORT`: **documented as a hand-off**, not edited directly. `docker-compose.dev.yml`
       is owned by `delivery-and-ci`. The exact comment to add there:
       `# API_PORT publishes the host-side port only; the container always listens on PORT (default 3000, see env.ts). Setting API_PORT alone does not move the in-container port.`
+      **Landed by the `delivery-and-ci` apply pass**: the exact comment was added above the `API_PORT`
+      port mapping in `docker-compose.dev.yml`.
 - [ ] 7.5 **BLOCKED — not a design decision, a tool permission boundary.** `.env.template` regeneration
       could not be performed: the sandbox's file-access permission layer denies both `Read` and `Bash
       cat` on any path matching `.env.template` (and `.env` generally), even for read-only inspection,
@@ -355,7 +363,7 @@ follow-ups, not blockers for the code itself.
       (`rg -l "server/.env.template"` outside this task file).
 - [ ] 7.7 **Not written**, depends on 7.5/7.6 being unblocked first — an `.env.template` parity test
       against a template this session could not read or regenerate would be meaningless.
-- [ ] 7.8 **Hand-off, not edited.** `docker-compose.dev.yml` and `compose.yml` are owned by
+- [x] 7.8 **Hand-off, not edited.** `docker-compose.dev.yml` and `compose.yml` are owned by
       `delivery-and-ci`. New variables that need adding to both (`api` service `environment:` block):
       `ADMIN_JWT_SECRET`, `ADMIN_PASS_TOKEN`, `TOKEN_EXP`, `ADMIN_TOKEN_EXP`, `RATE_LIMIT_ENABLED` (must
       be `"true"` or absent in `compose.yml`; **must not** be `"false"` in production — the app will
@@ -363,15 +371,31 @@ follow-ups, not blockers for the code itself.
       `docker-compose.dev.yml`, defaults to on outside production). `docker-compose.dev.yml` already
       passes `DB_APP_PASSWORD`/`DB_UNSCOPED_PASSWORD` explicitly per the design's own note, so those two
       need no change there.
+      **Landed by the `delivery-and-ci` apply pass**: all five variables added to both files' `api`
+      service `environment:` block using bare-key passthrough (`- ADMIN_JWT_SECRET`, no `=`) rather than
+      `${VAR}` interpolation — an explicit `${VAR}` with no fallback would resolve to an empty string
+      when unset, and `env.ts`'s `z.string().min(1)`/`z.coerce.number()` reject an empty string
+      unconditionally (its `.default()` only applies to `undefined`), which would crash the process at
+      import time in every environment, not just production. Bare-key passthrough omits the container
+      key entirely when the variable isn't set where `docker compose` runs, letting `env.ts`'s own
+      defaults (or, in production, its strict-validation error) apply cleanly instead. `EMAIL_DEBUG_LINKS`
+      left out of both files, per the task's own instruction. `docker compose config -q` validated clean
+      on both files.
 - [x] 7.9 **Superseded/already covered.** `docker-compose.e2e.yml`'s `api` service was given
       `RATE_LIMIT_ENABLED: "false"` (task 3.6). It does **not** set explicit `JWT_SECRET`/
       `ADMIN_JWT_SECRET` — the stack runs `NODE_ENV: development`, which means `env.ts`'s permissive
       tier applies and the dev-sentinel defaults are used automatically; no crash, and the design's own
       "Development Permissiveness" requirement explicitly covers this exact case ("the e2e stack is
       unaffected"). Left as-is rather than adding secrets that would just duplicate the default.
-- [ ] 7.10 **Hand-off, not edited.** `Dockerfile.api` is owned by `delivery-and-ci`. Add
+- [x] 7.10 **Hand-off, not edited.** `Dockerfile.api` is owned by `delivery-and-ci`. Add
       `ENV NODE_ENV=production` to the production build stage (after the final `FROM` for that stage,
       before `CMD`).
+      **Landed by the `delivery-and-ci` apply pass**: `ENV NODE_ENV=production` added right after the
+      production stage's `FROM node:22-alpine AS production` line, before `WORKDIR`/`CMD`. Defense in
+      depth only — `compose.yml`'s `api` service already sets `NODE_ENV=production` explicitly in its
+      own `environment:` block (which still wins by precedence); this covers the image run outside that
+      compose file (e.g. a bare `docker run`), where `env.ts` would otherwise default to its permissive
+      development tier.
 - [x] 7.11 `git rm --cached client/.env` — done, confirmed via `git ls-files client/.env` (now empty).
       `.gitignore` already covers `.env` at the repo root going forward (pre-existing rule, line
       `.env`, confirmed present).
