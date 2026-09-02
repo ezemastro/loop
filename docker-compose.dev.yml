@@ -2,8 +2,9 @@
 # Uso: npm run dev (resuelve DEV_HOST con la IP de LAN del host y levanta este compose).
 # DEV_HOST es el host que los clientes usan para llegar a la API: si queda en `localhost`, un
 # celular u otra notebook lo resuelven contra sí mismos y no alcanzan nada.
-# OJO: el daemon Docker es externo (docker-outside-of-docker): los bind mounts del host no funcionan,
-# por eso el código viaja dentro de las imágenes y los cambios se sincronizan con `watch` (sync).
+# El código se monta con bind mount directo (no `develop.watch sync`): así el contenedor siempre
+# lee el working tree actual y cambiar de rama no requiere `--build` para ver el código nuevo.
+# `develop.watch` solo dispara un rebuild real cuando cambia un package.json (deps nuevas).
 services:
   # --- BASE DE DATOS ---
   db:
@@ -61,19 +62,13 @@ services:
     volumes:
       - /app/server/api/node_modules
       - ./server/uploads:/uploads
+      - ./server/api/src:/app/server/api/src
+      - ./shared:/app/shared
     depends_on:
       db:
         condition: service_healthy
     develop:
       watch:
-        - action: sync
-          path: ./server/api/src
-          target: /app/server/api/src
-          ignore:
-            - node_modules/
-        - action: sync
-          path: ./shared
-          target: /app/shared
         - action: rebuild
           path: ./server/api/package.json
 
@@ -98,24 +93,10 @@ services:
       - EXPO_NO_TELEMETRY=1
     volumes:
       - /app/client/node_modules
+      - ./client:/app/client
+      - ./shared:/app/shared
     develop:
       watch:
-        - action: sync
-          path: ./client
-          target: /app/client
-          ignore:
-            - node_modules/
-            - .expo/
-            - dist/
-            - .git/
-            # El env del cliente sale del .env de la raíz vía Compose; si se sincroniza el archivo
-            # local, Expo vuelve a leerlo y pisa la URL de la API.
-            - .env
-            - .env.*
-        # El dataset demo vive fuera de client/ y el bundle lo importa: se sincroniza igual.
-        - action: sync
-          path: ./shared
-          target: /app/shared
         - action: rebuild
           path: ./client/package.json
 
@@ -132,15 +113,9 @@ services:
       - VITE_GOOGLE_CLIENT_ID
     volumes:
       - /app/adminClient/node_modules
+      - ./adminClient:/app/adminClient
     develop:
       watch:
-        - action: sync
-          path: ./adminClient
-          target: /app/adminClient
-          ignore:
-            - node_modules/
-            - dist/
-            - .git/
         - action: rebuild
           path: ./adminClient/package.json
 
