@@ -1,6 +1,6 @@
-import { getUrl } from "@/services/getUrl";
-import { View, Text, Image } from "react-native";
+import { View, Text } from "react-native";
 import { twMerge } from "tailwind-merge";
+import SchoolLogo from "../SchoolLogo";
 
 export default function School({
   school,
@@ -20,11 +20,7 @@ export default function School({
       )}
     >
       <View>
-        <Image
-          source={{ uri: getUrl(school.media.url) }}
-          style={{ width: 64, height: 64 }}
-          resizeMode="contain"
-        />
+        <SchoolLogo school={school} size={64} resizeMode="contain" />
       </View>
       <View className="flex-1 justify-center items-center">
         <Text className="text-xl">{school.name}</Text>

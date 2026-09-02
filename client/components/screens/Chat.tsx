@@ -3,7 +3,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { View, Text, Image, FlatList, Platform, Pressable, RefreshControl } from "react-native";
 import { MainView, pageContentClassName } from "../bases/MainView";
 import BackButton from "../BackButton";
-import { getProfileImageSource, getUrl } from "@/services/getUrl";
+import { getProfileImageSource } from "@/services/getUrl";
+import SchoolLogo from "../SchoolLogo";
 import { useUser } from "@/hooks/useUser";
 import MessageItem from "../MessageItem";
 import { sameDay } from "@/utils/sameDay";
@@ -117,11 +118,7 @@ export default function Chat() {
               {(user?.schools.length ?? 0) > 3 ? (
                 <View className="flex-row gap-1">
                   {user?.schools.map((school) => (
-                    <Image
-                      key={school.id}
-                      source={{ uri: getUrl(school.media.url) }}
-                      style={{ width: 16, height: 16 }}
-                    />
+                    <SchoolLogo key={school.id} school={school} size={16} />
                   ))}
                 </View>
               ) : (

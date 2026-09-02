@@ -7,6 +7,7 @@ import CreditsBadge from "../badges/CreditsBadge";
 import { useRouter } from "expo-router";
 import { getUrl } from "@/services/getUrl";
 import CategoryBadge from "../CategoryBadge";
+import SchoolLogo from "../SchoolLogo";
 import { ELEVATION } from "@/config";
 
 /**
@@ -22,11 +23,11 @@ const COMPACT_IMAGE_HEIGHT = 112;
 const schoolAvatars = (schools: Listing["seller"]["schools"]) => (
   <View className="flex-1 flex-row gap-0.5 overflow-hidden">
     {schools.map((school) => (
-      <Image
+      <SchoolLogo
         key={school.id}
-        source={{ uri: getUrl(school.media.url) }}
+        school={school}
+        size={24}
         className="rounded-full border border-stroke"
-        style={{ width: 24, height: 24 }}
         resizeMode="contain"
       />
     ))}

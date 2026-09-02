@@ -1,6 +1,7 @@
-import { getProfileImageSource, getUrl } from "@/services/getUrl";
+import { getProfileImageSource } from "@/services/getUrl";
 import { View, Text, Image } from "react-native";
 import { twMerge } from "tailwind-merge";
+import SchoolLogo from "../SchoolLogo";
 
 export default function User({ user, className }: { user: PublicUser; className?: string }) {
   return (
@@ -25,11 +26,11 @@ export default function User({ user, className }: { user: PublicUser; className?
         {user.schools.length > 0 && (
           <View className="flex-row">
             {user.schools.map((s) => (
-              <Image
+              <SchoolLogo
                 key={s.id}
-                source={{ uri: getUrl(s.media.url) }}
+                school={s}
+                size={32}
                 className="rounded-full bg-background mx-1"
-                style={{ width: 32, height: 32 }}
               />
             ))}
           </View>

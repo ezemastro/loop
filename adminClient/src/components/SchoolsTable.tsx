@@ -40,11 +40,24 @@ export default function SchoolsTable({ schools, loading, onEdit }: SchoolsTableP
           {schools.map((school) => (
             <tr key={school.id} className="border-t hover:bg-gray-50">
               <td className="px-4 py-3">
-                <img
-                  src={getUrl(school.media.url)}
-                  alt={school.name}
-                  className="w-12 h-12 object-cover rounded"
-                />
+                {/*
+                 * `School.media` es nullable (ECO-12): un colegio sin logo se lista igual, con la
+                 * misma reserva de espacio que usa el listado de comunidades.
+                 */}
+                {school.media?.url ? (
+                  <img
+                    src={getUrl(school.media.url)}
+                    alt={school.name}
+                    className="w-12 h-12 object-cover rounded"
+                  />
+                ) : (
+                  <span
+                    className="flex h-12 w-12 items-center justify-center rounded bg-slate-100 text-slate-400"
+                    title="Sin logo"
+                  >
+                    🏫
+                  </span>
+                )}
               </td>
               <td className="px-4 py-3 font-semibold">{school.name}</td>
               <td className="px-4 py-3">{school.stats?.kgWaste.toFixed(2) ?? "N/A"} kg</td>

@@ -42,7 +42,9 @@ export const createSeed = (): DemoDb => ({
     credits: { ...u.credits },
     stats: { ...u.stats },
   })),
-  schools: DEMO_SCHOOLS.map((s) => ({ ...s, media: { ...s.media } })),
+  // `School.media` es nullable (ECO-12): copiarlo con spread directo lo degradaría a un `Media`
+  // con todos los campos opcionales, así que se clona sólo cuando existe.
+  schools: DEMO_SCHOOLS.map((s) => ({ ...s, media: s.media ? { ...s.media } : null })),
   categories: DEMO_CATEGORIES.map((c) => ({ ...c })),
   listings: DEMO_LISTINGS.map((l) => ({ ...l, media: l.media.map((m) => ({ ...m })) })),
   messages: DEMO_MESSAGES.map((m) => ({ ...m })),

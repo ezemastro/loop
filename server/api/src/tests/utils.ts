@@ -54,19 +54,26 @@ export const MOCK_COMMUNITY: Community = {
 /** Dominio institucional de la comunidad: es lo que decide en qué comunidad cae un registro. */
 export const MOCK_COMMUNITY_DOMAIN = "example.com";
 
-const schoolMediaId = randomUUID();
+/**
+ * Media del colegio mock, aparte de `MOCK_SCHOOL` igual que `MOCK_COMMUNITY_MEDIA`.
+ *
+ * `School.media` es nullable (ECO-12: un colegio nunca se omite de un listado porque su logo no
+ * resuelva), así que los mocks de la tabla `media` referencian esta fila concreta en vez de asumir
+ * que `MOCK_SCHOOL.media` no es `null`.
+ */
+export const MOCK_SCHOOL_MEDIA: Media = {
+  id: randomUUID(),
+  url: "http://example.com/media.jpg",
+  mediaType: "image",
+  mime: "image/jpeg",
+};
 export const MOCK_SCHOOL: School = {
   id: randomUUID(),
   name: "Test School",
-  mediaId: schoolMediaId,
+  mediaId: MOCK_SCHOOL_MEDIA.id,
   communityId: MOCK_COMMUNITY.id,
   meta: null,
-  media: {
-    id: schoolMediaId,
-    url: "http://example.com/media.jpg",
-    mediaType: "image",
-    mime: "image/jpeg",
-  },
+  media: MOCK_SCHOOL_MEDIA,
 };
 export const MOCK_SCHOOL_DB: DB_Schools = {
   id: MOCK_SCHOOL.id,
@@ -467,9 +474,9 @@ export const databaseQueryMock = async (
 
     // ── Media ──
     case queries.mediaById.key: {
-      if (params[0] === MOCK_SCHOOL.media.id) {
+      if (params[0] === MOCK_SCHOOL_MEDIA.id) {
         return [
-          parseMediaToDb({ media: MOCK_SCHOOL.media, userId: MOCK_USER.id, communityId: null }),
+          parseMediaToDb({ media: MOCK_SCHOOL_MEDIA, userId: MOCK_USER.id, communityId: null }),
         ];
       }
       if (params[0] === MOCK_COMMUNITY_MEDIA.id) {
@@ -487,8 +494,8 @@ export const databaseQueryMock = async (
     }
     case queries.mediaByIds([]).key: {
       const ids = (params[0] as UUID[] | undefined) ?? [];
-      return ids.includes(MOCK_SCHOOL.media.id)
-        ? [parseMediaToDb({ media: MOCK_SCHOOL.media, userId: MOCK_USER.id, communityId: null })]
+      return ids.includes(MOCK_SCHOOL_MEDIA.id)
+        ? [parseMediaToDb({ media: MOCK_SCHOOL_MEDIA, userId: MOCK_USER.id, communityId: null })]
         : [];
     }
 

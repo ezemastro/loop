@@ -1,7 +1,8 @@
 import { View, Text, Pressable, Image } from "react-native";
 import React from "react";
 import { useRouter } from "expo-router";
-import { getProfileImageSource, getUrl } from "@/services/getUrl";
+import { getProfileImageSource } from "@/services/getUrl";
+import SchoolLogo from "../SchoolLogo";
 
 export default function ChatCard({ chat }: { chat: UserMessage }) {
   const router = useRouter();
@@ -34,11 +35,11 @@ export default function ChatCard({ chat }: { chat: UserMessage }) {
           </Text>
           <View className="flex-row items-center">
             {chat.user.schools.map((s) => (
-              <Image
+              <SchoolLogo
                 key={s.id}
-                source={{ uri: getUrl(s.media.url) }}
+                school={s}
+                size={24}
                 className="rounded-full bg-background mx-0.5"
-                style={{ width: 24, height: 24 }}
               />
             ))}
           </View>
