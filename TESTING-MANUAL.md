@@ -1,3 +1,46 @@
+# Qué tenés que probar a mano — auditoría 2026-09
+
+> Rama `fix/auditoria-2026-09`, sesión del 2026-09-02.
+> Cada bloque SDD dejó acá lo que **no** cubre ninguna verificación automática.
+> Marcá con `[x]` lo que vayas verificando.
+
+## Lo que hay que hacer SÍ o SÍ antes de desplegar o publicar
+
+Tres cosas bloquean todo lo demás. Están detalladas más abajo, pero van acá porque
+si te salteás cualquiera de las tres, algo se rompe en producción o en la tienda:
+
+1. **Correr `server/scripts/audit-duplicate-emails.sql` contra la base de producción**
+   antes de aplicar las migraciones. Si devuelve filas, la migración `0009` **aborta el
+   despliegue**. Resolver duplicados es una decisión humana (qué cuenta sobrevive, qué pasa
+   con sus publicaciones, créditos y mensajes) — la migración no puede decidirla sola.
+   → sección del bloque B, punto 7.
+2. **Revisión legal del texto de privacidad y términos.** Lo que hay es una **plantilla
+   estructural** con diez placeholders literales (`{{DATOS_RECOLECTADOS}}`, `{{MENORES}}`,
+   `{{VIGENCIA}}`, …) y un cartel visible que dice `REVISIÓN LEGAL PENDIENTE`. Nadie debe
+   mandar la app a App Store ni a Google Play mientras ese cartel siga ahí. `{{MENORES}}` es
+   el más delicado: Loop lo usan familias de colegios.
+   → sección del bloque G, punto 0.
+3. **Las variables de entorno nuevas son obligatorias en producción.** La API ahora aborta
+   el arranque si falta alguna, nombrándolas. Es a propósito: antes un deploy sin `JWT_SECRET`
+   arrancaba en silencio con el default público `jwt_secret_dev` y cualquiera podía forjar un
+   token de super admin. **No pude escribir `.env.template`** (el deny list de permisos bloquea
+   toda ruta `.env*`): la lista exacta está en `openspec/changes/sec-hardening-api/tasks.md`.
+   → sección del bloque A.
+
+## Índice
+
+| Bloque | Qué cubre | Sección |
+|---|---|---|
+| D | Cliente Expo: SecureStore, errores visibles, notificaciones, demo | `client-critical-fixes` |
+| F | Deploy, migraciones en producción, imágenes Docker, CI | `delivery-and-ci` |
+| B | Migraciones de integridad: email único, saldos, tokens, permisos | `db-integrity-migrations` |
+| E | Panel de administración | `admin-panel-fixes` |
+| A | Seguridad de la API: entorno, rate limiting, login uniforme | `sec-hardening-api` |
+| G | Rutas legales, reseteo de contraseña, URLs de media firmadas | `legal-public-routes` |
+| C | Economía de créditos: ciclo del loop, cancelación, borrado de cuenta | `credit-economy-integrity` |
+
+---
+
 # Pruebas manuales — `client-critical-fixes` (bloque D, auditoría 2026-09)
 
 Este cambio toca únicamente `client/`. `cd client && npx tsc --noEmit`, `npx jest --ci --watchAll=false`
@@ -325,7 +368,7 @@ La pestaña muestra el ícono de Loop (no el de Vite) y el HTML es `<html lang="
 
 ---
 
-# Pruebas manuales — `sec-hardening-api` (bloque C, auditoría 2026-09)
+# Pruebas manuales — `sec-hardening-api` (bloque A, auditoría 2026-09)
 
 > Cambios de seguridad y configuración en `server/api/`, con dos ediciones puntuales en
 > `adminClient/` y `docker-compose.e2e.yml`. Validado en esta sesión contra un Postgres 16
