@@ -76,8 +76,20 @@ function NotificationContent({
           isRead={isRead}
         />
       );
+    default:
+      return null;
   }
 }
+
+/**
+ * Every hydrated reference on a notification payload is best-effort: the server keeps the
+ * notification and drops the reference when the row is gone (a deleted listing, a removed user).
+ * The card MUST still render, because throwing here unmounts the whole route -- there is no error
+ * boundary above it, so one dangling reference used to blank the entire app.
+ */
+const MissingReference = () => (
+  <Text className="text-secondary-text text-sm">Este contenido ya no está disponible</Text>
+);
 
 /** Unread titles carry more weight than read ones; read titles recede back to normal weight. */
 const titleClassName = (isRead: boolean) =>
@@ -93,7 +105,7 @@ function MissionNotification({
   return (
     <View className="p-4 pb-2">
       <Text className={titleClassName(isRead)}>Has completado una misión</Text>
-      <Mission mission={payload.userMission} />
+      {payload.userMission ? <Mission mission={payload.userMission} /> : <MissingReference />}
     </View>
   );
 }
@@ -131,7 +143,11 @@ function LoopNotification({
   return (
     <View className="p-4 pb-2 gap-2">
       <Text className={titleClassName(isRead)}>{label}</Text>
-      <Listing listing={payload.listing} variant="compact" />
+      {payload.listing ? (
+        <Listing listing={payload.listing} variant="compact" />
+      ) : (
+        <MissingReference />
+      )}
     </View>
   );
 }
@@ -146,7 +162,11 @@ function DonationNotification({
   return (
     <View className="p-4 gap-2">
       <Text className={titleClassName(isRead)}>Nueva donación recibida</Text>
-      <User user={payload.donorUser} className="border border-stroke" />
+      {payload.donorUser ? (
+        <User user={payload.donorUser} className="border border-stroke" />
+      ) : (
+        <MissingReference />
+      )}
       <CreditsBadge credits={payload.amount} numberClassName="text-2xl" iconSize={32} />
     </View>
   );
@@ -174,5 +194,7 @@ function AdminNotification({
         </View>
       );
     // TODO - Agregar otro tipo de notificaciones de admin
+    default:
+      return null;
   }
 }

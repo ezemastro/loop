@@ -145,7 +145,10 @@ describe("Database Helpers", () => {
       expect(notifications).toHaveLength(2);
       const loopNotification = notifications.find((n) => n.type === "loop");
       expect(loopNotification).toBeDefined();
-      expect((loopNotification!.payload as { listing?: unknown }).listing).toBeUndefined();
+      // `null`, not `undefined`: `undefined` vanishes when the payload is serialized to JSON, so
+      // the client received a payload with no `listing` key at all and dereferenced it blindly.
+      // An explicit `null` is what the client's `LoopNotificationPayload` now declares and checks.
+      expect((loopNotification!.payload as { listing?: unknown }).listing).toBeNull();
       const donationNotification = notifications.find((n) => n.type === "donation");
       expect(donationNotification).toBeDefined();
       // El total de paginación viene de `COUNT(*) OVER()` (mockeado en `total_records`) y ahora

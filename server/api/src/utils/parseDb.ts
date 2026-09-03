@@ -351,7 +351,7 @@ export const parseNotificationFromBase = ({
         message: payload.message,
         referenceId: payload.referenceId,
         target: payload.target,
-        reference: payload.referenceId && payload.target === "listing" ? listing! : null,
+        reference: (payload.referenceId && payload.target === "listing" ? listing : null) ?? null,
       } as AdminNotificationPayload;
       break;
     }
@@ -361,7 +361,7 @@ export const parseNotificationFromBase = ({
         ...payload,
         amount: payload.amount,
         donorUserId: payload.donorUserId,
-        donorUser: donorUser!,
+        donorUser: donorUser ?? null,
         message: payload.message,
       } as DonationNotificationPayload;
       break;
@@ -372,8 +372,8 @@ export const parseNotificationFromBase = ({
         ...payload,
         listingId: payload.listingId,
         buyerId: payload.buyerId,
-        buyer: payload.buyerId ? buyer! : null,
-        listing: payload.listingId ? listing! : null,
+        buyer: (payload.buyerId ? buyer : null) ?? null,
+        listing: (payload.listingId ? listing : null) ?? null,
         toListingStatus: payload.toListingStatus,
         toOfferedCredits: payload.toOfferedCredits,
         type: payload.type,
@@ -385,7 +385,7 @@ export const parseNotificationFromBase = ({
       newPayload = {
         ...payload,
         userMissionId: payload.userMissionId,
-        userMission: userMission!,
+        userMission: userMission ?? null,
       } as MissionNotificationPayload;
       break;
     }

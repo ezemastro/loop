@@ -224,8 +224,15 @@ interface WalletTransaction extends WalletTransactionBase {
 interface MissionNotificationPayloadBase {
   userMissionId: UUID;
 }
+/**
+ * The hydrated references below are nullable ON PURPOSE. The server resolves each one
+ * best-effort (`getNotifications` wraps every lookup in `safe()`), so a notification whose
+ * referenced row was deleted is still delivered, with the reference missing. Typing them as
+ * non-null made the client trust a value the server never promised, and the renderer crashed the
+ * whole route on the first dangling reference.
+ */
 interface MissionNotificationPayload extends MissionNotificationPayloadBase {
-  userMission: UserMission;
+  userMission: UserMission | null;
 }
 interface LoopNotificationPayloadBase {
   listingId: UUID;
@@ -242,7 +249,7 @@ interface LoopNotificationPayloadBase {
     | "listing_cancelled";
 }
 interface LoopNotificationPayload extends LoopNotificationPayloadBase {
-  listing: Listing;
+  listing: Listing | null;
   buyer: PublicUser | null;
 }
 interface AdminNotificationPayloadBase {
@@ -261,7 +268,7 @@ interface DonationNotificationPayloadBase {
   message: string | null;
 }
 interface DonationNotificationPayload extends DonationNotificationPayloadBase {
-  donorUser: PublicUser;
+  donorUser: PublicUser | null;
 }
 interface NotificationBase {
   id: UUID;
