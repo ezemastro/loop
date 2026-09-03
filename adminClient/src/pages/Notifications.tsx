@@ -4,6 +4,8 @@ import adminApi from "@/api/adminApi";
 import CommunityFilter from "@/components/CommunityFilter";
 import { useCommunityScope } from "@/hooks/useCommunityScope";
 import { AxiosError } from "axios";
+import { Send, Lightbulb } from "lucide-react";
+import { Alert, Button, Card, CardBody, Field, Input, PageHeader, Textarea } from "@/components/ui";
 
 export default function Notifications() {
   const {
@@ -98,147 +100,126 @@ export default function Notifications() {
 
   return (
     <Layout>
-      <div className="p-8 max-w-3xl mx-auto">
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-          <h1 className="text-3xl font-bold">Enviar Notificación Administrativa</h1>
-          {isSuperAdmin && (
-            <CommunityFilter
-              communities={communities}
-              value={selectedCommunityId}
-              onChange={setSelectedCommunityId}
-              allowAll
-              loading={communitiesLoading}
-            />
-          )}
-        </div>
+      <div className="mx-auto max-w-3xl">
+        <PageHeader
+          title="Enviar Notificación Administrativa"
+          filters={
+            isSuperAdmin && (
+              <CommunityFilter
+                communities={communities}
+                value={selectedCommunityId}
+                onChange={setSelectedCommunityId}
+                allowAll
+                loading={communitiesLoading}
+              />
+            )
+          }
+        />
 
-        {error && (
-          <div className="bg-red-100 text-red-700 p-4 rounded mb-4 flex items-center gap-2">
-            <span className="text-xl">⚠️</span>
-            <span>{error}</span>
-          </div>
-        )}
-
+        {error && <Alert tone="error">{error}</Alert>}
         {success && (
-          <div className="bg-green-100 text-green-700 p-4 rounded mb-4 flex items-center gap-2">
-            <span className="text-xl">✓</span>
-            <span>{success}</span>
-          </div>
+          <Alert tone="success" className="mt-4">
+            {success}
+          </Alert>
         )}
 
-        <div className="bg-white p-6 rounded-lg shadow space-y-6">
-          {/* Búsqueda de usuario */}
-          <div>
-            <label className="block mb-2 font-semibold text-gray-700">Usuario destinatario*:</label>
-            {selectedUser ? (
-              <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded px-4 py-3">
-                <div>
-                  <p className="font-semibold text-blue-900">
-                    {selectedUser.firstName} {selectedUser.lastName}
-                  </p>
-                  <p className="text-sm text-blue-700">{selectedUser.email}</p>
-                </div>
-                <button
-                  onClick={() => setSelectedUser(null)}
-                  className="text-blue-600 hover:text-blue-800 font-semibold"
-                >
-                  Cambiar
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                    className="border border-gray-300 rounded px-4 py-2 flex-1"
-                    placeholder="Buscar por nombre o email..."
-                  />
-                  <button
-                    onClick={handleSearch}
-                    disabled={searching}
-                    className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 disabled:opacity-50"
-                  >
-                    {searching ? "Buscando..." : "Buscar"}
-                  </button>
-                </div>
-                {users.length > 0 && (
-                  <div className="border border-gray-300 rounded max-h-60 overflow-y-auto">
-                    {users.map((user) => (
-                      <button
-                        key={user.id}
-                        onClick={() => handleSelectUser(user)}
-                        className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b last:border-b-0"
-                      >
-                        <p className="font-semibold">
-                          {user.firstName} {user.lastName}
-                        </p>
-                        <p className="text-sm text-gray-600">{user.email}</p>
-                      </button>
-                    ))}
+        <Card className="mt-4">
+          <CardBody className="space-y-6 p-6">
+            <Field label="Usuario destinatario" required>
+              {selectedUser ? (
+                <div className="flex items-center justify-between rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-3">
+                  <div>
+                    <p className="font-semibold text-indigo-900">
+                      {selectedUser.firstName} {selectedUser.lastName}
+                    </p>
+                    <p className="text-sm text-indigo-700">{selectedUser.email}</p>
                   </div>
-                )}
-              </div>
-            )}
-          </div>
+                  <Button variant="ghost" size="sm" onClick={() => setSelectedUser(null)}>
+                    Cambiar
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                      placeholder="Buscar por nombre o email..."
+                      className="flex-1"
+                    />
+                    <Button onClick={handleSearch} loading={searching}>
+                      Buscar
+                    </Button>
+                  </div>
+                  {users.length > 0 && (
+                    <div className="rounded-lg border border-slate-300">
+                      {users.map((user) => (
+                        <button
+                          key={user.id}
+                          type="button"
+                          onClick={() => handleSelectUser(user)}
+                          className="w-full border-b border-slate-200 px-4 py-3 text-left transition last:border-b-0 hover:bg-slate-50"
+                        >
+                          <p className="font-semibold text-slate-900">
+                            {user.firstName} {user.lastName}
+                          </p>
+                          <p className="text-sm text-slate-600">{user.email}</p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </Field>
 
-          {/* Formulario de notificación */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label
-                htmlFor="notification-title"
-                className="block mb-2 font-semibold text-gray-700"
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Field label="Título" htmlFor="notification-title" required>
+                <Input
+                  id="notification-title"
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Ej: Actualización de cuenta"
+                  required
+                />
+              </Field>
+
+              <Field label="Mensaje" htmlFor="notification-message" required>
+                <Textarea
+                  id="notification-message"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  rows={5}
+                  placeholder="Escribe el contenido de la notificación..."
+                  required
+                />
+              </Field>
+
+              <Button
+                type="submit"
+                size="lg"
+                loading={loading}
+                disabled={!selectedUser}
+                className="w-full"
               >
-                Título*:
-              </label>
-              <input
-                id="notification-title"
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="border border-gray-300 rounded px-4 py-2 w-full"
-                placeholder="Ej: Actualización de cuenta"
-                required
-              />
-            </div>
+                <Send aria-hidden size={16} strokeWidth={1.75} />
+                {loading ? "Enviando..." : "Enviar Notificación"}
+              </Button>
+            </form>
+          </CardBody>
+        </Card>
 
-            <div>
-              <label
-                htmlFor="notification-message"
-                className="block mb-2 font-semibold text-gray-700"
-              >
-                Mensaje*:
-              </label>
-              <textarea
-                id="notification-message"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                className="border border-gray-300 rounded px-4 py-2 w-full"
-                rows={5}
-                placeholder="Escribe el contenido de la notificación..."
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading || !selectedUser}
-              className="bg-green-500 text-white px-6 py-3 rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed w-full font-semibold text-lg"
-            >
-              {loading ? "Enviando..." : "📤 Enviar Notificación"}
-            </button>
-          </form>
-        </div>
-
-        {/* Ejemplo de notificación */}
-        <div className="mt-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
-          <h3 className="font-semibold text-gray-700 mb-2">💡 Ejemplo:</h3>
-          <p className="text-sm text-gray-600 mb-1">
+        <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <h3 className="mb-2 flex items-center gap-2 font-semibold text-slate-700">
+            <Lightbulb aria-hidden size={16} strokeWidth={1.75} />
+            Ejemplo
+          </h3>
+          <p className="mb-1 text-sm text-slate-600">
             <strong>Título:</strong> Cambio en las políticas de uso
           </p>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-slate-600">
             <strong>Mensaje:</strong> Hemos actualizado nuestras políticas de privacidad. Por favor
             revisa los nuevos términos en tu perfil.
           </p>
