@@ -6,6 +6,7 @@ import adminApi from "@/api/adminApi";
 import { AxiosError } from "axios";
 import { useSessionStore } from "@/stores/session";
 import { useNavigate } from "react-router";
+import { Alert, Button, Field, Input } from "@/components/ui";
 
 interface FormErrors {
   email?: string;
@@ -66,67 +67,58 @@ export default function Register() {
   };
   return (
     <Layout>
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-        <h1 className="text-3xl font-bold mb-6">Registrarse</h1>
-        <form onSubmit={handleRegister}>
-          <div className="mb-4">
-            <label htmlFor="email">Email:</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              className="border border-gray-300 rounded px-3 py-2 w-full"
-              required
-            />
-            {formErrors?.email && <div className="text-red-500 text-sm">{formErrors.email}</div>}
+      <div className="flex min-h-screen items-center justify-center px-4 py-12">
+        <div className="w-full max-w-sm">
+          <div className="mb-6 text-center">
+            <p className="text-xs font-semibold tracking-[0.2em] text-slate-500 uppercase">Loop</p>
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">
+              Registrarse
+            </h1>
           </div>
-          <div className="mb-4">
-            <label htmlFor="fullName">Nombre Completo:</label>
-            <input
-              type="text"
-              id="fullName"
-              name="fullName"
-              className="border border-gray-300 rounded px-3 py-2 w-full"
-              required
-            />
-            {formErrors?.fullName && (
-              <div className="text-red-500 text-sm">{formErrors.fullName}</div>
-            )}
+
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <form onSubmit={handleRegister} className="space-y-4">
+              <Field label="Email" htmlFor="email" error={formErrors?.email} required>
+                <Input id="email" name="email" type="email" autoComplete="email" required />
+              </Field>
+              <Field
+                label="Nombre Completo"
+                htmlFor="fullName"
+                error={formErrors?.fullName}
+                required
+              >
+                <Input id="fullName" name="fullName" type="text" autoComplete="name" required />
+              </Field>
+              <Field label="Contraseña" htmlFor="password" error={formErrors?.password} required>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                />
+              </Field>
+              <Field
+                label="Repetir Contraseña"
+                htmlFor="passwordConfirm"
+                error={formErrors?.passwordConfirm}
+                required
+              >
+                <Input
+                  id="passwordConfirm"
+                  name="passwordConfirm"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                />
+              </Field>
+              {formErrors?.error && <Alert tone="error">{formErrors.error}</Alert>}
+              <Button type="submit" size="lg" className="w-full">
+                Registrar
+              </Button>
+            </form>
           </div>
-          <div className="mb-4">
-            <label htmlFor="password">Contraseña:</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              className="border border-gray-300 rounded px-3 py-2 w-full"
-              required
-            />
-            {formErrors?.password && (
-              <div className="text-red-500 text-sm">{formErrors.password}</div>
-            )}
-          </div>
-          <div className="mb-4">
-            <label htmlFor="passwordConfirm">Repetir Contraseña:</label>
-            <input
-              type="password"
-              id="passwordConfirm"
-              name="passwordConfirm"
-              className="border border-gray-300 rounded px-3 py-2 w-full"
-              required
-            />
-            {formErrors?.passwordConfirm && (
-              <div className="text-red-500 text-sm">{formErrors.passwordConfirm}</div>
-            )}
-          </div>
-          <button
-            type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          >
-            Registrar
-          </button>
-          {formErrors?.error && <div className="text-red-500 text-sm mt-3">{formErrors.error}</div>}
-        </form>
+        </div>
       </div>
     </Layout>
   );

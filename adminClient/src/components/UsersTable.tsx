@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui";
+
 interface UsersTableProps {
   users: PrivateUser[];
   loading: boolean;
@@ -42,18 +44,12 @@ export default function UsersTable({
               <td className="px-4 py-3">{user.schools.map((s) => s.name).join(", ") || "N/A"}</td>
               <td className="px-4 py-3">
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => onModifyCredits(user)}
-                    className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-sm"
-                  >
+                  <Button variant="secondary" size="sm" onClick={() => onModifyCredits(user)}>
                     Créditos
-                  </button>
-                  <button
-                    onClick={() => onResetPassword(user)}
-                    className="bg-orange-500 text-white px-3 py-1 rounded hover:bg-orange-600 text-sm"
-                  >
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={() => onResetPassword(user)}>
                     Password
-                  </button>
+                  </Button>
                 </div>
               </td>
             </tr>

@@ -1,5 +1,6 @@
 import { School as SchoolIcon } from "lucide-react";
 import { getUrl } from "@/services/getUrl";
+import { Button } from "@/components/ui";
 
 interface SchoolWithStats extends School {
   stats?: {
@@ -65,12 +66,9 @@ export default function SchoolsTable({ schools, loading, onEdit }: SchoolsTableP
               <td className="px-4 py-3">{school.stats?.kgCo2.toFixed(2) ?? "N/A"} kg</td>
               <td className="px-4 py-3">{school.stats?.lH2o.toFixed(2) ?? "N/A"} L</td>
               <td className="px-4 py-3">
-                <button
-                  onClick={() => onEdit?.(school)}
-                  className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition"
-                >
+                <Button variant="secondary" size="sm" onClick={() => onEdit?.(school)}>
                   Editar
-                </button>
+                </Button>
               </td>
             </tr>
           ))}

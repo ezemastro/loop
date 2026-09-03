@@ -1,3 +1,5 @@
+import { Badge, Button } from "@/components/ui";
+
 interface MissionsTableProps {
   missions: MissionTemplate[];
   loading: boolean;
@@ -49,23 +51,12 @@ export default function MissionsTable({ missions, loading, onEdit }: MissionsTab
                 </span>
               </td>
               <td className="px-4 py-3">
-                {mission.active ? (
-                  <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">
-                    Activa
-                  </span>
-                ) : (
-                  <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-sm">
-                    Inactiva
-                  </span>
-                )}
+                {mission.active ? <Badge tone="success">Activa</Badge> : <Badge>Inactiva</Badge>}
               </td>
               <td className="px-4 py-3">
-                <button
-                  onClick={() => onEdit(mission)}
-                  className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm"
-                >
+                <Button variant="secondary" size="sm" onClick={() => onEdit(mission)}>
                   Editar
-                </button>
+                </Button>
               </td>
             </tr>
           ))}

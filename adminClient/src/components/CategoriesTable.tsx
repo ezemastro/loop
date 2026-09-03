@@ -1,4 +1,5 @@
 import { useState, type JSX } from "react";
+import { Button } from "@/components/ui";
 
 interface CategoriesTableProps {
   categories: Category[];
@@ -70,19 +71,17 @@ export default function CategoriesTable({
         </td>
         <td className="px-4 py-3">
           <div className="flex gap-2">
-            <button
-              onClick={() => onEdit(category)}
-              className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm"
-            >
+            <Button variant="secondary" size="sm" onClick={() => onEdit(category)}>
               Editar
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => onAddSubcategory(category)}
-              className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-sm font-bold"
               title="Agregar subcategoría"
             >
               +
-            </button>
+            </Button>
           </div>
         </td>
       </tr>,

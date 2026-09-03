@@ -16,22 +16,38 @@ export default function Home() {
 
   return (
     <Layout>
-      {/* Login and register buttons */}
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-        <h1 className="text-3xl font-bold mb-6">Administración de Loop</h1>
-        <div className="space-x-4">
-          <Link to="/login" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-            Iniciar Sesión
-          </Link>
-          <Link
-            to="/register"
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-600"
-          >
-            Registrarse
-          </Link>
-        </div>
-        <div className="p-4">
-          <GoogleLoginButton />
+      <div className="flex min-h-screen items-center justify-center px-4 py-12">
+        <div className="w-full max-w-sm text-center">
+          <p className="text-xs font-semibold tracking-[0.2em] text-slate-500 uppercase">Loop</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">
+            Administración de Loop
+          </h1>
+
+          <div className="mt-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex flex-col gap-3">
+              <Link
+                to="/login"
+                className="bg-brand-primary inline-flex w-full items-center justify-center rounded-lg px-5 py-2.5 text-base font-medium text-white shadow-sm transition hover:opacity-90"
+              >
+                Iniciar Sesión
+              </Link>
+              <Link
+                to="/register"
+                className="inline-flex w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-base font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Registrarse
+              </Link>
+            </div>
+
+            <div className="my-5 flex items-center gap-3 text-xs text-slate-400">
+              <span className="h-px flex-1 bg-slate-200" />o
+              <span className="h-px flex-1 bg-slate-200" />
+            </div>
+
+            <div className="flex justify-center">
+              <GoogleLoginButton />
+            </div>
+          </div>
         </div>
       </div>
     </Layout>

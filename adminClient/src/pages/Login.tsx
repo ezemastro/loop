@@ -85,7 +85,8 @@ export default function Login() {
             </form>
 
             <div className="my-5 flex items-center gap-3 text-xs text-slate-400">
-              <span className="h-px flex-1 bg-slate-200" />o<span className="h-px flex-1 bg-slate-200" />
+              <span className="h-px flex-1 bg-slate-200" />o
+              <span className="h-px flex-1 bg-slate-200" />
             </div>
 
             <div className="flex justify-center">
@@ -95,7 +96,7 @@ export default function Login() {
 
           <p className="mt-5 text-center text-sm text-slate-500">
             ¿Tenés un email autorizado?{" "}
-            <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-700">
+            <Link to="/register" className="text-brand-primary font-medium hover:opacity-80">
               Registrate
             </Link>
           </p>
