@@ -47,7 +47,10 @@ export default function Listing({
   onPress?: () => void;
 }) {
   const router = useRouter();
-  const hasImage = listing.media.length > 0;
+  // `Media[]` is non-optional in `shared/types/app.d.ts`, but the 2026-09-03 incident proved a
+  // `listing` can reach this card with `media` missing at runtime — optional-chain it anyway
+  // (design.md D6).
+  const hasImage = (listing.media?.length ?? 0) > 0;
   const onPress =
     onPressProp ??
     (() =>

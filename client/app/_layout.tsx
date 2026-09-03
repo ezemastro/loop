@@ -13,6 +13,10 @@ import { ToastProvider } from "@/components/ToastProvider";
 import PwaInstallPrompt from "@/components/PwaInstallPrompt";
 import ThemeProvider from "@/components/ThemeProvider";
 
+// Last net for a render-phase throw not contained by a tab-level boundary; navigation itself may
+// be dead here, so its escape reloads the app instead of navigating (client-render-error-containment).
+export { AppErrorBoundary as ErrorBoundary } from "@/components/RouteErrorFallback";
+
 export default function RootLayout() {
   const { isLoggedIn } = useAuth();
   const hasAcceptedTerms = useSessionStore((state) => state.hasAcceptedTerms);
