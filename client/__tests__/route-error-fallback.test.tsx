@@ -14,7 +14,15 @@ import { reloadApp } from "../services/reloadApp";
 jest.mock("expo-splash-screen", () => ({ hideAsync: jest.fn() }));
 
 const mockRouterReplace = jest.fn();
-jest.mock("expo-router", () => ({ useRouter: () => ({ replace: mockRouterReplace }) }));
+/**
+ * `replace` forwards lazily instead of being `mockRouterReplace` directly. `babel-plugin-jest-hoist`
+ * lifts this factory above the imports, so it runs while the `const` above is still in its temporal
+ * dead zone -- assigning the reference eagerly would capture `undefined`. (The old `useRouter`
+ * version got away with it because the arrow deferred the read to call time.)
+ */
+jest.mock("expo-router", () => ({
+  router: { replace: (...args: unknown[]) => mockRouterReplace(...args) },
+}));
 jest.mock("../services/reloadApp", () => ({ reloadApp: jest.fn().mockResolvedValue(undefined) }));
 
 /** Always throws during render -- used to prove the boundary actually catches the throw. */

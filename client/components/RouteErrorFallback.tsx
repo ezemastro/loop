@@ -1,5 +1,5 @@
 import { Pressable, Text, View } from "react-native";
-import { useRouter, type ErrorBoundaryProps } from "expo-router";
+import { router, type ErrorBoundaryProps } from "expo-router";
 import Error from "@/components/Error";
 import { queryClient } from "@/api/queryClient";
 import { reloadApp } from "@/services/reloadApp";
@@ -16,14 +16,15 @@ const HOME_HREF = "/(main)/(tabs)/home";
  * `{ error, retry }` — this component MUST NOT read any React context, because the root site
  * (`app/_layout.tsx`) renders it *above* `QueryClientProvider`, `SafeAreaProvider`, `ThemeProvider`,
  * `GestureHandlerRootView` and `ToastProvider` (design.md, "Verified Facts"). `queryClient` is
- * therefore imported as a module singleton, never via `useQueryClient()`.
+ * therefore imported as a module singleton, never via `useQueryClient()`, and navigation uses the
+ * imperative `router` export rather than `useRouter()` -- that hook reads `PreviewRouteContext`
+ * through `use()`, which is a context read even though it defaults to `undefined` and never throws.
+ * Zero context reads is a property worth keeping literally true here, not approximately true.
  *
  * A boundary only catches render-phase throws — not event handlers, effects, or rejected promises
  * (see `client-render-error-containment` spec, "Boundaries Catch Render-Phase Throws Only").
  */
 export function RouteErrorFallback({ error, retry, escape }: RouteErrorFallbackProps) {
-  const router = useRouter();
-
   const handleRetry = async () => {
     // Unfiltered: the subtree that threw is already unmounted by the time this fallback is on
     // screen, so its query has zero observers and `{ type: "active" }` would provably skip it —
