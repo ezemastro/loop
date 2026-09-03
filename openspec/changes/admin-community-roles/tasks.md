@@ -5,19 +5,19 @@ the end of this file.
 
 ## Phase 1: Community Scoping Wiring (Slice 1, ~130 lines, independent)
 
-- [ ] 1.1 `adminClient/src/pages/Users.tsx`: add `useCommunityScope()`, mount `<CommunityFilter
+- [x] 1.1 `adminClient/src/pages/Users.tsx`: add `useCommunityScope()`, mount `<CommunityFilter
       allowAll communities={communities} value={selectedCommunityId}
       onChange={setSelectedCommunityId} loading={communitiesLoading} />` under `isSuperAdmin`, pass
       `scopeCommunityId` to `adminApi.getUsers`, reset `page` to `1` on community change, add
       `scopeCommunityId` to the `loadUsers` effect deps. [SCOPE-1, SCOPE-2]
-- [ ] 1.2 `adminClient/src/pages/Notifications.tsx`: same wiring; pass `scopeCommunityId` into the
+- [x] 1.2 `adminClient/src/pages/Notifications.tsx`: same wiring; pass `scopeCommunityId` into the
       `adminApi.getUsers({ search })` call in `handleSearch`. [SCOPE-1, SCOPE-2]
-- [ ] 1.3 `adminClient/src/pages/Dashboard.tsx`: same wiring; call
+- [x] 1.3 `adminClient/src/pages/Dashboard.tsx`: same wiring; call
       `adminApi.getStats({ communityId: scopeCommunityId })`, add `scopeCommunityId` to the
       `loadStats` effect deps. [SCOPE-1, SCOPE-2, SCOPE-4]
-- [ ] 1.4 Manual: as super_admin, pick a community on Users, navigate to Schools, confirm the same
+- [ ] 1.4 (PENDIENTE — QA manual, requiere ejecutar la app) Manual: as super_admin, pick a community on Users, navigate to Schools, confirm the same
       community is still selected (store persists across nav, resets on reload). [SCOPE-1]
-- [ ] 1.5 Manual: as community_admin, open Users/Notifications/Dashboard — confirm no selector
+- [ ] 1.5 (PENDIENTE — QA manual, requiere ejecutar la app) Manual: as community_admin, open Users/Notifications/Dashboard — confirm no selector
       renders and only own-community data appears. [SCOPE-2]
 
 ## Phase 2: Grant-Path & Scope Regression Tests (Slice 2, ~140 lines, independent)
