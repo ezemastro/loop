@@ -80,6 +80,11 @@ const baseShape = {
   AUTHORIZED_ADMIN_EMAIL: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
   REQUIRE_EMAIL_VERIFICATION: z.enum(["true", "false"]).optional(),
+  // Apagada por defecto (warn-only): la ausencia de super admin es un estado de *datos*
+  // legítimo en un deploy nuevo antes del primer registro, a diferencia de lo que chequea
+  // `assertDbHardening` (estado de *catálogo*, nunca legítimamente ausente). Solo bloquea el
+  // arranque cuando además `NODE_ENV === "production"` (ver `services/bootstrapChecks.ts`).
+  REQUIRE_SUPER_ADMIN_ON_BOOT: z.enum(["true", "false"]).optional(),
   SALT_ROUNDS: z.string().optional(),
 
   // Observabilidad (INF-10, runtime-observability). Ninguna de las dos requiere valor en

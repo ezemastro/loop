@@ -235,6 +235,21 @@ const run = async () => {
 
       const startedAt = Date.now();
       console.log(`→ Aplicando ${migration.version}...`);
+
+      // BOOT-3: causa raíz concreta que dejó cero `super_admin` en producción. Las migraciones que
+      // leen `app.authorized_admin_email` (hoy `0000` y `0006`) promueven por
+      // `NULLIF(current_setting('app.authorized_admin_email', true), '')`; un valor vacío hace que
+      // el WHERE no matchee ninguna fila y la promoción sea un no-op silencioso. Se detecta
+      // buscando el nombre del setting en el propio SQL, no una lista de versiones a mano, para que
+      // una migración nueva que lo use quede cubierta sin tocar este archivo.
+      if (!AUTHORIZED_ADMIN_EMAIL && migration.sql.includes("app.authorized_admin_email")) {
+        console.warn(
+          `\n⚠️  AUTHORIZED_ADMIN_EMAIL no está seteada y ${migration.version} promueve un admin ` +
+            `a super_admin a partir de ese valor: no va a promover a nadie. Ver ` +
+            `docs/runbook-super-admin-recovery.md.\n`,
+        );
+      }
+
       await exposeMigrationSettings(client);
 
       if (migration.useTransaction) {

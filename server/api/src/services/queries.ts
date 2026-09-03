@@ -1071,6 +1071,10 @@ export const queries = {
     "admin.updateGoogleId",
     `UPDATE admins SET google_id = $1 WHERE id = $2`,
   ),
+  countSuperAdmins: q<{ count: number }>(
+    "admin.countSuperAdmins",
+    `SELECT count(*)::int AS count FROM admins WHERE role = 'super_admin'`,
+  ),
 
   createNotification: q<DB_Notifications>(
     "notifications.create",

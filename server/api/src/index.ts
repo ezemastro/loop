@@ -32,6 +32,7 @@ import { trimBody } from "./middlewares/trimBody.js";
 import { deleteRequestLimiter } from "./middlewares/rateLimit.js";
 import { statsRouter } from "./routes/stats.js";
 import { assertDbHardening, checkHealth, unscoped, withClient } from "./services/postgresClient.js";
+import { assertSuperAdminExists } from "./services/bootstrapChecks.js";
 import { queries } from "./services/queries.js";
 
 import { AccountDeletionController } from "./controllers/accountDeletion.js";
@@ -206,6 +207,7 @@ if (NODE_ENV === "test") {
   server = listen();
 } else if (NODE_ENV === "production") {
   assertDbHardening()
+    .then(() => assertSuperAdminExists())
     .then(() => {
       server = listen();
     })
@@ -214,8 +216,14 @@ if (NODE_ENV === "test") {
       process.exit(1);
     });
 } else {
-  assertDbHardening().catch((err) => {
-    console.error(err instanceof Error ? err.message : err);
-  });
+  // Igual que `assertDbHardening()`: no bloquea `listen()`, solo avisa. `assertSuperAdminExists()`
+  // nunca corta el arranque acá — el hard-fail exige `NODE_ENV === "production"`, que esta rama ya
+  // descarta — así que encadenarlo detrás de `assertDbHardening()` no cambia el comportamiento no
+  // bloqueante, solo agrega el mismo aviso que vería producción.
+  assertDbHardening()
+    .then(() => assertSuperAdminExists())
+    .catch((err) => {
+      console.error(err instanceof Error ? err.message : err);
+    });
   server = listen();
 }

@@ -83,6 +83,13 @@ export const EMAIL_DEBUG_LINKS =
     ? env.EMAIL_DEBUG_LINKS === "true"
     : NODE_ENV !== "production";
 
+/**
+ * Si el arranque debe negarse a aceptar tráfico cuando no existe ningún `super_admin`. Apagada
+ * por defecto: ver `services/bootstrapChecks.ts` para el resto del contrato (solo bloquea en
+ * producción, y solo con esta bandera prendida).
+ */
+export const REQUIRE_SUPER_ADMIN_ON_BOOT = env.REQUIRE_SUPER_ADMIN_ON_BOOT === "true";
+
 /** URL pública de la app, usada para armar los links de invitación. */
 export const APP_BASE_URL = env.APP_BASE_URL || FRONTEND_URL || "http://localhost:8081";
 
