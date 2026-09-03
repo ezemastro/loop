@@ -17,6 +17,7 @@ export default {
         "**/routes/**/*.test.ts",
         "**/utils/**/*.test.ts",
         "**/services/**/*.test.ts",
+        "**/middlewares/**/*.test.ts",
       ],
     },
     {
