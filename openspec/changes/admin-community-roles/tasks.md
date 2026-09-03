@@ -15,9 +15,9 @@ the end of this file.
 - [x] 1.3 `adminClient/src/pages/Dashboard.tsx`: same wiring; call
       `adminApi.getStats({ communityId: scopeCommunityId })`, add `scopeCommunityId` to the
       `loadStats` effect deps. [SCOPE-1, SCOPE-2, SCOPE-4]
-- [ ] 1.4 (PENDIENTE — QA manual, requiere ejecutar la app) Manual: as super_admin, pick a community on Users, navigate to Schools, confirm the same
+- [x] 1.4 (QA manual confirmado por el usuario en el stack de dev, 2026-09-03) Manual: as super_admin, pick a community on Users, navigate to Schools, confirm the same
       community is still selected (store persists across nav, resets on reload). [SCOPE-1]
-- [ ] 1.5 (PENDIENTE — QA manual, requiere ejecutar la app) Manual: as community_admin, open Users/Notifications/Dashboard — confirm no selector
+- [x] 1.5 (QA manual confirmado por el usuario en el stack de dev, 2026-09-03) Manual: as community_admin, open Users/Notifications/Dashboard — confirm no selector
       renders and only own-community data appears. [SCOPE-2]
 
 ## Phase 2: Grant-Path & Scope Regression Tests (Slice 2, ~140 lines, independent)
