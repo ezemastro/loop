@@ -20,5 +20,12 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // Node-executed helper scripts (e.g. the brand-tokens drift check), not part of the browser bundle.
+    files: ["scripts/**/*.mjs"],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
   typescriptUnusedVars,
 ]);

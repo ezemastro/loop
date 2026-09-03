@@ -4,6 +4,7 @@ import CommunityFilter from "@/components/CommunityFilter";
 import adminApi from "@/api/adminApi";
 import { useCommunityScope } from "@/hooks/useCommunityScope";
 import { getErrorMessage } from "@/services/errors";
+import { Archive } from "lucide-react";
 import {
   Alert,
   Badge,
@@ -128,7 +129,7 @@ export default function DeletionRequests() {
         <LoadingBlock />
       ) : requests.length === 0 ? (
         <EmptyState
-          icon="🗂️"
+          icon={Archive}
           title={`No hay solicitudes ${STATUS_LABEL[status].toLowerCase()}`}
           description={
             status === "pending"

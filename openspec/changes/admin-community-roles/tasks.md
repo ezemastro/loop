@@ -68,28 +68,28 @@ the end of this file.
 
 ## Phase 4: Brand Tokens & Icon Foundation (Slice 4, ~280 lines, independent)
 
-- [ ] 4.1 Create `adminClient/src/styles/brand-tokens.css` with the `@theme` block (colors,
+- [x] 4.1 Create `adminClient/src/styles/brand-tokens.css` with the `@theme` block (colors,
       `--font-sans`, text scale, radii) mapped from `client/config.ts:7-18`; header comment names
       `client/config.ts` as source of truth. [DESIGN-1, DESIGN-2]
-- [ ] 4.2 `adminClient/src/index.css`: import `brand-tokens.css`; drop the hardcoded `font-family`
+- [x] 4.2 `adminClient/src/index.css`: import `brand-tokens.css`; drop the hardcoded `font-family`
       (`:4`). [DESIGN-1, DESIGN-2]
-- [ ] 4.3 Create `adminClient/scripts/check-brand-tokens.mjs`: parse hexes from `client/config.ts`,
+- [x] 4.3 Create `adminClient/scripts/check-brand-tokens.mjs`: parse hexes from `client/config.ts`,
       fail on mismatch vs `brand-tokens.css`; exit 0 with a notice if `client/config.ts` is absent.
       [DESIGN-1]
-- [ ] 4.4 `adminClient/package.json`: add `"lucide-react"` (pin the current registry version at
+- [x] 4.4 `adminClient/package.json`: add `"lucide-react"` (pin the current registry version at
       apply time) and a `"check:tokens": "node scripts/check-brand-tokens.mjs"` script. [DESIGN-1,
       DESIGN-3]
-- [ ] 4.5 `cd adminClient && npm run check:tokens` — confirm it passes against unmodified
+- [x] 4.5 `cd adminClient && npm run check:tokens` — confirm it passes against unmodified
       `client/config.ts`. [DESIGN-1]
-- [ ] 4.6 `adminClient/src/components/ui/Alert.tsx`: change `TONES[].icon: string` →
+- [x] 4.6 `adminClient/src/components/ui/Alert.tsx`: change `TONES[].icon: string` →
       `LucideIcon`; replace its 4 emoji per the Decision 4 map; `size={16} strokeWidth={1.75}`,
       `currentColor`. [DESIGN-3]
-- [ ] 4.7 `adminClient/src/components/ui/EmptyState.tsx`: change `icon?: string` →
+- [x] 4.7 `adminClient/src/components/ui/EmptyState.tsx`: change `icon?: string` →
       `icon?: LucideIcon`; replace its emoji; `size={32}`, wrapper `text-slate-400`. [DESIGN-3]
-- [ ] 4.8 `adminClient/src/components/Aside.tsx`: change `NavItem.icon: string` → `LucideIcon`;
+- [x] 4.8 `adminClient/src/components/Aside.tsx`: change `NavItem.icon: string` → `LucideIcon`;
       re-scan with `rg` for the emoji Unicode ranges and replace all occurrences per the Decision 4
       map (confirm exact count at apply time — do not trust the ~12 estimate blindly). [DESIGN-3]
-- [ ] 4.9 Manual: render Aside, every `Alert` tone, and `EmptyState`; confirm no emoji glyph
+- [x] 4.9 Manual: render Aside, every `Alert` tone, and `EmptyState`; confirm no emoji glyph
       remains, decorative icons carry `aria-hidden`, icon-only usages carry `aria-label`. [DESIGN-3]
 
 ## Phase 5: Remaining Icons & UI-Kit Application (Slice 5, ~340 lines, depends on Phase 4)

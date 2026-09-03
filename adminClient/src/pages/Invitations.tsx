@@ -4,6 +4,7 @@ import CommunityFilter from "@/components/CommunityFilter";
 import adminApi from "@/api/adminApi";
 import { useCommunityScope } from "@/hooks/useCommunityScope";
 import { getErrorMessage } from "@/services/errors";
+import { Mail } from "lucide-react";
 import {
   Alert,
   Badge,
@@ -209,7 +210,7 @@ export default function Invitations() {
         <LoadingBlock />
       ) : invitations.length === 0 ? (
         <EmptyState
-          icon="✉️"
+          icon={Mail}
           title="Todavía no generaste ninguna invitación"
           description="Las personas con correo institucional se registran solas, sin necesidad de enlace."
         />

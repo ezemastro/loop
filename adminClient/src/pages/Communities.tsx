@@ -5,6 +5,7 @@ import adminApi, { type AdminCommunity } from "@/api/adminApi";
 import { useCommunitiesStore } from "@/stores/communities";
 import { getErrorMessage } from "@/services/errors";
 import { getUrl } from "@/services/getUrl";
+import { Building2 } from "lucide-react";
 import {
   Alert,
   Badge,
@@ -63,7 +64,7 @@ export default function Communities() {
         <LoadingBlock />
       ) : communities.length === 0 ? (
         <EmptyState
-          icon="🏙️"
+          icon={Building2}
           title="Todavía no hay comunidades"
           description="Creá la primera para empezar a recibir usuarios."
           action={<Button onClick={openCreate}>Nueva comunidad</Button>}

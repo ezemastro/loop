@@ -9,6 +9,7 @@ import EditSchoolModal from "@/components/EditSchoolModal";
 import { useCommunityScope } from "@/hooks/useCommunityScope";
 import { EmptyState } from "@/components/ui";
 import { AxiosError } from "axios";
+import { Building2 } from "lucide-react";
 
 interface SchoolWithStats extends School {
   stats?: {
@@ -126,7 +127,7 @@ export default function Schools() {
 
         {!targetCommunityId ? (
           <EmptyState
-            icon="🏙️"
+            icon={Building2}
             title="Elegí una comunidad"
             description="Los colegios pertenecen a una comunidad; hay que indicar cuál para listarlos."
           />

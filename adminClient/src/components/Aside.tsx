@@ -1,10 +1,24 @@
 import { useIsSuperAdmin, useSessionStore } from "@/stores/session";
 import { NavLink, useNavigate } from "react-router";
 import adminApi from "@/api/adminApi";
+import {
+  Bell,
+  FolderTree,
+  Globe,
+  KeyRound,
+  LayoutDashboard,
+  LogOut,
+  Mail,
+  School,
+  Target,
+  Trash2,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 
 interface NavItem {
   to: string;
-  icon: string;
+  icon: LucideIcon;
   label: string;
   /** Entradas que solo existen para un super admin (catálogos compartidos y comunidades). */
   superAdminOnly?: boolean;
@@ -13,25 +27,25 @@ interface NavItem {
 const SECTIONS: { title: string; items: NavItem[] }[] = [
   {
     title: "Panorama",
-    items: [{ to: "/dashboard", icon: "📊", label: "Dashboard" }],
+    items: [{ to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" }],
   },
   {
     title: "Comunidad",
     items: [
-      { to: "/users", icon: "👥", label: "Usuarios" },
-      { to: "/schools", icon: "🏫", label: "Colegios" },
-      { to: "/invitations", icon: "✉️", label: "Invitaciones" },
-      { to: "/notifications", icon: "🔔", label: "Notificaciones" },
-      { to: "/deletion-requests", icon: "🗑️", label: "Bajas de cuenta" },
+      { to: "/users", icon: Users, label: "Usuarios" },
+      { to: "/schools", icon: School, label: "Colegios" },
+      { to: "/invitations", icon: Mail, label: "Invitaciones" },
+      { to: "/notifications", icon: Bell, label: "Notificaciones" },
+      { to: "/deletion-requests", icon: Trash2, label: "Bajas de cuenta" },
     ],
   },
   {
     title: "Plataforma",
     items: [
-      { to: "/communities", icon: "🌐", label: "Comunidades", superAdminOnly: true },
-      { to: "/categories", icon: "📁", label: "Categorías", superAdminOnly: true },
-      { to: "/missions", icon: "🎯", label: "Misiones", superAdminOnly: true },
-      { to: "/authorize-admin", icon: "🔑", label: "Autorizar admin" },
+      { to: "/communities", icon: Globe, label: "Comunidades", superAdminOnly: true },
+      { to: "/categories", icon: FolderTree, label: "Categorías", superAdminOnly: true },
+      { to: "/missions", icon: Target, label: "Misiones", superAdminOnly: true },
+      { to: "/authorize-admin", icon: KeyRound, label: "Autorizar admin" },
     ],
   },
 ];
@@ -76,7 +90,7 @@ export default function Aside() {
         </p>
         {/* El alcance tiene que estar siempre a la vista: define todo lo que ve el resto del panel. */}
         <p className="mt-2 flex items-center gap-1.5 text-xs">
-          <span aria-hidden>🌐</span>
+          <Globe aria-hidden size={16} strokeWidth={1.75} />
           <span className="truncate text-slate-200">
             {isSuperAdmin ? "Todas las comunidades" : (communityName ?? "Sin comunidad")}
           </span>
@@ -95,7 +109,7 @@ export default function Aside() {
               <div className="space-y-0.5">
                 {items.map((item) => (
                   <NavLink key={item.to} to={item.to} className={linkClass}>
-                    <span aria-hidden>{item.icon}</span>
+                    <item.icon aria-hidden size={16} strokeWidth={1.75} />
                     {item.label}
                   </NavLink>
                 ))}
@@ -110,7 +124,7 @@ export default function Aside() {
           onClick={() => void handleLogout()}
           className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
         >
-          <span aria-hidden>🚪</span>
+          <LogOut aria-hidden size={16} strokeWidth={1.75} />
           Cerrar sesión
         </button>
       </div>
