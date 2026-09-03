@@ -3,6 +3,7 @@ import Layout from "@/components/Layout";
 import adminApi from "@/api/adminApi";
 import MissionsTable from "@/components/MissionsTable";
 import MissionFormModal from "@/components/MissionFormModal";
+import { Alert, Button, PageHeader } from "@/components/ui";
 import { AxiosError } from "axios";
 
 export default function Missions() {
@@ -48,31 +49,30 @@ export default function Missions() {
 
   return (
     <Layout>
-      <div className="p-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Gestión de Misiones</h1>
-          <button
+      <PageHeader
+        title="Gestión de Misiones"
+        actions={
+          <Button
             onClick={() => {
               setEditingMission(null);
               setShowModal(true);
             }}
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition"
           >
-            + Nueva Misión
-          </button>
-        </div>
+            Nueva Misión
+          </Button>
+        }
+      />
 
-        {error && <div className="bg-red-100 text-red-700 p-4 rounded mb-4">{error}</div>}
+      {error && <Alert tone="error">{error}</Alert>}
 
-        <MissionsTable missions={missions} loading={loading} onEdit={handleEdit} />
+      <MissionsTable missions={missions} loading={loading} onEdit={handleEdit} />
 
-        <MissionFormModal
-          mission={editingMission}
-          isOpen={showModal}
-          onClose={handleCloseModal}
-          onSuccess={loadMissions}
-        />
-      </div>
+      <MissionFormModal
+        mission={editingMission}
+        isOpen={showModal}
+        onClose={handleCloseModal}
+        onSuccess={loadMissions}
+      />
     </Layout>
   );
 }

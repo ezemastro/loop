@@ -3,6 +3,7 @@ import Layout from "@/components/Layout";
 import { commonApi } from "@/api/commonApi";
 import CategoriesTable from "@/components/CategoriesTable";
 import CategoryFormModal from "@/components/CategoryFormModal";
+import { Alert, Button, PageHeader } from "@/components/ui";
 import { AxiosError } from "axios";
 
 export default function Categories() {
@@ -57,39 +58,38 @@ export default function Categories() {
 
   return (
     <Layout>
-      <div className="p-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Gestión de Categorías</h1>
-          <button
+      <PageHeader
+        title="Gestión de Categorías"
+        actions={
+          <Button
             onClick={() => {
               setEditingCategory(null);
               setParentCategoryId(undefined);
               setShowModal(true);
             }}
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition"
           >
-            + Nueva Categoría
-          </button>
-        </div>
+            Nueva Categoría
+          </Button>
+        }
+      />
 
-        {error && <div className="bg-red-100 text-red-700 p-4 rounded mb-4">{error}</div>}
+      {error && <Alert tone="error">{error}</Alert>}
 
-        <CategoriesTable
-          categories={categories}
-          loading={loading}
-          onEdit={handleEdit}
-          onAddSubcategory={handleAddSubcategory}
-        />
+      <CategoriesTable
+        categories={categories}
+        loading={loading}
+        onEdit={handleEdit}
+        onAddSubcategory={handleAddSubcategory}
+      />
 
-        <CategoryFormModal
-          category={editingCategory}
-          categories={categories}
-          isOpen={showModal}
-          onClose={handleCloseModal}
-          onSuccess={loadCategories}
-          parentCategoryId={parentCategoryId}
-        />
-      </div>
+      <CategoryFormModal
+        category={editingCategory}
+        categories={categories}
+        isOpen={showModal}
+        onClose={handleCloseModal}
+        onSuccess={loadCategories}
+        parentCategoryId={parentCategoryId}
+      />
     </Layout>
   );
 }

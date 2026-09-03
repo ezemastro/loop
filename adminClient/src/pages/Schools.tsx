@@ -7,7 +7,7 @@ import CommunityFilter from "@/components/CommunityFilter";
 import SchoolsTable from "@/components/SchoolsTable";
 import EditSchoolModal from "@/components/EditSchoolModal";
 import { useCommunityScope } from "@/hooks/useCommunityScope";
-import { EmptyState } from "@/components/ui";
+import { Alert, Button, EmptyState, PageHeader } from "@/components/ui";
 import { AxiosError } from "axios";
 import { Building2 } from "lucide-react";
 
@@ -100,58 +100,54 @@ export default function Schools() {
 
   return (
     <Layout>
-      <div className="p-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Gestión de Escuelas</h1>
-          <div className="flex items-center gap-3">
-            {isSuperAdmin && (
-              <CommunityFilter
-                communities={communities}
-                value={selectedCommunityId}
-                onChange={setSelectedCommunityId}
-                allowAll={false}
-                loading={communitiesLoading}
-              />
-            )}
-            <button
-              onClick={() => setShowCreateModal(true)}
-              disabled={!targetCommunityId}
-              className="bg-green-500 text-white px-4 py-2 rounded transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              + Nueva Escuela
-            </button>
-          </div>
-        </div>
+      <PageHeader
+        title="Gestión de Escuelas"
+        filters={
+          isSuperAdmin && (
+            <CommunityFilter
+              communities={communities}
+              value={selectedCommunityId}
+              onChange={setSelectedCommunityId}
+              allowAll={false}
+              loading={communitiesLoading}
+            />
+          )
+        }
+        actions={
+          <Button onClick={() => setShowCreateModal(true)} disabled={!targetCommunityId}>
+            Nueva Escuela
+          </Button>
+        }
+      />
 
-        {error && <div className="bg-red-100 text-red-700 p-4 rounded mb-4">{error}</div>}
+      {error && <Alert tone="error">{error}</Alert>}
 
-        {!targetCommunityId ? (
-          <EmptyState
-            icon={Building2}
-            title="Elegí una comunidad"
-            description="Los colegios pertenecen a una comunidad; hay que indicar cuál para listarlos."
-          />
-        ) : (
-          <SchoolsTable schools={schools} loading={loading} onEdit={handleEditSchool} />
-        )}
-
-        <CreateSchoolModal
-          isOpen={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
-          onSuccess={loadSchools}
-          communityId={targetCommunityId}
+      {!targetCommunityId ? (
+        <EmptyState
+          icon={Building2}
+          title="Elegí una comunidad"
+          description="Los colegios pertenecen a una comunidad; hay que indicar cuál para listarlos."
         />
+      ) : (
+        <SchoolsTable schools={schools} loading={loading} onEdit={handleEditSchool} />
+      )}
 
-        <EditSchoolModal
-          isOpen={showEditModal}
-          school={selectedSchool}
-          onClose={() => {
-            setShowEditModal(false);
-            setSelectedSchool(null);
-          }}
-          onSuccess={loadSchools}
-        />
-      </div>
+      <CreateSchoolModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={loadSchools}
+        communityId={targetCommunityId}
+      />
+
+      <EditSchoolModal
+        isOpen={showEditModal}
+        school={selectedSchool}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedSchool(null);
+        }}
+        onSuccess={loadSchools}
+      />
     </Layout>
   );
 }
