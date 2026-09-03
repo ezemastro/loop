@@ -1,3 +1,4 @@
+import { School as SchoolIcon } from "lucide-react";
 import { getUrl } from "@/services/getUrl";
 
 interface SchoolWithStats extends School {
@@ -55,7 +56,7 @@ export default function SchoolsTable({ schools, loading, onEdit }: SchoolsTableP
                     className="flex h-12 w-12 items-center justify-center rounded bg-slate-100 text-slate-400"
                     title="Sin logo"
                   >
-                    🏫
+                    <SchoolIcon aria-hidden size={22} strokeWidth={1.75} />
                   </span>
                 )}
               </td>

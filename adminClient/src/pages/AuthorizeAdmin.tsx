@@ -6,7 +6,7 @@ import { useIsSuperAdmin } from "@/stores/session";
 import { useCommunitiesStore } from "@/stores/communities";
 import { getErrorMessage } from "@/services/errors";
 import { emailSchema } from "@/services/validations";
-import { Field, Select } from "@/components/ui";
+import { Alert, Button, Card, CardBody, Field, Input, PageHeader, Select } from "@/components/ui";
 
 type GrantRole = "community_admin" | "super_admin";
 
@@ -73,93 +73,85 @@ export default function AuthorizeAdmin() {
 
   return (
     <Layout>
-      <div className="p-8 max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2">Autorizar Nuevo Administrador</h1>
-        <p className="text-gray-600 mb-6">
-          Agrega un email a la lista de autorizados para registro de administradores
-        </p>
+      <div className="mx-auto max-w-2xl">
+        <PageHeader
+          title="Autorizar Nuevo Administrador"
+          description="Agrega un email a la lista de autorizados para registro de administradores"
+        />
 
-        {error && (
-          <div className="bg-red-100 text-red-700 p-4 rounded mb-4 flex items-center gap-2">
-            <span className="text-xl">⚠️</span>
-            <span>{error}</span>
-          </div>
-        )}
-
+        {error && <Alert tone="error">{error}</Alert>}
         {success && (
-          <div className="bg-green-100 text-green-700 p-4 rounded mb-4 flex items-center gap-2">
-            <span className="text-xl">✓</span>
-            <span>{success}</span>
-          </div>
+          <Alert tone="success" className="mt-4">
+            {success}
+          </Alert>
         )}
 
-        <div className="bg-white p-6 rounded-lg shadow">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Field label="Email del nuevo administrador" htmlFor="authorize-email" required>
-              <input
-                id="authorize-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="border border-gray-300 rounded px-4 py-3 w-full text-lg"
-                placeholder="admin@ejemplo.com"
-                required
-              />
-              <p className="text-sm text-gray-500 mt-2">
-                Este email podrá registrarse como administrador en la plataforma
-              </p>
-            </Field>
-
-            {isSuperAdmin && (
-              <Field label="Rol a otorgar" htmlFor="authorize-role" required>
-                <Select
-                  id="authorize-role"
-                  value={role}
-                  onChange={(e) => {
-                    const nextRole = e.target.value as GrantRole;
-                    setRole(nextRole);
-                    if (nextRole === "super_admin") setCommunityId(null);
-                  }}
-                >
-                  <option value="community_admin">Administrador de comunidad</option>
-                  <option value="super_admin">Super administrador</option>
-                </Select>
+        <Card className="mt-4">
+          <CardBody>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Field label="Email del nuevo administrador" htmlFor="authorize-email" required>
+                <Input
+                  id="authorize-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@ejemplo.com"
+                  required
+                />
+                <p className="text-meta mt-2 text-slate-500">
+                  Este email podrá registrarse como administrador en la plataforma
+                </p>
               </Field>
-            )}
 
-            {needsCommunity && (
-              <CommunityFilter
-                communities={communities}
-                value={communityId}
-                onChange={setCommunityId}
-                allowAll={false}
-                loading={communitiesLoading}
-                label="Comunidad"
-              />
-            )}
+              {isSuperAdmin && (
+                <Field label="Rol a otorgar" htmlFor="authorize-role" required>
+                  <Select
+                    id="authorize-role"
+                    value={role}
+                    onChange={(e) => {
+                      const nextRole = e.target.value as GrantRole;
+                      setRole(nextRole);
+                      if (nextRole === "super_admin") setCommunityId(null);
+                    }}
+                  >
+                    <option value="community_admin">Administrador de comunidad</option>
+                    <option value="super_admin">Super administrador</option>
+                  </Select>
+                </Field>
+              )}
 
-            <button
-              type="submit"
-              disabled={loading || missingCommunity}
-              className="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed w-full font-semibold text-lg"
-            >
-              {loading ? "Autorizando..." : "🔑 Autorizar Email"}
-            </button>
-          </form>
-        </div>
+              {needsCommunity && (
+                <CommunityFilter
+                  communities={communities}
+                  value={communityId}
+                  onChange={setCommunityId}
+                  allowAll={false}
+                  loading={communitiesLoading}
+                  label="Comunidad"
+                />
+              )}
 
-        <div className="mt-8 bg-blue-50 p-6 rounded-lg border border-blue-200">
-          <h2 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
-            <span className="text-xl">ℹ️</span>
-            ¿Cómo funciona?
-          </h2>
-          <ol className="text-sm text-blue-800 space-y-2 list-decimal list-inside">
+              <Button
+                type="submit"
+                size="lg"
+                loading={loading}
+                disabled={missingCommunity}
+                className="w-full"
+              >
+                {loading ? "Autorizando..." : "Autorizar Email"}
+              </Button>
+            </form>
+          </CardBody>
+        </Card>
+
+        <Alert tone="info" title="¿Cómo funciona?" className="mt-8">
+          <ol className="mt-1 list-inside list-decimal space-y-2">
             <li>Ingresa el email de la persona que quieres autorizar</li>
             <li>El email se agregará a la lista de permitidos</li>
             <li>La persona podrá ir a la página de registro y crear su cuenta de administrador</li>
             <li>Solo los emails autorizados pueden registrarse como administradores</li>
           </ol>
-        </div>
+        </Alert>
       </div>
     </Layout>
   );

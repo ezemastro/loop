@@ -116,7 +116,7 @@ function CommunityCard({
               />
             ) : (
               <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-400">
-                🏙️
+                <Building2 aria-hidden size={18} strokeWidth={1.75} />
               </span>
             )}
             {community.name}

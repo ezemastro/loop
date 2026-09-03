@@ -5,7 +5,8 @@ type ButtonVariant = "primary" | "secondary" | "success" | "danger" | "ghost";
 type ButtonSize = "sm" | "md" | "lg";
 
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: "bg-indigo-600 text-white shadow-sm hover:bg-indigo-700 active:bg-indigo-800",
+  primary:
+    "bg-brand-primary text-white shadow-sm hover:bg-brand-primary/90 active:bg-brand-primary/80",
   secondary: "border border-slate-300 bg-white text-slate-700 shadow-sm hover:bg-slate-50",
   success: "bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 active:bg-emerald-800",
   danger: "bg-red-600 text-white shadow-sm hover:bg-red-700 active:bg-red-800",
@@ -37,7 +38,7 @@ export default function Button({
   return (
     <button
       disabled={disabled || loading}
-      className={`inline-flex items-center justify-center rounded-lg font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
+      className={`inline-flex items-center justify-center rounded-lg font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary disabled:cursor-not-allowed disabled:opacity-50 ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
       {...rest}
     >
       {loading && <Spinner className="h-4 w-4 border-white/40 border-t-white" />}
