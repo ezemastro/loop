@@ -68,7 +68,48 @@ file immediately after each slice builds green and is committed.
 
 ## Slice 3 — Bootstrap Guard & Recovery Runbook
 
-- Status: PENDING (not started)
+- Status: DONE
+- Branch: `feat/admin-bootstrap-guard` (stacked on `feat/admin-ui-kit-migration`)
+- Commit: `2be7936` — "feat(api): guardia de arranque para super_admin y runbook de recuperación"
+- Tasks: 3.1–3.7 all `[x]` in `tasks.md`
+- Verification:
+  - `cd server/api && npm run check-types` → passes (`tsc --noEmit`, clean)
+  - `cd server/api && npm run check-sql` → 222 call sites verified, OK (new `countSuperAdmins`
+    query has zero params, matches its zero-arg call site)
+  - `cd server/api && npx jest src/services/bootstrapChecks.test.ts` → 5/5 passing (zero rows
+    warns and continues; ≥1 row is silent; hard-exit only under `NODE_ENV=production` AND the flag;
+    production-without-flag and flag-without-production both stay warn-only)
+- Implementation notes:
+  - `server/api/src/env.ts`: added `REQUIRE_SUPER_ADMIN_ON_BOOT` next to `REQUIRE_EMAIL_
+    VERIFICATION`, same `z.enum(["true","false"]).optional()` shape.
+  - `server/api/src/config.ts`: re-exported it as a resolved boolean
+    (`REQUIRE_SUPER_ADMIN_ON_BOOT = env.REQUIRE_SUPER_ADMIN_ON_BOOT === "true"`) — not in the
+    original task list, but every other flag `bootstrapChecks.ts` needed to read
+    (`REQUIRE_EMAIL_VERIFICATION`, `NODE_ENV`) already follows this exact re-export pattern in
+    `config.ts`, so this keeps `bootstrapChecks.ts` consistent with `postgresClient.ts`'s own
+    `NODE_ENV` import instead of reading `env.js` directly.
+  - `server/api/src/services/queries.ts`: added `countSuperAdmins` (`SELECT count(*)::int AS count
+    FROM admins WHERE role = 'super_admin'`), zero params.
+  - `server/api/src/services/bootstrapChecks.ts`: `assertSuperAdminExists()` per Decision 2 —
+    `withClient(fn, { unscoped("bootstrap") })`, `console.error` with the runbook path on zero
+    rows, `throw` (caught by `index.ts`'s existing `.catch` → `process.exit(1)`, same shape as
+    `assertDbHardening`'s failure path) only under `NODE_ENV==="production" &&
+    REQUIRE_SUPER_ADMIN_ON_BOOT`.
+  - `server/api/src/index.ts`: chained `assertSuperAdminExists()` after `assertDbHardening()`
+    resolves in both the production branch (blocks `listen()`, same `.catch` → `exit(1)`) and the
+    non-production branch (chained onto the already-fire-and-forget `assertDbHardening()` promise,
+    so it stays non-blocking — the hard-fail path is unreachable there anyway since it requires
+    `NODE_ENV==="production"`, which this branch structurally excludes). `test` branch untouched.
+  - `server/api/src/scripts/migrate.ts`: the warning is scoped to migrations whose SQL actually
+    references `app.authorized_admin_email` (detected via `migration.sql.includes(...)`, currently
+    `0000` and `0006`), not every pending migration — the task said "before `exposeMigrationSettings`
+    runs the promotion migration" specifically, and warning on every unrelated future migration
+    while the var is unset would be log noise unrelated to BOOT-3's actual scenario.
+  - `docs/runbook-super-admin-recovery.md`: read-only verification first, then the promotion
+    `UPDATE` (both `role` and `community_id` in the same statement, per
+    `admins_role_scope_chk`), an explicit rollback section requiring the original row captured in
+    step 1, and the logout/re-login requirement tied to the 30-minute admin token. Written in
+    Spanish per the language contract (operator-facing).
 
 ## Slice 2 — Grant-Path & Scope Regression Tests
 

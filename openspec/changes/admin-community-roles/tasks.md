@@ -44,23 +44,23 @@ the end of this file.
 
 ## Phase 3: Bootstrap Guard & Recovery Runbook (Slice 3, ~200 lines, independent)
 
-- [ ] 3.1 `server/api/src/env.ts`: add `REQUIRE_SUPER_ADMIN_ON_BOOT: z.enum(["true","false"
+- [x] 3.1 `server/api/src/env.ts`: add `REQUIRE_SUPER_ADMIN_ON_BOOT: z.enum(["true","false"
       ]).optional()`, default off, next to `REQUIRE_EMAIL_VERIFICATION` (`:82`). [BOOT-2]
-- [ ] 3.2 RED: `server/api/src/services/bootstrapChecks.test.ts` — mocked `withClient` (pattern:
+- [x] 3.2 RED: `server/api/src/services/bootstrapChecks.test.ts` — mocked `withClient` (pattern:
       `postgresClient.test.ts:237`); failing cases: warns on 0 `super_admin` rows and continues; no
       warning when ≥1 row exists; exits only when `NODE_ENV==="production"` AND the flag is
       `"true"`. [BOOT-1, BOOT-2]
-- [ ] 3.3 GREEN: create `server/api/src/services/bootstrapChecks.ts` — `assertSuperAdminExists()`
+- [x] 3.3 GREEN: create `server/api/src/services/bootstrapChecks.ts` — `assertSuperAdminExists()`
       runs `SELECT count(*)::int FROM admins WHERE role='super_admin'` via
       `withClient(fn, { unscoped("bootstrap") })`; `console.error` with the runbook path on zero;
       `process.exit(1)` only under the flag+production condition. [BOOT-1, BOOT-2]
-- [ ] 3.4 `server/api/src/index.ts`: call `assertSuperAdminExists()` after `assertDbHardening()`
+- [x] 3.4 `server/api/src/index.ts`: call `assertSuperAdminExists()` after `assertDbHardening()`
       resolves and before `listen()`, in both the production branch (`:207-215`) and the
       non-production branch (`:216-220`); leave the `test` branch (`:205-206`) untouched. [BOOT-1]
-- [ ] 3.5 `cd server/api && npm run test -- bootstrapChecks.test.ts` — confirm GREEN. [BOOT-1, BOOT-2]
-- [ ] 3.6 `server/api/src/scripts/migrate.ts:172`: log a warning when `AUTHORIZED_ADMIN_EMAIL` is
+- [x] 3.5 `cd server/api && npm run test -- bootstrapChecks.test.ts` — confirm GREEN. [BOOT-1, BOOT-2]
+- [x] 3.6 `server/api/src/scripts/migrate.ts:172`: log a warning when `AUTHORIZED_ADMIN_EMAIL` is
       unset/empty, before `exposeMigrationSettings` runs the promotion migration. [BOOT-3]
-- [ ] 3.7 Create `docs/runbook-super-admin-recovery.md`: read-only verification
+- [x] 3.7 Create `docs/runbook-super-admin-recovery.md`: read-only verification
       (`SELECT id, email, role, community_id FROM admins WHERE lower(email)=lower($1)` plus latest
       `schema_migrations` version) first; then idempotent
       `UPDATE admins SET role='super_admin', community_id=NULL WHERE id=<verified id>`; explicit
@@ -94,23 +94,23 @@ the end of this file.
 
 ## Phase 5: Remaining Icons & UI-Kit Application (Slice 5, ~340 lines, depends on Phase 4)
 
-- [ ] 5.1 Re-scan `adminClient/src` with `rg` for emoji-range glyphs; replace remaining occurrences
+- [x] 5.1 Re-scan `adminClient/src` with `rg` for emoji-range glyphs; replace remaining occurrences
       in `Notifications.tsx`, `AuthorizeAdmin.tsx`, `Communities.tsx`, `SchoolsTable.tsx`,
       `Schools.tsx`, `Invitations.tsx`, `DeletionRequests.tsx` per the Decision 4 map — text/Spanish
       copy stays unchanged. [DESIGN-3]
-- [ ] 5.2 Migrate `Dashboard.tsx`: `PageHeader` for the title, `StatCard` for stat tiles (replace
+- [x] 5.2 Migrate `Dashboard.tsx`: `PageHeader` for the title, `StatCard` for stat tiles (replace
       the ad-hoc block at `:54-64`), `<Alert tone="error">` for the error state. [DESIGN-4]
-- [ ] 5.3 Migrate `Users.tsx`: `PageHeader`, `Input`/`Button` for the search form and pager,
+- [x] 5.3 Migrate `Users.tsx`: `PageHeader`, `Input`/`Button` for the search form and pager,
       `<Alert tone="error">`. [DESIGN-4]
-- [ ] 5.4 Migrate `Notifications.tsx`: `PageHeader`, `Input`/`Button`/`Textarea` for the
+- [x] 5.4 Migrate `Notifications.tsx`: `PageHeader`, `Input`/`Button`/`Textarea` for the
       notification form, `<Alert tone="error">`, `EmptyState` for no results. [DESIGN-4]
-- [ ] 5.5 Migrate `Schools.tsx`, `Invitations.tsx`, `DeletionRequests.tsx`: replace remaining raw
+- [x] 5.5 Migrate `Schools.tsx`, `Invitations.tsx`, `DeletionRequests.tsx`: replace remaining raw
       `<input>`/`<button>` and error `<div>`s with kit primitives. [DESIGN-4]
-- [ ] 5.6 Migrate `AuthorizeAdmin.tsx`, `Communities.tsx`, `Categories.tsx`, `Missions.tsx`: same
+- [x] 5.6 Migrate `AuthorizeAdmin.tsx`, `Communities.tsx`, `Categories.tsx`, `Missions.tsx`: same
       pass. [DESIGN-4]
-- [ ] 5.7 Manual: diff Spanish copy on every migrated page before/after — confirm text is byte-for
+- [x] 5.7 Manual: diff Spanish copy on every migrated page before/after — confirm text is byte-for
       -byte unchanged, only tokens/iconography changed. [DESIGN-3 — "Adjacent copy is unaffected"]
-- [ ] 5.8 If the diff exceeds the 800-line session budget at apply time, split at the migration
+- [x] 5.8 If the diff exceeds the 800-line session budget at apply time, split at the migration
       -order boundary: 5a = steps 5.2–5.4 (Dashboard, Users, Notifications), 5b = steps 5.1, 5.5–5.6
       (remaining 7 files), rather than requesting `size:exception`.
 
