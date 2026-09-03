@@ -38,6 +38,7 @@ si te salteás cualquiera de las tres, algo se rompe en producción o en la tien
 | A | Seguridad de la API: entorno, rate limiting, login uniforme | `sec-hardening-api` |
 | G | Rutas legales, reseteo de contraseña, URLs de media firmadas | `legal-public-routes` |
 | C | Economía de créditos: ciclo del loop, cancelación, borrado de cuenta | `credit-economy-integrity` |
+| H | Contención de errores de render en el cliente (error boundaries) | `client-render-resilience` |
 
 ---
 
@@ -834,3 +835,99 @@ comportamiento sigue exactamente igual — **no** debería poder aceptarse una o
   ya no se descarta de la lista, se devuelve con `media: null`). No se tocó ese archivo porque
   está fuera del alcance de edición de este bloque en la sesión — necesita un ajuste de una
   línea (null-check o `!`) que le corresponde a quien esté limpiando `src/tests/` en paralelo.
+
+---
+
+# Pruebas manuales — `client-render-resilience` (bloque H, 2026-09-03)
+
+Este bloque salió de un incidente real, no de la auditoría: el 2026-09-03 `/notifications` quedó
+completamente en blanco en producción. La causa puntual (una notificación de loop apuntando a una
+publicación borrada) ya está arreglada y desplegada. Lo que se agregó después es la **contención**:
+hasta ese día el cliente no tenía ni un solo error boundary, así que un throw en una tarjeta
+desmontaba la aplicación entera.
+
+`cd client && npx tsc --noEmit`, `npx eslint` y `npx jest --ci --watchAll=false` (880/880, 18 suites)
+ya se verificaron automáticamente. Lo que sigue **no se puede** verificar sin un navegador o un
+dispositivo real.
+
+> **Lo que un error boundary NO hace.** Atrapa throws de la **fase de render**. No atrapa errores de
+> handlers de eventos (un `onPress` que revienta), ni de efectos, ni promesas rechazadas. La app no
+> quedó a prueba de caídas: quedó a prueba de *este* tipo de caída, que es el que nos pasó.
+
+## 1. Que `/notifications` haya vuelto (crítico, es el incidente)
+
+1. Entrar a `/notifications` en producción con la cuenta que lo veía en blanco.
+2. Debe listar las notificaciones. Una notificación de loop cuya publicación ya no exista debe
+   mostrar la tarjeta con el texto **"Este contenido ya no está disponible"** en lugar del bloque de
+   la publicación — no una pantalla en blanco.
+3. Recargar la página estando en `/notifications`: **no** debe cerrar la sesión ni mandarte a `/`.
+   Ese era el segundo bug del mismo día (una carrera entre `/me` y la rehidratación del token).
+
+- [ ] Verificado en web
+- [ ] Verificado en Android
+
+## 2. Que el boundary de pestaña aísle de verdad
+
+No hay forma limpia de forzar esto desde la UI, así que se fuerza a mano en un build de desarrollo:
+
+1. Meter un `throw new Error("prueba")` al principio del componente de una pestaña, por ejemplo en
+   `client/components/screens/Notifications.tsx`.
+2. Abrir esa pestaña: debe verse el fallback ("Algo salió mal", con el mensaje del error porque es
+   `__DEV__`), **no** una pantalla en blanco.
+3. **Las otras pestañas tienen que seguir navegables.** Este es el punto entero del cambio: si al
+   romper Notificaciones se cae también Inicio, la contención no está funcionando.
+4. Tocar "Ir al inicio": debe llevar a la pestaña de inicio.
+5. Sacar el `throw` antes de commitear nada.
+
+- [ ] Verificado en web
+- [ ] Verificado en Android
+
+## 3. El reintento
+
+Con el fallback en pantalla (mismo truco que el punto 2, pero haciendo que el throw dependa de datos
+en caché en vez de ser incondicional):
+
+1. Tocar "Reintentar": debe limpiar la caché de queries y volver a montar la pantalla.
+2. Si el dato que causaba el error ya está bien, la pantalla carga normal.
+3. Si sigue mal, vuelve el fallback — y **la salida tiene que seguir funcionando**. Que el reintento
+   falle en loop no puede dejarte encerrado.
+
+- [ ] Verificado
+
+## 4. Recargar desde el boundary raíz — SOLO se puede probar a mano
+
+`Updates.reloadAsync()` no se puede ejercitar en Jest y además **tira error en `__DEV__`**. O sea:
+este camino no lo cubre ningún test, en ninguna plataforma. Hay que verlo con los ojos.
+
+1. **Web:** forzar un throw en `client/app/_layout.tsx`. El fallback raíz debe ofrecer "Recargar la
+   app" (no "Ir al inicio": en el raíz la navegación puede ser justamente lo que está roto). Tocarlo
+   debe recargar la página.
+2. **Android, build de producción o preview** (no en Expo Go ni en dev): mismo throw, tocar "Recargar
+   la app" debe reiniciar el bundle. En un build de desarrollo va a fallar en silencio y quedarse en
+   el fallback — eso es esperado, no es un bug.
+
+- [ ] Verificado en web
+- [ ] Verificado en Android (build de producción o preview)
+
+## 5. Que el fallback no filtre el error a los usuarios
+
+En un build de **producción**, con el fallback en pantalla: debe verse "Algo salió mal" y los dos
+botones, y **no** el `error.message`. El detalle del error solo sale bajo `__DEV__`.
+
+- [ ] Verificado
+
+## Lo que quedó afuera a propósito
+
+No son olvidos; están anotados como trabajo siguiente en
+`openspec/changes/client-render-resilience/`:
+
+- **Boundaries por ítem de lista.** Hoy un throw en una tarjeta se lleva puesta la pestaña entera.
+  Contenerlo por fila necesita una clase a mano y una convención para que ningún call site nuevo se
+  la olvide — es diseño, no un agregado.
+- **19 rutas fuera de las pestañas siguen sin contención** (`listing/**`, `user/[userId]`,
+  `settings`, `(auth)/**`). Caen al boundary raíz, que las agarra, pero se llevan toda la app en vez
+  de una pestaña.
+- **No hay dónde reportar los errores contenidos.** No hay Sentry ni equivalente, así que a partir
+  de ahora un error atrapado es *invisible* para nosotros: el usuario ve un fallback prolijo y
+  nosotros no nos enteramos. Antes al menos se caía de forma ruidosa. Es un intercambio consciente,
+  pero conviene tenerlo presente.

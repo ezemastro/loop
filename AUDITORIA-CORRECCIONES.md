@@ -212,3 +212,37 @@ correr). Cualquier comparación futura tiene que medir así, no confiar en el n�
 El servidor **siempre** permitió que el comprador cancelara un loop `accepted`; la UI solo se lo
 ofrecía al vendedor — y a ese botón le faltaba el `onPress`, así que tampoco hacía nada.
 Ahora las dos partes lo tienen y funciona.
+
+---
+
+## Hallazgos del incidente del 2026-09-03 (`/notifications` en blanco)
+
+### CLI-12 — los render tests nunca necesitaron una dependencia nueva
+
+CLI-12 cierra su descripción con "sin `@testing-library/react-native`", y dos cambios la leyeron como
+un requisito: `client-critical-fixes` (corrección #12) y el archivado `2026-09-01-loop-settings`
+descartaron los tests de render por eso. **Se midió y es falso.**
+
+El único bloqueo era React 19: difiere el commit inicial, así que un `renderer.create` fuera de
+`act()` deja el árbol sin commitear y `toJSON()` devuelve `null`. Se comprobó con un
+`<View><Text>hola</Text></View>` pelado, **sin ningún `className`** y con el `react-test-renderer`
+19.1.0 de `jest-expo` en vez del 19.0.0 de la raíz: igual daba `null`. O sea que ni NativeWind ni el
+desfasaje de versión de CLI-10 eran la causa. Envolviendo la llamada en `act()`, el árbol sale
+completo.
+
+Hoy hay 3 suites de render (`notification-card`, `listing-card`, `route-error-fallback`) con
+**cero dependencias nuevas y cero cambios en la config de jest**.
+
+Lo que sí sigue siendo cierto: `className` llega como prop inerte bajo jest, porque el runtime de CSS
+de NativeWind lo inyecta Metro y jest nunca corre Metro. **No se pueden afirmar estilos computados** —
+sí estructura y texto, que es lo que atrapa esta clase de bug. Para estilos haría falta
+`nativewind/test`, que a su vez sí requiere `@testing-library/react-native`. Eso queda pendiente y es
+una decisión aparte.
+
+### Lo que la auditoría no vio: el cliente no tenía ni un error boundary
+
+Ningún hallazgo del bloque CLI menciona la contención de errores de render, y era el amplificador de
+todo lo demás. `grep -r ErrorBoundary client/` daba cero. Con eso, **cualquier** throw en fase de
+render —una tarjeta, una fila, un badge— desmontaba la aplicación completa. CLI-04 y el punto 4 de
+`TESTING-MANUAL.md` hablan de "pantallas que quedaban en blanco" tratándolas de a una; el problema
+estructural era que no había nada abajo para atajarlas.
