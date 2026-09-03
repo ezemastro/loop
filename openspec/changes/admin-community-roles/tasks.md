@@ -22,24 +22,24 @@ the end of this file.
 
 ## Phase 2: Grant-Path & Scope Regression Tests (Slice 2, ~140 lines, independent)
 
-- [ ] 2.1 RED: `server/api/src/middlewares/parseAdminToken.test.ts` — failing test: for
+- [x] 2.1 RED: `server/api/src/middlewares/parseAdminToken.test.ts` — failing test: for
       `community_admin`, `adminScopeCommunityId` ignores a client-supplied `requested` community and
       rejects a non-UUID value. [SCOPE-3, SCOPE-5]
-- [ ] 2.2 GREEN: `cd server/api && npm run test -- parseAdminToken.test.ts` — confirm it passes
+- [x] 2.2 GREEN: `cd server/api && npm run test -- parseAdminToken.test.ts` — confirm it passes
       against existing `parseAdminToken.ts:58` (regression only, no production change expected).
       [SCOPE-3]
-- [ ] 2.3 RED: create `server/api/src/controllers/admin.test.ts` (Supertest) — case: `community_admin`
+- [x] 2.3 RED: create `server/api/src/controllers/admin.test.ts` (Supertest) — case: `community_admin`
       submitting `role: "super_admin"` is rejected 403 `SUPER_ADMIN_REQUIRED`, no
       `admin_valid_emails` row created. [GRANT-1]
-- [ ] 2.4 RED: add case — `super_admin` granting `role: "super_admin"` succeeds, created row has
+- [x] 2.4 RED: add case — `super_admin` granting `role: "super_admin"` succeeds, created row has
       `community_id = NULL`. [GRANT-1]
-- [ ] 2.5 RED: add case — `community_admin` of community A granting `community_admin` with a
+- [x] 2.5 RED: add case — `community_admin` of community A granting `community_admin` with a
       spoofed `communityId` for community B still creates a row scoped to A. [GRANT-2]
-- [ ] 2.6 RED: add case — `super_admin` granting `community_admin` with `communityId: C` creates a
+- [x] 2.6 RED: add case — `super_admin` granting `community_admin` with `communityId: C` creates a
       row scoped to `C`. [GRANT-3]
-- [ ] 2.7 RED: add case — `GET /admin/users?communityId=<other>` as `community_admin` returns only
+- [x] 2.7 RED: add case — `GET /admin/users?communityId=<other>` as `community_admin` returns only
       the token's own community. [SCOPE-3, SCOPE-5]
-- [ ] 2.8 GREEN: `cd server/api && npm run test -- admin.test.ts` — confirm all cases pass against
+- [x] 2.8 GREEN: `cd server/api && npm run test -- admin.test.ts` — confirm all cases pass against
       existing `controllers/admin.ts:158-172` (regression only). [GRANT-1, GRANT-2, GRANT-3]
 
 ## Phase 3: Bootstrap Guard & Recovery Runbook (Slice 3, ~200 lines, independent)

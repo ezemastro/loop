@@ -113,7 +113,40 @@ file immediately after each slice builds green and is committed.
 
 ## Slice 2 — Grant-Path & Scope Regression Tests
 
-- Status: PENDING (not started)
+- Status: DONE
+- Branch: `feat/admin-role-grant-tests` (stacked on `feat/admin-bootstrap-guard`)
+- Commit: `fe67396` — "test(api): regresión de grants de rol y de scope forzado por token"
+- Tasks: 2.1–2.8 all `[x]` in `tasks.md`
+- Verification:
+  - `cd server/api && npm run check-types` → passes
+  - `cd server/api && npx jest src/middlewares/parseAdminToken.test.ts` → 10/10 passing
+  - `cd server/api && npx jest src/controllers/admin.test.ts` → 5/5 passing
+  - Both files run together (`npx jest src/controllers/admin.test.ts
+    src/middlewares/parseAdminToken.test.ts`) → 15/15 passing, no cross-file interference
+  - Ran by exact file path only, per INF-06 — the full suite was never invoked and stays red
+- Implementation notes:
+  - `server/api/src/middlewares/parseAdminToken.test.ts` (new): unit tests calling
+    `adminScopeCommunityId` directly against hand-built `Request` objects (no Express, no DB) —
+    covers both roles: `super_admin` (undefined/null/empty → `null`; a valid UUID passed through;
+    a non-UUID rejected with `InvalidInputError`) and `community_admin` (a spoofed `requested`
+    community is always ignored in favor of the token's own; a missing `adminCommunityId`, or no
+    session at all, fails closed with `UnauthorizedError` rather than falling back to unscoped).
+  - **Deviation (necessary, documented):** `server/api/jest.config.js`'s `unit` project `testMatch`
+    listed `models/`, `controllers/`, `routes/`, `utils/`, `services/` but not `middlewares/` — the
+    exact directory `parseAdminToken.ts` lives in and the exact path the tasks artifact assigned
+    for 2.1. Added `"**/middlewares/**/*.test.ts"` to `testMatch`; without it the assigned test file
+    could not run at all (`jest ... parseAdminToken.test.ts` → "No tests found").
+  - `server/api/src/controllers/admin.test.ts` (new): Supertest against a standalone Express app
+    (`express()` + `cookieParser()` + real `adminRouter`, mirroring the isolation pattern in
+    `routes/uploads.test.ts`) — `adminTokenMiddleware` runs for real (cookies built with the real
+    `generateAdminToken`), so role gating is exercised end-to-end, not just at the unit level.
+    `AdminModel.addValidEmailForRegistration` and `AdminModel.getUsers` are mocked (`jest.mock`) to
+    assert call arguments without touching the DB. Five cases: community_admin → super_admin is
+    rejected 403 with zero model calls; super_admin → super_admin succeeds with `communityId:
+    null`; community_admin(A) → community_admin with a spoofed `communityId: B` still creates the
+    row scoped to A; super_admin → community_admin with `communityId: C` creates it scoped to C;
+    `GET /admin/users?communityId=<other>` as community_admin(A) is still called with `communityId:
+    A`.
 
 ## Work order note
 
