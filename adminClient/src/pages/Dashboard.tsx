@@ -1,22 +1,31 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import adminApi from "@/api/adminApi";
+import CommunityFilter from "@/components/CommunityFilter";
+import { useCommunityScope } from "@/hooks/useCommunityScope";
 import { AxiosError } from "axios";
 
 export default function Dashboard() {
+  const {
+    isSuperAdmin,
+    communities,
+    communitiesLoading,
+    selectedCommunityId,
+    setSelectedCommunityId,
+    scopeCommunityId,
+  } = useCommunityScope();
+
   const [stats, setStats] = useState<Record<string, number> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadStats();
-  }, []);
-
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await adminApi.getStats();
+      const response = await adminApi.getStats(
+        scopeCommunityId ? { communityId: scopeCommunityId } : undefined,
+      );
       if (response.success && response.data) {
         setStats(response.data.stats);
       }
@@ -28,7 +37,11 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [scopeCommunityId]);
+
+  useEffect(() => {
+    void loadStats();
+  }, [loadStats]);
 
   const formatLabel = (key: string) => {
     return key
@@ -40,7 +53,18 @@ export default function Dashboard() {
   return (
     <Layout>
       <div className="p-8">
-        <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          {isSuperAdmin && (
+            <CommunityFilter
+              communities={communities}
+              value={selectedCommunityId}
+              onChange={setSelectedCommunityId}
+              allowAll
+              loading={communitiesLoading}
+            />
+          )}
+        </div>
 
         {error && <div className="bg-red-100 text-red-700 p-4 rounded mb-4">{error}</div>}
 

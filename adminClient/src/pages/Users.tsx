@@ -4,6 +4,8 @@ import adminApi from "@/api/adminApi";
 import UsersTable from "@/components/UsersTable";
 import ModifyCreditsModal from "@/components/ModifyCreditsModal";
 import ResetPasswordModal from "@/components/ResetPasswordModal";
+import CommunityFilter from "@/components/CommunityFilter";
+import { useCommunityScope } from "@/hooks/useCommunityScope";
 import { AxiosError } from "axios";
 
 /** Respaldo cuando la respuesta no trae `pagination` (revert independiente del lado servidor). Ver `server/api/src/config.ts:156`. */
@@ -19,6 +21,15 @@ export default function Users() {
   const [selectedUserForCredits, setSelectedUserForCredits] = useState<PrivateUser | null>(null);
   const [selectedUserForPassword, setSelectedUserForPassword] = useState<PrivateUser | null>(null);
 
+  const {
+    isSuperAdmin,
+    communities,
+    communitiesLoading,
+    selectedCommunityId,
+    setSelectedCommunityId,
+    scopeCommunityId,
+  } = useCommunityScope();
+
   const loadUsers = useCallback(async () => {
     try {
       setLoading(true);
@@ -26,6 +37,7 @@ export default function Users() {
       const response = await adminApi.getUsers({
         page,
         search: search || undefined,
+        ...(scopeCommunityId ? { communityId: scopeCommunityId } : {}),
       });
 
       if (response.success && response.data) {
@@ -45,7 +57,7 @@ export default function Users() {
     } finally {
       setLoading(false);
     }
-  }, [page, search]);
+  }, [page, search, scopeCommunityId]);
 
   useEffect(() => {
     loadUsers();
@@ -57,10 +69,26 @@ export default function Users() {
     loadUsers();
   };
 
+  const handleCommunityChange = (communityId: UUID | null) => {
+    setSelectedCommunityId(communityId);
+    setPage(1);
+  };
+
   return (
     <Layout>
       <div className="p-8">
-        <h1 className="text-3xl font-bold mb-6">Gestión de Usuarios</h1>
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+          <h1 className="text-3xl font-bold">Gestión de Usuarios</h1>
+          {isSuperAdmin && (
+            <CommunityFilter
+              communities={communities}
+              value={selectedCommunityId}
+              onChange={handleCommunityChange}
+              allowAll
+              loading={communitiesLoading}
+            />
+          )}
+        </div>
 
         <form onSubmit={handleSearch} className="mb-6 flex gap-2">
           <input

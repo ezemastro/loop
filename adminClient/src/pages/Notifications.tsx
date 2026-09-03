@@ -1,9 +1,20 @@
 import { useState } from "react";
 import Layout from "@/components/Layout";
 import adminApi from "@/api/adminApi";
+import CommunityFilter from "@/components/CommunityFilter";
+import { useCommunityScope } from "@/hooks/useCommunityScope";
 import { AxiosError } from "axios";
 
 export default function Notifications() {
+  const {
+    isSuperAdmin,
+    communities,
+    communitiesLoading,
+    selectedCommunityId,
+    setSelectedCommunityId,
+    scopeCommunityId,
+  } = useCommunityScope();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [users, setUsers] = useState<PrivateUser[]>([]);
   const [selectedUser, setSelectedUser] = useState<PrivateUser | null>(null);
@@ -20,7 +31,10 @@ export default function Notifications() {
     try {
       setSearching(true);
       setError(null);
-      const response = await adminApi.getUsers({ search: searchQuery.trim() });
+      const response = await adminApi.getUsers({
+        search: searchQuery.trim(),
+        ...(scopeCommunityId ? { communityId: scopeCommunityId } : {}),
+      });
       if (response.success && response.data) {
         setUsers(response.data.users);
       }
@@ -85,7 +99,18 @@ export default function Notifications() {
   return (
     <Layout>
       <div className="p-8 max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Enviar Notificación Administrativa</h1>
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+          <h1 className="text-3xl font-bold">Enviar Notificación Administrativa</h1>
+          {isSuperAdmin && (
+            <CommunityFilter
+              communities={communities}
+              value={selectedCommunityId}
+              onChange={setSelectedCommunityId}
+              allowAll
+              loading={communitiesLoading}
+            />
+          )}
+        </div>
 
         {error && (
           <div className="bg-red-100 text-red-700 p-4 rounded mb-4 flex items-center gap-2">
