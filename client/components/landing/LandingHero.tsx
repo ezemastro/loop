@@ -68,12 +68,13 @@ export default function LandingHero({ phoneSource }: Props) {
       </AnimatedView>
 
       {phoneSource ? (
-        <AnimatedView
-          entering={FadeInDown.duration(600).delay(120)}
-          className="max-lg:hidden items-center lg:w-1/2"
-        >
-          <PhoneFrame source={phoneSource} alt="Pantalla de inicio de Loop" width={260} />
-        </AnimatedView>
+        // Layout lives on a plain `View`: putting width/visibility classes on the animated
+        // element itself leaves Reanimated's web entrance stuck near zero opacity.
+        <View className="w-full items-center lg:w-1/2">
+          <AnimatedView entering={FadeInDown.duration(600).delay(120)}>
+            <PhoneFrame source={phoneSource} alt="Pantalla de inicio de Loop" width={260} />
+          </AnimatedView>
+        </View>
       ) : null}
     </View>
   );

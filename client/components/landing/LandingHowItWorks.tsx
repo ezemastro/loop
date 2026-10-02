@@ -80,7 +80,7 @@ export default function LandingHowItWorks({ stepScreenshots, desktopSource }: Pr
               </View>
 
               {screenshot ? (
-                <View className="max-lg:hidden items-center lg:w-1/2">
+                <View className="w-full items-center lg:w-1/2">
                   <PhoneFrame
                     source={screenshot}
                     alt={`Pantalla de Loop: ${step.title}`}

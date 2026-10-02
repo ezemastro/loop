@@ -96,3 +96,8 @@ own visual language, with real app screenshots.
 - Visual readback (headless Chromium CDP, full page): 390x844 DPR2 and 1440x900, no horizontal
   overflow (`scrollWidth === clientWidth` at 390). `/ingresar` renders the old `Landing`. Hydration
   error #418 appears in the browser console on `/`; not fixed (out of scope per task brief).
+- 2026-10-02 (parent spot check): the hero phone was invisible at every width (same Reanimated
+  `display:none` + entering bug) and mobile showed no screenshots at all (`max-lg:hidden`). Fixed by
+  moving layout classes to a plain `View` and showing the phone shots at all widths. Re-captured at
+  390 and 1440: hero phone and step screenshot visible, no horizontal overflow. jest 946/946, tsc clean.
+  Hydration #418 on `/` is pre-existing: the screenshot agent reproduced it on `main`'s export.
