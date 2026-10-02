@@ -1,7 +1,8 @@
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Link } from "expo-router";
 import { Pressable, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { FadeInDown } from "react-native-reanimated";
+import AnimatedView from "./AnimatedView";
 
 /** Centered band on navy, final chance to act. */
 export default function LandingFinalCta() {
@@ -12,7 +13,7 @@ export default function LandingFinalCta() {
       className="w-full items-center px-5 py-16 lg:py-20"
       style={{ backgroundColor: colors.SECONDARY }}
     >
-      <Animated.View entering={FadeInDown.duration(500)} className="items-center">
+      <AnimatedView entering={FadeInDown.duration(500)} className="items-center">
         <Text className="max-w-xl text-center text-2xl font-bold text-white lg:text-3xl">
           Sumate a tu comunidad escolar en Loop
         </Text>
@@ -40,7 +41,7 @@ export default function LandingFinalCta() {
             </Pressable>
           </Link>
         </View>
-      </Animated.View>
+      </AnimatedView>
     </View>
   );
 }

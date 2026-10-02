@@ -1,6 +1,7 @@
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { FadeInDown } from "react-native-reanimated";
+import AnimatedView from "./AnimatedView";
 
 const GROUPS = ["Familias", "Estudiantes", "Docentes", "Personal autorizado"];
 
@@ -9,7 +10,7 @@ export default function LandingForWhom() {
   const colors = useThemeColors();
 
   return (
-    <Animated.View
+    <AnimatedView
       entering={FadeInDown.duration(500)}
       className="w-full flex-row flex-wrap items-center justify-center gap-x-10 gap-y-4 px-5 py-10 lg:px-10"
       style={{ backgroundColor: colors.BACKGROUND }}
@@ -22,7 +23,7 @@ export default function LandingForWhom() {
         correo institucional.
       </Text>
 
-      <View className="flex-row flex-wrap items-center justify-center gap-3">
+      <View className="w-full flex-row flex-wrap items-center justify-center gap-3 lg:w-auto">
         {GROUPS.map((group) => (
           <View key={group} className="rounded-full bg-white px-4 py-2">
             <Text className="text-xs font-semibold" style={{ color: colors.SECONDARY }}>
@@ -31,6 +32,6 @@ export default function LandingForWhom() {
           </View>
         ))}
       </View>
-    </Animated.View>
+    </AnimatedView>
   );
 }

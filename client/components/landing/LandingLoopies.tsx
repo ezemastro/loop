@@ -1,7 +1,8 @@
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { RepeatIcon, StarIcon } from "@/components/Icons";
 import { Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { FadeInDown } from "react-native-reanimated";
+import AnimatedView from "./AnimatedView";
 
 const FACTS = [
   {
@@ -24,11 +25,11 @@ export default function LandingLoopies() {
       style={{ backgroundColor: colors.BACKGROUND }}
       nativeID="loopies"
     >
-      <Animated.View
+      <AnimatedView
         entering={FadeInDown.duration(500)}
         className="mx-auto w-full max-w-5xl flex-row flex-wrap items-start justify-between gap-10 lg:flex-nowrap"
       >
-        <View className="w-full max-w-md lg:w-1/2">
+        <View className="w-full min-w-0 max-w-md lg:w-1/2">
           <Text
             accessibilityRole="header"
             className="text-2xl font-bold lg:text-3xl"
@@ -43,7 +44,7 @@ export default function LandingLoopies() {
           </Text>
         </View>
 
-        <View className="w-full max-w-md gap-4 lg:w-1/2">
+        <View className="w-full min-w-0 max-w-md gap-4 lg:w-1/2">
           {FACTS.map(({ icon: Icon, text }) => (
             <View key={text} className="flex-row items-start gap-3 rounded-2xl bg-white p-4">
               <View
@@ -58,7 +59,7 @@ export default function LandingLoopies() {
             </View>
           ))}
         </View>
-      </Animated.View>
+      </AnimatedView>
     </View>
   );
 }

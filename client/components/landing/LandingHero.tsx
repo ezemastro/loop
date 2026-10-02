@@ -2,7 +2,8 @@ import { useThemeColors } from "@/hooks/useThemeColors";
 import { Link } from "expo-router";
 import type { ImageSourcePropType } from "react-native";
 import { Pressable, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { FadeInDown } from "react-native-reanimated";
+import AnimatedView from "./AnimatedView";
 import { PhoneFrame } from "./DeviceFrame";
 
 type Props = {
@@ -14,9 +15,12 @@ export default function LandingHero({ phoneSource }: Props) {
 
   return (
     <View className="w-full flex-row flex-wrap items-center justify-center gap-10 px-5 py-14 lg:flex-nowrap lg:justify-between lg:px-10 lg:py-24">
-      <Animated.View
+      <AnimatedView
         entering={FadeInDown.duration(500)}
-        className="w-full max-w-xl items-start lg:w-1/2"
+        // `min-w-0`: flex items default to `min-width: auto` on web, so without it the row lets
+        // this column grow to the headline's full intrinsic (unwrapped) width instead of
+        // shrinking it to the viewport and letting the text wrap.
+        className="w-full min-w-0 max-w-xl items-start lg:w-1/2"
       >
         <View className="flex-row items-center gap-2 self-start rounded-full bg-secondary/10 px-4 py-2">
           <Text className="text-xs font-semibold" style={{ color: colors.SECONDARY }}>
@@ -61,15 +65,15 @@ export default function LandingHero({ phoneSource }: Props) {
             </Pressable>
           </Link>
         </View>
-      </Animated.View>
+      </AnimatedView>
 
       {phoneSource ? (
-        <Animated.View
+        <AnimatedView
           entering={FadeInDown.duration(600).delay(120)}
           className="max-lg:hidden items-center lg:w-1/2"
         >
           <PhoneFrame source={phoneSource} alt="Pantalla de inicio de Loop" width={260} />
-        </Animated.View>
+        </AnimatedView>
       ) : null}
     </View>
   );

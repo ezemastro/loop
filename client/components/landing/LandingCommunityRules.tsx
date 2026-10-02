@@ -1,6 +1,7 @@
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { FadeInDown } from "react-native-reanimated";
+import AnimatedView from "./AnimatedView";
 
 const RULES = [
   "Red Itínere ofrece la plataforma, pero no interviene en la entrega, la verificación del producto ni en conflictos entre familias.",
@@ -17,7 +18,7 @@ export default function LandingCommunityRules() {
       className="w-full px-5 py-16 lg:px-10 lg:py-20"
       style={{ backgroundColor: colors.SECONDARY }}
     >
-      <Animated.View entering={FadeInDown.duration(500)} className="mx-auto w-full max-w-[42rem]">
+      <AnimatedView entering={FadeInDown.duration(500)} className="mx-auto w-full max-w-[42rem]">
         <Text
           accessibilityRole="header"
           className="text-center text-2xl font-bold text-white lg:text-3xl"
@@ -33,7 +34,7 @@ export default function LandingCommunityRules() {
             </View>
           ))}
         </View>
-      </Animated.View>
+      </AnimatedView>
     </View>
   );
 }

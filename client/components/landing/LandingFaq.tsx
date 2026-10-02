@@ -2,7 +2,8 @@ import { ArrowDownIcon, ArrowUpIcon } from "@/components/Icons";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { FadeInDown } from "react-native-reanimated";
+import AnimatedView from "./AnimatedView";
 import { FAQ_ITEMS } from "./content";
 
 /** Accordion: one item expanded at a time, plain Pressable expand/collapse. */
@@ -24,7 +25,7 @@ export default function LandingFaq() {
         {FAQ_ITEMS.map((item, index) => {
           const isOpen = openId === item.id;
           return (
-            <Animated.View
+            <AnimatedView
               key={item.id}
               entering={FadeInDown.duration(400).delay(index * 50)}
               className="overflow-hidden rounded-2xl"
@@ -53,7 +54,7 @@ export default function LandingFaq() {
                   </Text>
                 </View>
               ) : null}
-            </Animated.View>
+            </AnimatedView>
           );
         })}
       </View>

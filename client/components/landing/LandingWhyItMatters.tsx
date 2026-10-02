@@ -1,7 +1,8 @@
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { CO2Icon, LeafIcon, WasteIcon } from "@/components/Icons";
 import { Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { FadeInDown } from "react-native-reanimated";
+import AnimatedView from "./AnimatedView";
 
 const REASONS = [
   {
@@ -37,7 +38,7 @@ export default function LandingWhyItMatters() {
 
       <View className="mx-auto mt-10 w-full max-w-2xl gap-6">
         {REASONS.map(({ icon: Icon, title, text }, index) => (
-          <Animated.View
+          <AnimatedView
             key={title}
             entering={FadeInDown.duration(450).delay(index * 70)}
             className="flex-row items-start gap-4"
@@ -56,7 +57,7 @@ export default function LandingWhyItMatters() {
                 {text}
               </Text>
             </View>
-          </Animated.View>
+          </AnimatedView>
         ))}
       </View>
     </View>

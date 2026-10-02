@@ -38,9 +38,14 @@ export default function MarketingLanding() {
         showsVerticalScrollIndicator={false}
       >
         <LandingNav onNavigate={navigateToSection} />
-        <LandingHero />
+        <LandingHero phoneSource={require("../../assets/landing/phone-home.webp")} />
         <LandingForWhom />
-        <LandingHowItWorks stepScreenshots={{}} />
+        <LandingHowItWorks
+          stepScreenshots={{
+            buscar: require("../../assets/landing/phone-listing.webp"),
+          }}
+          desktopSource={require("../../assets/landing/desktop-home.webp")}
+        />
         <LandingLoopies />
         <LandingWhyItMatters />
         <LandingCommunityRules />

@@ -9,7 +9,7 @@ export default function LandingFooter() {
 
   return (
     <View className="w-full border-t px-5 py-10 lg:px-10" style={{ borderColor: colors.STROKE }}>
-      <View className="mx-auto w-full max-w-5xl flex-row flex-wrap items-center justify-between gap-6">
+      <View className="mx-auto w-full max-w-5xl flex-col items-center gap-6 lg:flex-row lg:justify-between">
         <Image
           source={require("../../assets/reditinere_logo.png")}
           accessibilityLabel="Red Itínere"
@@ -17,7 +17,7 @@ export default function LandingFooter() {
           style={{ width: 88, height: 29 }}
         />
 
-        <View className="flex-row flex-wrap items-center gap-x-6 gap-y-2">
+        <View className="w-full flex-row flex-wrap items-center justify-center gap-x-6 gap-y-2 lg:w-auto lg:justify-end">
           <Link href="/privacidad" className="text-sm" style={{ color: colors.SECONDARY_TEXT }}>
             Privacidad
           </Link>
