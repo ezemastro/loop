@@ -28,6 +28,14 @@ export default function AuthLayout() {
         }}
       />
       <Tabs.Screen
+        name="ingresar"
+        options={{
+          href: null,
+          headerShown: false,
+          tabBarStyle: { display: "none" },
+        }}
+      />
+      <Tabs.Screen
         name="login"
         options={{
           title: "Iniciar sesión",
