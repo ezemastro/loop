@@ -61,6 +61,22 @@ own visual language, with real app screenshots.
   web export fails to even build in a fresh worktree for unrelated environment reasons, before
   reaching the point where the error could be observed). Not fixed, per scope.
 
+## Round 2 (user feedback, 2026-10-04)
+Accepted changes:
+- [ ] T5 Fix the web hydration error #418 (pre-existing on `main`) that breaks bottom-tab switching. Needed by T7. Route: delegated.
+- [ ] T6 Demo data: replace generic placeholder photos (bridge for "Botella de agua térmica") with real product photos from an open-license bank (Unsplash/Pexels), bundled locally. Route: delegated (worktree).
+- [ ] T7 Embeddable live demo: a URL that boots the app straight into demo mode for an iframe inside the hero phone; demo banner hidden until the first interaction; must not leak demo session into the parent page storage. Route: delegated.
+- [ ] T8 Recapture screenshots with real demo photos, no demo banner, feed from the top (phone-home, phone-listing, phone-chat, phone-publish, desktop-home). Route: delegated.
+  Partial: `phone-publish.webp` and `phone-chat.webp` captured and wired (see Progress below).
+  T2's old claim that these two were "not reachable from the demo flow" was wrong — they are
+  reachable, see the hydration-bug workaround in Progress. `phone-home`/`desktop-home`/
+  `phone-listing` recapture explicitly deferred: the user wants it redone once T6 lands real
+  product photos, so the hero recapture attempted in this session was cancelled mid-flight and its
+  output discarded (never written to `client/assets/landing/`).
+- [ ] T9 Hero redesign: max-width centered container, no "Red Itínere" pill (use the Itínere logo instead), laptop + phone composition on a Loop-styled panel; phone runs the live demo (static shot on small screens). Route: delegated (opus).
+- [ ] T10 "Cómo funciona" redesign: compact aligned steps with one sticky/switching device instead of scattered items. Route: delegated (opus, with T9).
+- [ ] T11 Subtle motion and hover states across the page; self-critique with screenshots at 390 / 1440 / 1920. Route: delegated (opus, with T9).
+
 ## Acceptance criteria
 - Logged-out web visit to `/` shows the new landing; "Ingresar" goes to `/ingresar` (old Landing).
 - Native first screen is unchanged.
@@ -76,6 +92,21 @@ own visual language, with real app screenshots.
 - Strategy: ask-on-risk. Forecast > 400 authored lines (landing screen + copy). Branch `feat/marketing-landing`; PR/merge is the user's call.
 
 ## Progress
+- 2026-10-04: captured `phone-publish.webp` and `phone-chat.webp` (real demo-mode UI, 390x844 @2x
+  WebP, 35-39 KB each) and wired them into `MarketingLanding.tsx`'s `stepScreenshots` (`publicar`,
+  `coordinar`), correcting T2's old claim that these two screens were unreachable. How they were
+  reached, and the hydration-#418 root cause found along the way, are written up in the session
+  report (not duplicated here to keep this file short); short version: `/ingresar` -> click
+  "Explorar la demo sin crear cuenta" -> from there, every further navigation used
+  `history.pushState` + a manual `popstate` dispatch instead of a real click or a fresh
+  `Page.navigate`, because the bottom-tab navigator's fiber tree is left corrupted by the #418
+  hydration mismatch (clicks silently no-op) and a full page load re-serves the logged-out static
+  HTML for protected routes with no client-side correction. Chat used the real existing seeded
+  conversation as-is: demo mode is read-only by design (`demo/readOnly.ts`), so sending a new
+  message 403s with a toast instead of reaching the mock dataset. Hero recapture
+  (`phone-home`/`desktop-home`/`phone-listing`) was started per a mid-task request, then cancelled
+  by the user (real product photos are coming first, deferred to T6/T8); nothing from that attempt
+  was written to `client/assets/landing/`.
 - 2026-10-02: branch created, exploration done.
 - 2026-10-02: T1 (`470f411`), T3 sections+copy (`b2333ff`), T3 motion+screenshots (`418dbd9`)
   committed. T4 verification run, see Checks below. Resumed after a container restart killed the

@@ -42,7 +42,9 @@ export default function MarketingLanding() {
         <LandingForWhom />
         <LandingHowItWorks
           stepScreenshots={{
+            publicar: require("../../assets/landing/phone-publish.webp"),
             buscar: require("../../assets/landing/phone-listing.webp"),
+            coordinar: require("../../assets/landing/phone-chat.webp"),
           }}
           desktopSource={require("../../assets/landing/desktop-home.webp")}
         />
