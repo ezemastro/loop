@@ -94,7 +94,7 @@ Accepted changes:
 ## Progress
 - 2026-10-04: captured `phone-publish.webp` and `phone-chat.webp` (real demo-mode UI, 390x844 @2x
   WebP, 35-39 KB each) and wired them into `MarketingLanding.tsx`'s `stepScreenshots` (`publicar`,
-  `coordinar`), correcting T2's old claim that these two screens were unreachable. How they were
+  `coordinar`), correcting T2's old claim that these two screens were unreachable. Commit `005e18c`. How they were
   reached, and the hydration-#418 root cause found along the way, are written up in the session
   report (not duplicated here to keep this file short); short version: `/ingresar` -> click
   "Explorar la demo sin crear cuenta" -> from there, every further navigation used
