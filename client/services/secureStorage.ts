@@ -2,6 +2,7 @@ import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
 import type { StateStorage } from "zustand/middleware";
+import { webStorage } from "./webStorage";
 
 /**
  * The legacy plaintext key `zustand/persist` used before this change. Kept as a constant here (not
@@ -36,11 +37,13 @@ async function getItemWithMigration(name: string): Promise<string | null> {
  * `expo-secure-store` has no web implementation. On web the browser's own origin isolation is the
  * boundary, so `AsyncStorage` (`localStorage`) is retained there rather than shimmed — a shim that
  * throws would make `zustand/persist` swallow the error and silently degrade to no persistence,
- * logging every web user out on refresh.
+ * logging every web user out on refresh. `webStorage` is that same `AsyncStorage`, except on the
+ * embeddable live-demo route, where it's swapped for an in-memory stand-in so the demo session
+ * never leaks into the origin's real `localStorage` (`embed-demo-storage-isolation`).
  */
 export const sessionStorage: StateStorage =
   Platform.OS === "web"
-    ? AsyncStorage
+    ? webStorage
     : {
         getItem: (name) => getItemWithMigration(name),
         setItem: (name, value) => SecureStore.setItemAsync(name, value),

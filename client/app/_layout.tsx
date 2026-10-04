@@ -3,6 +3,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/api/queryClient";
 import { useEffect } from "react";
 import { Platform } from "react-native";
+import Feather from "@expo/vector-icons/Feather";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import "../global.css";
 import { useAuth } from "@/hooks/useAuth";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -12,12 +14,38 @@ import { configureGoogleSignIn } from "@/services/googleOauth";
 import { ToastProvider } from "@/components/ToastProvider";
 import PwaInstallPrompt from "@/components/PwaInstallPrompt";
 import ThemeProvider from "@/components/ThemeProvider";
+import { isEmbedRoute } from "@/services/embedMode";
 
 // Last net for a render-phase throw not contained by a tab-level boundary; navigation itself may
 // be dead here, so its escape reloads the app instead of navigating (client-render-error-containment).
 export { AppErrorBoundary as ErrorBoundary } from "@/components/RouteErrorFallback";
 
+/**
+ * Registers the icon fonts used everywhere (`components/Icons.tsx`) **synchronously during
+ * render**, not in an effect (react-hydration-mismatch-icon-fonts).
+ *
+ * `@expo/vector-icons` renders an empty `<Text />` until `Font.isLoaded(fontFamily)` is true, and
+ * only calls `Font.loadAsync` from its own `componentDidMount` — which never runs during
+ * `expo-router`'s static web export (`ReactDOMServer.renderToString` doesn't run effects). So the
+ * exported HTML always has every icon empty, while the client's first commit can already see a
+ * font as loaded (e.g. another icon's effect having fired first) — a genuine content+style
+ * mismatch React flags as hydration error #418.
+ *
+ * Calling `Feather.loadFont()` / `Ionicons.loadFont()` here (top of the root layout, plain
+ * function calls, not `useEffect`) runs before any `Icon` descendant constructs, on **both**
+ * sides: server-side it synchronously registers the font into `expo-font`'s per-route
+ * `serverContext` (reset per route by `expo-router`, so this must re-run on every render, not
+ * once at module scope); client-side it synchronously injects the `@font-face` `<style>` tag
+ * (idempotent — a no-op once already present). Icons render identically from the very first paint
+ * on both sides, so there's nothing left to swap in after mount.
+ */
+const preloadIconFonts = () => {
+  void Feather.loadFont();
+  void Ionicons.loadFont();
+};
+
 export default function RootLayout() {
+  preloadIconFonts();
   const { isLoggedIn } = useAuth();
   const hasAcceptedTerms = useSessionStore((state) => state.hasAcceptedTerms);
 
@@ -110,8 +138,16 @@ export default function RootLayout() {
                 <Stack.Screen name="privacidad" options={{ statusBarStyle: "dark" }} />
                 <Stack.Screen name="terminos" options={{ statusBarStyle: "dark" }} />
                 <Stack.Screen name="borrar-cuenta" options={{ statusBarStyle: "dark" }} />
+                {/*
+                  Embeddable live-demo entry point (marketing-landing T7, see app/demo.tsx). Same
+                  reason as the legal routes above: it must boot demo mode and reach the home feed
+                  for a logged-out visitor, so it cannot sit inside a Stack.Protected guard.
+                */}
+                <Stack.Screen name="demo" options={{ headerShown: false }} />
               </Stack>
-              <PwaInstallPrompt />
+              {/* Nothing should offer to install the PWA from inside the embeddable live-demo
+                  route (marketing-landing T7) — see services/embedMode.ts. */}
+              {!isEmbedRoute && <PwaInstallPrompt />}
             </ToastProvider>
           </ThemeProvider>
         </SafeAreaProvider>
