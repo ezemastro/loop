@@ -3,6 +3,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/api/queryClient";
 import { useEffect } from "react";
 import { Platform } from "react-native";
+import Feather from "@expo/vector-icons/Feather";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import "../global.css";
 import { useAuth } from "@/hooks/useAuth";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -17,7 +19,32 @@ import ThemeProvider from "@/components/ThemeProvider";
 // be dead here, so its escape reloads the app instead of navigating (client-render-error-containment).
 export { AppErrorBoundary as ErrorBoundary } from "@/components/RouteErrorFallback";
 
+/**
+ * Registers the icon fonts used everywhere (`components/Icons.tsx`) **synchronously during
+ * render**, not in an effect (react-hydration-mismatch-icon-fonts).
+ *
+ * `@expo/vector-icons` renders an empty `<Text />` until `Font.isLoaded(fontFamily)` is true, and
+ * only calls `Font.loadAsync` from its own `componentDidMount` — which never runs during
+ * `expo-router`'s static web export (`ReactDOMServer.renderToString` doesn't run effects). So the
+ * exported HTML always has every icon empty, while the client's first commit can already see a
+ * font as loaded (e.g. another icon's effect having fired first) — a genuine content+style
+ * mismatch React flags as hydration error #418.
+ *
+ * Calling `Feather.loadFont()` / `Ionicons.loadFont()` here (top of the root layout, plain
+ * function calls, not `useEffect`) runs before any `Icon` descendant constructs, on **both**
+ * sides: server-side it synchronously registers the font into `expo-font`'s per-route
+ * `serverContext` (reset per route by `expo-router`, so this must re-run on every render, not
+ * once at module scope); client-side it synchronously injects the `@font-face` `<style>` tag
+ * (idempotent — a no-op once already present). Icons render identically from the very first paint
+ * on both sides, so there's nothing left to swap in after mount.
+ */
+const preloadIconFonts = () => {
+  void Feather.loadFont();
+  void Ionicons.loadFont();
+};
+
 export default function RootLayout() {
+  preloadIconFonts();
   const { isLoggedIn } = useAuth();
   const hasAcceptedTerms = useSessionStore((state) => state.hasAcceptedTerms);
 
