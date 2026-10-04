@@ -14,6 +14,7 @@ import { configureGoogleSignIn } from "@/services/googleOauth";
 import { ToastProvider } from "@/components/ToastProvider";
 import PwaInstallPrompt from "@/components/PwaInstallPrompt";
 import ThemeProvider from "@/components/ThemeProvider";
+import { isEmbedRoute } from "@/services/embedMode";
 
 // Last net for a render-phase throw not contained by a tab-level boundary; navigation itself may
 // be dead here, so its escape reloads the app instead of navigating (client-render-error-containment).
@@ -137,8 +138,16 @@ export default function RootLayout() {
                 <Stack.Screen name="privacidad" options={{ statusBarStyle: "dark" }} />
                 <Stack.Screen name="terminos" options={{ statusBarStyle: "dark" }} />
                 <Stack.Screen name="borrar-cuenta" options={{ statusBarStyle: "dark" }} />
+                {/*
+                  Embeddable live-demo entry point (marketing-landing T7, see app/demo.tsx). Same
+                  reason as the legal routes above: it must boot demo mode and reach the home feed
+                  for a logged-out visitor, so it cannot sit inside a Stack.Protected guard.
+                */}
+                <Stack.Screen name="demo" options={{ headerShown: false }} />
               </Stack>
-              <PwaInstallPrompt />
+              {/* Nothing should offer to install the PWA from inside the embeddable live-demo
+                  route (marketing-landing T7) — see services/embedMode.ts. */}
+              {!isEmbedRoute && <PwaInstallPrompt />}
             </ToastProvider>
           </ThemeProvider>
         </SafeAreaProvider>
