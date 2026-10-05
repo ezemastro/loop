@@ -180,3 +180,4 @@ Accepted changes:
   moving layout classes to a plain `View` and showing the phone shots at all widths. Re-captured at
   390 and 1440: hero phone and step screenshot visible, no horizontal overflow. jest 946/946, tsc clean.
   Hydration #418 on `/` is pre-existing: the screenshot agent reproduced it on `main`'s export.
+- 2026-10-05 (parent): merged T8 shots (6afa376) and card image fix (a0c6f1d), rebuilt dist. Verified bottom tabs with real CDP mouse clicks at 390x844 in demo: Publicar, Mis Loops, Perfil, Inicio each swap the screen (T8 agent report of broken tabs did not reproduce). No console errors.
