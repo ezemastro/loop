@@ -114,6 +114,18 @@ export default function Listing({
         <Image
           source={getListingImageSource(listing.media[0].url)}
           className={twMerge(CARD_IMAGE_ASPECT_RATIO, "w-full bg-background")}
+          // Demo listings resolve to a locally bundled asset (`getListingImageSource`), whose
+          // Metro-embedded intrinsic width/height RN-Web's `Image` otherwise applies as an inline
+          // `height` in px, object-merged on top of (and surviving) any `style` we pass that
+          // doesn't itself set `height` — `aspectRatio` alone isn't enough, since CSS `height`
+          // always wins over `aspect-ratio` once both are present (discovered 2026-10-05
+          // recapturing the landing screenshots after real product photos landed: a portrait
+          // 800x1000 bottle photo blew the card up to 800x1000 CSS px; setting `aspectRatio`
+          // here left RN-Web's own "height: 1000px" default right next to it, still winning).
+          // `height: "auto"` explicitly fills that key so nothing survives the merge, and the
+          // `aspect-[4/3]` class (untouched by this inline style) governs the actual box height.
+          // Fixes both demo (local) and production (remote `{ uri }`) sources.
+          style={{ width: "100%", height: "auto" }}
           resizeMode="cover"
         />
       ) : (
