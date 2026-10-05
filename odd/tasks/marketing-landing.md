@@ -73,9 +73,9 @@ Accepted changes:
   `phone-listing` recapture explicitly deferred: the user wants it redone once T6 lands real
   product photos, so the hero recapture attempted in this session was cancelled mid-flight and its
   output discarded (never written to `client/assets/landing/`).
-- [ ] T9 Hero redesign: max-width centered container, no "Red Itínere" pill (use the Itínere logo instead), laptop + phone composition on a Loop-styled panel; phone runs the live demo (static shot on small screens). Route: delegated (opus).
-- [ ] T10 "Cómo funciona" redesign: compact aligned steps with one sticky/switching device instead of scattered items. Route: delegated (opus, with T9).
-- [ ] T11 Subtle motion and hover states across the page; self-critique with screenshots at 390 / 1440 / 1920. Route: delegated (opus, with T9).
+- [x] T9 Hero redesign: max-width centered container, no "Red Itínere" pill (use the Itínere logo instead), laptop + phone composition on a Loop-styled panel; phone runs the live demo (static shot on small screens). Route: delegated (opus). Commit `1e1d7c1`.
+- [x] T10 "Cómo funciona" redesign: compact aligned steps with one sticky/switching device instead of scattered items. Route: delegated (opus, with T9). Commit `1e1d7c1` (shared with T9: both depend on the new `DeviceFrame`).
+- [x] T11 Subtle motion and hover states across the page; self-critique with screenshots at 390 / 1440 / 1920. Route: delegated (opus, with T9). Commit `17b2595`.
 
 ## Acceptance criteria
 - Logged-out web visit to `/` shows the new landing; "Ingresar" goes to `/ingresar` (old Landing).
@@ -92,6 +92,20 @@ Accepted changes:
 - Strategy: ask-on-risk. Forecast > 400 authored lines (landing screen + copy). Branch `feat/marketing-landing`; PR/merge is the user's call.
 
 ## Progress
+- 2026-10-05: T9-T11 done (`1e1d7c1`, `17b2595`). Hero: 1200px container, "Una plataforma de"
+  + Itínere logo instead of the pill, laptop (`desktop-home.webp`) + phone straddling a navy block
+  that bleeds right. From `lg` up the phone mounts `/demo` in an iframe ~700ms after load, keeps
+  `phone-home.webp` as poster until the iframe's own path reaches `/home`, then fades it in;
+  "Probala acá" hint hides on the first pointer/wheel/key/touch inside it; gives up and keeps the
+  poster after 15s (`components/landing/useLiveDemo.ts`). Below `lg`: one static phone.
+  "Cómo funciona": step list + one phone that crossfades to the active step's capture (hover,
+  focus, press); mobile shows only the active step's description. Mapping: publicar->publish,
+  recibir->listing, buscar->home, coordinar->chat. Rest of page: shared `layout.ts` container,
+  `Reveal` (IntersectionObserver, motion-safe) replaces Reanimated `entering` (AnimatedView
+  deleted), `LandingButton` with hover/active/focus-visible, rules use check icons (no dots), FAQ
+  divided accordion, final CTA as contained navy panel. New guard
+  `__tests__/marketing-landing-layout.test.ts`. Screenshots still the pre-T8 captures; the new
+  ones drop in under the same filenames.
 - 2026-10-04: captured `phone-publish.webp` and `phone-chat.webp` (real demo-mode UI, 390x844 @2x
   WebP, 35-39 KB each) and wired them into `MarketingLanding.tsx`'s `stepScreenshots` (`publicar`,
   `coordinar`), correcting T2's old claim that these two screens were unreachable. Commit `005e18c`. How they were
@@ -112,6 +126,17 @@ Accepted changes:
   committed. T4 verification run, see Checks below. Resumed after a container restart killed the
   writer mid-task; the uncommitted motion/screenshot work was reviewed, finished (reduced-motion
   already covered by Reanimated's default, one real bug found and fixed) and committed.
+
+## Checks (2026-10-05, T9-T11)
+- `cd client && npx jest --ci --watchAll=false --maxWorkers=2`: 24 suites, 1047 tests, all passed.
+- `cd client && npx tsc --noEmit`: clean.
+- `cd client && npx eslint components/landing components/screens/MarketingLanding.tsx`: zero issues.
+- `cd client && npx expo export -p web`: succeeds; `client/dist` rebuilt at the end.
+- Visual (headless Chromium CDP over a static server of the export): 390 DPR2 / 1440 / 1920 full
+  page + hero viewports. iframe reaches `/home` and fades in at 1440 and 1920; a click on its
+  "Publicar" tab navigates the embedded app to `/publish`, the demo banner appears, the hint goes
+  to opacity 0. No horizontal overflow at 390 (`scrollWidth === clientWidth === 390`). Console: no
+  errors (only the pre-existing expo-notifications web warning).
 
 ## Checks (2026-10-02, T4)
 - `cd client && npx jest --ci --watchAll=false --maxWorkers=2`: 19 suites, 946 tests, all passed.
