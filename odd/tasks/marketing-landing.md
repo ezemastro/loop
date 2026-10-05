@@ -66,13 +66,36 @@ Accepted changes:
 - [ ] T5 Fix the web hydration error #418 (pre-existing on `main`) that breaks bottom-tab switching. Needed by T7. Route: delegated.
 - [ ] T6 Demo data: replace generic placeholder photos (bridge for "Botella de agua térmica") with real product photos from an open-license bank (Unsplash/Pexels), bundled locally. Route: delegated (worktree).
 - [ ] T7 Embeddable live demo: a URL that boots the app straight into demo mode for an iframe inside the hero phone; demo banner hidden until the first interaction; must not leak demo session into the parent page storage. Route: delegated.
-- [ ] T8 Recapture screenshots with real demo photos, no demo banner, feed from the top (phone-home, phone-listing, phone-chat, phone-publish, desktop-home). Route: delegated.
-  Partial: `phone-publish.webp` and `phone-chat.webp` captured and wired (see Progress below).
-  T2's old claim that these two were "not reachable from the demo flow" was wrong — they are
-  reachable, see the hydration-bug workaround in Progress. `phone-home`/`desktop-home`/
-  `phone-listing` recapture explicitly deferred: the user wants it redone once T6 lands real
-  product photos, so the hero recapture attempted in this session was cancelled mid-flight and its
-  output discarded (never written to `client/assets/landing/`).
+- [x] T8 Recapture screenshots with real demo photos, no demo banner, feed from the top (phone-home, phone-listing, phone-chat, phone-publish, desktop-home). Route: delegated (worktree).
+  Done in worktree `/home/opencode/projects/loop-wt/shots2`, branch `feat/landing-shots` (off
+  `feat/marketing-landing`, not yet merged). Commits `a0c6f1d` (fix, see below) and `6afa376` (the
+  5 webp files, 37.6-51.9 KB each, 780x1688 mobile @2x / 1440x900 desktop @1x, all under the 250 KB
+  budget). Captured from the live app in demo mode via headless Chromium over CDP. phone-home was
+  adjusted mid-task by the coordinator: it must match `/demo`'s exact first paint (scroll top 0, no
+  interaction) since it's the poster the live hero iframe replaces, not a scroll into the feed.
+  phone-listing shows the water bottle (Lucía's, not ana's) with real photo, price and "Loopear".
+  phone-chat is the real seeded ana<->Sofía thread, reached via the Mensajes tab. phone-publish has
+  the title/category "Mochilas"/condition "Bueno" filled through the real form, photo area visible.
+  Found and fixed a real rendering bug along the way (commit `a0c6f1d`): `cards/Listing.tsx`'s grid
+  card `Image` had no explicit `style`, only `className="aspect-[4/3]"`; for demo listings (now
+  real bundled photos per T6), RN-Web's `Image` applies the asset's Metro-embedded intrinsic height
+  as an inline style default that survives being merged with a `style` prop unless that prop sets
+  `height` itself (`aspectRatio` alone isn't enough — CSS `height` wins over `aspect-ratio` once
+  both are present), so a portrait 800x1000 product photo blew a feed card up to 800x1000 CSS px.
+  Fixed with `style={{width:'100%', height:'auto'}}`. This is a real, user-visible bug in the live
+  demo (both `/demo` and the ordinary demo-mode feed), not just a screenshot artifact — not reverted
+  before committing, since shipping "nice" screenshots while the real feed stays broken would be
+  dishonest; flagged here and in the session report for review.
+  Also found, but explicitly NOT fixed (out of scope, needs its own investigation): in this
+  exported-web build, clicking any TAB-level route (bottom tab bar, header Messages icon, `/messages`
+  index) updates the URL but does not swap the rendered screen — confirmed with both coordinate
+  clicks and native `element.click()`, not a timing issue. STACK-level pushes (listing/chat detail,
+  modal interactions) work fine via click. Worked around in the capture script with
+  `history.pushState` + a dispatched `popstate` event (same technique the pre-T5 session used).
+  Full write-up in Engram, project `loop`, title "T8 landing screenshots recaptured + demo card
+  image-sizing bug fixed".
+  Checks: `cd client && npx jest --ci --watchAll=false --maxWorkers=2` — 23 suites, 973 tests, all
+  passed (worktree, both commits applied).
 - [x] T9 Hero redesign: max-width centered container, no "Red Itínere" pill (use the Itínere logo instead), laptop + phone composition on a Loop-styled panel; phone runs the live demo (static shot on small screens). Route: delegated (opus). Commit `1e1d7c1`.
 - [x] T10 "Cómo funciona" redesign: compact aligned steps with one sticky/switching device instead of scattered items. Route: delegated (opus, with T9). Commit `1e1d7c1` (shared with T9: both depend on the new `DeviceFrame`).
 - [x] T11 Subtle motion and hover states across the page; self-critique with screenshots at 390 / 1440 / 1920. Route: delegated (opus, with T9). Commit `17b2595`.
