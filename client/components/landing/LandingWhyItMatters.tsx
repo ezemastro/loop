@@ -1,8 +1,8 @@
-import { useThemeColors } from "@/hooks/useThemeColors";
 import { CO2Icon, LeafIcon, WasteIcon } from "@/components/Icons";
+import { useThemeColors } from "@/hooks/useThemeColors";
 import { Text, View } from "react-native";
-import { FadeInDown } from "react-native-reanimated";
-import AnimatedView from "./AnimatedView";
+import { BODY_TEXT, LANDING_CONTAINER, SECTION_HEADING, SECTION_PADDING } from "./layout";
+import Reveal from "./Reveal";
 
 const REASONS = [
   {
@@ -22,43 +22,32 @@ const REASONS = [
   },
 ];
 
-/** Vertical, icon-led list. Asymmetric widths, not an equal-card row. */
+/** Three open columns under a hairline, no cards: the reasons read as one statement. */
 export default function LandingWhyItMatters() {
   const colors = useThemeColors();
 
   return (
-    <View className="w-full px-5 py-16 lg:px-10 lg:py-24">
-      <Text
-        accessibilityRole="header"
-        className="text-center text-2xl font-bold lg:text-3xl"
-        style={{ color: colors.MAIN_TEXT }}
-      >
-        Por qué importa
-      </Text>
+    <View className={`w-full ${SECTION_PADDING}`}>
+      <View className={LANDING_CONTAINER}>
+        <Reveal>
+          <Text accessibilityRole="header" className={SECTION_HEADING}>
+            Por qué importa
+          </Text>
+        </Reveal>
 
-      <View className="mx-auto mt-10 w-full max-w-2xl gap-6">
-        {REASONS.map(({ icon: Icon, title, text }, index) => (
-          <AnimatedView
-            key={title}
-            entering={FadeInDown.duration(450).delay(index * 70)}
-            className="flex-row items-start gap-4"
-          >
-            <View
-              className="h-11 w-11 items-center justify-center rounded-full"
-              style={{ backgroundColor: `${colors.SECONDARY}12` }}
+        <View className="mt-10 flex-col gap-8 lg:flex-row lg:gap-12">
+          {REASONS.map(({ icon: Icon, title, text }, index) => (
+            <Reveal
+              key={title}
+              step={index + 1}
+              className="w-full min-w-0 border-t-2 border-secondary/15 pt-6 lg:flex-1"
             >
-              <Icon color={colors.SECONDARY} size={20} />
-            </View>
-            <View className="flex-1">
-              <Text className="text-base font-bold" style={{ color: colors.MAIN_TEXT }}>
-                {title}
-              </Text>
-              <Text className="mt-1 text-sm" style={{ color: colors.SECONDARY_TEXT }}>
-                {text}
-              </Text>
-            </View>
-          </AnimatedView>
-        ))}
+              <Icon color={colors.TERTIARY} size={26} />
+              <Text className="mt-4 text-lg font-bold text-main-text">{title}</Text>
+              <Text className={`mt-2 text-[15px] leading-6 ${BODY_TEXT}`}>{text}</Text>
+            </Reveal>
+          ))}
+        </View>
       </View>
     </View>
   );

@@ -1,37 +1,48 @@
+import { FamilyIcon, StaffIcon, StudentIcon, TeacherIcon } from "@/components/Icons";
 import { useThemeColors } from "@/hooks/useThemeColors";
+import type { ComponentType } from "react";
 import { Text, View } from "react-native";
-import { FadeInDown } from "react-native-reanimated";
-import AnimatedView from "./AnimatedView";
+import { LANDING_CONTAINER } from "./layout";
+import Reveal from "./Reveal";
 
-const GROUPS = ["Familias", "Estudiantes", "Docentes", "Personal autorizado"];
+const GROUPS: { label: string; icon: ComponentType<{ color?: string; size?: number }> }[] = [
+  { label: "Familias", icon: FamilyIcon },
+  { label: "Estudiantes", icon: StudentIcon },
+  { label: "Docentes", icon: TeacherIcon },
+  { label: "Personal autorizado", icon: StaffIcon },
+];
 
-/** Compact band, not a card row: who Loop is for and how they join. */
+/**
+ * Compact band right under the hero: who Loop is for. The four groups sit in columns split by
+ * hairlines (a brochure-style icon row), not in pills.
+ */
 export default function LandingForWhom() {
   const colors = useThemeColors();
 
   return (
-    <AnimatedView
-      entering={FadeInDown.duration(500)}
-      className="w-full flex-row flex-wrap items-center justify-center gap-x-10 gap-y-4 px-5 py-10 lg:px-10"
-      style={{ backgroundColor: colors.BACKGROUND }}
-    >
-      <Text
-        className="w-full max-w-md text-center text-base lg:w-auto lg:max-w-sm lg:text-left"
-        style={{ color: colors.MAIN_TEXT }}
+    <View className="w-full bg-background py-10 lg:py-12">
+      <Reveal
+        className={`${LANDING_CONTAINER} flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-12`}
       >
-        Loop es para toda la comunidad de los colegios de Red Itínere. El registro se hace con tu
-        correo institucional.
-      </Text>
+        <Text className="max-w-[26rem] text-base leading-relaxed text-main-text lg:text-[17px]">
+          Loop es para toda la comunidad de los colegios de Red Itínere. Te registrás con tu correo
+          institucional.
+        </Text>
 
-      <View className="w-full flex-row flex-wrap items-center justify-center gap-3 lg:w-auto">
-        {GROUPS.map((group) => (
-          <View key={group} className="rounded-full bg-white px-4 py-2">
-            <Text className="text-xs font-semibold" style={{ color: colors.SECONDARY }}>
-              {group}
-            </Text>
-          </View>
-        ))}
-      </View>
-    </AnimatedView>
+        <View className="flex-row flex-wrap gap-y-6 lg:flex-nowrap">
+          {GROUPS.map(({ label, icon: Icon }, index) => (
+            <View
+              key={label}
+              className={`w-1/2 items-center gap-2.5 px-3 lg:w-auto lg:px-8 ${
+                index > 0 ? "lg:border-l lg:border-stroke" : ""
+              } ${index % 2 === 1 ? "max-lg:border-l max-lg:border-stroke" : ""}`}
+            >
+              <Icon color={colors.SECONDARY} size={24} />
+              <Text className="text-center text-sm font-semibold text-secondary">{label}</Text>
+            </View>
+          ))}
+        </View>
+      </Reveal>
+    </View>
   );
 }

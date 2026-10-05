@@ -1,62 +1,70 @@
-import { ArrowDownIcon, ArrowUpIcon } from "@/components/Icons";
+import { ArrowDownIcon } from "@/components/Icons";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
-import { FadeInDown } from "react-native-reanimated";
-import AnimatedView from "./AnimatedView";
 import { FAQ_ITEMS } from "./content";
+import {
+  BODY_TEXT,
+  FOCUS_RING,
+  LANDING_CONTAINER,
+  SECTION_HEADING,
+  SECTION_PADDING,
+} from "./layout";
+import Reveal from "./Reveal";
 
-/** Accordion: one item expanded at a time, plain Pressable expand/collapse. */
+/** Accordion under its heading, one item open at a time, hairline-separated rows. */
 export default function LandingFaq() {
   const colors = useThemeColors();
   const [openId, setOpenId] = useState<string | null>(null);
 
   return (
-    <View className="w-full px-5 py-16 lg:px-10 lg:py-24" nativeID="preguntas">
-      <Text
-        accessibilityRole="header"
-        className="text-center text-2xl font-bold lg:text-3xl"
-        style={{ color: colors.MAIN_TEXT }}
-      >
-        Preguntas frecuentes
-      </Text>
+    <View className={`w-full ${SECTION_PADDING}`} nativeID="preguntas">
+      <View className={LANDING_CONTAINER}>
+        <Reveal>
+          <Text accessibilityRole="header" className={SECTION_HEADING}>
+            Preguntas frecuentes
+          </Text>
+        </Reveal>
 
-      <View className="mx-auto mt-10 w-full max-w-2xl gap-3">
-        {FAQ_ITEMS.map((item, index) => {
-          const isOpen = openId === item.id;
-          return (
-            <AnimatedView
-              key={item.id}
-              entering={FadeInDown.duration(400).delay(index * 50)}
-              className="overflow-hidden rounded-2xl"
-              style={{ borderWidth: 1, borderColor: colors.STROKE }}
-            >
-              <Pressable
-                onPress={() => setOpenId(isOpen ? null : item.id)}
-                accessibilityRole="button"
-                accessibilityState={{ expanded: isOpen }}
-                accessibilityLabel={item.question}
-                className="flex-row items-center justify-between gap-3 bg-white px-5 py-4"
-              >
-                <Text className="flex-1 text-sm font-bold" style={{ color: colors.MAIN_TEXT }}>
-                  {item.question}
-                </Text>
+        <Reveal
+          step={1}
+          className="mt-8 w-full min-w-0 border-b border-stroke lg:mt-10 lg:max-w-[52rem]"
+        >
+          {FAQ_ITEMS.map((item) => {
+            const isOpen = openId === item.id;
+            return (
+              <View key={item.id} className="border-t border-stroke">
+                <Pressable
+                  onPress={() => setOpenId(isOpen ? null : item.id)}
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: isOpen }}
+                  accessibilityLabel={item.question}
+                  className={`group flex-row items-center justify-between gap-4 rounded-sm py-5 ${FOCUS_RING}`}
+                >
+                  <Text
+                    className={`flex-1 text-base font-bold transition-colors duration-200 group-hover:text-secondary ${
+                      isOpen ? "text-secondary" : "text-main-text"
+                    }`}
+                  >
+                    {item.question}
+                  </Text>
+                  <View
+                    className={`transition-transform duration-300 motion-reduce:transition-none ${
+                      isOpen ? "rotate-180" : "rotate-0"
+                    }`}
+                  >
+                    <ArrowDownIcon color={colors.SECONDARY} size={20} />
+                  </View>
+                </Pressable>
                 {isOpen ? (
-                  <ArrowUpIcon color={colors.SECONDARY_TEXT} size={18} />
-                ) : (
-                  <ArrowDownIcon color={colors.SECONDARY_TEXT} size={18} />
-                )}
-              </Pressable>
-              {isOpen ? (
-                <View className="bg-white px-5 pb-4">
-                  <Text className="text-sm" style={{ color: colors.SECONDARY_TEXT }}>
+                  <Text className={`pb-5 pr-10 text-[15px] leading-6 ${BODY_TEXT}`}>
                     {item.answer}
                   </Text>
-                </View>
-              ) : null}
-            </AnimatedView>
-          );
-        })}
+                ) : null}
+              </View>
+            );
+          })}
+        </Reveal>
       </View>
     </View>
   );

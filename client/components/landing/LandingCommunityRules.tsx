@@ -1,7 +1,7 @@
-import { useThemeColors } from "@/hooks/useThemeColors";
+import { CheckIcon } from "@/components/Icons";
 import { Text, View } from "react-native";
-import { FadeInDown } from "react-native-reanimated";
-import AnimatedView from "./AnimatedView";
+import { LANDING_CONTAINER } from "./layout";
+import Reveal from "./Reveal";
 
 const RULES = [
   "Red Itínere ofrece la plataforma, pero no interviene en la entrega, la verificación del producto ni en conflictos entre familias.",
@@ -9,32 +9,38 @@ const RULES = [
   "Si algo sale mal, se reporta desde la app.",
 ];
 
-/** Single bordered block on a dark navy tint: headings/dark-block accent logic. */
+/** Full-bleed navy band: heading on the left, the rules as a hairline-separated list. */
 export default function LandingCommunityRules() {
-  const colors = useThemeColors();
-
   return (
-    <View
-      className="w-full px-5 py-16 lg:px-10 lg:py-20"
-      style={{ backgroundColor: colors.SECONDARY }}
-    >
-      <AnimatedView entering={FadeInDown.duration(500)} className="mx-auto w-full max-w-[42rem]">
-        <Text
-          accessibilityRole="header"
-          className="text-center text-2xl font-bold text-white lg:text-3xl"
-        >
-          Reglas de la comunidad
-        </Text>
+    <View className="w-full bg-secondary py-16 lg:py-20">
+      <View
+        className={`${LANDING_CONTAINER} flex-col gap-8 lg:flex-row lg:items-start lg:justify-between lg:gap-16`}
+      >
+        <Reveal className="lg:w-[22rem] lg:shrink-0">
+          <Text
+            accessibilityRole="header"
+            className="text-2xl font-bold text-white lg:text-[2rem] lg:leading-[2.5rem]"
+          >
+            Reglas de la comunidad
+          </Text>
+        </Reveal>
 
-        <View className="mt-8 gap-4 rounded-3xl bg-white/10 p-6 lg:p-8">
-          {RULES.map((rule) => (
-            <View key={rule} className="flex-row items-start gap-3">
-              <View className="mt-2 h-1.5 w-1.5 rounded-full bg-white" />
-              <Text className="flex-1 text-sm text-white/90 lg:text-base">{rule}</Text>
+        <Reveal step={1} className="w-full min-w-0 lg:max-w-[40rem] lg:flex-1">
+          {RULES.map((rule, index) => (
+            <View
+              key={rule}
+              className={`flex-row items-start gap-4 py-5 ${
+                index > 0 ? "border-t border-white/15" : "lg:pt-2"
+              }`}
+            >
+              <View className="mt-0.5">
+                <CheckIcon color="white" size={18} />
+              </View>
+              <Text className="flex-1 text-base leading-relaxed text-white/90">{rule}</Text>
             </View>
           ))}
-        </View>
-      </AnimatedView>
+        </Reveal>
+      </View>
     </View>
   );
 }

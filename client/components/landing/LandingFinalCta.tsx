@@ -1,47 +1,35 @@
-import { useThemeColors } from "@/hooks/useThemeColors";
-import { Link } from "expo-router";
-import { Pressable, Text, View } from "react-native";
-import { FadeInDown } from "react-native-reanimated";
-import AnimatedView from "./AnimatedView";
+import { Text, View } from "react-native";
+import LandingButton from "./LandingButton";
+import { LANDING_CONTAINER } from "./layout";
+import Reveal from "./Reveal";
 
-/** Centered band on navy, final chance to act. */
+/** Closing panel: the same navy block as the hero, contained, with the two page actions. */
 export default function LandingFinalCta() {
-  const colors = useThemeColors();
-
   return (
-    <View
-      className="w-full items-center px-5 py-16 lg:py-20"
-      style={{ backgroundColor: colors.SECONDARY }}
-    >
-      <AnimatedView entering={FadeInDown.duration(500)} className="items-center">
-        <Text className="max-w-xl text-center text-2xl font-bold text-white lg:text-3xl">
-          Sumate a tu comunidad escolar en Loop
-        </Text>
-        <Text className="mt-3 max-w-md text-center text-sm text-white/80">
-          Publicá lo que ya no usás y empezá a loopear con las familias de tu colegio.
-        </Text>
+    <View className="w-full pb-16 lg:pb-24">
+      <View className={LANDING_CONTAINER}>
+        <Reveal className="items-center rounded-3xl bg-secondary px-6 py-14 lg:py-16">
+          <Text
+            accessibilityRole="header"
+            className="max-w-[44rem] text-center text-2xl font-bold text-white lg:text-[2rem] lg:leading-[2.5rem]"
+          >
+            Sumate a tu comunidad escolar en Loop
+          </Text>
+          <Text className="mt-3 max-w-[28rem] text-center text-base leading-relaxed text-white/85">
+            Publicá lo que ya no usás y empezá a loopear con las familias de tu colegio.
+          </Text>
 
-        <View className="mt-8 flex-row flex-wrap items-center justify-center gap-3">
-          <Link href="/ingresar" asChild>
-            <Pressable
-              accessibilityRole="link"
-              accessibilityLabel="Ingresar a Loop"
-              className="rounded-full bg-primary px-7 py-4"
-            >
-              <Text className="text-center text-sm font-bold text-white">Ingresar</Text>
-            </Pressable>
-          </Link>
-          <Link href="/register" asChild>
-            <Pressable
-              accessibilityRole="link"
+          <View className="mt-8 flex-row flex-wrap items-center justify-center gap-3">
+            <LandingButton href="/ingresar" label="Ingresar" accessibilityLabel="Ingresar a Loop" />
+            <LandingButton
+              href="/register"
+              label="Crear cuenta"
               accessibilityLabel="Crear una cuenta en Loop"
-              className="rounded-full border-2 border-white px-7 py-4"
-            >
-              <Text className="text-center text-sm font-bold text-white">Crear cuenta</Text>
-            </Pressable>
-          </Link>
-        </View>
-      </AnimatedView>
+              variant="inverse"
+            />
+          </View>
+        </Reveal>
+      </View>
     </View>
   );
 }
