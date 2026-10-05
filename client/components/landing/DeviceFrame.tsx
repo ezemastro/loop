@@ -1,67 +1,73 @@
-import { useThemeColors } from "@/hooks/useThemeColors";
+import type { ReactNode } from "react";
 import type { ImageSourcePropType } from "react-native";
 import { Image, View } from "react-native";
 
-type FrameProps = {
-  source: ImageSourcePropType;
-  alt: string;
-  width: number;
+/**
+ * Hardware frames around REAL content (an `assets/landing/*.webp` capture or the live `/demo`
+ * iframe), never a hand-built fake UI. Sizes come in as Tailwind width classes so each caller can
+ * size them per breakpoint without measuring.
+ */
+
+/** Phone screen aspect: the captures and the `/demo` iframe are both 390x844 CSS px. */
+export const PHONE_VIEWPORT = { width: 390, height: 844 } as const;
+
+type PhoneProps = {
+  /** Width classes for the SCREEN (the bezel adds 8px per side), e.g. `w-[220px] lg:w-[240px]`. */
+  screenClassName: string;
+  children: ReactNode;
+  className?: string;
 };
 
-/**
- * A simple phone bezel built from a bordered View around a real screenshot, not a decorative
- * fake-UI mockup: the content inside is always an actual `assets/landing/*.png` capture.
- */
-export function PhoneFrame({ source, alt, width }: FrameProps) {
-  const colors = useThemeColors();
-  const height = Math.round(width * 2.165);
-
+export function PhoneShell({ screenClassName, children, className = "" }: PhoneProps) {
   return (
-    <View
-      className="overflow-hidden rounded-[2.5rem] bg-white p-2"
-      style={{
-        width: width + 16,
-        height: height + 16,
-        borderWidth: 6,
-        borderColor: colors.MAIN_TEXT,
-      }}
-    >
-      <View className="flex-1 overflow-hidden rounded-[1.9rem]">
-        <Image
-          source={source}
-          accessibilityLabel={alt}
-          resizeMode="cover"
-          style={{ width, height }}
-        />
+    <View className={`rounded-[2.75rem] bg-main-text p-2 ${className}`}>
+      <View
+        className={`relative aspect-[390/844] overflow-hidden rounded-[2.25rem] bg-white ${screenClassName}`}
+      >
+        {children}
       </View>
     </View>
   );
 }
 
-/** A minimal browser-chrome bar (three dots) framing the desktop screenshot. */
-export function BrowserFrame({ source, alt, width }: FrameProps) {
-  const colors = useThemeColors();
-  const height = Math.round((width * 900) / 1440);
+type ScreenImageProps = {
+  source: ImageSourcePropType;
+  alt: string;
+  className?: string;
+};
 
+/** A capture that fills its device screen edge to edge. */
+export function ScreenImage({ source, alt, className = "" }: ScreenImageProps) {
   return (
-    <View
-      className="overflow-hidden rounded-2xl bg-white"
-      style={{ width, borderWidth: 1, borderColor: colors.STROKE }}
-    >
-      <View
-        className="h-8 flex-row items-center gap-1.5 px-3"
-        style={{ backgroundColor: colors.BACKGROUND }}
-      >
-        <View className="h-2.5 w-2.5 rounded-full bg-alert" />
-        <View className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: "#E4C200" }} />
-        <View className="h-2.5 w-2.5 rounded-full bg-tertiary" />
+    <Image
+      source={source}
+      accessibilityLabel={alt}
+      resizeMode="cover"
+      className={`absolute inset-0 ${className}`}
+      style={{ width: "100%", height: "100%" }}
+    />
+  );
+}
+
+type LaptopProps = {
+  source: ImageSourcePropType;
+  alt: string;
+  /** Width classes for the whole laptop, e.g. `w-[360px] xl:w-[440px]`. */
+  className: string;
+};
+
+/** Lid with a dark bezel around a 16:10 desktop capture, plus a wider aluminium base. */
+export function LaptopShell({ source, alt, className }: LaptopProps) {
+  return (
+    <View className={className}>
+      <View className="rounded-t-[1.1rem] bg-main-text px-[3%] pb-[4%] pt-[3%]">
+        <View className="relative aspect-[16/10] w-full overflow-hidden rounded-[3px] bg-white">
+          <ScreenImage source={source} alt={alt} />
+        </View>
       </View>
-      <Image
-        source={source}
-        accessibilityLabel={alt}
-        resizeMode="cover"
-        style={{ width, height }}
-      />
+      <View className="relative -mx-[7%] h-3.5 rounded-b-2xl bg-stroke">
+        <View className="absolute left-[42%] top-0 h-1.5 w-[16%] rounded-b-lg bg-secondary-text/50" />
+      </View>
     </View>
   );
 }

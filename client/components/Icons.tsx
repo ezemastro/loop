@@ -258,3 +258,23 @@ export const WishlistIcon = (props: Partial<IconProps<string>>) => (
 export const ProfileIcon = (props: Partial<IconProps<string>>) => (
   <Ionicons size={24} {...props} name="person-outline" />
 );
+
+/* Marketing landing (`components/landing/*`). */
+export const TapIcon = (props: Partial<IconProps<string>>) => (
+  <Ionicons size={24} {...props} name="hand-left-outline" />
+);
+export const FamilyIcon = (props: Partial<IconProps<string>>) => (
+  <Feather size={24} {...props} name="users" />
+);
+export const StudentIcon = (props: Partial<IconProps<string>>) => (
+  <Ionicons size={24} {...props} name="school-outline" />
+);
+export const TeacherIcon = (props: Partial<IconProps<string>>) => (
+  <Feather size={24} {...props} name="book-open" />
+);
+export const StaffIcon = (props: Partial<IconProps<string>>) => (
+  <Feather size={24} {...props} name="user-check" />
+);
+export const CheckIcon = (props: Partial<IconProps<string>>) => (
+  <Feather size={24} {...props} name="check" />
+);

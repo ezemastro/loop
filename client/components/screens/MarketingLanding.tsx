@@ -38,15 +38,19 @@ export default function MarketingLanding() {
         showsVerticalScrollIndicator={false}
       >
         <LandingNav onNavigate={navigateToSection} />
-        <LandingHero phoneSource={require("../../assets/landing/phone-home.webp")} />
+        <LandingHero
+          phoneSource={require("../../assets/landing/phone-home.webp")}
+          desktopSource={require("../../assets/landing/desktop-home.webp")}
+        />
         <LandingForWhom />
         <LandingHowItWorks
           stepScreenshots={{
             publicar: require("../../assets/landing/phone-publish.webp"),
-            buscar: require("../../assets/landing/phone-listing.webp"),
+            // The listing detail shows the item's value in loopies.
+            recibir: require("../../assets/landing/phone-listing.webp"),
+            buscar: require("../../assets/landing/phone-home.webp"),
             coordinar: require("../../assets/landing/phone-chat.webp"),
           }}
-          desktopSource={require("../../assets/landing/desktop-home.webp")}
         />
         <LandingLoopies />
         <LandingWhyItMatters />

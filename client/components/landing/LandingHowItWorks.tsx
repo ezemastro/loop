@@ -1,96 +1,129 @@
 import { CreditIcon, PublishIcon, RepeatIcon, SearchIcon } from "@/components/Icons";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import type { ComponentType } from "react";
+import { useState } from "react";
 import type { ImageSourcePropType } from "react-native";
-import { Text, View } from "react-native";
-import { FadeInDown } from "react-native-reanimated";
-import AnimatedView from "./AnimatedView";
+import { Pressable, Text, View } from "react-native";
 import { HOW_IT_WORKS_STEPS } from "./content";
-import { BrowserFrame, PhoneFrame } from "./DeviceFrame";
+import { PhoneShell, ScreenImage } from "./DeviceFrame";
+import {
+  BODY_TEXT,
+  FOCUS_RING,
+  LANDING_CONTAINER,
+  SECTION_HEADING,
+  SECTION_PADDING,
+} from "./layout";
+import Reveal from "./Reveal";
 
 type Props = {
-  stepScreenshots: Partial<Record<string, ImageSourcePropType>>;
-  desktopSource?: ImageSourcePropType;
+  /** One real capture per step id (`content.ts`'s `HOW_IT_WORKS_STEPS`). */
+  stepScreenshots: Record<string, ImageSourcePropType>;
 };
 
-// One real icon per step instead of a numbered badge: avoids a "01, 02, 03" decorative-number
-// pattern while still giving every step, including the three without a screenshot, a visual.
-const STEP_ICONS: Record<string, ComponentType<{ color?: string; size?: number }>> = {
+type IconProps = { color?: string; size?: number };
+
+// `CreditIcon` is the loopies coin image (no `color`), every other icon takes the theme color.
+const STEP_ICONS: Record<string, ComponentType<IconProps>> = {
   publicar: PublishIcon,
   recibir: CreditIcon,
   buscar: SearchIcon,
   coordinar: RepeatIcon,
 };
 
-/** Stepped, alternating layout: copy and screenshot swap sides per step. No equal-card row. */
-export default function LandingHowItWorks({ stepScreenshots, desktopSource }: Props) {
+/**
+ * Steps on one side, ONE phone on the other that shows the capture of the active step. On the web
+ * a step activates on hover, focus or press; on small screens the list collapses to titles
+ * (only the active step shows its description) with the phone right below it.
+ */
+export default function LandingHowItWorks({ stepScreenshots }: Props) {
   const colors = useThemeColors();
+  const [activeId, setActiveId] = useState(HOW_IT_WORKS_STEPS[0].id);
+  const activeStep = HOW_IT_WORKS_STEPS.find((step) => step.id === activeId)!;
 
   return (
-    <View className="w-full px-5 py-16 lg:px-10 lg:py-24" nativeID="como-funciona">
-      <Text
-        accessibilityRole="header"
-        className="text-center text-2xl font-bold lg:text-3xl"
-        style={{ color: colors.MAIN_TEXT }}
-      >
-        Cómo funciona
-      </Text>
+    <View className={`w-full ${SECTION_PADDING}`} nativeID="como-funciona">
+      <View className={LANDING_CONTAINER}>
+        <Reveal>
+          <Text accessibilityRole="header" className={SECTION_HEADING}>
+            Cómo funciona
+          </Text>
+          <Text className={`mt-3 max-w-[34rem] text-base ${BODY_TEXT}`}>
+            Cuatro pasos, siempre dentro de la comunidad de tu colegio.
+          </Text>
+        </Reveal>
 
-      {desktopSource ? (
-        // Plain `View`, not `AnimatedView`: this block carries `max-lg:hidden` (a
-        // display:none media-query class) on the animated element itself, which breaks
-        // Reanimated's web entrance animation (it mounts hidden-by-default and the
-        // FadeInDown keyframe never resolves past a near-zero opacity once the media query
-        // later shows it). Every other entrance in this file stays visible at every
-        // breakpoint; only its non-animated screenshot child is conditionally hidden.
-        <View className="mx-auto mt-10 w-full max-w-[48rem] items-center max-lg:hidden">
-          <BrowserFrame source={desktopSource} alt="Inicio de Loop en la web" width={720} />
+        <View className="mt-10 flex-col gap-10 lg:mt-12 lg:flex-row lg:items-center lg:gap-16">
+          <Reveal step={1} className="w-full min-w-0 lg:flex-1">
+            <View accessibilityRole="tablist" className="gap-2">
+              {HOW_IT_WORKS_STEPS.map((step) => {
+                const active = step.id === activeId;
+                const StepIcon = STEP_ICONS[step.id];
+                return (
+                  <Pressable
+                    key={step.id}
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected: active }}
+                    accessibilityLabel={step.title}
+                    onPress={() => setActiveId(step.id)}
+                    onHoverIn={() => setActiveId(step.id)}
+                    onFocus={() => setActiveId(step.id)}
+                    className={`flex-row items-start gap-4 rounded-3xl border px-5 py-4 transition-colors duration-200 lg:px-6 lg:py-5 ${FOCUS_RING} ${
+                      active
+                        ? "border-stroke bg-background/60"
+                        : "border-transparent hover:bg-background/40"
+                    }`}
+                  >
+                    <View
+                      className={`h-11 w-11 items-center justify-center rounded-full transition-colors duration-200 ${
+                        active ? "bg-secondary" : "bg-background"
+                      }`}
+                    >
+                      {StepIcon ? (
+                        <StepIcon color={active ? "white" : colors.SECONDARY} size={20} />
+                      ) : null}
+                    </View>
+                    <View className="min-w-0 flex-1 pt-2.5">
+                      <Text
+                        className={`text-lg font-bold leading-6 transition-colors duration-200 ${
+                          active ? "text-secondary" : "text-main-text"
+                        }`}
+                      >
+                        {step.title}
+                      </Text>
+                      <Text
+                        className={`mt-1.5 text-[15px] leading-6 ${BODY_TEXT} ${active ? "" : "max-lg:hidden"}`}
+                      >
+                        {step.description}
+                      </Text>
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </Reveal>
+
+          <Reveal step={2} className="w-full items-center lg:w-auto">
+            <View className="w-full items-center rounded-3xl bg-background px-6 py-10 lg:w-[400px] xl:w-[440px]">
+              <PhoneShell screenClassName="w-[220px] xl:w-[240px]">
+                {HOW_IT_WORKS_STEPS.map((step) => {
+                  const source = stepScreenshots[step.id];
+                  if (!source) return null;
+                  const active = step.id === activeId;
+                  return (
+                    <ScreenImage
+                      key={step.id}
+                      source={source}
+                      alt={active ? `Pantalla de Loop: ${activeStep.title}` : ""}
+                      className={`transition-opacity duration-300 motion-reduce:transition-none ${
+                        active ? "opacity-100" : "opacity-0"
+                      }`}
+                    />
+                  );
+                })}
+              </PhoneShell>
+            </View>
+          </Reveal>
         </View>
-      ) : null}
-
-      <View className="mt-12 gap-14">
-        {HOW_IT_WORKS_STEPS.map((step, index) => {
-          const screenshot = stepScreenshots[step.id];
-          const reverse = index % 2 === 1;
-          const StepIcon = STEP_ICONS[step.id];
-
-          return (
-            <AnimatedView
-              key={step.id}
-              entering={FadeInDown.duration(500).delay(index * 80)}
-              className={`mx-auto w-full max-w-5xl flex-row flex-wrap items-center justify-center gap-8 lg:flex-nowrap ${
-                screenshot ? "lg:justify-between" : "lg:justify-center"
-              } ${reverse ? "lg:flex-row-reverse" : ""}`}
-            >
-              <View
-                className={`w-full min-w-0 max-w-md items-start ${screenshot ? "lg:w-1/2" : ""}`}
-              >
-                <View
-                  className="h-10 w-10 items-center justify-center rounded-full"
-                  style={{ backgroundColor: `${colors.PRIMARY}1A` }}
-                >
-                  {StepIcon ? <StepIcon color={colors.PRIMARY} size={20} /> : null}
-                </View>
-                <Text className="mt-4 text-xl font-bold" style={{ color: colors.MAIN_TEXT }}>
-                  {step.title}
-                </Text>
-                <Text className="mt-2 text-base" style={{ color: colors.SECONDARY_TEXT }}>
-                  {step.description}
-                </Text>
-              </View>
-
-              {screenshot ? (
-                <View className="w-full items-center lg:w-1/2">
-                  <PhoneFrame
-                    source={screenshot}
-                    alt={`Pantalla de Loop: ${step.title}`}
-                    width={220}
-                  />
-                </View>
-              ) : null}
-            </AnimatedView>
-          );
-        })}
       </View>
     </View>
   );
