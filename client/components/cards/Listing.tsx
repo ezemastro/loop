@@ -5,7 +5,7 @@ import ProductStatusBadge from "../badges/ProductStatusBadge";
 import UserBadge from "../badges/UserBadge";
 import CreditsBadge from "../badges/CreditsBadge";
 import { useRouter } from "expo-router";
-import { getUrl } from "@/services/getUrl";
+import { getListingImageSource } from "@/services/getUrl";
 import CategoryBadge from "../CategoryBadge";
 import SchoolLogo from "../SchoolLogo";
 import { ELEVATION } from "@/config";
@@ -71,7 +71,7 @@ export default function Listing({
       >
         {hasImage ? (
           <Image
-            source={{ uri: getUrl(listing.media[0].url) }}
+            source={getListingImageSource(listing.media[0].url)}
             style={{ width: COMPACT_IMAGE_WIDTH, height: COMPACT_IMAGE_HEIGHT }}
             className="rounded-lg bg-background"
             resizeMode="cover"
@@ -112,7 +112,7 @@ export default function Listing({
     >
       {hasImage ? (
         <Image
-          source={{ uri: getUrl(listing.media[0].url) }}
+          source={getListingImageSource(listing.media[0].url)}
           className={twMerge(CARD_IMAGE_ASPECT_RATIO, "w-full bg-background")}
           resizeMode="cover"
         />

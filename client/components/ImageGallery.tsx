@@ -1,5 +1,5 @@
 import { useThemeColors } from "@/hooks/useThemeColors";
-import { getUrl } from "@/services/getUrl";
+import { getListingImageSource } from "@/services/getUrl";
 import { useRef, useState } from "react";
 import { View, Image } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
@@ -48,7 +48,7 @@ export default function ImageGallery({ images }: { images: Media[] }) {
           renderItem={({ item }) => (
             <View>
               <Image
-                source={{ uri: getUrl(item.url) }}
+                source={getListingImageSource(item.url)}
                 className="rounded"
                 style={{ width: "100%", height: galleryHeight }}
                 resizeMode="contain"
