@@ -195,8 +195,12 @@ demo falla a la vista en lugar de escribir en la base real. Es deliberado que fa
 
 Auditado explícitamente, y separado a propósito de lo de arriba:
 
-- **Las imágenes del dataset**, que salen a `picsum.photos`. Son URLs absolutas y `getUrl` las deja
-  pasar sin prefijo, así que no tocan la API.
+- **Las imágenes del dataset**, que en su mayoría salen a `picsum.photos` (son URLs absolutas y
+  `getUrl` las deja pasar sin prefijo, así que no tocan la API). Las fotos de las 11 publicaciones
+  de la comunidad demo son la excepción: están bundleadas localmente (`client/assets/demo/listings/`,
+  mapeadas por `client/demo/assets/listingImages.ts`) y no salen a la red — ver
+  `client/assets/demo/listings/CREDITS.md` para la fuente de cada una. Avatares, colegios y el logo
+  de la comunidad siguen en `picsum.photos`.
 - **`u.expo.dev`** (expo-updates) y **Google OAuth**, que son de la app y no del modo demo.
 
 Las notificaciones push, en cambio, **no** se registran en modo demo. El `POST` al backend ya lo
