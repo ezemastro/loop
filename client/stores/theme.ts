@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useMemo } from "react";
+import { webStorage } from "@/services/webStorage";
 import { DEFAULT_COLORS, type ThemeColorKey, type ThemeColors } from "@/config";
 import { isValidHex } from "@/services/color";
 
@@ -28,7 +28,7 @@ export const useThemeStore = create<ThemeStore>()(
     }),
     {
       name: "theme-storage",
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => webStorage),
       // Solo persistimos la comunidad de la sesión: es lo que evita el flash de colores por defecto
       // al abrir la app. El preview es estado efímero del formulario de registro y persistirlo
       // dejaría al usuario pintado con una comunidad que nunca llegó a ser suya.
