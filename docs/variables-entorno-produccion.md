@@ -101,7 +101,7 @@ lista de centinelas y por lo tanto pasa el chequeo estricto sin quejarse.
 | ⚠️ `BASE_URL` | `http://localhost:3000` | Base con la que se arman las URLs públicas de los archivos subidos. **El default es localhost y no es un centinela**: un deploy que la omita pasa la validación y sirve URLs de imágenes rotas. Setearla siempre. |
 | `RATE_LIMIT_ENABLED` | `true` | Solo acepta `"true"` o `"false"` (no `z.coerce.boolean()`, porque `Boolean("false")` da `true`). En producción, `false` aborta el arranque. |
 | `API_IMAGE_TAG` | `1.1.0` | Tag de la imagen `ezemastro/loop-api`. Se cambia para hacer rollback (ver `runbook-deploy.md` §4). |
-| `WEB_IMAGE_TAG` | `1.3.0` | Tag de `ezemastro/loop-web`. |
+| `WEB_IMAGE_TAG` | `1.4.0` | Tag de `ezemastro/loop-web`. |
 | `ADMIN_IMAGE_TAG` | `0.4.0` | Tag de `ezemastro/loop-admin`. |
 | `LOG_LEVEL` | `info` | Nivel mínimo del logger (`pino`, runtime-observability/INF-10). Uno de `fatal`, `error`, `warn`, `info`, `debug`, `trace`, `silent`. |
 
@@ -261,7 +261,7 @@ DONATION_DAILY_MAX_CREDITS=200000
 
 # ── Tags de imagen (rollback: ver docs/runbook-deploy.md §4) ─────────────────
 API_IMAGE_TAG=1.1.0
-WEB_IMAGE_TAG=1.3.0
+WEB_IMAGE_TAG=1.4.0
 ADMIN_IMAGE_TAG=0.4.0
 
 # ── Observabilidad (runtime-observability/INF-10) ────────────────────────────
