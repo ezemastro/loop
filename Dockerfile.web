@@ -1,5 +1,8 @@
-# Etapa de compilación
-FROM node:22-slim AS build
+# Etapa de compilación. Corre siempre en la arquitectura del host que construye ($BUILDPLATFORM):
+# `expo export` produce HTML/JS estático, idéntico para amd64 y arm64, así que no hace falta
+# emularlo. Además, Node bajo QEMU aborta en hosts con páginas de 16 KB (Raspberry Pi 5) con
+# "Check failed: 0 == ret" en v8::base::OS::SetPermissions.
+FROM --platform=$BUILDPLATFORM node:22-slim AS build
 WORKDIR /app
 
 # 1. Copiamos los package.json
@@ -26,10 +29,16 @@ ENV EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID=$EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID
 WORKDIR /app/client
 RUN npx expo export --platform web
 
+# `serve` es JavaScript puro: se instala en la plataforma del host y se copia a la imagen final,
+# así ningún paso de la imagen de destino necesita ejecutar Node emulado.
+FROM --platform=$BUILDPLATFORM node:22-slim AS serve
+RUN npm install -g serve
+
 # Etapa de producción
 FROM node:22-slim
 WORKDIR /app
-RUN npm install -g serve
+COPY --from=serve /usr/local/lib/node_modules/serve /usr/local/lib/node_modules/serve
+RUN ln -s ../lib/node_modules/serve/build/main.js /usr/local/bin/serve
 
 # OJO: Metro exporta a la carpeta 'dist', no a 'web-build'
 COPY --from=build /app/client/dist ./dist
