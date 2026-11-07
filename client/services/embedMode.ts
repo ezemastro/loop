@@ -14,12 +14,21 @@ import { Platform } from "react-native";
  * - `app/_layout.tsx` skips mounting `PwaInstallPrompt` (nothing should offer to install the app
  *   from inside a demo preview).
  *
+ * The flag is only true when the page is actually framed (`window.self !== window.top`). The landing's
+ * "Probá la demo" button opens `/demo` as a top-level page, and there it must behave like the
+ * ordinary "Explorar la demo sin crear cuenta" flow: the session survives a reload on `/home`, the
+ * banner shows immediately and "Salir" works. Nothing leaks into a parent page when there is none.
+ *
  * Read once, synchronously, from `window.location.pathname` at module-evaluation time — this
  * module loads before `expo-router` does, and the embed is always entered through a fresh page
  * load (the iframe's own `src` navigation), never a client-side nav from elsewhere in the app, so
  * there is no later path change for this to miss.
  */
+/** True when this page is a child frame. Comparing the two references never throws, even cross-origin. */
+const isFramed = () => typeof window !== "undefined" && window.self !== window.top;
+
 export const isEmbedRoute =
   Platform.OS === "web" &&
   typeof window !== "undefined" &&
-  window.location.pathname === "/demo";
+  window.location.pathname === "/demo" &&
+  isFramed();

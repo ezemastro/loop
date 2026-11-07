@@ -16,7 +16,11 @@ import { DEMO_SHOWCASE_EMAIL } from "@/demo";
  * - No clicks required: on mount this calls the same entry the "Explorar la demo sin crear
  *   cuenta" link uses (`enterDemoMode()` + login with `DEMO_SHOWCASE_EMAIL`,
  *   `hooks/useLoginForm.ts`) and lands on the home feed (`/(main)/(tabs)/home`).
- * - Isolation: this route runs with in-memory storage, not `localStorage`
+ * - Top-level visits: when `/demo` is opened as a full page (the landing's "Probá la demo"
+ *   button), nothing below applies. `services/embedMode.ts` only flags a framed page, so a
+ *   top-level demo persists its session, shows the banner immediately and exits like the
+ *   "Explorar la demo sin crear cuenta" flow.
+ * - Isolation: when framed, this route runs with in-memory storage, not `localStorage`
  *   (`services/embedMode.ts`, `services/webStorage.ts`) — entering the demo here never persists a
  *   session or theme the parent page could pick up, and reloading `/` afterwards is unaffected.
  * - Embed-only UI changes, all keyed off `services/embedMode.ts`'s `isEmbedRoute` (this route is

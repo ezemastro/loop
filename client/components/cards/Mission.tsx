@@ -12,7 +12,9 @@ export default function Mission({
 }) {
   return (
     <View className={twMerge("flex-row bg-white p-2 rounded gap-2 items-center", className)}>
-      <View className="flex-grow justify-between gap-2">
+      {/* RN-web Views default to flex-shrink: 0, so without `min-w-0 flex-1` a long title keeps its
+          intrinsic width and pushes the reward badge off the card. */}
+      <View className="min-w-0 flex-1 justify-between gap-2">
         <View className="items-center">
           <Text className="text-main-text text-lg text-center">
             {mission.missionTemplate.title}

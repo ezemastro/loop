@@ -27,7 +27,7 @@ export default function Stats({
         icon={<CO2Icon color={colors.SECONDARY} size={42} />}
       />
       <Stat
-        label="Metros cúbicos de H20 ahorrados"
+        label="Litros de agua ahorrados"
         value={lH2o}
         icon={<H20Icon color={colors.TERTIARY} size={42} />}
       />

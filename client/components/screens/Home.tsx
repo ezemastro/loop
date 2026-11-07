@@ -8,6 +8,7 @@ import CustomRefresh from "../CustomRefresh";
 import Feed from "../Feed";
 import AllMyPendingList from "../AllMyPendingList";
 import { useGlobalStats } from "@/hooks/useGlobalStats";
+import { isEmbedRoute } from "@/services/embedMode";
 
 interface Section {
   key: string;
@@ -20,7 +21,7 @@ export default function Home() {
   const [hasPending, setHasPending] = useState(false);
   const { data } = useGlobalStats();
   const { globalStats } = data || {};
-  const sections: Section[] = [
+  const allSections: Section[] = [
     {
       key: "stats",
       component: () => (
@@ -51,6 +52,9 @@ export default function Home() {
       ),
     },
   ];
+  // The framed live demo (landing hero) opens straight on real school items: no impact figures,
+  // missions or pending loops above the feed. Everything else keeps the full home.
+  const sections = isEmbedRoute ? allSections.filter(({ key }) => key === "feed") : allSections;
   const getMore = useRef<() => void>(() => {});
   const contentContainerClassName = pageContentClassName("wide", "p-4 pt-6");
   return (

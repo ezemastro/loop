@@ -63,9 +63,9 @@ own visual language, with real app screenshots.
 
 ## Round 2 (user feedback, 2026-10-04)
 Accepted changes:
-- [ ] T5 Fix the web hydration error #418 (pre-existing on `main`) that breaks bottom-tab switching. Needed by T7. Route: delegated.
-- [ ] T6 Demo data: replace generic placeholder photos (bridge for "Botella de agua térmica") with real product photos from an open-license bank (Unsplash/Pexels), bundled locally. Route: delegated (worktree).
-- [ ] T7 Embeddable live demo: a URL that boots the app straight into demo mode for an iframe inside the hero phone; demo banner hidden until the first interaction; must not leak demo session into the parent page storage. Route: delegated.
+- [x] T5 Fix the web hydration error #418 (pre-existing on `main`) that breaks bottom-tab switching. Needed by T7. Route: delegated.
+- [x] T6 Demo data: replace generic placeholder photos (bridge for "Botella de agua térmica") with real product photos from an open-license bank (Unsplash/Pexels), bundled locally. Route: delegated (worktree).
+- [x] T7 Embeddable live demo: a URL that boots the app straight into demo mode for an iframe inside the hero phone; demo banner hidden until the first interaction; must not leak demo session into the parent page storage. Route: delegated.
 - [x] T8 Recapture screenshots with real demo photos, no demo banner, feed from the top (phone-home, phone-listing, phone-chat, phone-publish, desktop-home). Route: delegated (worktree).
   Done in worktree `/home/opencode/projects/loop-wt/shots2`, branch `feat/landing-shots` (off
   `feat/marketing-landing`, not yet merged). Commits `a0c6f1d` (fix, see below) and `6afa376` (the
@@ -99,6 +99,37 @@ Accepted changes:
 - [x] T9 Hero redesign: max-width centered container, no "Red Itínere" pill (use the Itínere logo instead), laptop + phone composition on a Loop-styled panel; phone runs the live demo (static shot on small screens). Route: delegated (opus). Commit `1e1d7c1`.
 - [x] T10 "Cómo funciona" redesign: compact aligned steps with one sticky/switching device instead of scattered items. Route: delegated (opus, with T9). Commit `1e1d7c1` (shared with T9: both depend on the new `DeviceFrame`).
 - [x] T11 Subtle motion and hover states across the page; self-critique with screenshots at 390 / 1440 / 1920. Route: delegated (opus, with T9). Commit `17b2595`.
+
+## Round 3 (user request, 2026-11-07)
+Branch `feat/landing-conversion`. Not pushed. Production still serves the pre-landing screen, deploy
+is the user's call.
+
+Audience, as decided by the user: families joining Red Itínere first, and school networks evaluating
+Loop second. Those conversations happen in private, so the page must never mention selling, pricing,
+plans or licensing. It should simply show how the product works and what each community controls.
+
+Evidence gathered before implementation:
+- Public API `https://api.loop.reditinere.com/schools?communityId=...`: 9 campuses, 5 brands, already
+  shown in the app. Usage figures require an authenticated token, and the user says usage is still
+  low, so the page shows no usage or impact numbers.
+- reditinere.com: network of Argentina and Uruguay.
+- `models/listings.ts` `receiveListing`: the seller gets loopies when the buyer confirms receipt, not
+  on publish. The "Recibí loopies" step was misleading.
+- `Stats.tsx` labeled `lH2o` (liters) as cubic meters. 768/2.4 = 208/0.65 = 13120/41 = 320 confirms
+  the demo figure is liters.
+
+Tasks (route for all: delegated, writer trigger, 2+ non-trivial files):
+- [ ] R1 App fixes: water label and unit, mission card overflow at 390, hero demo opens on real
+  listings, standalone `/demo` works outside an iframe.
+- [ ] R2 Semantics and sharing: `lang`, heading levels, OG tags, canonical, robots, sitemap, share
+  image, opaque header, outdated web description.
+- [ ] R3 Copy and CTAs: truthful steps and FAQ, new-visitor CTA hierarchy, demo CTA everywhere.
+- [ ] R4 Content: school logos, community section, "Por qué importa" rework, typography.
+- [ ] R5 Recapture screenshots and verify at 390 / 1024 / 1440.
+- Not implemented: logo recolor. No source file exists, and the same logo appears across the app and
+  screenshots, so changing it only here would look inconsistent. Needs the brand owner's file.
+- Not implemented: legal text. `/privacidad` and `/terminos` still render the pending-review marker
+  until a person with legal judgment fills them. This blocks publishing.
 
 ## Acceptance criteria
 - Logged-out web visit to `/` shows the new landing; "Ingresar" goes to `/ingresar` (old Landing).
