@@ -1,83 +1,215 @@
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Image, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { twMerge } from "tailwind-merge";
-import Mission from "./Mission";
-import Listing from "./Listing";
 import { DateBadge } from "../bases/DateBadge";
-import CreditsBadge from "../badges/CreditsBadge";
-import User from "./User";
+import { CheckIcon, CreditIcon, RepeatIcon } from "../Icons";
+import { listRowClassName, type RowPosition } from "../bases/listRow";
+import { getListingImageSource, getProfileImageSource } from "@/services/getUrl";
+import { formatNumber } from "@/utils/formatNumber";
 import { notificationRoute } from "@/services/notificationRoute";
 
-export default function NotificationCard({ notification }: { notification: AppNotification }) {
+/**
+ * One notification is one row of a list card: a 40px leading visual (thumbnail, avatar or icon),
+ * a sentence naming the concrete thing, the time as a caption and, when unread, an 8px accent dot
+ * with a semibold sentence. Read rows use regular weight and no dot.
+ */
+export default function NotificationCard({
+  notification,
+  position = "only",
+}: {
+  notification: AppNotification;
+  position?: RowPosition;
+}) {
   const router = useRouter();
   const date = new Date(notification.createdAt);
   const isRead = notification.isRead;
   const destination = notificationRoute(notification);
+  const view = describeNotification(notification);
 
   const content = (
-    // Unread state used to be a 1px border-colour swap (easy to miss). It now reads through a
-    // left accent bar + a soft tinted background instead, both of which recede to plain
-    // white/stroke once read -- flat, no depth effects, so it renders identically on web and
-    // native.
-    <View
-      className={twMerge(
-        "flex-row overflow-hidden rounded-xl border bg-white",
-        isRead ? "border-stroke" : "border-accent/30 bg-accent/5",
-      )}
-    >
-      <View className={isRead ? "w-1 bg-stroke" : "w-1 bg-accent"} />
-      <View className="flex-1">
-        <NotificationContent notification={notification} isRead={isRead} />
-        <DateBadge date={date} includeTime className="text-right py-1 px-3" />
+    <View className="flex-row items-start gap-3 px-4 py-3">
+      <Leading visual={view.visual} />
+      <View className="min-w-0 flex-1 gap-0.5">
+        {view.sentence ? (
+          <Text className={twMerge("text-base text-main-text", !isRead && "font-semibold")}>
+            {view.sentence}
+          </Text>
+        ) : null}
+        {view.missing ? <MissingReference /> : null}
+        {view.detail ? <Text className="text-sm text-secondary-text">{view.detail}</Text> : null}
+        <DateBadge date={date} includeTime className="text-xs" />
       </View>
+      {isRead ? null : (
+        <View accessibilityLabel="No leída" className="mt-2 h-2 w-2 rounded-full bg-accent" />
+      )}
     </View>
   );
 
   // A card whose payload identifies no destination (a mission, or a malformed payload) MUST NOT
   // present a press affordance — there is nowhere for it to go.
-  if (!destination) return content;
+  if (!destination) return <View className={listRowClassName(position)}>{content}</View>;
 
-  return <Pressable onPress={() => router.push(destination)}>{content}</Pressable>;
+  return (
+    <Pressable
+      accessibilityRole="link"
+      onPress={() => router.push(destination)}
+      className={listRowClassName(position, "web:cursor-pointer hover:bg-background")}
+    >
+      {content}
+    </Pressable>
+  );
 }
 
-function NotificationContent({
-  notification,
-  isRead,
-}: {
-  notification: AppNotification;
-  isRead: boolean;
-}) {
+type Visual =
+  | { kind: "listing"; url?: string }
+  | { kind: "user"; url?: string }
+  | { kind: "icon"; icon: "check" | "credits" | "repeat" }
+  | null;
+
+interface NotificationView {
+  visual: Visual;
+  sentence: string | null;
+  detail?: string;
+  /** The payload referenced a row that no longer exists. */
+  missing?: boolean;
+}
+
+const LEADING_SIZE = 40;
+
+function Leading({ visual }: { visual: Visual }) {
+  if (visual?.kind === "listing") {
+    return visual.url ? (
+      <Image
+        source={getListingImageSource(visual.url)}
+        style={{ width: LEADING_SIZE, height: LEADING_SIZE }}
+        className="rounded-lg bg-background"
+        resizeMode="cover"
+      />
+    ) : (
+      <View
+        style={{ width: LEADING_SIZE, height: LEADING_SIZE }}
+        className="rounded-lg bg-background"
+      />
+    );
+  }
+  if (visual?.kind === "user") {
+    return (
+      <Image
+        source={getProfileImageSource(visual.url)}
+        style={{ width: LEADING_SIZE, height: LEADING_SIZE }}
+        className="rounded-full bg-background"
+      />
+    );
+  }
+  return (
+    <View
+      style={{ width: LEADING_SIZE, height: LEADING_SIZE }}
+      className="items-center justify-center rounded-full border border-stroke bg-white"
+    >
+      {visual?.kind === "icon" && visual.icon === "check" ? (
+        <CheckIcon size={20} className="text-accent" />
+      ) : visual?.kind === "icon" && visual.icon === "credits" ? (
+        <CreditIcon size={24} />
+      ) : (
+        <RepeatIcon size={20} className="text-accent" />
+      )}
+    </View>
+  );
+}
+
+/** Sentence per loop event. `title` is the full listing title (it may wrap). */
+const loopSentence = (type: LoopNotificationPayload["type"], title: string): string => {
+  switch (type) {
+    case "new_offer":
+      return `Te ofrecieron un loop por ${title}`;
+    case "offer_rejected":
+      return `Rechazaron tu oferta de loop por ${title}`;
+    case "offer_accepted":
+      return `Aceptaron tu oferta de loop por ${title}`;
+    case "offer_deleted":
+      return `Retiraron una oferta de loop por ${title}`;
+    case "listing_sold":
+      return `Tu publicación ${title} fue vendida`;
+    case "listing_received":
+      return `Entregaste ${title}`;
+    case "listing_cancelled":
+      return `Se canceló el loop de ${title}`;
+  }
+};
+
+/** Same events, without the listing: used when the referenced listing no longer exists. */
+const loopGenericSentence = (type: LoopNotificationPayload["type"]): string => {
+  switch (type) {
+    case "new_offer":
+      return "Te ofrecieron un loop";
+    case "offer_rejected":
+      return "Rechazaron tu oferta de loop";
+    case "offer_accepted":
+      return "Aceptaron tu oferta de loop";
+    case "offer_deleted":
+      return "Retiraron una oferta de loop";
+    case "listing_sold":
+      return "Tu publicación fue vendida";
+    case "listing_received":
+      return "Entregaste una publicación";
+    case "listing_cancelled":
+      return "Se canceló un loop";
+  }
+};
+
+function describeNotification(notification: AppNotification): NotificationView {
   switch (notification.type) {
-    case "mission":
-      return (
-        <MissionNotification
-          payload={notification.payload as MissionNotificationPayload}
-          isRead={isRead}
-        />
-      );
-    case "loop":
-      return (
-        <LoopNotification
-          payload={notification.payload as LoopNotificationPayload}
-          isRead={isRead}
-        />
-      );
-    case "donation":
-      return (
-        <DonationNotification
-          payload={notification.payload as DonationNotificationPayload}
-          isRead={isRead}
-        />
-      );
-    case "admin":
-      return (
-        <AdminNotification
-          payload={notification.payload as AdminNotificationPayload}
-          isRead={isRead}
-        />
-      );
+    case "mission": {
+      const payload = notification.payload as MissionNotificationPayload;
+      const title = payload.userMission?.missionTemplate.title;
+      return {
+        visual: { kind: "icon", icon: "check" },
+        sentence: title ? `Completaste la misión ${title}` : "Completaste una misión",
+        missing: !payload.userMission,
+      };
+    }
+    case "loop": {
+      const payload = notification.payload as LoopNotificationPayload;
+      const listing = payload.listing;
+      return {
+        visual: listing
+          ? { kind: "listing", url: listing.media?.[0]?.url }
+          : { kind: "icon", icon: "repeat" },
+        sentence: listing
+          ? loopSentence(payload.type, listing.title)
+          : loopGenericSentence(payload.type),
+        missing: !listing,
+      };
+    }
+    case "donation": {
+      const payload = notification.payload as DonationNotificationPayload;
+      const donor = payload.donorUser;
+      const amount = `${formatNumber(payload.amount)} loopies`;
+      return {
+        visual: donor
+          ? { kind: "user", url: donor.profileMedia?.url }
+          : { kind: "icon", icon: "credits" },
+        sentence: donor
+          ? `${donor.firstName} ${donor.lastName} te donó ${amount}`
+          : `Recibiste una donación de ${amount}`,
+        missing: !donor,
+      };
+    }
+    case "admin": {
+      const payload = notification.payload as AdminNotificationPayload;
+      if (payload.action !== "credits") return { visual: null, sentence: null };
+      const amount = payload.amount ?? 0;
+      return {
+        visual: { kind: "icon", icon: "credits" },
+        sentence: "El equipo de Loop modificó tu cantidad de loopies",
+        detail:
+          amount > 0
+            ? `Se añadieron ${formatNumber(amount)} loopies a tu cuenta`
+            : `Se quitaron ${formatNumber(-amount)} loopies de tu cuenta`,
+      };
+    }
     default:
-      return null;
+      return { visual: null, sentence: null };
   }
 }
 
@@ -90,111 +222,3 @@ function NotificationContent({
 const MissingReference = () => (
   <Text className="text-secondary-text text-sm">Este contenido ya no está disponible</Text>
 );
-
-/** Unread titles carry more weight than read ones; read titles recede back to normal weight. */
-const titleClassName = (isRead: boolean) =>
-  twMerge("text-main-text text-xl", !isRead && "font-bold");
-
-function MissionNotification({
-  payload,
-  isRead,
-}: {
-  payload: MissionNotificationPayload;
-  isRead: boolean;
-}) {
-  return (
-    <View className="p-4 pb-2">
-      <Text className={titleClassName(isRead)}>Completaste una misión</Text>
-      {payload.userMission ? <Mission mission={payload.userMission} /> : <MissingReference />}
-    </View>
-  );
-}
-function LoopNotification({
-  payload,
-  isRead,
-}: {
-  payload: LoopNotificationPayload;
-  isRead: boolean;
-}) {
-  let label;
-  switch (payload.type) {
-    case "new_offer":
-      label = "Alguien te ofreció un loop";
-      break;
-    case "offer_rejected":
-      label = "Tu oferta de loop fue rechazada";
-      break;
-    case "offer_accepted":
-      label = "Tu oferta de loop fue aceptada";
-      break;
-    case "offer_deleted":
-      label = "Una oferta de loop fue eliminada";
-      break;
-    case "listing_sold":
-      label = "Tu publicación fue vendida";
-      break;
-    case "listing_received":
-      label = "Entregaste esta publicación";
-      break;
-    case "listing_cancelled":
-      label = "El loop con esta publicación fue cancelado";
-      break;
-  }
-  return (
-    <View className="p-4 pb-2 gap-2">
-      <Text className={titleClassName(isRead)}>{label}</Text>
-      {payload.listing ? (
-        <Listing listing={payload.listing} variant="compact" />
-      ) : (
-        <MissingReference />
-      )}
-    </View>
-  );
-}
-
-function DonationNotification({
-  payload,
-  isRead,
-}: {
-  payload: DonationNotificationPayload;
-  isRead: boolean;
-}) {
-  return (
-    <View className="p-4 gap-2">
-      <Text className={titleClassName(isRead)}>Nueva donación recibida</Text>
-      {payload.donorUser ? (
-        <User user={payload.donorUser} className="border border-stroke" />
-      ) : (
-        <MissingReference />
-      )}
-      <CreditsBadge credits={payload.amount} numberClassName="text-2xl" iconSize={32} />
-    </View>
-  );
-}
-
-function AdminNotification({
-  payload,
-  isRead,
-}: {
-  payload: AdminNotificationPayload;
-  isRead: boolean;
-}) {
-  switch (payload.action) {
-    case "credits":
-      return (
-        <View className="p-4 pb-2 gap-2">
-          <Text className={titleClassName(isRead)}>
-            El equipo de Loop modificó tu cantidad de loopies
-          </Text>
-          <Text className="text-main-text">
-            {payload.amount && payload.amount > 0
-              ? `Se han añadido ${payload.amount || 0} créditos a tu cuenta`
-              : `Se han eliminado ${-(payload.amount || 0)} créditos de tu cuenta`}
-          </Text>
-        </View>
-      );
-    // TODO - Agregar otro tipo de notificaciones de admin
-    default:
-      return null;
-  }
-}
