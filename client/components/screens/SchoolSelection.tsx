@@ -38,10 +38,7 @@ export default function SchoolSelection() {
       try {
         const stored = await getStoredGoogleCredential();
         if (!stored.credential) {
-          showToast(
-            "No se encontró información de autenticación. Por favor, inicia sesión nuevamente.",
-            "error",
-          );
+          showToast("No encontramos tu sesión. Iniciá sesión de nuevo.", "error");
           router.replace("/(auth)/login");
           return;
         }
@@ -63,16 +60,13 @@ export default function SchoolSelection() {
 
   const handleCompleteSignIn = async () => {
     if (!credential) {
-      showToast(
-        "No se encontró información de autenticación. Por favor, inicia sesión nuevamente.",
-        "error",
-      );
+      showToast("No encontramos tu sesión. Iniciá sesión de nuevo.", "error");
       router.replace("/(auth)/login");
       return;
     }
 
     if (selectedSchools.length === 0) {
-      showToast("Por favor selecciona al menos una escuela para continuar.", "warning");
+      showToast("Elegí al menos una escuela para continuar.", "warning");
       return;
     }
 
@@ -125,7 +119,7 @@ export default function SchoolSelection() {
               <BackButton />
             </View>
             <Text className="color-main-text text-lg text-center">
-              Para terminar de crear su cuenta seleccione la o las escuelas a las que pertenece
+              Para terminar de crear tu cuenta, elegí la o las escuelas a las que pertenecés
             </Text>
             {community ? (
               <Text className="text-secondary-text text-center">

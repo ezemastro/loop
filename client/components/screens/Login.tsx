@@ -68,14 +68,14 @@ export default function Login() {
   const fields: Field[] = [
     {
       key: "email",
-      label: "Correo electrónico:",
+      label: "Correo electrónico",
       error: errors.email,
-      errorMessage: "Introduce tu correo electrónico",
+      errorMessage: "Ingresá tu correo electrónico",
       render: () => (
         <TextInput
           placeholderTextColor={colors.SECONDARY_TEXT}
           className="border border-stroke rounded p-2 bg-white"
-          placeholder="Ingrese su correo electrónico"
+          placeholder="Tu correo electrónico"
           value={formData.email}
           onChangeText={(text) => setFormData({ ...formData, email: text })}
           autoCapitalize="none"
@@ -84,14 +84,14 @@ export default function Login() {
     },
     {
       key: "password",
-      label: "Contraseña:",
+      label: "Contraseña",
       error: errors.password,
-      errorMessage: "Introduce una contraseña",
+      errorMessage: "Ingresá tu contraseña",
       render: () => (
         <TextInput
           placeholderTextColor={colors.SECONDARY_TEXT}
           className="border border-stroke rounded p-2 bg-white"
-          placeholder="Ingrese su contraseña"
+          placeholder="Tu contraseña"
           secureTextEntry
           value={formData.password}
           onChangeText={(text) => setFormData({ ...formData, password: text })}
@@ -118,7 +118,7 @@ export default function Login() {
                 Iniciar sesión
               </Text>
               <Text className="color-main-text/80 text-center mb-4">
-                Introduce tus datos o inicia sesión con Google
+                Ingresá tus datos o iniciá sesión con Google
               </Text>
               <AllowedDomainsNotice />
             </View>

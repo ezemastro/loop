@@ -37,7 +37,7 @@ export const PRIMARY_TABS: PrimaryTab[] = [
   },
   {
     key: "myListings",
-    label: "Mis Loops",
+    label: "Mis loops",
     href: "/(main)/(tabs)/myListings",
     matchPath: "/myListings",
     Icon: MyListingsIcon,

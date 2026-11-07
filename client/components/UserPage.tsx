@@ -96,7 +96,7 @@ export default function UserPage({
     {
       key: "contact",
       show: !!(user as PrivateUser).email,
-      title: "Contacto:",
+      title: "Contacto",
       component: () => (
         <View className="px-2 flex-row items-center gap-2">
           <EmailIcon className="text-main-text" size={26} />
@@ -127,7 +127,7 @@ export default function UserPage({
       show: !isCurrentUser && wishes.length > 0,
       component: () => (
         <View className="gap-2">
-          <Text className="text-main-text text-2xl">Lista de deseos:</Text>
+          <Text className="text-main-text text-2xl">Lista de deseos</Text>
           <View className="px-2 gap-2">
             {wishes.map((wish) => (
               <View key={wish.id}>
@@ -147,7 +147,7 @@ export default function UserPage({
     {
       key: "credits",
       show: isCurrentUser,
-      title: "Loopies:",
+      title: "Loopies",
       align: "center",
       component: () => (
         <View className="gap-4">
@@ -169,11 +169,11 @@ export default function UserPage({
       hide: Object.keys(pendingCount).every(
         (k) => pendingCount[k as keyof typeof pendingCount] === 0,
       ),
-      title: "Publicaciones pendientes:",
+      title: "Publicaciones pendientes",
       component: () => (
         <View className="gap-4">
           <View className={"gap-2 " + (!pendingCount["waiting-acceptance"] ? "hidden" : "")}>
-            <Text className="text-secondary-text">Esperando ser aceptadas:</Text>
+            <Text className="text-secondary-text">Esperando aceptación</Text>
             <MyPendingList
               type="waiting-acceptance"
               filterUserId={user.id}
@@ -187,7 +187,7 @@ export default function UserPage({
             />
           </View>
           <View className={"gap-2 " + (!pendingCount["to-receive"] ? "hidden" : "")}>
-            <Text className="text-secondary-text">Debes recibir:</Text>
+            <Text className="text-secondary-text">Tenés que recibir</Text>
             <MyPendingList
               type="to-receive"
               filterUserId={user.id}
@@ -212,7 +212,7 @@ export default function UserPage({
             />
           </View>
           <View className={"gap-2 " + (!pendingCount["to-deliver"] ? "hidden" : "")}>
-            <Text className="text-secondary-text">Debes entregar:</Text>
+            <Text className="text-secondary-text">Tenés que entregar</Text>
             <MyPendingList
               type="to-deliver"
               filterUserId={user.id}
@@ -231,7 +231,7 @@ export default function UserPage({
     {
       key: "stats",
       show: isCurrentUser,
-      title: "Tus estadísticas:",
+      title: "Tus estadísticas",
       component: () => (
         <Stats
           kgCo2={user.stats.kgCo2 || 0}

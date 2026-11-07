@@ -67,11 +67,11 @@ export default function WishList() {
         refreshControl={<CustomRefresh />}
         ListEmptyComponent={() => (
           <>
-            {isError && <Error>Ocurrió un error</Error>}
+            {isError && <Error>Algo salió mal</Error>}
             {isLoading && <Loader />}
             {!isLoading && !isError && (
               <Text className="text-center text-secondary-text mt-4">
-                No tienes deseos agregados.
+                Todavía no agregaste ningún deseo.
               </Text>
             )}
           </>

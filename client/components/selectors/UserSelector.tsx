@@ -29,7 +29,7 @@ export default function UserSelector({
           <User user={value} />
         ) : (
           <View className="h-16 justify-center items-center">
-            <Text className="text-secondary-text text-lg">Seleccionar usuario</Text>
+            <Text className="text-secondary-text text-lg">Elegí un usuario</Text>
           </View>
         )}
       </Pressable>

@@ -23,7 +23,7 @@ export default function ImageSourceSelectorModal({
           <CrossIcon />
         </Pressable>
         <Text className="text-xl font-semibold text-center text-main-text mx-8">
-          Selecciona una opción
+          Elegí una opción
         </Text>
         <View className="flex-row justify-evenly gap-6">
           <Pressable

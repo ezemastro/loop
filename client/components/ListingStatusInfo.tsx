@@ -53,7 +53,7 @@ export default function ListingStatusInfo({ listing }: { listing: Listing }) {
                 firstName={listing.buyer?.firstName}
                 lastName={listing.buyer?.lastName}
               />
-              <Text> quiere loopear este artículo, elige que quieres recibir a cambio.</Text>
+              <Text> quiere loopear este artículo, elegí qué querés recibir a cambio.</Text>
             </Text>
           </View>
         );
@@ -62,13 +62,13 @@ export default function ListingStatusInfo({ listing }: { listing: Listing }) {
         return (
           <View>
             <Text className="text-main-text text-center p-4">
-              <Text>Has loopeado este artículo, espera a que </Text>
+              <Text>Loopeaste este artículo, esperá a que </Text>
               <NameLink
                 userId={listing.seller?.id}
                 firstName={listing.seller?.firstName}
                 lastName={listing.seller?.lastName}
               />
-              <Text> elija que quiere recibir a cambio.</Text>
+              <Text> elija qué quiere recibir a cambio.</Text>
             </Text>
           </View>
         );
@@ -78,7 +78,7 @@ export default function ListingStatusInfo({ listing }: { listing: Listing }) {
         return (
           <View>
             <Text className="text-main-text text-center p-4">
-              <Text>Debes entregar este artículo a </Text>
+              <Text>Tenés que entregar este artículo a </Text>
               <NameLink
                 userId={listing.buyer?.id}
                 firstName={listing.buyer?.firstName}
@@ -92,7 +92,7 @@ export default function ListingStatusInfo({ listing }: { listing: Listing }) {
         return (
           <View>
             <Text className="text-main-text text-center p-4">
-              <Text>Debes recibir este artículo de </Text>
+              <Text>Tenés que recibir este artículo de </Text>
               <NameLink
                 userId={listing.seller?.id}
                 firstName={listing.seller?.firstName}
@@ -107,7 +107,7 @@ export default function ListingStatusInfo({ listing }: { listing: Listing }) {
         return (
           <View>
             <Text className="text-main-text text-center p-4">
-              <Text>Has entregado este artículo a </Text>
+              <Text>Entregaste este artículo a </Text>
               <NameLink
                 userId={listing.buyer?.id}
                 firstName={listing.buyer?.firstName}
@@ -134,7 +134,7 @@ export default function ListingStatusInfo({ listing }: { listing: Listing }) {
       return (
         <View>
           <Text className="text-main-text text-center p-4">
-            Este artículo ha sido intercambiado.
+            Este artículo ya fue intercambiado.
           </Text>
         </View>
       );

@@ -70,12 +70,10 @@ export default function Notifications() {
             {isLoading && <Loader />}
             {!isLoading && !isError && !notifications.length && (
               <Text className="text-secondary-text text-center">
-                No tienes notificaciones todavía
+                Todavía no tenés notificaciones
               </Text>
             )}
-            {isError && (
-              <Error textClassName="text-alert">Error al cargar las notificaciones</Error>
-            )}
+            {isError && <Error textClassName="text-alert">Algo salió mal</Error>}
           </View>
         )}
       />

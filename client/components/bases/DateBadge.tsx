@@ -1,9 +1,26 @@
 import { Text } from "react-native";
 import { twMerge } from "tailwind-merge";
 
-const getShortDayName = (date: Date) => {
-  const days = ["Dom", "Lun", "Mar", "Mie", "Jue", "Vie", "Sab"];
-  return days[date.getDay()];
+const DAYS = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
+const MONTHS = [
+  "enero",
+  "febrero",
+  "marzo",
+  "abril",
+  "mayo",
+  "junio",
+  "julio",
+  "agosto",
+  "septiembre",
+  "octubre",
+  "noviembre",
+  "diciembre",
+];
+
+/** "jue 5 de noviembre"; the year is added only when it is not the current one. */
+export const formatDateLabel = (date: Date, now: Date = new Date()): string => {
+  const base = `${DAYS[date.getDay()]} ${date.getDate()} de ${MONTHS[date.getMonth()]}`;
+  return date.getFullYear() === now.getFullYear() ? base : `${base} de ${date.getFullYear()}`;
 };
 export const DateBadge = ({
   date,
@@ -23,7 +40,7 @@ export const DateBadge = ({
   } else if (isYesterday) {
     text = "Ayer";
   } else {
-    text = getShortDayName(date) + ". " + date.toLocaleDateString();
+    text = formatDateLabel(date);
   }
   return (
     <Text className={twMerge("text-secondary-text", className)}>

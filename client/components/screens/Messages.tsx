@@ -97,15 +97,15 @@ export default function Messages() {
           isLoading ? (
             <Loader />
           ) : isError ? (
-            <Error>Ocurrió un error</Error>
+            <Error>Algo salió mal</Error>
           ) : !searchTerm ? (
             <View>
               <Text className="text-center text-secondary-text">
-                Todavía no has hablado con nadie, busca un usuario para comenzar
+                Todavía no hablaste con nadie. Buscá a alguien para empezar.
               </Text>
             </View>
           ) : (
-            <Text className="text-center text-secondary-text">No se encontraron usuarios</Text>
+            <Text className="text-center text-secondary-text">No encontramos resultados</Text>
           )
         }
       />

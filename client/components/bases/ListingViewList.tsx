@@ -42,9 +42,9 @@ export default function ListingViewList({
           </ListingGrid>
         )}
         {isLoading && <Loader />}
-        {isError && <Error>Error al cargar las publicaciones</Error>}
+        {isError && <Error>Algo salió mal</Error>}
         {!isLoading && !isError && listings.length === 0 && (
-          <Error textClassName="text-secondary-text">No se han encontrado publicaciones</Error>
+          <Error textClassName="text-secondary-text">No encontramos resultados</Error>
         )}
       </View>
       {hasNextPage && !isLoading && (

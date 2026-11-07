@@ -253,7 +253,7 @@ export default function ModifyListing({
             if (text.length > MAX_LISTING_TITLE_LENGTH) return;
             setForm((prev) => ({ ...prev, title: text }));
           }}
-          placeholder="Escribe un título para tu publicación"
+          placeholder="Escribí un título para tu publicación"
           placeholderTextColor={colors.SECONDARY_TEXT}
           className="w-full border-b border-gray-300 p-2 px-3 text-lg bg-secondary-text/10 rounded-t"
           underlineColorAndroid="#fff0"
@@ -282,7 +282,7 @@ export default function ModifyListing({
             //   .replace(/(\n){2,}/g, "\n");
             setForm((prev) => ({ ...prev, description: text }));
           }}
-          placeholder="Escribe una descripción para tu publicación"
+          placeholder="Escribí una descripción para tu publicación"
           placeholderTextColor={colors.SECONDARY_TEXT}
           className="w-full border-b border-gray-300 p-2 px-3 text-lg bg-secondary-text/10 rounded-t"
           placeholderClassName="text-secondary-text"
@@ -307,6 +307,8 @@ export default function ModifyListing({
     component: () => (
       <ProductStatusSelector
         value={form.productStatus}
+        // This is a form field, not a filter: the empty option reads as a prompt to choose.
+        emptyLabel="Elegí el estado"
         onChange={(value) => setForm((prev) => ({ ...prev, productStatus: value }))}
         className="bg-secondary-text/10 border-b border-gray-300 rounded-b-none rounded-t"
       />
@@ -314,7 +316,7 @@ export default function ModifyListing({
   };
   const priceField: Field = {
     key: "price",
-    title: "Precio",
+    title: "Loopies",
     isError: errors.price,
     component: () => (
       <>
@@ -334,7 +336,7 @@ export default function ModifyListing({
             placeholder={
               adjustedPriceMin != null && adjustedPriceMax != null
                 ? `Recomendado: ${formatNumber(adjustedPriceMin)} - ${formatNumber(adjustedPriceMax)}`
-                : "Introduce un precio para tu publicación"
+                : "Ej.: 500"
             }
             underlineColorAndroid="transparent"
             placeholderTextColor={colors.SECONDARY_TEXT}
@@ -396,9 +398,7 @@ export default function ModifyListing({
                   {field.title && <Text className="px-4 text-2xl">{field.title}</Text>}
                   <View>
                     {field.isError && (
-                      <Error textClassName="text-sm text-alert px-4">
-                        Por favor revisa este campo.
-                      </Error>
+                      <Error textClassName="text-sm text-alert px-4">Revisá este campo.</Error>
                     )}
                     <View className="px-4">{field.component()}</View>
                   </View>
@@ -408,12 +408,10 @@ export default function ModifyListing({
           )}
           ListFooterComponent={() => (
             <>
-              {isUploadFilesError && <Error>Ha ocurrido un error al subir los archivos.</Error>}
-              {isPublishListingError && (
-                <Error>Ha ocurrido un error al publicar la publicación.</Error>
-              )}
+              {isUploadFilesError && <Error>No pudimos subir los archivos. Probá de nuevo.</Error>}
+              {isPublishListingError && <Error>No pudimos publicar. Probá de nuevo.</Error>}
               {isUpdateListingError && (
-                <Error>Ha ocurrido un error al actualizar la publicación.</Error>
+                <Error>No pudimos guardar los cambios. Probá de nuevo.</Error>
               )}
               {(isPublishingListing || isUpdatingListing || isUploadingFiles) && <Loader />}
               <CustomButton className="m-4 mb-6" onPress={handleSubmit}>

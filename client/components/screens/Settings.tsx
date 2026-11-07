@@ -107,7 +107,7 @@ export default function Settings() {
                 publicaciones, mensajes, notificaciones y transacciones.
               </Text>
               <View className="gap-2">
-                <Text className="text-main-text text-lg">Escribí tu email para confirmar:</Text>
+                <Text className="text-main-text text-lg">Escribí tu email para confirmar</Text>
                 <TextInput
                   placeholderTextColor={colors.SECONDARY_TEXT}
                   className="bg-white rounded border border-stroke px-4 py-3 text-main-text"

@@ -158,7 +158,7 @@ export default function Offer() {
       component: () => (
         <View className="gap-2">
           <Text className="text-main-text font-semibold text-lg">
-            Elige que quieres recibir a cambio de:
+            Elegí qué querés recibir a cambio de:
           </Text>
           {listing && <Listing listing={listing} />}
         </View>

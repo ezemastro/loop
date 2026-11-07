@@ -78,9 +78,7 @@ export default function Search() {
           <>
             <View className="h-40 justify-center items-center">
               {!isLoading && (
-                <Text className="text-secondary-text text-center">
-                  No se encontraron resultados
-                </Text>
+                <Text className="text-secondary-text text-center">No encontramos resultados</Text>
               )}
               {isLoading && <Loader />}
             </View>

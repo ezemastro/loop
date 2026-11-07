@@ -56,7 +56,7 @@ export default function DeleteAccountForm() {
         ) : (
           <>
             <View className="gap-1">
-              <Text className="color-main-text text-xl">Email de la cuenta:</Text>
+              <Text className="color-main-text text-xl">Email de la cuenta</Text>
               <TextInput
                 placeholderTextColor={colors.SECONDARY_TEXT}
                 className="border border-stroke rounded p-2 bg-white"

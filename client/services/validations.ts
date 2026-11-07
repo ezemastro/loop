@@ -27,9 +27,9 @@ const registerFormSchema = z.object({
       z.object({
         id: z.uuid(),
       }),
-      "Debes seleccionar al menos una escuela",
+      "Elegí al menos una escuela",
     )
-    .min(1, "Debes seleccionar al menos una escuela"),
+    .min(1, "Elegí al menos una escuela"),
 });
 export const validateRegisterForm = (data: unknown) => {
   return registerFormSchema.safeParse(data);
@@ -55,7 +55,7 @@ const publishListingFormSchema = z.object({
   productStatus: z.string().refine((status) => {
     return Object.values(PRODUCT_STATUSES).includes(status as ProductStatus);
   }, "El estado del producto no es válido"),
-  price: z.number().min(1, "Introduce un precio válido"),
+  price: z.number().min(1, "Ingresá un precio válido"),
 });
 export const validatePublishListingForm = (data: unknown) => {
   return publishListingFormSchema.safeParseAsync(data);
@@ -63,12 +63,14 @@ export const validatePublishListingForm = (data: unknown) => {
 
 const emailFormatSchema = z.email();
 /** Used by the public `/borrar-cuenta` form — no session, no `formik`-style form, just one field. */
-export const isValidEmailFormat = (email: string): boolean => emailFormatSchema.safeParse(email).success;
+export const isValidEmailFormat = (email: string): boolean =>
+  emailFormatSchema.safeParse(email).success;
 
 const forgotPasswordFormSchema = z.object({
   email: z.email("El correo electrónico no es válido"),
 });
-export const validateForgotPasswordForm = (data: unknown) => forgotPasswordFormSchema.safeParse(data);
+export const validateForgotPasswordForm = (data: unknown) =>
+  forgotPasswordFormSchema.safeParse(data);
 
 const resetPasswordFormSchema = z
   .object({

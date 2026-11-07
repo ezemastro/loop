@@ -136,7 +136,7 @@ export default function ResourceSelectorModal<T>({
                   {isError && <Error>Error al cargar {title.toLowerCase()}</Error>}
                   {isLoading && <Loader />}
                   {filteredItems.length === 0 && !isLoading && !isError && (
-                    <TextInfo>No se encontraron resultados</TextInfo>
+                    <TextInfo>No encontramos resultados</TextInfo>
                   )}
                 </View>
               )}

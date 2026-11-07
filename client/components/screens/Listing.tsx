@@ -59,7 +59,7 @@ export default function Listing() {
   if (!listing) {
     return (
       <MainView safeBottom>
-        {isLoading ? <Loader /> : error ? <Error>No se encontró la publicación</Error> : null}
+        {isLoading ? <Loader /> : error ? <Error>No encontramos esta publicación</Error> : null}
       </MainView>
     );
   }
@@ -148,7 +148,7 @@ export default function Listing() {
         <ListingStatusInfo listing={listing} />
 
         <View className="gap-3 p-4">
-          <Text className="text-2xl font-semibold text-main-text">Con este loop ahorras:</Text>
+          <Text className="text-2xl font-semibold text-main-text">Con este loop ahorrás</Text>
           <Stats
             kgCo2={listing.category.stats?.kgCo2 || 0}
             kgWaste={listing.category.stats?.kgWaste || 0}

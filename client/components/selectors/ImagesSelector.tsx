@@ -200,7 +200,7 @@ export default function ImagesSelector({
                   }}
                 >
                   <CameraIcon className="text-main-text" size={56} />
-                  <Text className="mt-2 text-main-text">Presiona para agregar imágenes</Text>
+                  <Text className="mt-2 text-main-text">Tocá para agregar imágenes</Text>
                   <Text className="mt-1 text-xs text-secondary-text">
                     Formatos: JPG, PNG, WEBP o AVIF
                   </Text>

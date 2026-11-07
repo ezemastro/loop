@@ -80,7 +80,7 @@ export default function ModifyWishModal({
                   value={comment}
                   onChangeText={setComment}
                   placeholderClassName="text-secondary-text"
-                  placeholder="Sé más específico en lo que buscas..."
+                  placeholder="Contanos qué estás buscando"
                   multiline
                   numberOfLines={4}
                 />

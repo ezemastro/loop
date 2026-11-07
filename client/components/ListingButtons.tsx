@@ -17,7 +17,7 @@ import { showAlert } from "@/services/showAlert";
 
 const CANCEL_TITLE = "¿Cancelar el loop?";
 const CANCEL_MESSAGE =
-  "Se deshace el intercambio y cada uno recupera los Loopies que tenía bloqueados. No se puede volver atrás.";
+  "Se deshace el intercambio y cada uno recupera los loopies que tenía bloqueados. No se puede volver atrás.";
 const CANCEL_KEEP = "No, seguir";
 const CANCEL_CONFIRM = "Sí, cancelar";
 
@@ -173,7 +173,7 @@ export default function ListingButtons({
               });
             }}
           >
-            <ButtonText>Elegir Loop</ButtonText>
+            <ButtonText>Elegir loop</ButtonText>
           </CustomButton>
         );
       }

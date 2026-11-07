@@ -44,7 +44,7 @@ export default function CategorySelectorModal({
           style={{ maxHeight: modalMaxHeight }}
         >
           <CloseModalButton onClose={onClose} />
-          <TextTitle>Seleccionar categoría</TextTitle>
+          <TextTitle>Elegí una categoría</TextTitle>
           <SearchBar onChange={(text) => setSearchTerm(text)} />
           <FlatList
             className="flex-1 min-h-0"
@@ -65,9 +65,7 @@ export default function CategorySelectorModal({
               <View className="h-40 justify-center items-center">
                 {isLoading && <Loader />}
                 {!isLoading && (
-                  <Text className="text-secondary-text text-center">
-                    No se encontraron categorías
-                  </Text>
+                  <Text className="text-secondary-text text-center">No encontramos resultados</Text>
                 )}
               </View>
             }

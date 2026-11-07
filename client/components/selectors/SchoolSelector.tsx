@@ -74,7 +74,7 @@ export default function SchoolSelector({
         ) : (
           <View className="h-16 justify-center items-center px-3">
             <Text className="text-secondary-text text-center text-base">
-              {isDisabled ? (disabledText ?? "Seleccionar escuela") : "Seleccionar escuela"}
+              {isDisabled ? (disabledText ?? "Elegí una escuela") : "Elegí una escuela"}
             </Text>
           </View>
         )}

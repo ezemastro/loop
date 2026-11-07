@@ -27,7 +27,7 @@ export default function PendingWithUser({
   const pendingSections = [
     {
       key: "to-receive",
-      title: "Debes recibir",
+      title: "Tenés que recibir",
       component: () => (
         <MyPendingList
           type="to-receive"
@@ -43,7 +43,7 @@ export default function PendingWithUser({
     },
     {
       key: "to-deliver",
-      title: "Debes entregar",
+      title: "Tenés que entregar",
       component: () => (
         <MyPendingList
           type="to-deliver"
@@ -59,7 +59,7 @@ export default function PendingWithUser({
     },
     {
       key: "to-accept",
-      title: "Debes aceptar",
+      title: "Tenés que aceptar",
       component: () => (
         <MyPendingList
           type="to-accept"

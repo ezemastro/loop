@@ -16,7 +16,7 @@ export default function UserSelectorModal({
       isVisible={isVisible}
       onClose={onClose}
       onSelect={(user) => onSelect(user as User)}
-      title="Seleccione un usuario"
+      title="Elegí un usuario"
       useResource={useUsers}
       renderItem={(user) => <User user={user} />}
       getItems={(data) => data?.pages.flatMap((page: any) => page.data.users) || []}

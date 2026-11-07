@@ -104,7 +104,7 @@ function MissionNotification({
 }) {
   return (
     <View className="p-4 pb-2">
-      <Text className={titleClassName(isRead)}>Has completado una misión</Text>
+      <Text className={titleClassName(isRead)}>Completaste una misión</Text>
       {payload.userMission ? <Mission mission={payload.userMission} /> : <MissingReference />}
     </View>
   );
@@ -119,25 +119,25 @@ function LoopNotification({
   let label;
   switch (payload.type) {
     case "new_offer":
-      label = "Alguien te ha ofrecido un Loop";
+      label = "Alguien te ofreció un loop";
       break;
     case "offer_rejected":
-      label = "Tu oferta de Loop ha sido rechazada";
+      label = "Tu oferta de loop fue rechazada";
       break;
     case "offer_accepted":
-      label = "Tu oferta de Loop ha sido aceptada";
+      label = "Tu oferta de loop fue aceptada";
       break;
     case "offer_deleted":
-      label = "Una oferta de Loop ha sido eliminada";
+      label = "Una oferta de loop fue eliminada";
       break;
     case "listing_sold":
-      label = "Tu publicación ha sido vendida";
+      label = "Tu publicación fue vendida";
       break;
     case "listing_received":
-      label = "Has entregado correctamente esta publicación";
+      label = "Entregaste esta publicación";
       break;
     case "listing_cancelled":
-      label = "El loop con esta publicación ha sido cancelado";
+      label = "El loop con esta publicación fue cancelado";
       break;
   }
   return (
@@ -184,7 +184,7 @@ function AdminNotification({
       return (
         <View className="p-4 pb-2 gap-2">
           <Text className={titleClassName(isRead)}>
-            El equipo de Loop ha modificado tu cantidad de Loopies
+            El equipo de Loop modificó tu cantidad de loopies
           </Text>
           <Text className="text-main-text">
             {payload.amount && payload.amount > 0

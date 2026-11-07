@@ -150,20 +150,15 @@ export default function Chat() {
               ) : null}
             </>
           )}
-          ListFooterComponent={
-            messages.length && !hasNextPage ? (
-              <Text className="text-secondary-text text-center p-4">No hay más mensajes</Text>
-            ) : null
-          }
           ListHeaderComponent={
             !messages.length ? (
               isError ? (
-                <Error>Ocurrió un error</Error>
+                <Error>Algo salió mal</Error>
               ) : isLoading ? (
                 <Loader />
               ) : (
                 <Text className="text-secondary-text text-center p-4">
-                  No hay mensajes aún, envía el primer mensaje
+                  Todavía no hay mensajes. Enviá el primero.
                 </Text>
               )
             ) : null

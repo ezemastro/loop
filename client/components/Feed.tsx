@@ -34,9 +34,9 @@ export default function Feed({
           ))}
       </ListingGrid>
       {isLoading && <Loader />}
-      {isError && <Error>Ha ocurrido un error</Error>}
+      {isError && <Error>Algo salió mal</Error>}
       {!isLoading && listings.length === 0 && (
-        <Error textClassName="text-secondary-text">No se han encontrado publicaciones</Error>
+        <Error textClassName="text-secondary-text">No encontramos resultados</Error>
       )}
       {!hasNextPage && !isLoading && listings.length > 0 && (
         <Text className="text-center text-secondary-text mt-2">No hay más publicaciones</Text>

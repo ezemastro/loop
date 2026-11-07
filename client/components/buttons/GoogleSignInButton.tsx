@@ -165,7 +165,7 @@ const GoogleSignInButtonInner: React.FC<GoogleSignInButtonProps> = ({
       } else if (err.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
         errorMessage = "Google Play Services no disponible";
       } else if (isNetworkError(err)) {
-        errorMessage = "Error de conexión. Revisa tu conexión a internet.";
+        errorMessage = "Revisá tu conexión a internet e intentá de nuevo.";
       } else if (err.message) {
         errorMessage = err.message;
       }

@@ -254,9 +254,7 @@ export default function Landing() {
                     />
                   </View>
                   {errors.email ? (
-                    <Error textClassName="text-xs text-alert">
-                      Introduce tu correo electrónico
-                    </Error>
+                    <Error textClassName="text-xs text-alert">Ingresá tu correo electrónico</Error>
                   ) : null}
                 </View>
 
@@ -288,7 +286,7 @@ export default function Landing() {
                     </Pressable>
                   </View>
                   {errors.password ? (
-                    <Error textClassName="text-xs text-alert">Introduce una contraseña</Error>
+                    <Error textClassName="text-xs text-alert">Ingresá tu contraseña</Error>
                   ) : null}
                 </View>
 

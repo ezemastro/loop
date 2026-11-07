@@ -57,14 +57,14 @@ export default function DonateModal({ isOpen, onClose }: { isOpen: boolean; onCl
     <CustomModal handleClose={onClose} isVisible={isOpen}>
       <View className="gap-4 bg-background p-6 rounded-lg w-full">
         <CloseModalButton onClose={onClose} />
-        <TextTitle>Donar Loopies</TextTitle>
+        <TextTitle>Donar loopies</TextTitle>
         <View className="gap-2">
-          <Text className="text-main-text text-lg">Donar a:</Text>
+          <Text className="text-main-text text-lg">Donar a</Text>
           <UserSelector value={selectedUser} onChange={setSelectedUser} />
-          {selectedUser?.id === user?.id && <Error>No puedes donar a ti mismo</Error>}
+          {selectedUser?.id === user?.id && <Error>No podés donarte a vos mismo</Error>}
         </View>
         <View className="gap-2">
-          <Text className="text-main-text text-lg">Cantidad:</Text>
+          <Text className="text-main-text text-lg">Cantidad</Text>
           <View
             {...fieldWrapperProps}
             className="flex-row items-center bg-white rounded border border-stroke px-4 gap-2"

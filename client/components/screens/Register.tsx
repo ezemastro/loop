@@ -58,13 +58,13 @@ export default function Register({ invite }: { invite?: string }) {
   const fields: Field[] = [
     {
       key: "firstName",
-      label: "Nombre:",
+      label: "Nombre",
       error: errors.firstName,
       render: () => (
         <TextInput
           placeholderTextColor={colors.SECONDARY_TEXT}
           className="border border-stroke rounded p-2 bg-white"
-          placeholder="Ingrese su nombre"
+          placeholder="Tu nombre"
           value={formData.firstName}
           onChangeText={(text) => setFormData({ ...formData, firstName: text })}
         />
@@ -72,13 +72,13 @@ export default function Register({ invite }: { invite?: string }) {
     },
     {
       key: "lastName",
-      label: "Apellido:",
+      label: "Apellido",
       error: errors.lastName,
       render: () => (
         <TextInput
           placeholderTextColor={colors.SECONDARY_TEXT}
           className="border border-stroke rounded p-2 bg-white"
-          placeholder="Ingrese su apellido"
+          placeholder="Tu apellido"
           value={formData.lastName}
           onChangeText={(text) => setFormData({ ...formData, lastName: text })}
         />
@@ -86,13 +86,13 @@ export default function Register({ invite }: { invite?: string }) {
     },
     {
       key: "email",
-      label: "Correo electrónico:",
+      label: "Correo electrónico",
       error: errors.email,
       render: () => (
         <TextInput
           placeholderTextColor={colors.SECONDARY_TEXT}
           className="border border-stroke rounded p-2 bg-white"
-          placeholder="Ingrese su correo electrónico"
+          placeholder="Tu correo electrónico"
           value={formData.email}
           onChangeText={(text) => setFormData({ ...formData, email: text })}
           autoCapitalize="none"
@@ -101,13 +101,13 @@ export default function Register({ invite }: { invite?: string }) {
     },
     {
       key: "password",
-      label: "Contraseña:",
+      label: "Contraseña",
       error: errors.password,
       render: () => (
         <TextInput
           placeholderTextColor={colors.SECONDARY_TEXT}
           className="border border-stroke rounded p-2 bg-white"
-          placeholder="Ingrese su contraseña"
+          placeholder="Tu contraseña"
           secureTextEntry
           value={formData.password}
           onChangeText={(text) => setFormData({ ...formData, password: text })}
@@ -117,13 +117,13 @@ export default function Register({ invite }: { invite?: string }) {
     },
     {
       key: "confirmPassword",
-      label: "Confirmar contraseña:",
+      label: "Confirmar contraseña",
       error: errors.confirmPassword,
       render: () => (
         <TextInput
           placeholderTextColor={colors.SECONDARY_TEXT}
           className="border border-stroke rounded p-2 bg-white"
-          placeholder="Repita su contraseña"
+          placeholder="Repetí tu contraseña"
           secureTextEntry
           value={formData.confirmPassword}
           onChangeText={(text) => setFormData({ ...formData, confirmPassword: text })}
@@ -133,7 +133,7 @@ export default function Register({ invite }: { invite?: string }) {
     },
     {
       key: "schools",
-      label: "Colegios:",
+      label: "Colegios",
       error: errors.schools,
       render: () => (
         <SchoolSelector
