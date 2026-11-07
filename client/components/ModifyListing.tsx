@@ -374,7 +374,7 @@ export default function ModifyListing({
                 <Error>No pudimos guardar los cambios. Probá de nuevo.</Error>
               )}
               {(isPublishingListing || isUpdatingListing || isUploadingFiles) && <Loader />}
-              <CustomButton className="mt-6 mb-6" onPress={handleSubmit}>
+              <CustomButton className="mb-6 mt-6 max-w-none" onPress={handleSubmit}>
                 <ButtonText>{action === "edit" ? "Actualizar" : "Publicar"}</ButtonText>
               </CustomButton>
             </>
