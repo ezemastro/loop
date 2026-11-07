@@ -16,12 +16,14 @@ export default function AuthLayout() {
 
   return (
     <Tabs
+      // `tabBarStyle.display` alone does not hide the bar after hydrating at the base breakpoint.
+      tabBar={isWideWeb ? () => null : undefined}
       screenOptions={{
         tabBarHideOnKeyboard: false,
         tabBarInactiveTintColor: colors.SECONDARY_TEXT,
         tabBarActiveTintColor: colors.ACCENT,
         tabBarStyle: {
-          display: visible && !isWideWeb ? "flex" : "none",
+          display: visible ? "flex" : "none",
         },
       }}
     >

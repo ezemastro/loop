@@ -34,8 +34,11 @@ export default function ChatInput({ onSubmit }: { onSubmit: (text: string) => vo
     const node = inputRef.current as unknown as HTMLTextAreaElement | null;
     if (!node?.style) return;
     node.style.height = "0px";
-    setInputHeight(clampHeight(node.scrollHeight));
-    node.style.height = "";
+    const nextHeight = clampHeight(node.scrollHeight);
+    // Set the final value here too: when the state does not change React leaves the inline style
+    // alone, and clearing it would fall back to the textarea's default two rows.
+    node.style.height = `${nextHeight}px`;
+    setInputHeight(nextHeight);
   }, [messageText]);
 
   const handleContentSizeChange = (

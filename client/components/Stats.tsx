@@ -18,17 +18,17 @@ export default function Stats({
   return (
     <View className="flex-row justify-between gap-2">
       <Stat
-        label="Kg. de residuos evitados"
+        label="kg de residuos evitados"
         value={kgWaste}
         icon={<WasteIcon color={colors.MAIN_TEXT} size={32} />}
       />
       <Stat
-        label="Kg. de CO2 equivalente ahorrado"
+        label="kg de CO2 equivalente ahorrados"
         value={kgCo2}
         icon={<CO2Icon color={colors.MAIN_TEXT} size={32} />}
       />
       <Stat
-        label="Litros de agua ahorrados"
+        label="litros de agua ahorrados"
         value={lH2o}
         icon={<H20Icon color={colors.MAIN_TEXT} size={32} />}
       />
@@ -86,7 +86,7 @@ export function ImpactStrip({
         bordered
         icon={<CO2Icon color={colors.ACCENT} size={24} />}
         value={kgCo2}
-        label="kg de CO2 ahorrados"
+        label="kg de CO2 equivalente ahorrados"
       />
       <ImpactItem
         bordered
