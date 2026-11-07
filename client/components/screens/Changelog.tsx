@@ -44,8 +44,6 @@ const KIND_LABEL: Record<ChangeKind, string> = {
   arreglo: "Arreglo",
 };
 
-/** Side by side from this window width, stacked below it. */
-const SIDE_BY_SIDE_MIN_WIDTH = 768;
 /** Phone captures are portrait: cap them so they are not stretched to the column width. */
 const PHONE_IMAGE_MAX_WIDTH = 280;
 
@@ -153,8 +151,6 @@ function ComparisonBlock({
   comparison: Comparison;
   onOpen: (image: ChangelogImage) => void;
 }) {
-  const { width } = useWindowDimensions();
-  const sideBySide = width >= SIDE_BY_SIDE_MIN_WIDTH;
   const phone = comparison.viewport === "celular";
   const items = [
     comparison.before && { label: "Antes", image: comparison.before },
@@ -166,7 +162,9 @@ function ComparisonBlock({
       {comparison.caption ? (
         <Text className="text-sm text-neutral-600">{comparison.caption}</Text>
       ) : null}
-      <View className={sideBySide ? "flex-row gap-6" : "gap-6"}>
+      {/* A class, not the window width: the page is prerendered, and a width-based branch would make
+          the first client render differ from the HTML (React hydration error #418). */}
+      <View className="gap-6 md:flex-row">
         {items.map((item) => (
           <ComparisonImage
             key={item.label}
@@ -177,7 +175,7 @@ function ComparisonBlock({
           />
         ))}
         {/* A lone image keeps the width of one column instead of stretching across both. */}
-        {sideBySide && items.length === 1 ? <View className="flex-1" /> : null}
+        {items.length === 1 ? <View className="flex-1 max-md:hidden" /> : null}
       </View>
     </View>
   );

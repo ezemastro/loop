@@ -2,6 +2,7 @@ import { AddUserIcon, UserIcon } from "@/components/Icons";
 import { useHideOnKeyboard } from "@/hooks/useHideOnKeyboard";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Tabs } from "expo-router";
+import { useEffect, useState } from "react";
 import { Platform } from "react-native";
 import { useBreakpoint } from "@/hooks/useBreakpoint";
 
@@ -12,7 +13,11 @@ export default function AuthLayout() {
   // From `md` up on web the login/register screens link to each other in text; a bottom tab bar
   // on a desktop window only looks odd. Mobile keeps it.
   const breakpoint = useBreakpoint();
-  const isWideWeb = Platform.OS === "web" && breakpoint !== "base";
+  // These routes are prerendered at the base breakpoint: deciding from the window width during the
+  // first client render would differ from the HTML (React hydration error #418).
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
+  const isWideWeb = hydrated && Platform.OS === "web" && breakpoint !== "base";
 
   return (
     <Tabs
