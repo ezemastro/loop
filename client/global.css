@@ -6,14 +6,18 @@
  * Paleta por defecto, en canales RGB sueltos para que `rgb(var(--x) / <alpha-value>)` funcione.
  * Existe para que la app renderice bien antes de que se resuelva ninguna comunidad (primer
  * arranque, usuario deslogueado, tema incompleto). El ThemeProvider pisa estas variables más
- * abajo en el árbol. Espejo de `DEFAULT_COLORS` en `config.ts`.
+ * abajo en el árbol. Espejo de `DEFAULT_COLORS` en `config.ts`, salvo las que se derivan para
+ * garantizar contraste (`--color-accent`, `--color-secondary-text`, `--color-credits-light`,
+ * `--color-alert`): esas llevan el valor ya calculado por `deriveAccessibleColors` sobre
+ * `DEFAULT_COLORS`, y `brand-palette.test.ts` lo verifica.
  */
 :root {
   --color-primary: 228 81 11;
   --color-secondary: 36 59 122;
+  --color-accent: 36 59 122;
   --color-tertiary: 32 155 138;
   --color-main-text: 61 61 61;
-  --color-secondary-text: 158 158 158;
+  --color-secondary-text: 107 107 107;
   --color-credits: 125 32 72;
   --color-credits-light: 160 58 99;
   --color-stroke: 228 228 228;

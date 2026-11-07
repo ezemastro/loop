@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { useMemo } from "react";
 import { webStorage } from "@/services/webStorage";
 import { DEFAULT_COLORS, type ThemeColorKey, type ThemeColors } from "@/config";
-import { isValidHex } from "@/services/color";
+import { deriveAccessibleColors, isValidHex } from "@/services/color";
 
 interface ThemeStore {
   /** Comunidad del usuario logueado. Sale de `user.community`. */
@@ -51,24 +51,32 @@ const COLOR_KEY_MAP: Record<ThemeColorKey, keyof CommunityThemeColors> = {
   ALERT: "alert",
 };
 
+/** `ThemeColors` plus the colour derived from the community palette (see `ACCENT` below). */
+export type ActiveThemeColors = ThemeColors & { ACCENT: string };
+
 /**
  * Arma la paleta activa a partir de una comunidad. El fallback es por clave y no por paleta
  * entera: una comunidad a la que le falte un color solo hereda ese, no pierde el resto.
+ *
+ * Las paletas de las comunidades son arbitrarias, así que `SECONDARY_TEXT`, `CREDITS_LIGHT` y
+ * `ALERT` salen oscurecidos hasta llegar a 4.5:1 y `ACCENT` es `SECONDARY` oscurecido hasta que el
+ * texto blanco encima llegue a 4.5:1. Los datos de la comunidad no se tocan: solo esta paleta.
  */
-export const resolveThemeColors = (community: Community | null): ThemeColors => {
+export const resolveThemeColors = (community: Community | null): ActiveThemeColors => {
   const colors = community?.theme?.colors;
   const entries = (Object.keys(COLOR_KEY_MAP) as ThemeColorKey[]).map((key) => {
     const value = colors?.[COLOR_KEY_MAP[key]];
     return [key, isValidHex(value) ? value : DEFAULT_COLORS[key]] as const;
   });
-  return Object.fromEntries(entries) as ThemeColors;
+  const raw = Object.fromEntries(entries) as ThemeColors;
+  return { ...raw, ...deriveAccessibleColors(raw) };
 };
 
 /**
  * Paleta que la app tiene que usar ahora mismo, con las claves en MAYÚSCULA de `DEFAULT_COLORS`.
  * El preview gana porque solo existe cuando no hay sesión.
  */
-export const useActiveTheme = (): ThemeColors => {
+export const useActiveTheme = (): ActiveThemeColors => {
   const community = useThemeStore((state) => state.community);
   const previewCommunity = useThemeStore((state) => state.previewCommunity);
   // Memoizado porque `resolveThemeColors` devuelve un objeto nuevo y abajo alimenta `vars()`,

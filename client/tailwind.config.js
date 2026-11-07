@@ -24,6 +24,9 @@ export const theme = {
     colors: {
       primary: "rgb(var(--color-primary) / <alpha-value>)",
       secondary: "rgb(var(--color-secondary) / <alpha-value>)",
+      // Derived at runtime from `secondary` (darkened to 4.5:1 against white): fills that carry
+      // white text, and focus rings. See `resolveThemeColors` in `stores/theme.ts`.
+      accent: "rgb(var(--color-accent) / <alpha-value>)",
       tertiary: "rgb(var(--color-tertiary) / <alpha-value>)",
       "main-text": "rgb(var(--color-main-text) / <alpha-value>)",
       "secondary-text": "rgb(var(--color-secondary-text) / <alpha-value>)",

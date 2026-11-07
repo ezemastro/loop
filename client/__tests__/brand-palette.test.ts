@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { DEFAULT_COLORS, ThemeColorKey } from "../config";
-import { hexToChannels } from "../services/color";
+import { deriveAccessibleColors, hexToChannels } from "../services/color";
 import { walkTsFiles } from "./helpers/sourceFiles";
 
 /**
@@ -18,9 +18,21 @@ const APP_JSON_PATH = path.join(CLIENT_ROOT, "app.json");
 const MANIFEST_JSON_PATH = path.join(CLIENT_ROOT, "public", "manifest.json");
 const THIS_FILE = path.join(__dirname, "brand-palette.test.ts");
 
-const CSS_VAR_TO_KEY: Record<string, ThemeColorKey> = {
+/**
+ * `:root` mirrors `DEFAULT_COLORS` except for the keys the runtime derives for contrast
+ * (`deriveAccessibleColors`): there, `:root` carries the derived default so first paint already
+ * passes. `ACCENT` has no raw counterpart; it derives from SECONDARY.
+ */
+const DERIVED_DEFAULTS = deriveAccessibleColors(DEFAULT_COLORS);
+const expectedDefault = (key: ThemeColorKey | "ACCENT"): string =>
+  key === "ACCENT" || key in DERIVED_DEFAULTS
+    ? DERIVED_DEFAULTS[key as keyof typeof DERIVED_DEFAULTS]
+    : DEFAULT_COLORS[key as ThemeColorKey];
+
+const CSS_VAR_TO_KEY: Record<string, ThemeColorKey | "ACCENT"> = {
   "--color-primary": "PRIMARY",
   "--color-secondary": "SECONDARY",
+  "--color-accent": "ACCENT",
   "--color-tertiary": "TERTIARY",
   "--color-main-text": "MAIN_TEXT",
   "--color-secondary-text": "SECONDARY_TEXT",
@@ -87,14 +99,14 @@ describe("brand palette", () => {
   describe("Config/CSS Parity Invariant", () => {
     const cssVars = parseRootBlock(fs.readFileSync(GLOBAL_CSS_PATH, "utf8"));
 
-    it("global.css declares exactly the 10 expected --color-* keys", () => {
+    it("global.css declares exactly the 11 expected --color-* keys", () => {
       expect(Object.keys(cssVars).sort()).toEqual(Object.keys(CSS_VAR_TO_KEY).sort());
     });
 
     it.each(Object.entries(CSS_VAR_TO_KEY))(
-      "%s matches hexToChannels(DEFAULT_COLORS.%s)",
+      "%s matches hexToChannels of the default %s (derived where contrast requires it)",
       (cssVar, key) => {
-        expect(cssVars[cssVar]).toBe(hexToChannels(DEFAULT_COLORS[key]));
+        expect(cssVars[cssVar]).toBe(hexToChannels(expectedDefault(key)));
       },
     );
   });
@@ -110,7 +122,7 @@ describe("brand palette", () => {
       expect(DEFAULT_COLORS.MAIN_TEXT).toBe("#3D3D3D");
     });
 
-    it("leaves SECONDARY_TEXT, STROKE, BACKGROUND unchanged", () => {
+    it("leaves SECONDARY_TEXT, STROKE, BACKGROUND raw values unchanged", () => {
       expect(DEFAULT_COLORS.SECONDARY_TEXT).toBe("#9E9E9E");
       expect(DEFAULT_COLORS.STROKE).toBe("#E4E4E4");
       expect(DEFAULT_COLORS.BACKGROUND).toBe("#F0F0F0");
@@ -126,6 +138,16 @@ describe("brand palette", () => {
       expect(contrastRatio(DEFAULT_COLORS.SECONDARY, "#FFFFFF")).toBeGreaterThanOrEqual(7);
     });
 
+    it("white on the derived ACCENT meets AA normal text (>= 4.5:1)", () => {
+      expect(contrastRatio("#FFFFFF", DERIVED_DEFAULTS.ACCENT)).toBeGreaterThanOrEqual(4.5);
+    });
+
+    it("the derived SECONDARY_TEXT meets AA on BACKGROUND (>= 4.5:1)", () => {
+      expect(
+        contrastRatio(DERIVED_DEFAULTS.SECONDARY_TEXT, DEFAULT_COLORS.BACKGROUND),
+      ).toBeGreaterThanOrEqual(4.5);
+    });
+
     it("white on ALERT meets AA normal text (>= 4.5:1)", () => {
       expect(contrastRatio("#FFFFFF", DEFAULT_COLORS.ALERT)).toBeGreaterThanOrEqual(4.5);
     });
@@ -138,7 +160,11 @@ describe("brand palette", () => {
   describe("Landing Screen Zero Hardcoded Brand Hex / PwaInstallPrompt Theme Consumption", () => {
     const files = walkTsFiles(CLIENT_ROOT).filter((file) => {
       const rel = path.relative(CLIENT_ROOT, file);
-      return rel !== "config.ts" && file !== THIS_FILE;
+      // `color-contrast.test.ts` is exempt: it needs the demo community's literal colours to prove
+      // the contrast derivation works for arbitrary palettes.
+      return (
+        rel !== "config.ts" && rel !== "__tests__/color-contrast.test.ts" && file !== THIS_FILE
+      );
     });
 
     it("scanned at least one file", () => {

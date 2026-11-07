@@ -21,6 +21,8 @@ export default function ThemeProvider({ children }: { children: ReactNode }) {
       vars({
         "--color-primary": hexToChannels(colors.PRIMARY, DEFAULT_COLORS.PRIMARY),
         "--color-secondary": hexToChannels(colors.SECONDARY, DEFAULT_COLORS.SECONDARY),
+        // Derived: SECONDARY darkened until white text on it reaches 4.5:1 (`resolveThemeColors`).
+        "--color-accent": hexToChannels(colors.ACCENT, DEFAULT_COLORS.SECONDARY),
         "--color-tertiary": hexToChannels(colors.TERTIARY, DEFAULT_COLORS.TERTIARY),
         "--color-main-text": hexToChannels(colors.MAIN_TEXT, DEFAULT_COLORS.MAIN_TEXT),
         "--color-secondary-text": hexToChannels(
