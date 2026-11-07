@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { StateStorage } from "zustand/middleware";
-import { isEmbedRoute } from "./embedMode";
+import { isDemoBootPath } from "./embedMode";
 
 /**
  * In-memory stand-in for `AsyncStorage`'s `StateStorage` shape: nothing ever touches disk, nothing
@@ -29,4 +29,4 @@ const memoryStorage: StateStorage = {
  * never see them. Everywhere else this is a plain passthrough to `AsyncStorage`, identical to
  * before this module existed.
  */
-export const webStorage: StateStorage = isEmbedRoute ? memoryStorage : AsyncStorage;
+export const webStorage: StateStorage = isDemoBootPath ? memoryStorage : AsyncStorage;

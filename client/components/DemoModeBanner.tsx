@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useSessionStore } from "@/stores/session";
-import { isEmbedRoute } from "@/services/embedMode";
+import { isFramedDemo } from "@/services/embedMode";
 
 /**
  * Aviso permanente de que la sesión es simulada.
@@ -22,10 +22,10 @@ import { isEmbedRoute } from "@/services/embedMode";
 export default function DemoModeBanner() {
   const demoMode = useSessionStore((state) => state.demoMode);
   const logout = useSessionStore((state) => state.logout);
-  const [hasInteracted, setHasInteracted] = useState(!isEmbedRoute);
+  const [hasInteracted, setHasInteracted] = useState(!isFramedDemo);
 
   useEffect(() => {
-    if (!isEmbedRoute || hasInteracted) return;
+    if (!isFramedDemo || hasInteracted) return;
 
     const markInteracted = () => setHasInteracted(true);
     const events = ["pointerdown", "keydown", "scroll", "touchstart"] as const;

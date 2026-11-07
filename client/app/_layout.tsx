@@ -14,7 +14,7 @@ import { configureGoogleSignIn } from "@/services/googleOauth";
 import { ToastProvider } from "@/components/ToastProvider";
 import PwaInstallPrompt from "@/components/PwaInstallPrompt";
 import ThemeProvider from "@/components/ThemeProvider";
-import { isEmbedRoute } from "@/services/embedMode";
+import { isFramedDemo } from "@/services/embedMode";
 
 // Last net for a render-phase throw not contained by a tab-level boundary; navigation itself may
 // be dead here, so its escape reloads the app instead of navigating (client-render-error-containment).
@@ -147,7 +147,7 @@ export default function RootLayout() {
               </Stack>
               {/* Nothing should offer to install the PWA from inside the embeddable live-demo
                   route (marketing-landing T7) — see services/embedMode.ts. */}
-              {!isEmbedRoute && <PwaInstallPrompt />}
+              {!isFramedDemo && <PwaInstallPrompt />}
             </ToastProvider>
           </ThemeProvider>
         </SafeAreaProvider>

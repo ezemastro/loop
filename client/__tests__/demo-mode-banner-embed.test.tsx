@@ -5,14 +5,14 @@ import DemoModeBanner from "../components/DemoModeBanner";
 /**
  * `marketing-landing` T7: on the embeddable live-demo route the "Modo demo" banner must stay
  * hidden until the visitor's first interaction inside the iframe, then behave exactly as it
- * always has. Everywhere else (`isEmbedRoute: false`) nothing about this component changes.
+ * always has. Everywhere else (`isFramedDemo: false`) nothing about this component changes.
  */
 
-const mockEmbedMode = { isEmbedRoute: false };
+const mockEmbedMode = { isFramedDemo: false };
 jest.mock("@/services/embedMode", () => ({
   __esModule: true,
-  get isEmbedRoute() {
-    return mockEmbedMode.isEmbedRoute;
+  get isFramedDemo() {
+    return mockEmbedMode.isFramedDemo;
   },
 }));
 
@@ -38,7 +38,7 @@ beforeAll(() => {
 
 describe("DemoModeBanner outside the embed route", () => {
   beforeEach(() => {
-    mockEmbedMode.isEmbedRoute = false;
+    mockEmbedMode.isFramedDemo = false;
   });
 
   it("shows immediately when demoMode is true, same as before this feature", async () => {
@@ -49,7 +49,7 @@ describe("DemoModeBanner outside the embed route", () => {
 
 describe("DemoModeBanner on the embed route", () => {
   beforeEach(() => {
-    mockEmbedMode.isEmbedRoute = true;
+    mockEmbedMode.isFramedDemo = true;
   });
 
   it("renders nothing before any interaction", async () => {

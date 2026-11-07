@@ -9,43 +9,66 @@ import path from "path";
 
 type FakeWindow = { location: { pathname: string }; self: object; top: object };
 
-const loadFlag = (pathname: string, framed: boolean): boolean => {
+const loadFlags = (pathname: string, framed: boolean) => {
   const original = (global as { window?: unknown }).window;
   const top = {};
   const fake: FakeWindow = { location: { pathname }, self: framed ? {} : top, top };
   (global as { window?: unknown }).window = fake;
   try {
-    let flag = false;
+    let flags = { isDemoBootPath: false, isFramedDemo: false };
     jest.isolateModules(() => {
       jest.doMock("react-native", () => ({ Platform: { OS: "web" } }));
-      flag = (require("@/services/embedMode") as { isEmbedRoute: boolean }).isEmbedRoute;
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      flags = require("@/services/embedMode");
     });
-    return flag;
+    return { boot: flags.isDemoBootPath, framed: flags.isFramedDemo };
   } finally {
     (global as { window?: unknown }).window = original;
     jest.dontMock("react-native");
   }
 };
 
-describe("isEmbedRoute", () => {
-  it("is true for /demo inside an iframe", () => {
-    expect(loadFlag("/demo", true)).toBe(true);
+describe("isDemoBootPath (storage isolation)", () => {
+  it("is true for /demo whether framed or at top level", () => {
+    expect(loadFlags("/demo", true).boot).toBe(true);
+    expect(loadFlags("/demo", false).boot).toBe(true);
   });
 
-  it("is false for /demo opened as a top-level page", () => {
-    expect(loadFlag("/demo", false)).toBe(false);
-  });
-
-  it("is false for any other path, framed or not", () => {
-    expect(loadFlag("/", true)).toBe(false);
-    expect(loadFlag("/home", true)).toBe(false);
+  it("is false for any other path", () => {
+    expect(loadFlags("/", true).boot).toBe(false);
+    expect(loadFlags("/home", false).boot).toBe(false);
   });
 });
 
-describe("Home in the embedded demo", () => {
-  const home = fs.readFileSync(path.join(__dirname, "..", "components", "screens", "Home.tsx"), "utf8");
+describe("isFramedDemo (UI only)", () => {
+  it("is true only for /demo inside an iframe", () => {
+    expect(loadFlags("/demo", true).framed).toBe(true);
+    expect(loadFlags("/demo", false).framed).toBe(false);
+  });
+
+  it("is false on other paths even when framed", () => {
+    expect(loadFlags("/", true).framed).toBe(false);
+  });
+});
+
+describe("storage follows the boot path, not the framing", () => {
+  const source = fs.readFileSync(path.join(__dirname, "..", "services", "webStorage.ts"), "utf8");
+
+  it("swaps to memory storage on isDemoBootPath and never reads isFramedDemo", () => {
+    expect(source).toMatch(/isDemoBootPath \? memoryStorage : AsyncStorage/);
+    expect(source).not.toMatch(/isFramedDemo/);
+  });
+});
+
+describe("Home in the framed demo", () => {
+  const home = fs.readFileSync(
+    path.join(__dirname, "..", "components", "screens", "Home.tsx"),
+    "utf8",
+  );
 
   it("shows only the feed when embedded, so the hero opens on school items", () => {
-    expect(home).toMatch(/isEmbedRoute\s*\?\s*allSections\.filter\(\(\{ key \}\) => key === "feed"\)/);
+    expect(home).toMatch(
+      /isFramedDemo\s*\?\s*allSections\.filter\(\(\{ key \}\) => key === "feed"\)/,
+    );
   });
 });

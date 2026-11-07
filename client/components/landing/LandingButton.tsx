@@ -12,6 +12,9 @@ type Props = {
   size?: "md" | "sm";
 };
 
+/** Routes that must load as a new document, not through the client router. */
+const FULL_PAGE_LOAD = new Set<Props["href"]>(["/demo"]);
+
 // Full literal class strings (not composed fragments) so Tailwind's content scan sees every one.
 const CONTAINER: Record<Variant, string> = {
   primary: "bg-primary hover:bg-primary/90 focus-visible:outline-primary",
@@ -42,8 +45,19 @@ export default function LandingButton({
 
   // `/demo` is a real route (`app/demo.tsx`); the cast keeps this compiling while the gitignored
   // typed-routes file is stale.
+  // `/demo` must be a real page load: its in-memory storage isolation is decided from the path the
+  // document booted on, and a client-side transition from `/` would run it against the real
+  // `localStorage`. The anchor keeps its `href` (open in new tab, crawlers); a plain click is
+  // turned into a document navigation.
+  const onPress = FULL_PAGE_LOAD.has(href)
+    ? (event: { preventDefault?: () => void }) => {
+        event.preventDefault?.();
+        window.location.assign(href);
+      }
+    : undefined;
+
   return (
-    <Link href={href as Href} asChild>
+    <Link href={href as Href} onPress={onPress} asChild>
       <Pressable
         accessibilityRole="link"
         accessibilityLabel={accessibilityLabel}
