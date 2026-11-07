@@ -20,9 +20,9 @@ type PhoneProps = {
 
 export function PhoneShell({ screenClassName, children, className = "" }: PhoneProps) {
   return (
-    <View className={`rounded-[2.75rem] bg-main-text p-2 ${className}`}>
+    <View className={`rounded-[1.875rem] bg-main-text p-2 ${className}`}>
       <View
-        className={`relative aspect-[390/844] overflow-hidden rounded-[2.25rem] bg-white ${screenClassName}`}
+        className={`relative aspect-[390/844] overflow-hidden rounded-[1.375rem] bg-white ${screenClassName}`}
       >
         {children}
       </View>

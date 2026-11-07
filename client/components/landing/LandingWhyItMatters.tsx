@@ -33,9 +33,9 @@ const PHOTOS: Record<string, { source: ImageSourcePropType; alt: string }> = {
     source: require("../../assets/demo/listings/loop-demo-mochila-1.webp"),
     alt: "Mochila azul con una botella amarilla, apoyada en el pasto",
   },
-  cuadernos: {
-    source: require("../../assets/demo/listings/loop-demo-cuadernos.webp"),
-    alt: "Pila de cuadernos y libros de colores",
+  geometria: {
+    source: require("../../assets/demo/listings/loop-demo-geometria.webp"),
+    alt: "Escuadra y transportador de madera sobre un fondo celeste",
   },
   botella: {
     source: require("../../assets/demo/listings/loop-demo-botella.webp"),
@@ -66,7 +66,7 @@ function Photo({
 
 /**
  * The reasons as a short editorial list next to a staggered photo pair: one tall photo dropped
- * to the bottom of the row against a square one stacked over a portrait one, so the two columns
+ * to the bottom of the row against two portraits stacked, so the two columns
  * end flush. Below `lg` the text comes first and the photos follow, still as two columns.
  */
 export default function LandingWhyItMatters() {
@@ -109,7 +109,7 @@ export default function LandingWhyItMatters() {
               <Photo photo={PHOTOS.mochila} aspectClassName="aspect-[2/3]" />
             </View>
             <View className="min-w-0 flex-1 gap-3 lg:gap-4">
-              <Photo photo={PHOTOS.cuadernos} aspectClassName="aspect-square" />
+              <Photo photo={PHOTOS.geometria} aspectClassName="aspect-[3/4]" />
               <Photo photo={PHOTOS.botella} aspectClassName="aspect-[4/5]" />
             </View>
           </View>
