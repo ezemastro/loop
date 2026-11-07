@@ -176,3 +176,14 @@ leer el `noindex`. Tiene que seguir así. `client/__tests__/changelog.test.ts` l
   commits: [],
 }
 ```
+
+## Mostrar el color de otra comunidad
+
+Para mostrar cómo se ve un cambio con otros colores, sobre los mismos datos de ejemplo:
+
+```bash
+node scripts/changelog/capture.mjs --base <url> --version <v> --label despues \
+  --scenes search --viewports escritorio --community-color "#0288D1" --suffix comunidad
+```
+
+La imagen es una simulación: su `caption` debe aclarar que es una comunidad de ejemplo.

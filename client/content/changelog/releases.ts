@@ -98,7 +98,7 @@ export const RELEASES: Release[] = [
         title: "Página de novedades",
         why: "Ahora hay una página donde se ve qué cambió en cada versión de Loop, con imágenes de cómo era antes y cómo es ahora.",
         comparisons: [],
-        commits: ["13b935e", "7feaa72", "8ae9f4d"],
+        commits: ["13b935e", "7feaa72", "8ae9f4d", "4670b73"],
       },
       {
         id: "C-0002",
@@ -279,7 +279,7 @@ export const RELEASES: Release[] = [
         title: "Iniciar sesión, más simple",
         why: "En la computadora, el formulario queda ahora en una tarjeta, sin barra inferior ni elementos sueltos. Iniciar sesión y Registrarse se enlazan entre sí con una frase clara.",
         comparisons: [compare(v150, "login", "escritorio", "Inicio de sesión")],
-        commits: ["2908f14", "780a143"],
+        commits: ["2908f14", "780a143", "4670b73"],
       },
       {
         id: "C-0020",
