@@ -17,7 +17,7 @@ export default function ProductStatusBadge({
   textClassName?: string;
 }) {
   return (
-    <View className={twMerge("rounded-full bg-background px-2.5 py-0.5", containerClassName)}>
+    <View className={twMerge("rounded-full bg-main-text/10 px-2.5 py-0.5", containerClassName)}>
       <Text className={twMerge("text-xs font-medium text-main-text", textClassName)}>
         {STATUS_TRANSLATIONS[status]}
       </Text>

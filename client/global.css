@@ -78,7 +78,8 @@ button:focus-visible,
 
 [data-field]:focus-within {
   outline: 2px solid rgb(var(--color-accent));
-  outline-offset: 1px;
+  /* 0, not 1px: the wrapper has its own 1px border, an offset would draw a second line outside it. */
+  outline-offset: 0;
 }
 
 /**

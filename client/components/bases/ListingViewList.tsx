@@ -2,6 +2,8 @@ import { View, Text, Pressable } from "react-native";
 import Listing from "../cards/Listing";
 import ListingGrid from "./ListingGrid";
 import Loader from "../Loader";
+import EmptyState from "./EmptyState";
+import { SearchIcon } from "../Icons";
 import Error from "../Error";
 
 export default function ListingViewList({
@@ -11,6 +13,7 @@ export default function ListingViewList({
   hasNextPage,
   fetchNextPage,
   variant = "grid",
+  emptyState,
 }: {
   listings: Listing[];
   isLoading: boolean;
@@ -19,7 +22,19 @@ export default function ListingViewList({
   fetchNextPage: () => void;
   /** `compact` for lists that only *reference* a listing; `grid` for browsing. */
   variant?: "grid" | "compact";
+  /**
+   * Shown when there are no results. `compact` lists default to nothing (they sit under a section
+   * heading that its parent hides when empty); `grid` lists default to a generic empty state.
+   */
+  emptyState?: React.ReactNode;
 }) {
+  const defaultEmpty =
+    variant === "compact" ? null : (
+      <EmptyState
+        icon={<SearchIcon size={36} className="text-secondary-text" />}
+        title="No encontramos resultados"
+      />
+    );
   return (
     <View>
       <View className="gap-2">
@@ -35,16 +50,16 @@ export default function ListingViewList({
             ))}
           </View>
         ) : (
-          <ListingGrid>
+          <ListingGrid isLoading={isLoading}>
             {listings.map((listing) => (
               <Listing key={listing.id} listing={listing} variant={variant} />
             ))}
           </ListingGrid>
         )}
-        {isLoading && <Loader />}
+        {isLoading && variant === "compact" ? <Loader /> : null}
         {isError && <Error>Algo salió mal</Error>}
         {!isLoading && !isError && listings.length === 0 && (
-          <Error textClassName="text-secondary-text">No encontramos resultados</Error>
+          <>{emptyState === undefined ? defaultEmpty : emptyState}</>
         )}
       </View>
       {hasNextPage && !isLoading && (

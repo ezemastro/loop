@@ -2,6 +2,8 @@ import React from "react";
 import { View } from "react-native";
 import { twMerge } from "tailwind-merge";
 import type { Breakpoint } from "@/hooks/useBreakpoint";
+import { SKELETON_COUNT } from "@/config";
+import ListingSkeleton from "../cards/ListingSkeleton";
 
 /**
  * Grid gutter mechanism (design.md D2): the row carries a negative horizontal margin and every
@@ -56,6 +58,7 @@ export default function ListingGrid({
   className,
   columnRamp = LISTING_COLUMN_RAMP,
   lastFullOnOdd = false,
+  isLoading = false,
 }: {
   children: React.ReactNode;
   className?: string;
@@ -63,10 +66,23 @@ export default function ListingGrid({
   columnRamp?: ColumnRamp;
   /** When true and the child count is odd, the last child spans the full row width. */
   lastFullOnOdd?: boolean;
+  /** Initial load: with no children yet, render `SKELETON_COUNT` card placeholders. */
+  isLoading?: boolean;
 }) {
   const cellClass = gridCellClass(columnRamp);
   const fullCellClass = gridCellClass({ base: 1 });
   const childArray = React.Children.toArray(children);
+  if (isLoading && childArray.length === 0) {
+    return (
+      <View className={twMerge(GRID_ROW_CLASS, className)}>
+        {Array.from({ length: SKELETON_COUNT }, (_, index) => (
+          <View key={index} className={cellClass}>
+            <ListingSkeleton />
+          </View>
+        ))}
+      </View>
+    );
+  }
   const lastIsOdd = lastFullOnOdd && childArray.length % 2 === 1;
   return (
     <View className={twMerge(GRID_ROW_CLASS, className)}>
