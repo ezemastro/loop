@@ -1,4 +1,4 @@
-import { Stack } from "expo-router";
+import { Stack, usePathname } from "expo-router";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/api/queryClient";
 import { useEffect } from "react";
@@ -48,6 +48,7 @@ export default function RootLayout() {
   preloadIconFonts();
   const { isLoggedIn } = useAuth();
   const hasAcceptedTerms = useSessionStore((state) => state.hasAcceptedTerms);
+  const pathname = usePathname();
 
   useEffect(() => {
     configureGoogleSignIn();
@@ -144,10 +145,15 @@ export default function RootLayout() {
                   for a logged-out visitor, so it cannot sit inside a Stack.Protected guard.
                 */}
                 <Stack.Screen name="demo" options={{ headerShown: false }} />
+                {/*
+                  Public unlisted changelog (`/changelog`, see docs/CHANGELOG.md). Same rule as the
+                  legal routes: a sibling of the root Stack, never inside a Stack.Protected.
+                */}
+                <Stack.Screen name="changelog" options={{ statusBarStyle: "dark" }} />
               </Stack>
               {/* Nothing should offer to install the PWA from inside the embeddable live-demo
-                  route (marketing-landing T7) — see services/embedMode.ts. */}
-              {!isFramedDemo && <PwaInstallPrompt />}
+                  route (marketing-landing T7) — see services/embedMode.ts — nor from the changelog page. */}
+              {!isFramedDemo && pathname !== "/changelog" && <PwaInstallPrompt />}
             </ToastProvider>
           </ThemeProvider>
         </SafeAreaProvider>

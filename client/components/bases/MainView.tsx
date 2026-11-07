@@ -12,6 +12,8 @@ export const WIDTH_CAPS = {
   wide: "max-w-6xl xl:max-w-[1400px]",
   /** Screens that look empty when stretched full width. */
   narrow: "max-w-3xl",
+  /** Long-form reading pages (the public changelog): one column, roomier than `narrow`. */
+  editorial: "max-w-[960px]",
   /** Escape hatch: no cap. */
   full: "",
 } as const;
