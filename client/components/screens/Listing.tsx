@@ -102,11 +102,7 @@ export default function Listing() {
               )
             ) : (
               <>
-                <ReportButton
-                  listing={listing}
-                  className="w-auto max-w-none px-3 py-2"
-                  label="Denunciar"
-                />
+                <ReportButton listing={listing} label="Denunciar" />
                 <AskButton userId={listing.seller.id} />
               </>
             )}

@@ -144,7 +144,6 @@ export default function ResourceSelectorModal<T>({
           </View>
           {multiple && (
             <CustomButton
-              className="bg-tertiary rounded p-3"
               onPress={() => onSelect(selectedItems as any)}
               disabled={selectedItems.length === 0}
             >

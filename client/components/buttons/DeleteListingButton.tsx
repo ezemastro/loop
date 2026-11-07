@@ -25,8 +25,14 @@ export default function DeleteListingButton({
   }, [isSuccess, onDelete, queryClient, listingId]);
 
   return (
-    <CustomButton className="w-auto max-w-none bg-alert" onPress={handleDelete}>
-      <DeleteIcon className="text-white" />
+    <CustomButton
+      variant="secondary"
+      size="sm"
+      className="w-auto max-w-none"
+      accessibilityLabel="Eliminar publicación"
+      onPress={handleDelete}
+    >
+      <DeleteIcon size={18} className="text-main-text" />
     </CustomButton>
   );
 }

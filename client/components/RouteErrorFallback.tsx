@@ -56,17 +56,20 @@ export function RouteErrorFallback({ error, retry, escape }: RouteErrorFallbackP
       <Error textClassName="text-center text-lg font-medium">Algo salió mal</Error>
       {__DEV__ ? <Text className="text-center text-sm text-main-text">{error.message}</Text> : null}
       <View className="flex-row gap-2">
+        {/* Styled like the `primary` / `secondary` `sm` buttons but built from raw Pressables on
+            purpose: `CustomButton` reads the theme store, which pulls AsyncStorage into a
+            component that must stay context-free (see above). */}
         <Pressable
           onPress={handleRetry}
-          className="rounded-lg bg-primary px-3 py-1.5 active:opacity-70"
+          className="min-h-[36px] items-center justify-center rounded-lg bg-accent px-3 active:opacity-80"
         >
-          <Text className="font-semibold text-white">Reintentar</Text>
+          <Text className="text-sm font-semibold text-white">Reintentar</Text>
         </Pressable>
         <Pressable
           onPress={handleEscape}
-          className="rounded-lg bg-primary px-3 py-1.5 active:opacity-70"
+          className="min-h-[36px] items-center justify-center rounded-lg border border-stroke bg-white px-3 active:opacity-80"
         >
-          <Text className="font-semibold text-white">
+          <Text className="text-sm font-semibold text-main-text">
             {escape === "home" ? "Ir al inicio" : "Recargar la app"}
           </Text>
         </Pressable>

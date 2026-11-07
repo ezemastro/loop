@@ -251,7 +251,11 @@ export default function Offer() {
             <CustomButton className="w-auto max-w-none flex-grow" onPress={handleSubmit}>
               <ButtonText>Confirmar</ButtonText>
             </CustomButton>
-            <CustomButton className="w-auto max-w-none bg-alert flex-1" onPress={handleReject}>
+            <CustomButton
+              variant="secondary"
+              className="w-auto max-w-none flex-1"
+              onPress={handleReject}
+            >
               <ButtonText>Cancelar</ButtonText>
             </CustomButton>
           </View>

@@ -62,9 +62,7 @@ export default function UserPage({
       component: () => (
         <View className="flex-row items-center justify-between">
           <View>{canGoBack && <BackButton />}</View>
-          {!isCurrentUser && (
-            <ReportButton user={user} className="px-3 py-2 rounded-full" label="Denunciar" />
-          )}
+          {!isCurrentUser && <ReportButton user={user} label="Denunciar" />}
           {isCurrentUser && (
             <Pressable className="p-1" hitSlop={10} onPress={() => router.push("/(main)/settings")}>
               <SettingsIcon className="text-main-text" size={26} />
@@ -110,7 +108,7 @@ export default function UserPage({
       show: !isCurrentUser,
       component: () => (
         <CustomButton
-          className="bg-secondary self-center"
+          className="self-center"
           onPress={() =>
             router.push({
               pathname: "/(main)/(tabs)/messages/[userId]",

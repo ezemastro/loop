@@ -68,8 +68,8 @@ export default function ForgotPassword() {
               keyboardType="email-address"
             />
             {validationError && <Error textClassName="text-alert">Ingresá un email válido</Error>}
-            <CustomButton onPress={handleSubmit} disabled={isPending}>
-              <ButtonText>{isPending ? "Enviando…" : "Enviar enlace"}</ButtonText>
+            <CustomButton onPress={handleSubmit} loading={isPending}>
+              <ButtonText>Enviar enlace</ButtonText>
             </CustomButton>
           </>
         )}

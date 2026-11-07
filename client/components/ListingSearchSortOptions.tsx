@@ -67,32 +67,41 @@ export default function ListingSearchSortOptions({
     // changes `sort`, not whenever the parent re-renders.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sort]);
-  return (
-    <View className="flex-1">
-      {!sort ? (
-        <CustomButton onPress={nextSortOption}>
-          <ButtonText>Ordenar</ButtonText>
-        </CustomButton>
-      ) : (
-        <View className="flex-1 flex-row rounded">
-          <Pressable
-            onPress={nextSortOption}
-            className="flex-grow justify-center items-center px-2 border border-secondary-text rounded"
-          >
-            <Text className="text-lg">{sort?.sortBy.label}</Text>
-          </Pressable>
-          <Pressable
-            onPress={nextSortOrder}
-            className="justify-center px-3 border border-secondary-text rounded"
-          >
-            {sort?.sortOrder === SORT_ORDERS.ASCENDING ? (
-              <ArrowUpIcon className="text-main-text" />
-            ) : (
-              <ArrowDownIcon className="text-main-text" />
-            )}
-          </Pressable>
-        </View>
-      )}
+  // Same 36px height, radius and border as the `secondary` `sm` buttons it sits next to, so the
+  // row does not jump when the control switches between its closed and open states.
+  return !sort ? (
+    <CustomButton
+      variant="secondary"
+      size="sm"
+      onPress={nextSortOption}
+      className="w-auto max-w-none"
+    >
+      <ButtonText>Ordenar</ButtonText>
+    </CustomButton>
+  ) : (
+    <View className="min-h-[36px] flex-row items-stretch overflow-hidden rounded-lg border border-stroke bg-white">
+      <Pressable
+        accessibilityRole="button"
+        onPress={nextSortOption}
+        className="justify-center px-3 hover:bg-background active:opacity-80"
+      >
+        <Text className="text-sm font-semibold text-main-text">{sort.sortBy.label}</Text>
+      </Pressable>
+      <View className="w-px bg-stroke" />
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={
+          sort.sortOrder === SORT_ORDERS.ASCENDING ? "Orden ascendente" : "Orden descendente"
+        }
+        onPress={nextSortOrder}
+        className="justify-center px-2 hover:bg-background active:opacity-80"
+      >
+        {sort.sortOrder === SORT_ORDERS.ASCENDING ? (
+          <ArrowUpIcon size={18} className="text-main-text" />
+        ) : (
+          <ArrowDownIcon size={18} className="text-main-text" />
+        )}
+      </Pressable>
     </View>
   );
 }

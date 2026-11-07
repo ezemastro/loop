@@ -36,7 +36,10 @@ export default function Search() {
     user: null,
     productStatus: null,
   });
-  const filterRowClassName = pageContentClassName("wide", "flex-row p-4 gap-4 flex-shrink-0");
+  const filterRowClassName = pageContentClassName(
+    "wide",
+    "flex-row items-center justify-end p-4 gap-2 flex-shrink-0",
+  );
   const gridContentClassName = pageContentClassName("wide", GRID_ROW_CLASS);
   const { data, isLoading } = useListings(query);
   const listings = data?.pages.flatMap((page) => page.data?.listings ?? []) || [];

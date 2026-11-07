@@ -132,12 +132,12 @@ export default function SchoolSelection() {
               communityId={community?.id}
               onChange={setSelectedSchools}
             />
-            <CustomButton onPress={handleCompleteSignIn} disabled={isButtonDisabled}>
-              {googleLoginMutation.isPending ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <ButtonText>Seleccionar</ButtonText>
-              )}
+            <CustomButton
+              onPress={handleCompleteSignIn}
+              disabled={isButtonDisabled}
+              loading={googleLoginMutation.isPending}
+            >
+              <ButtonText>Seleccionar</ButtonText>
             </CustomButton>
           </View>
         </View>

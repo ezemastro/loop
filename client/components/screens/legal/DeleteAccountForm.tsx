@@ -73,7 +73,7 @@ export default function DeleteAccountForm() {
                 No pudimos procesar el pedido. Probá de nuevo en un momento.
               </Error>
             )}
-            <CustomButton onPress={handleSubmit} disabled={isPending}>
+            <CustomButton variant="danger" onPress={handleSubmit} loading={isPending}>
               <ButtonText>{isPending ? "Enviando…" : "Enviar solicitud"}</ButtonText>
             </CustomButton>
           </>

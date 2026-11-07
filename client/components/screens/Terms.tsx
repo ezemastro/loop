@@ -89,7 +89,7 @@ export default function TermsPage() {
           )}
         />
         <View className={actionsRowClassName}>
-          <CustomButton onPress={handleReject} className="bg-alert">
+          <CustomButton onPress={handleReject} variant="secondary" className="w-auto max-w-none">
             <ButtonText>Rechazar</ButtonText>
           </CustomButton>
           <CustomButton onPress={handleAccept} className="w-auto max-w-none flex-grow">

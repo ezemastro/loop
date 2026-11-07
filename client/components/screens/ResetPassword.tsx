@@ -91,8 +91,8 @@ export default function ResetPassword() {
                   "El enlace no es válido o ya expiró. Pedí uno nuevo."}
               </Error>
             )}
-            <CustomButton onPress={handleSubmit} disabled={isPending}>
-              <ButtonText>{isPending ? "Guardando…" : "Guardar contraseña"}</ButtonText>
+            <CustomButton onPress={handleSubmit} loading={isPending}>
+              <ButtonText>Guardar contraseña</ButtonText>
             </CustomButton>
           </>
         )}

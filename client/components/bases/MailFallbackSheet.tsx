@@ -39,10 +39,14 @@ export default function MailFallbackSheet({
                 await Share.share({ message: text });
               }}
             >
-              <ButtonText className="text-base">Compartir</ButtonText>
+              <ButtonText>Compartir</ButtonText>
             </CustomButton>
-            <CustomButton className="w-auto max-w-none flex-1 bg-main-text" onPress={onClose}>
-              <ButtonText className="text-base">Cerrar</ButtonText>
+            <CustomButton
+              variant="secondary"
+              className="w-auto max-w-none flex-1"
+              onPress={onClose}
+            >
+              <ButtonText>Cerrar</ButtonText>
             </CustomButton>
           </View>
         </View>

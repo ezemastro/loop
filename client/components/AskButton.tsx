@@ -7,7 +7,9 @@ export default function AskButton({ userId }: { userId: string }) {
   const router = useRouter();
   return (
     <CustomButton
-      className="w-auto max-w-none flex-row items-center gap-2"
+      variant="secondary"
+      size="sm"
+      className="w-auto max-w-none"
       onPress={() => {
         router.push({
           pathname: "/(main)/(tabs)/messages/[userId]",
@@ -15,8 +17,8 @@ export default function AskButton({ userId }: { userId: string }) {
         });
       }}
     >
-      <MessageIcon color="#fff" />
-      <ButtonText className="font-light">Preguntar</ButtonText>
+      <MessageIcon size={18} className="text-main-text" />
+      <ButtonText>Preguntar</ButtonText>
     </CustomButton>
   );
 }

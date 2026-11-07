@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ActivityIndicator, Platform, Text, View } from "react-native";
+import { Platform, Text, View } from "react-native";
 import { useAuth } from "@/hooks/useAuth";
 import CustomButton from "./bases/CustomButton";
 import ButtonText from "./bases/ButtonText";
@@ -118,12 +118,13 @@ export default function ListingButtons({
 
   const cancelButton = canCancel ? (
     <>
-      <CustomButton className="bg-alert/20" disabled={isCancelling} onPress={handleCancelPress}>
-        {isCancelling ? (
-          <ActivityIndicator color="#fff" size="small" />
-        ) : (
-          <ButtonText>Cancelar</ButtonText>
-        )}
+      <CustomButton
+        variant="secondary"
+        className="w-auto max-w-none flex-grow"
+        loading={isCancelling}
+        onPress={handleCancelPress}
+      >
+        <ButtonText>Cancelar</ButtonText>
       </CustomButton>
       <CustomModal
         isVisible={isCancelConfirmOpen}
@@ -134,13 +135,15 @@ export default function ListingButtons({
           <Text className="text-main-text text-lg">{CANCEL_MESSAGE}</Text>
           <View className="flex-row gap-4">
             <CustomButton
+              variant="secondary"
               className="w-auto max-w-none flex-grow"
               onPress={() => setIsCancelConfirmOpen(false)}
             >
               <ButtonText>{CANCEL_KEEP}</ButtonText>
             </CustomButton>
             <CustomButton
-              className="w-auto max-w-none flex-grow bg-alert"
+              variant="danger"
+              className="w-auto max-w-none flex-grow"
               onPress={() => void runCancel()}
             >
               <ButtonText>{CANCEL_CONFIRM}</ButtonText>
@@ -180,7 +183,8 @@ export default function ListingButtons({
       if (user?.id === listing.buyer?.id) {
         return (
           <CustomButton
-            className="w-auto max-w-none bg-alert flex-grow"
+            variant="secondary"
+            className="w-auto max-w-none flex-grow"
             onPress={() => handleDeleteOffer()}
           >
             <ButtonText>Cancelar</ButtonText>

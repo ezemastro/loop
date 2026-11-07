@@ -11,8 +11,14 @@ export default function EditListingButton({ listingId }: { listingId: string }) 
     });
   };
   return (
-    <CustomButton className="w-auto max-w-none" onPress={handleEdit}>
-      <EditIcon className="text-white" />
+    <CustomButton
+      variant="secondary"
+      size="sm"
+      className="w-auto max-w-none"
+      accessibilityLabel="Editar publicación"
+      onPress={handleEdit}
+    >
+      <EditIcon size={18} className="text-main-text" />
     </CustomButton>
   );
 }

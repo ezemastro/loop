@@ -124,7 +124,7 @@ export default function Settings() {
                 </Error>
               )}
               <CustomButton
-                className="bg-alert"
+                variant="danger"
                 disabled={!canConfirmAccountDeletion(deleteEmailConfirm, user.email, isDeleting)}
                 onPress={() => deleteAccount()}
               >

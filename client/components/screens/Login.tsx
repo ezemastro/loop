@@ -142,12 +142,11 @@ export default function Login() {
               {isUnverifiedEmail && (
                 <CustomButton
                   onPress={handleResend}
+                  variant="secondary"
                   className="mt-1"
-                  disabled={resendVerification.isPending}
+                  loading={resendVerification.isPending}
                 >
-                  <ButtonText>
-                    {resendVerification.isPending ? "Enviando…" : "Reenviar email de verificación"}
-                  </ButtonText>
+                  <ButtonText>{"Reenviar email de verificación"}</ButtonText>
                 </CustomButton>
               )}
               {isLoginLoading && <Loader />}
