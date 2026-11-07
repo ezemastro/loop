@@ -1,4 +1,5 @@
-import { Image, Pressable, Text, View } from "react-native";
+import { Image, Pressable, View } from "react-native";
+import Text from "./LandingText";
 import { NAV_LINKS } from "./content";
 import LandingButton from "./LandingButton";
 import { FOCUS_RING, LANDING_CONTAINER } from "./layout";

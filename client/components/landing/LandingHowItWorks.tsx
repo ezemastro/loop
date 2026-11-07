@@ -3,7 +3,8 @@ import { useThemeColors } from "@/hooks/useThemeColors";
 import type { ComponentType } from "react";
 import { useState } from "react";
 import type { ImageSourcePropType } from "react-native";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
+import Text from "./LandingText";
 import { HOW_IT_WORKS_STEPS } from "./content";
 import { PhoneShell, ScreenImage } from "./DeviceFrame";
 import {

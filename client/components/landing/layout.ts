@@ -9,9 +9,9 @@
  * - panels and cards: `rounded-3xl`;
  * - device frames (laptop, phone) keep their own physical radii, they imitate hardware.
  *
- * Accent logic: orange (`primary`) only for the primary action, teal (`tertiary`) for the
- * secondary action, navy (`secondary`) for headings, active states and dark blocks, and the
- * credits color only next to loopies.
+ * Accent logic: the page reads as navy + orange. Orange (`primary`) only for the primary action;
+ * navy (`secondary`) for headings, icons, the secondary action, active states and dark blocks;
+ * the credits color (plum) only next to loopies. No teal on the landing.
  */
 
 /** One max width and one gutter for every landing section. */

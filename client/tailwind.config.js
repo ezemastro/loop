@@ -8,6 +8,19 @@ export const presets = [require("nativewind/preset")];
 // ("255 89 0") y no hex: `rgb(#FF5900 / 0.1)` no es CSS válido. Defaults en `global.css`.
 export const theme = {
   extend: {
+    // Landing-only typeface (self-hosted, `public/fonts`, declared in `app/+html.tsx`). Applied by
+    // `components/landing/LandingText.tsx`; the rest of the app keeps the system font.
+    fontFamily: {
+      landing: [
+        '"Figtree Variable"',
+        '"Figtree Fallback"',
+        "system-ui",
+        "-apple-system",
+        '"Segoe UI"',
+        "Roboto",
+        "sans-serif",
+      ],
+    },
     colors: {
       primary: "rgb(var(--color-primary) / <alpha-value>)",
       secondary: "rgb(var(--color-secondary) / <alpha-value>)",

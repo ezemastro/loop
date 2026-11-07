@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { HOW_IT_WORKS_STEPS } from "../components/landing/content";
+import { FAQ_ITEMS, HOW_IT_WORKS_STEPS, SCHOOL_LOGOS } from "../components/landing/content";
 import { LIVE_DEMO_SRC } from "../components/landing/useLiveDemo";
 
 /**
@@ -21,7 +21,7 @@ const landingFiles = fs
 
 // Every page section; `LandingButton` is a control, not a section.
 const SECTION_FILES = landingFiles.filter((file) =>
-  /\/Landing(?!Button)[A-Z]\w*\.tsx$/.test(file.split(path.sep).join("/")),
+  /\/Landing(?!Button|Text)[A-Z]\w*\.tsx$/.test(file.split(path.sep).join("/")),
 );
 
 describe("marketing landing layout", () => {
@@ -76,17 +76,122 @@ describe("how it works", () => {
 
 describe("one label per intent", () => {
   const BUTTON_RE = /<LandingButton\s+([\s\S]*?)\/>/g;
+  const LABELS: Record<string, string> = {
+    "/ingresar": "Ingresar",
+    "/register": "Crear cuenta",
+    "/demo": "Probá la demo",
+  };
+
+  const buttonsIn = (file: string) =>
+    [...read(file).matchAll(BUTTON_RE)].map((match) => ({
+      href: match[1].match(/href="([^"]+)"/)?.[1] ?? "",
+      label: match[1].match(/label="([^"]+)"/)?.[1] ?? "",
+    }));
 
   it.each(landingFiles.filter((file) => file.endsWith(".tsx")))("%s", (file) => {
-    const source = read(file);
-    let match: RegExpExecArray | null;
-    while ((match = BUTTON_RE.exec(source)) !== null) {
-      const props = match[1];
-      const href = props.match(/href="([^"]+)"/)?.[1];
-      const label = props.match(/label="([^"]+)"/)?.[1];
-      if (href === "/ingresar") expect(label).toBe("Ingresar");
-      if (href === "/register") expect(label).toBe("Crear cuenta");
+    for (const { href, label } of buttonsIn(file)) {
+      if (href in LABELS) expect(label).toBe(LABELS[href]);
     }
+  });
+
+  it("puts Ingresar in the nav only, never in the hero or the final CTA", () => {
+    expect(buttonsIn(path.join(LANDING_DIR, "LandingNav.tsx")).map((b) => b.href)).toEqual([
+      "/ingresar",
+    ]);
+    for (const name of ["LandingHero.tsx", "LandingFinalCta.tsx"]) {
+      const hrefs = buttonsIn(path.join(LANDING_DIR, name)).map((b) => b.href);
+      expect(hrefs).toEqual(["/register", "/demo"]);
+    }
+  });
+});
+
+describe("how it works follows the real exchange order", () => {
+  it("lists publish, search, coordinate, receive loopies", () => {
+    expect(HOW_IT_WORKS_STEPS.map((step) => step.id)).toEqual([
+      "publicar",
+      "buscar",
+      "coordinar",
+      "recibir",
+    ]);
+    expect(HOW_IT_WORKS_STEPS.map((step) => step.title)).toEqual([
+      "Publicá",
+      "Buscá y loopeá",
+      "Coordiná la entrega",
+      "Recibí tus loopies",
+    ]);
+  });
+
+  it("only claims what the code does", () => {
+    const copy = JSON.stringify([HOW_IT_WORKS_STEPS, FAQ_ITEMS]);
+    // There is no rating feature, and contact is never "unlocked" by an offer.
+    expect(copy).not.toMatch(/califica|calificaci|reseñ|destraba/i);
+    // The seller is credited on receipt, never on publish.
+    expect(HOW_IT_WORKS_STEPS[0].description).not.toMatch(/loopies que|recibís loopies/i);
+  });
+
+  it("keeps the hero subtext within 20 words", () => {
+    const hero = read(path.join(LANDING_DIR, "LandingHero.tsx"));
+    const subtext = hero.match(/Intercambiá[\s\S]*?colegio\./)?.[0] ?? "";
+    expect(subtext.split(/\s+/).length).toBeLessThanOrEqual(20);
+  });
+
+  it("never mentions selling, pricing or plans on the page", () => {
+    const text = landingFiles.map(read).join("\n");
+    expect(text).not.toMatch(
+      /\b(vend[eé]r?|comprar|licencia|suscripci|contact(á|a) a ventas|implementá)/i,
+    );
+  });
+});
+
+describe("typography and palette", () => {
+  it.each(
+    landingFiles.filter((file) => file.endsWith(".tsx") && !file.endsWith("LandingText.tsx")),
+  )("%s takes Text from LandingText, not react-native", (file) => {
+    const imports = read(file).match(/import \{[^}]*\} from "react-native";/g) ?? [];
+    for (const line of imports) expect(line).not.toMatch(/\bText\b/);
+  });
+
+  it("self-hosts Figtree with swap and keeps its license next to the file", () => {
+    const html = read(path.join(CLIENT_ROOT, "app", "+html.tsx"));
+    expect(html).toMatch(/font-display: swap/);
+    expect(html).toMatch(/\/fonts\/figtree-latin-wght-normal\.woff2/);
+    expect(
+      fs.existsSync(path.join(CLIENT_ROOT, "public", "fonts", "figtree-latin-wght-normal.woff2")),
+    ).toBe(true);
+    expect(read(path.join(CLIENT_ROOT, "public", "fonts", "Figtree-OFL.txt"))).toMatch(
+      /SIL OPEN FONT LICENSE/,
+    );
+    expect(read(SCREEN_PATH)).toMatch(/rel="preload"[\s\S]*?as="font"/);
+  });
+
+  it("uses no teal on the landing: navy and orange only", () => {
+    for (const file of landingFiles) {
+      expect(read(file)).not.toMatch(/tertiary|TERTIARY/);
+    }
+  });
+});
+
+describe("schools band", () => {
+  const schools = read(path.join(LANDING_DIR, "LandingSchools.tsx"));
+
+  it("shows the five real logos, each with alt text", () => {
+    for (const { id, name } of SCHOOL_LOGOS) {
+      expect(
+        fs.existsSync(path.join(CLIENT_ROOT, "assets", "landing", "schools", `${id}.webp`)),
+      ).toBe(true);
+      expect(name.length).toBeGreaterThan(0);
+    }
+    expect(SCHOOL_LOGOS).toHaveLength(5);
+    expect(schools).toMatch(/accessibilityLabel=\{name\}/);
+  });
+
+  it("states the availability and the number of campuses", () => {
+    expect(schools).toContain("Disponible en todos los colegios de Red Itínere");
+    expect(schools).toContain("Nueve sedes en Argentina y Uruguay");
+  });
+
+  it("replaced the old for-whom band", () => {
+    expect(fs.existsSync(path.join(LANDING_DIR, "LandingForWhom.tsx"))).toBe(false);
   });
 });
 

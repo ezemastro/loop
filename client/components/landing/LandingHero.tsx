@@ -1,7 +1,8 @@
 import { TapIcon } from "@/components/Icons";
 import { useState } from "react";
 import type { ImageSourcePropType } from "react-native";
-import { Image, Text, View } from "react-native";
+import { Image, View } from "react-native";
+import Text from "./LandingText";
 import { LaptopShell, PHONE_VIEWPORT, PhoneShell, ScreenImage } from "./DeviceFrame";
 import LandingButton from "./LandingButton";
 import { BODY_TEXT, LANDING_CONTAINER } from "./layout";
@@ -48,8 +49,7 @@ export default function LandingHero({ phoneSource, desktopSource }: Props) {
             aria-level={1}
             className="mt-6 text-[2rem] font-bold leading-[2.5rem] text-main-text lg:text-[2.125rem] lg:leading-[2.6rem] xl:text-[2.5rem] xl:leading-[3rem]"
           >
-            Dale una <Text className="text-secondary">segunda vida</Text> a los{" "}
-            <Text className="text-primary">útiles</Text> de tu colegio
+            Dale una <Text className="text-secondary">segunda vida</Text> a los útiles de tu colegio
           </Text>
 
           <Text className={`mt-4 max-w-[30rem] text-base leading-relaxed lg:text-lg ${BODY_TEXT}`}>
@@ -58,11 +58,15 @@ export default function LandingHero({ phoneSource, desktopSource }: Props) {
           </Text>
 
           <View className="mt-8 flex-row flex-wrap items-center gap-3">
-            <LandingButton href="/ingresar" label="Ingresar" accessibilityLabel="Ingresar a Loop" />
             <LandingButton
               href="/register"
               label="Crear cuenta"
               accessibilityLabel="Crear una cuenta en Loop"
+            />
+            <LandingButton
+              href="/demo"
+              label="Probá la demo"
+              accessibilityLabel="Probar la demo de Loop sin crear cuenta"
               variant="secondary"
             />
           </View>

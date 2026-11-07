@@ -1,12 +1,13 @@
 import { CheckIcon } from "@/components/Icons";
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import Text from "./LandingText";
 import { LANDING_CONTAINER } from "./layout";
 import Reveal from "./Reveal";
 
 const RULES = [
   "Red Itínere ofrece la plataforma, pero no interviene en la entrega, la verificación del producto ni en conflictos entre familias.",
   "Cada familia es responsable de describir sus útiles con honestidad y de llegar a acuerdos justos.",
-  "Si algo sale mal, se reporta desde la app.",
+  'Si algo sale mal, se puede denunciar desde la publicación o el perfil con el botón "Denunciar".',
 ];
 
 /** Full-bleed navy band: heading on the left, the rules as a hairline-separated list. */

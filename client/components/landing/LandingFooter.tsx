@@ -3,7 +3,7 @@ import { Image, View } from "react-native";
 import { CONSULTAS_FORM_URL } from "./content";
 import { FOCUS_RING, LANDING_CONTAINER } from "./layout";
 
-const LINK_CLASS = `rounded-sm text-sm text-main-text/70 underline-offset-4 transition-colors duration-200 hover:text-secondary hover:underline ${FOCUS_RING}`;
+const LINK_CLASS = `rounded-sm font-landing text-sm text-main-text/70 underline-offset-4 transition-colors duration-200 hover:text-secondary hover:underline ${FOCUS_RING}`;
 
 /** Logos on the left, legal links and the contact form on the right. */
 export default function LandingFooter() {

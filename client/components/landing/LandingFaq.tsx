@@ -1,7 +1,8 @@
 import { ArrowDownIcon } from "@/components/Icons";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
+import Text from "./LandingText";
 import { FAQ_ITEMS } from "./content";
 import {
   BODY_TEXT,
