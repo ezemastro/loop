@@ -33,7 +33,7 @@ export default function LandingCommunity() {
           </Text>
           <Text className={`mt-4 text-base leading-relaxed ${BODY_TEXT}`}>
             Cada comunidad escolar tiene su lugar dentro de Loop. Lo que pasa en una no se ve en
-            otra, y su equipo decide quién entra.
+            otra.
           </Text>
         </Reveal>
 

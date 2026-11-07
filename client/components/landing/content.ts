@@ -93,7 +93,7 @@ export const FAQ_ITEMS: FaqItem[] = [
     id: "como-se-calcula-el-valor",
     question: "¿Cómo se calcula el valor en loopies?",
     answer:
-      "Cada categoría tiene un rango de loopies recomendado, que se ajusta según el estado del útil: como nuevo, bueno o regular. Al publicar, vos elegís el valor y ese rango te sirve de guía.",
+      "Cada categoría tiene un rango de loopies permitido. Al publicar elegís el valor dentro de ese rango, y la app te sugiere uno según el estado del útil: como nuevo, bueno o regular.",
   },
   {
     id: "puedo-cancelar",
@@ -105,7 +105,7 @@ export const FAQ_ITEMS: FaqItem[] = [
     id: "no-aparece-la-otra-familia",
     question: "¿Qué pasa si la otra familia no se presenta a la entrega?",
     answer:
-      'Mientras no hayas marcado el artículo como recibido, podés cancelar el intercambio y recuperar tus loopies. También podés avisar con el botón "Denunciar" de la publicación o del perfil, que prepara un correo para el equipo de Loop. Red Itínere ofrece la plataforma pero no interviene en la entrega en sí: cada familia responde por sus acuerdos.',
+      'Mientras no hayas marcado el artículo como recibido, podés cancelar el intercambio y recuperar tus loopies. También podés avisarle al equipo de Loop con el botón "Denunciar" de la publicación o del perfil. Red Itínere ofrece la plataforma pero no interviene en la entrega en sí: cada familia responde por sus acuerdos.',
   },
   {
     id: "que-puedo-publicar",
@@ -136,7 +136,7 @@ export const COMMUNITY_POINTS: CommunityPoint[] = [
   {
     id: "acceso",
     title: "Entrada controlada",
-    text: "Solo se entra con un correo institucional de un dominio autorizado por la comunidad, o con una invitación de un solo uso que genera su equipo.",
+    text: "Solo se entra con un correo institucional de un dominio autorizado, o con una invitación de un solo uso que genera el equipo de la comunidad.",
   },
   {
     id: "aislamiento",
@@ -146,7 +146,7 @@ export const COMMUNITY_POINTS: CommunityPoint[] = [
   {
     id: "panel",
     title: "Un panel para su equipo",
-    text: "Administra colegios, miembros, invitaciones, notificaciones y pedidos de baja de cuenta. Las categorías con sus rangos de valor y las misiones son un catálogo común que mantiene el equipo de Loop.",
+    text: "Administra colegios, miembros, invitaciones, notificaciones y pedidos de baja de cuenta.",
   },
   {
     id: "impacto",
