@@ -8,6 +8,7 @@ import AvoidingKeyboard from "../AvoidingKeyboard";
 import CustomButton from "../bases/CustomButton";
 import ButtonText from "../bases/ButtonText";
 import { useCreateWish, useModifyWish } from "@/hooks/useWishes";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 export default function ModifyWishModal({
   wish,
@@ -18,6 +19,7 @@ export default function ModifyWishModal({
   isVisible: boolean;
   handleClose: () => void;
 }) {
+  const colors = useThemeColors();
   const [selectedCategory, setSelectedCategory] = useState(wish?.category || null);
   const [comment, setComment] = useState(wish?.comment || "");
   const { mutateAsync: modifyWish, isPending: isModifying } = useModifyWish();
@@ -73,6 +75,7 @@ export default function ModifyWishModal({
               <View className="gap-1">
                 <Text className="text-main-text text-lg">Comentario</Text>
                 <TextInput
+                  placeholderTextColor={colors.SECONDARY_TEXT}
                   className="border border-gray-300 p-2 rounded text-main-text bg-white"
                   value={comment}
                   onChangeText={setComment}

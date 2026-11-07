@@ -15,8 +15,10 @@ import { useToast } from "@/components/ToastProvider";
 import { getUserFriendlyErrorMessage } from "@/services/errorMapping";
 import Error from "../Error";
 import { fieldWrapperProps } from "../bases/fieldProps";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 export default function DonateModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const colors = useThemeColors();
   const queryClient = useQueryClient();
   // `PublicUser`, no `User`: lo que elige `UserSelector` viene de `GET /users`, y por la
   // invariante de privacidad esa lista nunca trae email, teléfono ni créditos. Un `User` completo
@@ -69,6 +71,7 @@ export default function DonateModal({ isOpen, onClose }: { isOpen: boolean; onCl
           >
             <CreditIcon size={32} />
             <TextInput
+              placeholderTextColor={colors.SECONDARY_TEXT}
               keyboardType="numeric"
               placeholder="0"
               className="text-credits flex-grow"

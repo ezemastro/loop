@@ -8,8 +8,10 @@ import {
   type TextInputKeyPressEventData,
 } from "react-native";
 import { SendIcon } from "./Icons";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 export default function ChatInput({ onSubmit }: { onSubmit: (text: string) => void }) {
+  const colors = useThemeColors();
   const [messageText, setMessageText] = useState("");
   const enterPressedRef = useRef(false);
 
@@ -41,6 +43,7 @@ export default function ChatInput({ onSubmit }: { onSubmit: (text: string) => vo
   return (
     <View className="flex-row items-center gap-2">
       <TextInput
+        placeholderTextColor={colors.SECONDARY_TEXT}
         placeholder="Mensaje..."
         className="border border-stroke rounded-2xl px-4 py-2 text-main-text flex-grow text-lg"
         multiline

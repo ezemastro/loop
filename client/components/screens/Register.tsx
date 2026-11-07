@@ -13,6 +13,7 @@ import { GoogleSignInButton } from "@/components/buttons/GoogleSignInButton";
 import AllowedDomainsNotice from "@/components/AllowedDomainsNotice";
 import { GOOGLE_OAUTH_READY, NODE_ENV } from "@/config";
 import { useToast } from "@/components/ToastProvider";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 const TextLabel = ({ children }: { children: string }) => (
   <Text className="color-main-text text-xl">{children}</Text>
@@ -26,6 +27,7 @@ type Field = {
 };
 
 export default function Register({ invite }: { invite?: string }) {
+  const colors = useThemeColors();
   const insets = useSafeAreaInsets();
   const {
     formData,
@@ -60,6 +62,7 @@ export default function Register({ invite }: { invite?: string }) {
       error: errors.firstName,
       render: () => (
         <TextInput
+          placeholderTextColor={colors.SECONDARY_TEXT}
           className="border border-stroke rounded p-2 bg-white"
           placeholder="Ingrese su nombre"
           value={formData.firstName}
@@ -73,6 +76,7 @@ export default function Register({ invite }: { invite?: string }) {
       error: errors.lastName,
       render: () => (
         <TextInput
+          placeholderTextColor={colors.SECONDARY_TEXT}
           className="border border-stroke rounded p-2 bg-white"
           placeholder="Ingrese su apellido"
           value={formData.lastName}
@@ -86,6 +90,7 @@ export default function Register({ invite }: { invite?: string }) {
       error: errors.email,
       render: () => (
         <TextInput
+          placeholderTextColor={colors.SECONDARY_TEXT}
           className="border border-stroke rounded p-2 bg-white"
           placeholder="Ingrese su correo electrónico"
           value={formData.email}
@@ -100,6 +105,7 @@ export default function Register({ invite }: { invite?: string }) {
       error: errors.password,
       render: () => (
         <TextInput
+          placeholderTextColor={colors.SECONDARY_TEXT}
           className="border border-stroke rounded p-2 bg-white"
           placeholder="Ingrese su contraseña"
           secureTextEntry
@@ -115,6 +121,7 @@ export default function Register({ invite }: { invite?: string }) {
       error: errors.confirmPassword,
       render: () => (
         <TextInput
+          placeholderTextColor={colors.SECONDARY_TEXT}
           className="border border-stroke rounded p-2 bg-white"
           placeholder="Repita su contraseña"
           secureTextEntry

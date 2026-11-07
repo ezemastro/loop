@@ -19,8 +19,10 @@ import { useMailComposer } from "@/hooks/useMailComposer";
 import { buildSupportMail, type SupportMailTemplate } from "@/services/supportMail";
 import { canConfirmAccountDeletion } from "@/services/accountDeletion";
 import { CONTACT_EMAIL } from "@/config";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 export default function Settings() {
+  const colors = useThemeColors();
   const user = useSessionStore((state) => state.user);
   const logout = useSessionStore((state) => state.logout);
   const pathname = usePathname();
@@ -107,6 +109,7 @@ export default function Settings() {
               <View className="gap-2">
                 <Text className="text-main-text text-lg">Escribí tu email para confirmar:</Text>
                 <TextInput
+                  placeholderTextColor={colors.SECONDARY_TEXT}
                   className="bg-white rounded border border-stroke px-4 py-3 text-main-text"
                   placeholder={user.email}
                   value={deleteEmailConfirm}

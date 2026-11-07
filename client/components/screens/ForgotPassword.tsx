@@ -10,6 +10,7 @@ import BackButton from "../BackButton";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useForgotPassword } from "@/hooks/useForgotPassword";
 import { isValidEmailFormat } from "@/services/validations";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 /**
  * SEC-11: self-service "olvidé mi contraseña", linked from `Login.tsx`. Always shows the same
@@ -17,6 +18,7 @@ import { isValidEmailFormat } from "@/services/validations";
  * is indistinguishable") — the UI must not imply otherwise.
  */
 export default function ForgotPassword() {
+  const colors = useThemeColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -57,6 +59,7 @@ export default function ForgotPassword() {
               nueva.
             </Text>
             <TextInput
+              placeholderTextColor={colors.SECONDARY_TEXT}
               className="border border-stroke rounded p-2 bg-white"
               placeholder="tu-email@colegio.edu.ar"
               value={email}

@@ -9,6 +9,7 @@ import Error from "../Error";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useResetPassword } from "@/hooks/useResetPassword";
 import { validateResetPasswordForm } from "@/services/validations";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 /**
  * SEC-11: the screen the emailed reset link opens (`APP_BASE_URL/reset-password?token=...`, see
@@ -16,6 +17,7 @@ import { validateResetPasswordForm } from "@/services/validations";
  * as a plain error from the API — the token itself is opaque to this screen, it only forwards it.
  */
 export default function ResetPassword() {
+  const colors = useThemeColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { token } = useLocalSearchParams<{ token?: string }>();
@@ -41,8 +43,8 @@ export default function ResetPassword() {
         <View className={contentClassName} style={{ paddingTop: insets.top }}>
           <TextTitle className="mb-2 text-3xl">Enlace inválido</TextTitle>
           <Text className="text-main-text text-lg leading-6">
-            Este enlace de recuperación de contraseña no es válido. Pedí uno nuevo desde la
-            pantalla de inicio de sesión.
+            Este enlace de recuperación de contraseña no es válido. Pedí uno nuevo desde la pantalla
+            de inicio de sesión.
           </Text>
         </View>
       </MainView>
@@ -65,6 +67,7 @@ export default function ResetPassword() {
         ) : (
           <>
             <TextInput
+              placeholderTextColor={colors.SECONDARY_TEXT}
               className="border border-stroke rounded p-2 bg-white"
               placeholder="Contraseña nueva"
               value={newPassword}
@@ -73,6 +76,7 @@ export default function ResetPassword() {
               autoCapitalize="none"
             />
             <TextInput
+              placeholderTextColor={colors.SECONDARY_TEXT}
               className="border border-stroke rounded p-2 bg-white"
               placeholder="Confirmá la contraseña nueva"
               value={confirmPassword}

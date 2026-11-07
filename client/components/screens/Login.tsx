@@ -14,6 +14,7 @@ import { GoogleSignInButton } from "@/components/buttons/GoogleSignInButton";
 import AllowedDomainsNotice from "@/components/AllowedDomainsNotice";
 import { GOOGLE_OAUTH_READY, NODE_ENV } from "@/config";
 import { useToast } from "@/components/ToastProvider";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 const TextLabel = ({ children }: { children: string }) => (
   <Text className="color-main-text text-xl">{children}</Text>
@@ -28,6 +29,7 @@ type Field = {
 };
 
 export default function Login() {
+  const colors = useThemeColors();
   const insets = useSafeAreaInsets();
   const {
     formData,
@@ -71,6 +73,7 @@ export default function Login() {
       errorMessage: "Introduce tu correo electrónico",
       render: () => (
         <TextInput
+          placeholderTextColor={colors.SECONDARY_TEXT}
           className="border border-stroke rounded p-2 bg-white"
           placeholder="Ingrese su correo electrónico"
           value={formData.email}
@@ -86,6 +89,7 @@ export default function Login() {
       errorMessage: "Introduce una contraseña",
       render: () => (
         <TextInput
+          placeholderTextColor={colors.SECONDARY_TEXT}
           className="border border-stroke rounded p-2 bg-white"
           placeholder="Ingrese su contraseña"
           secureTextEntry
@@ -150,7 +154,10 @@ export default function Login() {
               <CustomButton onPress={handleSubmit}>
                 <ButtonText>Iniciar sesión</ButtonText>
               </CustomButton>
-              <Link href="/(auth)/forgot-password" className="text-center text-tertiary text-base py-1">
+              <Link
+                href="/(auth)/forgot-password"
+                className="text-center text-tertiary text-base py-1"
+              >
                 ¿Olvidaste tu contraseña?
               </Link>
               <View className="w-full h-0.5 bg-secondary-text/30 my-6" />

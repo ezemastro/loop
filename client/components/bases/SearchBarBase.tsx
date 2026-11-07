@@ -4,6 +4,7 @@ import { useCallback, useRef } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { twMerge } from "tailwind-merge";
 import { fieldWrapperProps } from "./fieldProps";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 export default function SearchBarBase({
   value,
@@ -22,6 +23,7 @@ export default function SearchBarBase({
   disabled?: boolean;
   className?: string;
 }) {
+  const colors = useThemeColors();
   const inputRef = useRef<TextInput>(null);
   // TODO - Arreglar esto, el ref es siempre null
   useFocusEffect(
@@ -43,6 +45,7 @@ export default function SearchBarBase({
       )}
     >
       <TextInput
+        placeholderTextColor={colors.SECONDARY_TEXT}
         ref={inputRef}
         placeholder={placeholder || "Buscar..."}
         className="flex-1 px-2 py-3"

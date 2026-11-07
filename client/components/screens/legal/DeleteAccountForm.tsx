@@ -20,8 +20,10 @@ import TextTitle from "../../bases/TextTitle";
 import Error from "../../Error";
 import { useRequestAccountDeletion } from "@/hooks/useRequestAccountDeletion";
 import { isValidEmailFormat } from "@/services/validations";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 export default function DeleteAccountForm() {
+  const colors = useThemeColors();
   const [email, setEmail] = useState("");
   const [validationError, setValidationError] = useState(false);
   const { mutate, isPending, isSuccess, error } = useRequestAccountDeletion();
@@ -56,6 +58,7 @@ export default function DeleteAccountForm() {
             <View className="gap-1">
               <Text className="color-main-text text-xl">Email de la cuenta:</Text>
               <TextInput
+                placeholderTextColor={colors.SECONDARY_TEXT}
                 className="border border-stroke rounded p-2 bg-white"
                 placeholder="tu-email@colegio.edu.ar"
                 value={email}
