@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { MainView, pageContentClassName } from "../bases/MainView";
+import { MainView } from "../bases/MainView";
+import { authContentClassName } from "./authLayout";
 import CustomButton from "../bases/CustomButton";
 import ButtonText from "../bases/ButtonText";
 import { TextField } from "../bases/Field";
@@ -23,7 +24,7 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [validationError, setValidationError] = useState(false);
   const { mutate, isPending, isSuccess } = useForgotPassword();
-  const contentClassName = pageContentClassName("narrow", "gap-4 p-4 flex-1 justify-center");
+  const contentClassName = authContentClassName();
 
   const handleSubmit = () => {
     if (!isValidEmailFormat(email)) {
@@ -43,17 +44,17 @@ export default function ForgotPassword() {
         <TextTitle className="mb-2">Recuperar contraseña</TextTitle>
         {isSuccess ? (
           <>
-            <Text className="text-main-text text-lg leading-6">
+            <Text className="text-base leading-6 text-main-text">
               Si ese email está registrado, te mandamos un enlace para restablecer tu contraseña.
               Revisá tu bandeja de entrada.
             </Text>
-            <CustomButton onPress={() => router.replace("/(auth)/login")}>
+            <CustomButton className="max-w-none" onPress={() => router.replace("/(auth)/login")}>
               <ButtonText>Volver a iniciar sesión</ButtonText>
             </CustomButton>
           </>
         ) : (
           <>
-            <Text className="text-main-text text-lg leading-6">
+            <Text className="text-base leading-6 text-main-text">
               Ingresá el email de tu cuenta y te mandamos un enlace para elegir una contraseña
               nueva.
             </Text>
@@ -66,7 +67,7 @@ export default function ForgotPassword() {
               keyboardType="email-address"
             />
             {validationError && <Error textClassName="text-alert">Ingresá un email válido</Error>}
-            <CustomButton onPress={handleSubmit} loading={isPending}>
+            <CustomButton className="max-w-none" onPress={handleSubmit} loading={isPending}>
               <ButtonText>Enviar enlace</ButtonText>
             </CustomButton>
           </>

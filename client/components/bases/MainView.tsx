@@ -14,6 +14,8 @@ export const WIDTH_CAPS = {
   narrow: "max-w-3xl",
   /** Long-form reading pages (the public changelog): one column, roomier than `narrow`. */
   editorial: "max-w-[960px]",
+  /** Auth forms: one narrow column (a white card from `md` up, see `authContentClassName`). */
+  form: "max-w-[420px]",
   /** Escape hatch: no cap. */
   full: "",
 } as const;

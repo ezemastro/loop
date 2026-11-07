@@ -58,22 +58,17 @@ export default function AllowedDomainsNotice({ email }: { email?: string }) {
     // correcto aunque el tema global todavía no se haya actualizado.
     const colors = resolveThemeColors(community);
     return (
-      <View
-        className="rounded-lg p-3 mx-4 gap-2 flex-row items-center border"
-        style={{ backgroundColor: `${colors.ACCENT}1A`, borderColor: `${colors.ACCENT}4D` }}
-      >
+      <View className="flex-row items-center gap-3 rounded-lg border border-stroke p-3">
         {community.media?.url ? (
           <Image
             source={{ uri: getUrl(community.media.url) }}
-            style={{ width: 44, height: 44 }}
+            style={{ width: 36, height: 36 }}
             resizeMode="contain"
           />
         ) : null}
         <View className="flex-1">
-          <Text className="text-sm" style={{ color: colors.SECONDARY_TEXT }}>
-            Detectamos
-          </Text>
-          <Text className="text-lg font-bold" style={{ color: colors.ACCENT }}>
+          <Text className="text-xs text-secondary-text">Detectamos</Text>
+          <Text className="text-base font-semibold" style={{ color: colors.ACCENT }}>
             {community.name}
           </Text>
         </View>
@@ -82,20 +77,22 @@ export default function AllowedDomainsNotice({ email }: { email?: string }) {
   }
 
   return (
-    <View className="bg-accent/10 border border-accent/30 rounded-lg p-3 mx-4 gap-2">
-      <View className="flex-row items-center justify-center gap-2">
-        <Text className="color-main-text text-center text-base font-semibold">
+    <View className="gap-1">
+      <View className="flex-row items-center gap-2">
+        <Text className="flex-shrink text-sm text-secondary-text">
           {isNotFound
-            ? "No reconocemos ese dominio de correo."
-            : "Usá el correo institucional que te dio tu colegio."}
+            ? "No reconocemos ese dominio de correo. "
+            : "Usá el correo institucional que te dio tu colegio. "}
+          <Text
+            accessibilityRole="link"
+            onPress={() => setIsModalVisible(true)}
+            className="text-accent underline"
+          >
+            No tengo mail institucional
+          </Text>
         </Text>
         {isFetching ? <ActivityIndicator size="small" /> : null}
       </View>
-      <Pressable onPress={() => setIsModalVisible(true)}>
-        <Text className="text-accent text-center text-sm underline">
-          No tengo mail institucional
-        </Text>
-      </Pressable>
       <CustomModal isVisible={isModalVisible} handleClose={() => setIsModalVisible(false)}>
         <View className={modalSurfaceClassName()}>
           <ModalHeader

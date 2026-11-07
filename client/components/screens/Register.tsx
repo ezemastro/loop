@@ -1,6 +1,8 @@
 import { Text, View, FlatList, ActivityIndicator } from "react-native";
 import { Link } from "expo-router";
-import { MainView, pageContentClassName } from "../bases/MainView";
+import { MainView } from "../bases/MainView";
+import TextTitle from "../bases/TextTitle";
+import { authContentClassName } from "./authLayout";
 import SchoolSelector from "../selectors/SchoolSelector";
 import CustomButton from "../bases/CustomButton";
 import type { ReactNode } from "react";
@@ -10,9 +12,11 @@ import ButtonText from "../bases/ButtonText";
 import { Field, PasswordField, TextField } from "../bases/Field";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AvoidingKeyboard from "../AvoidingKeyboard";
-import { GoogleSignInButton } from "@/components/buttons/GoogleSignInButton";
+import {
+  GoogleSignInButton,
+  isGoogleSignInAvailable,
+} from "@/components/buttons/GoogleSignInButton";
 import AllowedDomainsNotice from "@/components/AllowedDomainsNotice";
-import { GOOGLE_OAUTH_READY, NODE_ENV } from "@/config";
 import { useToast } from "@/components/ToastProvider";
 
 type Field = {
@@ -37,7 +41,8 @@ export default function Register({ invite }: { invite?: string }) {
     isCommunityNotFound,
   } = useRegisterForm(invite);
   const { showToast } = useToast();
-  const contentContainerClassName = pageContentClassName("narrow", "gap-1 px-4 pb-6");
+  const contentContainerClassName = authContentClassName("justify-start gap-1 pb-6 md:pb-8");
+  const hasGoogle = isGoogleSignInAvailable();
 
   const handleGoogleError = (error: string) => {
     showToast(error, "error");
@@ -151,30 +156,25 @@ export default function Register({ invite }: { invite?: string }) {
           }}
           ListHeaderComponent={
             <View>
-              <Text className="py-3 text-center text-2xl font-semibold text-main-text">
-                Registrarse
-              </Text>
+              <TextTitle className="pb-3">Registrarse</TextTitle>
               {invitation.isLoading ? (
-                <View className="mx-4 py-3">
+                <View className="py-3">
                   <ActivityIndicator size="small" />
                 </View>
               ) : invitation.community ? (
-                <View className="bg-accent/10 border border-accent/30 rounded-lg p-3 mx-4 gap-1">
-                  <Text className="color-main-text text-center text-base font-semibold">
+                <View className="gap-0.5 rounded-lg border border-stroke p-3">
+                  <Text className="text-left text-sm text-secondary-text">
                     Invitación válida: podés registrarte con cualquier correo
                   </Text>
-                  <Text className="text-secondary-text text-center text-sm">
-                    Vas a entrar a la comunidad
-                  </Text>
-                  <Text className="text-accent text-center text-lg font-bold">
-                    {invitation.community.name}
+                  <Text className="text-left text-base font-semibold text-main-text">
+                    Vas a entrar a {invitation.community.name}
                   </Text>
                 </View>
               ) : (
                 <>
                   {/* Con un token roto seguimos con el registro normal, o sea con restricción de dominio. */}
                   {invitation.isError && invitation.errorMessage ? (
-                    <Error textClassName="text-alert" className="mx-4 mb-2">
+                    <Error textClassName="text-alert" className="mb-2 items-start">
                       {invitation.errorMessage}
                     </Error>
                   ) : null}
@@ -196,10 +196,13 @@ export default function Register({ invite }: { invite?: string }) {
                   {displayError}
                 </Error>
               )}
-              <CustomButton onPress={handleSubmit} className={isRegisterError ? "mt-2" : "mt-6"}>
+              <CustomButton
+                onPress={handleSubmit}
+                className={isRegisterError ? "mt-2 max-w-none" : "mt-6 max-w-none"}
+              >
                 <ButtonText>Registrarse</ButtonText>
               </CustomButton>
-              <Text className="text-center text-secondary-text text-sm mt-3">
+              <Text className="mt-3 text-left text-sm text-secondary-text">
                 Al registrarte aceptás nuestros{" "}
                 <Link href="/terminos" className="text-accent">
                   términos y condiciones
@@ -210,9 +213,8 @@ export default function Register({ invite }: { invite?: string }) {
                 </Link>
                 .
               </Text>
-              <View className="w-full h-0.5 bg-secondary-text/30 my-6" />
-              {GOOGLE_OAUTH_READY || NODE_ENV !== "production" ? (
-                <View>
+              {hasGoogle ? (
+                <View className="mt-6 gap-4 border-t border-stroke pt-6">
                   <GoogleSignInButton
                     onError={handleGoogleError}
                     // Solo se manda si la invitación resultó válida; si no, alta normal por dominio.
@@ -220,6 +222,12 @@ export default function Register({ invite }: { invite?: string }) {
                   />
                 </View>
               ) : null}
+              <Text className="pt-6 text-left text-base text-secondary-text">
+                ¿Ya tenés cuenta?{" "}
+                <Link href="/(auth)/login" className="font-semibold text-accent">
+                  Iniciá sesión
+                </Link>
+              </Text>
             </>
           }
         />

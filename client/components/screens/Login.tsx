@@ -1,6 +1,8 @@
 import { Text, View, FlatList } from "react-native";
 import { Link } from "expo-router";
-import { MainView, pageContentClassName } from "../bases/MainView";
+import { MainView } from "../bases/MainView";
+import TextTitle from "../bases/TextTitle";
+import { authContentClassName } from "./authLayout";
 import CustomButton from "../bases/CustomButton";
 import type { ReactNode } from "react";
 import Error from "../Error";
@@ -11,9 +13,11 @@ import ButtonText from "../bases/ButtonText";
 import { Field, PasswordField, TextField } from "../bases/Field";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AvoidingKeyboard from "../AvoidingKeyboard";
-import { GoogleSignInButton } from "@/components/buttons/GoogleSignInButton";
+import {
+  GoogleSignInButton,
+  isGoogleSignInAvailable,
+} from "@/components/buttons/GoogleSignInButton";
 import AllowedDomainsNotice from "@/components/AllowedDomainsNotice";
-import { GOOGLE_OAUTH_READY, NODE_ENV } from "@/config";
 import { useToast } from "@/components/ToastProvider";
 
 type Field = {
@@ -38,10 +42,8 @@ export default function Login() {
   } = useLoginForm();
   const { showToast } = useToast();
   const resendVerification = useResendVerification();
-  const contentContainerClassName = pageContentClassName(
-    "narrow",
-    "gap-4 p-4 pt-6 pb-16 flex-1 justify-center",
-  );
+  const contentContainerClassName = authContentClassName("pb-16 pt-6 md:pb-8 md:pt-8");
+  const hasGoogle = isGoogleSignInAvailable();
 
   const handleGoogleError = (error: string) => {
     showToast(error, "error");
@@ -105,12 +107,10 @@ export default function Login() {
           }}
           contentContainerClassName={contentContainerClassName}
           ListHeaderComponent={
-            <View className="py-6">
-              <Text className="py-3 text-center text-2xl font-semibold text-main-text">
-                Iniciar sesión
-              </Text>
-              <Text className="text-center text-base text-secondary-text mb-4">
-                Ingresá tus datos o iniciá sesión con Google
+            <View className="gap-2 pb-2">
+              <TextTitle>Iniciar sesión</TextTitle>
+              <Text className="text-base text-secondary-text">
+                {hasGoogle ? "Ingresá tus datos o iniciá sesión con Google" : "Ingresá tus datos"}
               </Text>
               <AllowedDomainsNotice />
             </View>
@@ -131,28 +131,31 @@ export default function Login() {
                 <CustomButton
                   onPress={handleResend}
                   variant="secondary"
-                  className="mt-1"
+                  className="mt-1 max-w-none"
                   loading={resendVerification.isPending}
                 >
                   <ButtonText>{"Reenviar email de verificación"}</ButtonText>
                 </CustomButton>
               )}
               {isLoginLoading && <Loader />}
-              <CustomButton onPress={handleSubmit}>
+              <CustomButton onPress={handleSubmit} className="max-w-none">
                 <ButtonText>Iniciar sesión</ButtonText>
               </CustomButton>
-              <Link
-                href="/(auth)/forgot-password"
-                className="text-center text-accent text-base py-1"
-              >
+              <Link href="/(auth)/forgot-password" className="py-1 text-left text-base text-accent">
                 ¿Olvidaste tu contraseña?
               </Link>
-              <View className="w-full h-0.5 bg-secondary-text/30 my-6" />
-              {GOOGLE_OAUTH_READY || NODE_ENV !== "production" ? (
-                <View>
+              {hasGoogle ? (
+                <>
+                  <View className="my-2 h-px w-full bg-stroke" />
                   <GoogleSignInButton onError={handleGoogleError} />
-                </View>
+                </>
               ) : null}
+              <Text className="pt-2 text-left text-base text-secondary-text">
+                ¿No tenés cuenta?{" "}
+                <Link href="/(auth)/register" className="font-semibold text-accent">
+                  Registrate
+                </Link>
+              </Text>
             </>
           }
         />

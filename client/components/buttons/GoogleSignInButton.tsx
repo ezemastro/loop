@@ -14,7 +14,7 @@ import * as WebBrowser from "expo-web-browser";
 import { useRouter } from "expo-router";
 import { useGoogleLogin } from "@/hooks/useGoogleLogin";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { WEB_GOOGLE_CLIENT_ID } from "@/config";
+import { GOOGLE_OAUTH_READY, NODE_ENV, WEB_GOOGLE_CLIENT_ID } from "@/config";
 import { getUserFriendlyErrorMessage, isNetworkError } from "@/services/errorMapping";
 
 WebBrowser.maybeCompleteAuthSession();
@@ -38,6 +38,14 @@ interface GoogleSignInButtonProps {
   invitationToken?: string;
   appearance?: "default" | "light";
 }
+
+/**
+ * Whether `GoogleSignInButton` will render anything. Screens use it to drop the "o con Google"
+ * copy and the divider when there is no button under them.
+ */
+export const isGoogleSignInAvailable = (): boolean =>
+  (GOOGLE_OAUTH_READY || NODE_ENV !== "production") &&
+  !(Platform.OS === "web" && !WEB_GOOGLE_CLIENT_ID);
 
 export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
   onError,
