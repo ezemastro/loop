@@ -47,7 +47,7 @@ export default function ListingStatusInfo({ listing }: { listing: Listing }) {
       if (listing.sellerId === user?.id) {
         return (
           <View>
-            <Text className="text-main-text text-center p-4">
+            <Text className="text-base text-left text-main-text">
               <NameLink
                 userId={listing.buyer?.id}
                 firstName={listing.buyer?.firstName}
@@ -61,7 +61,7 @@ export default function ListingStatusInfo({ listing }: { listing: Listing }) {
       if (listing.buyerId === user?.id) {
         return (
           <View>
-            <Text className="text-main-text text-center p-4">
+            <Text className="text-base text-left text-main-text">
               <Text>Loopeaste este artículo, esperá a que </Text>
               <NameLink
                 userId={listing.seller?.id}
@@ -77,7 +77,7 @@ export default function ListingStatusInfo({ listing }: { listing: Listing }) {
       if (listing.sellerId === user?.id) {
         return (
           <View>
-            <Text className="text-main-text text-center p-4">
+            <Text className="text-base text-left text-main-text">
               <Text>Tenés que entregar este artículo a </Text>
               <NameLink
                 userId={listing.buyer?.id}
@@ -91,7 +91,7 @@ export default function ListingStatusInfo({ listing }: { listing: Listing }) {
       if (listing.buyerId === user?.id) {
         return (
           <View>
-            <Text className="text-main-text text-center p-4">
+            <Text className="text-base text-left text-main-text">
               <Text>Tenés que recibir este artículo de </Text>
               <NameLink
                 userId={listing.seller?.id}
@@ -106,7 +106,7 @@ export default function ListingStatusInfo({ listing }: { listing: Listing }) {
       if (listing.sellerId === user?.id) {
         return (
           <View>
-            <Text className="text-main-text text-center p-4">
+            <Text className="text-base text-left text-main-text">
               <Text>Entregaste este artículo a </Text>
               <NameLink
                 userId={listing.buyer?.id}
@@ -120,7 +120,7 @@ export default function ListingStatusInfo({ listing }: { listing: Listing }) {
       if (listing.buyerId === user?.id) {
         return (
           <View>
-            <Text className="text-main-text text-center p-4">
+            <Text className="text-base text-left text-main-text">
               <Text>Has recibido este artículo de </Text>
               <NameLink
                 userId={listing.seller?.id}
@@ -133,7 +133,7 @@ export default function ListingStatusInfo({ listing }: { listing: Listing }) {
       }
       return (
         <View>
-          <Text className="text-main-text text-center p-4">
+          <Text className="text-base text-left text-main-text">
             Este artículo ya fue intercambiado.
           </Text>
         </View>
@@ -141,7 +141,7 @@ export default function ListingStatusInfo({ listing }: { listing: Listing }) {
   }
   return (
     <View>
-      <Text className="text-main-text text-center p-4">
+      <Text className="text-base text-left text-main-text">
         Este artículo está en proceso de intercambio.
       </Text>
     </View>
