@@ -119,7 +119,7 @@ export default function Listing() {
                 content the wide column exists for. */}
             <Text className="text-2xl font-bold text-main-text lg:hidden">{listing.title}</Text>
             {listing.description && (
-              <Text className="text-md text-main-text">{listing.description}</Text>
+              <Text className="text-base text-main-text">{listing.description}</Text>
             )}
           </View>
           <ProductStatusBadge

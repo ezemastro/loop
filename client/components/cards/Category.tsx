@@ -9,8 +9,8 @@ export default function Category({
   extended?: boolean;
 }) {
   return (
-    <View className="p-4">
-      <Text className="text-main-text text-lg">
+    <View className="w-full border-b border-stroke px-1 py-3.5">
+      <Text className="text-left text-base text-main-text">
         {extended &&
           category.parents &&
           category.parents.map((parent) => parent.name).join("/") + "/"}

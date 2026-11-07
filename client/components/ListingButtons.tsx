@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import CustomButton from "./bases/CustomButton";
 import ButtonText from "./bases/ButtonText";
 import CustomModal from "./bases/CustomModal";
-import TextTitle from "./bases/TextTitle";
+import ModalHeader, { modalSurfaceClassName } from "./bases/ModalHeader";
 import { useListingNewOffer } from "@/hooks/useListingNewOffer";
 import { useListingDeleteOffer } from "@/hooks/useListingDeleteOffer";
 import { useSelf } from "@/hooks/useSelf";
@@ -130,9 +130,9 @@ export default function ListingButtons({
         isVisible={isCancelConfirmOpen}
         handleClose={() => setIsCancelConfirmOpen(false)}
       >
-        <View className="gap-4 bg-background p-6 rounded-lg w-full max-w-md">
-          <TextTitle>{CANCEL_TITLE}</TextTitle>
-          <Text className="text-main-text text-lg">{CANCEL_MESSAGE}</Text>
+        <View className={modalSurfaceClassName()}>
+          <ModalHeader title={CANCEL_TITLE} onClose={() => setIsCancelConfirmOpen(false)} />
+          <Text className="text-base text-main-text">{CANCEL_MESSAGE}</Text>
           <View className="flex-row gap-4">
             <CustomButton
               variant="secondary"

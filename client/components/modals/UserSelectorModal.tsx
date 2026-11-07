@@ -18,7 +18,7 @@ export default function UserSelectorModal({
       onSelect={(user) => onSelect(user as User)}
       title="Elegí un usuario"
       useResource={useUsers}
-      renderItem={(user) => <User user={user} />}
+      renderItem={(user) => <User user={user} row />}
       getItems={(data) => data?.pages.flatMap((page: any) => page.data.users) || []}
       getTotal={(data) => data?.pages[0].pagination.totalRecords}
       filterItems={(items, searchTerm) =>

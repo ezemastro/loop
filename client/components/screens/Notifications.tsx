@@ -55,7 +55,7 @@ export default function Notifications() {
   return (
     <MainView className="p-4">
       <View className={headerClassName}>
-        <TextTitle className="text-left text-xl">Notificaciones</TextTitle>
+        <TextTitle>Notificaciones</TextTitle>
       </View>
       <FlatList
         className="flex-1"

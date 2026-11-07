@@ -3,8 +3,7 @@ import { View, Text, Pressable, Image, ActivityIndicator } from "react-native";
 import { useDebounce } from "use-debounce";
 import * as Clipboard from "expo-clipboard";
 import CustomModal from "./bases/CustomModal";
-import CloseModalButton from "./CloseModalButton";
-import TextTitle from "./bases/TextTitle";
+import ModalHeader, { modalSurfaceClassName } from "./bases/ModalHeader";
 import CustomButton from "./bases/CustomButton";
 import ButtonText from "./bases/ButtonText";
 import { useResolveCommunity } from "@/hooks/useResolveCommunity";
@@ -98,9 +97,11 @@ export default function AllowedDomainsNotice({ email }: { email?: string }) {
         </Text>
       </Pressable>
       <CustomModal isVisible={isModalVisible} handleClose={() => setIsModalVisible(false)}>
-        <View className="bg-background rounded p-6 w-full max-w-md gap-4">
-          <CloseModalButton onClose={() => setIsModalVisible(false)} />
-          <TextTitle>¿No tenés mail institucional?</TextTitle>
+        <View className={modalSurfaceClassName()}>
+          <ModalHeader
+            title="¿No tenés mail institucional?"
+            onClose={() => setIsModalVisible(false)}
+          />
           <Text className="text-main-text text-base">
             Si no tenés un mail institucional, escribinos a{" "}
             <Pressable onPress={handleContactPress}>

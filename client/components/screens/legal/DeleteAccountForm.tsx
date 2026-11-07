@@ -43,7 +43,7 @@ export default function DeleteAccountForm() {
         <title>Eliminar cuenta - Loop</title>
       </Head>
       <View className={contentClassName}>
-        <TextTitle className="mb-2 text-3xl">Eliminar cuenta</TextTitle>
+        <TextTitle className="mb-2">Eliminar cuenta</TextTitle>
         <Text className="text-main-text text-lg leading-6">
           Enviá esta solicitud con el email de tu cuenta y un administrador la va a procesar.
         </Text>

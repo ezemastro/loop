@@ -40,7 +40,7 @@ export default function ResetPassword() {
     return (
       <MainView>
         <View className={contentClassName} style={{ paddingTop: insets.top }}>
-          <TextTitle className="mb-2 text-3xl">Enlace inválido</TextTitle>
+          <TextTitle className="mb-2">Enlace inválido</TextTitle>
           <Text className="text-main-text text-lg leading-6">
             Este enlace de recuperación de contraseña no es válido. Pedí uno nuevo desde la pantalla
             de inicio de sesión.
@@ -53,7 +53,7 @@ export default function ResetPassword() {
   return (
     <MainView>
       <View className={contentClassName} style={{ paddingTop: insets.top }}>
-        <TextTitle className="mb-2 text-3xl">Elegí tu nueva contraseña</TextTitle>
+        <TextTitle className="mb-2">Elegí tu nueva contraseña</TextTitle>
         {isSuccess ? (
           <>
             <Text className="text-main-text text-lg leading-6">

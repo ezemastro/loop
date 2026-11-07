@@ -45,7 +45,7 @@ export default function CustomModal({
     >
       <View className="flex-1 items-center justify-center bg-black/40">
         <View
-          className={twMerge(`items-center justify-center p-4 max-w-3xl w-full`, className)}
+          className={twMerge(`items-center justify-center p-4 max-w-lg w-full`, className)}
           style={{ maxHeight }}
         >
           {typeof children === "function" ? children(contentMaxHeight) : children}

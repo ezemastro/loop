@@ -1,8 +1,12 @@
 import { View, Text } from "react-native";
 import React from "react";
-import { PRODUCT_STATUSES, STATUS_TRANSLATIONS } from "@/config";
+import { STATUS_TRANSLATIONS } from "@/config";
 import { twMerge } from "tailwind-merge";
 
+/**
+ * Quiet neutral chip: the condition is readable as text, with no colour coding (a colour per
+ * condition competed with the brand colour and carried no information the word does not).
+ */
 export default function ProductStatusBadge({
   status,
   containerClassName,
@@ -12,21 +16,9 @@ export default function ProductStatusBadge({
   containerClassName?: string;
   textClassName?: string;
 }) {
-  const getBackgroundColor = () => {
-    switch (status) {
-      case PRODUCT_STATUSES.LIKE_NEW:
-        return "bg-teal-500";
-      case PRODUCT_STATUSES.GOOD:
-        return "bg-lime-500";
-      case PRODUCT_STATUSES.FAIR:
-        return "bg-yellow-500";
-    }
-  };
   return (
-    <View
-      className={twMerge(`px-2.5 py-0.5 rounded-full ${getBackgroundColor()}`, containerClassName)}
-    >
-      <Text className={twMerge(`text-white font-medium`, textClassName)}>
+    <View className={twMerge("rounded-full bg-background px-2.5 py-0.5", containerClassName)}>
+      <Text className={twMerge("text-xs font-medium text-main-text", textClassName)}>
         {STATUS_TRANSLATIONS[status]}
       </Text>
     </View>

@@ -5,8 +5,7 @@ import { useRouter, usePathname } from "expo-router";
 import { MainView, pageContentClassName } from "../bases/MainView";
 import BackButton from "../BackButton";
 import CustomModal from "../bases/CustomModal";
-import CloseModalButton from "../CloseModalButton";
-import TextTitle from "../bases/TextTitle";
+import ModalHeader, { modalSurfaceClassName } from "../bases/ModalHeader";
 import CustomButton from "../bases/CustomButton";
 import ButtonText from "../bases/ButtonText";
 import { Field, TextField } from "../bases/Field";
@@ -72,10 +71,10 @@ export default function Settings() {
         <View className="flex-row items-center">
           <BackButton />
         </View>
-        <Text className="text-2xl text-main-text">Ajustes</Text>
+        <Text className="text-2xl font-semibold text-main-text">Ajustes</Text>
         {SETTINGS_GROUPS.map((group) => (
           <View key={group.key} className="gap-2">
-            <Text className="text-xl text-main-text">{group.title}</Text>
+            <Text className="text-lg font-semibold text-main-text">{group.title}</Text>
             <View className="gap-2">
               {group.items.map((item) => (
                 <SettingsRow
@@ -94,13 +93,9 @@ export default function Settings() {
 
       <CustomModal isVisible={isDeleteModalOpen} handleClose={closeDeleteModal}>
         {(modalMaxHeight) => (
-          <View
-            className="overflow-hidden bg-background rounded-lg w-full"
-            style={{ maxHeight: modalMaxHeight }}
-          >
-            <ScrollView className="p-6" contentContainerClassName="gap-4">
-              <CloseModalButton onClose={closeDeleteModal} />
-              <TextTitle>Eliminar cuenta</TextTitle>
+          <View className={modalSurfaceClassName("p-0")} style={{ maxHeight: modalMaxHeight }}>
+            <ScrollView className="p-5" contentContainerClassName="gap-4">
+              <ModalHeader title="Eliminar cuenta" onClose={closeDeleteModal} />
               <Text className="text-main-text text-base">
                 Esta acción es permanente e irreversible. Se eliminarán todos tus datos, incluyendo
                 publicaciones, mensajes, notificaciones y transacciones.

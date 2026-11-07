@@ -29,13 +29,7 @@ export default function Missions({
   return (
     <View>
       <ListingGrid columnRamp={MISSIONS_COLUMN_RAMP} lastFullOnOdd>
-        {missions?.map((mission) => (
-          <Mission
-            key={mission.id}
-            mission={mission}
-            className={mission.completed ? "saturate-50 opacity-50" : ""}
-          />
-        )) ?? []}
+        {missions?.map((mission) => <Mission key={mission.id} mission={mission} />) ?? []}
       </ListingGrid>
       {isLoading && <Loader />}
       {error && <Error>Error al cargar misiones</Error>}

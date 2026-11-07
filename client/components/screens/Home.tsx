@@ -70,7 +70,7 @@ export default function Home() {
         onEndReachedThreshold={0.5}
         renderItem={({ item }) => (
           <View className={`gap-4 mb-6 ${item.show === false && "hidden"}`}>
-            {item.title && <TextTitle>{item.title}</TextTitle>}
+            {item.title && <TextTitle level="section">{item.title}</TextTitle>}
             {item.component()}
           </View>
         )}

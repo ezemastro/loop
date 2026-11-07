@@ -125,7 +125,7 @@ export default function UserPage({
       show: !isCurrentUser && wishes.length > 0,
       component: () => (
         <View className="gap-2">
-          <Text className="text-main-text text-2xl">Lista de deseos</Text>
+          <Text className="text-main-text text-lg font-semibold">Lista de deseos</Text>
           <View className="px-2 gap-2">
             {wishes.map((wish) => (
               <View key={wish.id}>
@@ -257,7 +257,7 @@ export default function UserPage({
                 // and controls its own internal centring (see the "credits" section).
                 <Text
                   className={twMerge(
-                    "text-2xl text-main-text",
+                    "text-lg font-semibold text-main-text",
                     item.align === "center" && "self-center text-center",
                   )}
                 >

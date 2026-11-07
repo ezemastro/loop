@@ -49,7 +49,7 @@ export default function ImageGallery({ images }: { images: Media[] }) {
             <View>
               <Image
                 source={getListingImageSource(item.url)}
-                className="rounded"
+                className="rounded-xl"
                 style={{ width: "100%", height: galleryHeight }}
                 resizeMode="contain"
               />

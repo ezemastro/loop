@@ -172,7 +172,7 @@ export default function ImagesSelector({
             <View style={{ height: "100%", width: "100%", paddingHorizontal: 16 }}>
               {allowAddMore && index === selectedImages.length ? (
                 <Pressable
-                  className="h-full w-full items-center justify-center rounded bg-secondary-text/20"
+                  className="h-full w-full items-center justify-center rounded-xl border border-dashed border-stroke bg-background"
                   onPressIn={(event) => {
                     addPressStartRef.current = {
                       x: event.nativeEvent.pageX,
@@ -211,7 +211,7 @@ export default function ImagesSelector({
                     source={{
                       uri: "uri" in item ? item.uri : "url" in item ? getUrl(item.url) : "",
                     }}
-                    className="rounded"
+                    className="rounded-xl"
                     style={{ width: "100%", height: "100%" }}
                     resizeMode="contain"
                   />

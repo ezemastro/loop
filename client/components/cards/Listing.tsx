@@ -1,4 +1,4 @@
-import { View, Text, Image, Pressable, Platform } from "react-native";
+import { View, Text, Image, Pressable } from "react-native";
 import React from "react";
 import { twMerge } from "tailwind-merge";
 import ProductStatusBadge from "../badges/ProductStatusBadge";
@@ -8,7 +8,6 @@ import { useRouter } from "expo-router";
 import { getListingImageSource } from "@/services/getUrl";
 import CategoryBadge from "../CategoryBadge";
 import SchoolLogo from "../SchoolLogo";
-import { ELEVATION } from "@/config";
 
 /**
  * Card hero image ratio (design.md D3). Kept as a single named constant so the box shape is a
@@ -62,11 +61,7 @@ export default function Listing({
   if (variant === "compact") {
     return (
       <Pressable
-        className={twMerge(
-          "flex-row gap-2 rounded-xl border border-stroke bg-white p-2",
-          Platform.OS === "web" ? ELEVATION.raised.class : "",
-        )}
-        style={Platform.OS === "web" ? undefined : ELEVATION.raised.native}
+        className="flex-row gap-2 rounded-xl border border-stroke bg-white p-2"
         onPress={onPress}
       >
         {hasImage ? (
@@ -103,11 +98,7 @@ export default function Listing({
 
   return (
     <Pressable
-      className={twMerge(
-        "h-full w-full overflow-hidden rounded-xl border border-stroke bg-white",
-        Platform.OS === "web" ? ELEVATION.raised.class : "",
-      )}
-      style={Platform.OS === "web" ? undefined : ELEVATION.raised.native}
+      className="h-full w-full overflow-hidden rounded-xl border border-stroke bg-white"
       onPress={onPress}
     >
       {hasImage ? (

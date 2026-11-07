@@ -128,14 +128,16 @@ export const BREAKPOINTS = {
  * separately. `class` reproduces today's web appearance; `native` is a native-only visual gain.
  */
 export const ELEVATION = {
+  // Floating elements only (popovers, toasts). Cards do NOT use it: a card is white with a 1px
+  // `border-stroke` and no drop shadow.
   raised: {
-    class: "shadow",
+    class: "shadow-sm",
     native: {
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.1,
-      shadowRadius: 3,
-      elevation: 2,
+      shadowOpacity: 0.06,
+      shadowRadius: 2,
+      elevation: 1,
     },
   },
   overlay: {

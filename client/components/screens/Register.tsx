@@ -151,7 +151,7 @@ export default function Register({ invite }: { invite?: string }) {
           }}
           ListHeaderComponent={
             <View>
-              <Text className="text-3xl py-3 text-center font-bold color-main-text">
+              <Text className="py-3 text-center text-2xl font-semibold text-main-text">
                 Registrarse
               </Text>
               {invitation.isLoading ? (

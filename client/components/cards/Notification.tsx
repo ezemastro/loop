@@ -22,10 +22,10 @@ export default function NotificationCard({ notification }: { notification: AppNo
     <View
       className={twMerge(
         "flex-row overflow-hidden rounded-xl border bg-white",
-        isRead ? "border-stroke" : "border-primary/30 bg-primary/5",
+        isRead ? "border-stroke" : "border-accent/30 bg-accent/5",
       )}
     >
-      <View className={isRead ? "w-1 bg-stroke" : "w-1 bg-primary"} />
+      <View className={isRead ? "w-1 bg-stroke" : "w-1 bg-accent"} />
       <View className="flex-1">
         <NotificationContent notification={notification} isRead={isRead} />
         <DateBadge date={date} includeTime className="text-right py-1 px-3" />

@@ -2,8 +2,7 @@ import { View, ScrollView } from "react-native";
 import CategorySelector from "../selectors/CategorySelector";
 import { useEffect, useState } from "react";
 import CustomModal from "../bases/CustomModal";
-import TextTitle from "../bases/TextTitle";
-import CloseModalButton from "../CloseModalButton";
+import ModalHeader, { modalSurfaceClassName } from "../bases/ModalHeader";
 import AvoidingKeyboard from "../AvoidingKeyboard";
 import CustomButton from "../bases/CustomButton";
 import ButtonText from "../bases/ButtonText";
@@ -57,13 +56,12 @@ export default function ModifyWishModal({
     <CustomModal handleClose={handleClose} isVisible={isVisible}>
       {(modalMaxHeight) => (
         <AvoidingKeyboard className="items-center justify-center flex-1 w-full">
-          <View
-            className="overflow-hidden bg-background rounded-lg w-full"
-            style={{ maxHeight: modalMaxHeight }}
-          >
-            <ScrollView className="p-4" contentContainerClassName="gap-4">
-              <CloseModalButton onClose={handleClose} />
-              <TextTitle>{wish ? "Modificar deseo" : "Agregar deseo"}</TextTitle>
+          <View className={modalSurfaceClassName("p-0")} style={{ maxHeight: modalMaxHeight }}>
+            <ScrollView className="p-5" contentContainerClassName="gap-4">
+              <ModalHeader
+                title={wish ? "Modificar deseo" : "Agregar deseo"}
+                onClose={handleClose}
+              />
               <Field label="Categoría">
                 <CategorySelector
                   value={selectedCategory}

@@ -20,7 +20,7 @@ export default function MyListings() {
     {
       key: "pending-title",
       show: () => hasResults,
-      component: () => <TextTitle>Publicaciones pendientes</TextTitle>,
+      component: () => <TextTitle level="section">Publicaciones pendientes</TextTitle>,
     },
     {
       key: "pending-list",
@@ -29,7 +29,7 @@ export default function MyListings() {
     },
     {
       key: "own-title",
-      component: () => <TextTitle>Mis publicaciones</TextTitle>,
+      component: () => <TextTitle level="section">Mis publicaciones</TextTitle>,
     },
     {
       key: "own",

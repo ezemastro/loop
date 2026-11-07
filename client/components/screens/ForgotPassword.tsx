@@ -40,7 +40,7 @@ export default function ForgotPassword() {
         <BackButton />
       </View>
       <View className={contentClassName}>
-        <TextTitle className="mb-2 text-3xl">Recuperar contraseña</TextTitle>
+        <TextTitle className="mb-2">Recuperar contraseña</TextTitle>
         {isSuccess ? (
           <>
             <Text className="text-main-text text-lg leading-6">

@@ -19,7 +19,7 @@ export default function ChatCard({ chat }: { chat: UserMessage }) {
           params: { userId: chat.userId },
         });
       }}
-      className="flex-row p-3 gap-4 bg-white rounded-xl shadow items-center"
+      className="flex-row p-3 gap-4 bg-white rounded-xl border border-stroke items-center"
     >
       <Image
         source={getProfileImageSource(chat.user.profileMedia?.url)}
@@ -48,8 +48,8 @@ export default function ChatCard({ chat }: { chat: UserMessage }) {
       </View>
       <View className="flex-1 items-end px-3">
         {chat.pendingMessages > 0 && (
-          <View className="bg-primary size-9 rounded-full items-center justify-center">
-            <Text className="text-white font-bold text-center text-lg">{chat.pendingMessages}</Text>
+          <View className="bg-primary h-[18px] min-w-[18px] px-1 rounded-full items-center justify-center">
+            <Text className="text-white font-bold text-center text-xs">{chat.pendingMessages}</Text>
           </View>
         )}
       </View>

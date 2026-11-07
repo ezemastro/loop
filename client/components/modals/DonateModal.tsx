@@ -1,7 +1,6 @@
 import CustomModal from "../bases/CustomModal";
 import { View } from "react-native";
-import TextTitle from "../bases/TextTitle";
-import CloseModalButton from "../CloseModalButton";
+import ModalHeader, { modalSurfaceClassName } from "../bases/ModalHeader";
 import UserSelector from "../selectors/UserSelector";
 import { useState } from "react";
 import CustomButton from "../bases/CustomButton";
@@ -52,9 +51,8 @@ export default function DonateModal({ isOpen, onClose }: { isOpen: boolean; onCl
   };
   return (
     <CustomModal handleClose={onClose} isVisible={isOpen}>
-      <View className="gap-4 bg-background p-6 rounded-lg w-full">
-        <CloseModalButton onClose={onClose} />
-        <TextTitle>Donar loopies</TextTitle>
+      <View className={modalSurfaceClassName()}>
+        <ModalHeader title="Donar loopies" onClose={onClose} />
         <Field
           label="Donar a"
           error={selectedUser?.id === user?.id ? "No podés donarte a vos mismo" : null}

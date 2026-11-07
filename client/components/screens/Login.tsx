@@ -106,10 +106,10 @@ export default function Login() {
           contentContainerClassName={contentContainerClassName}
           ListHeaderComponent={
             <View className="py-6">
-              <Text className="text-3xl p-3 text-center font-bold color-main-text">
+              <Text className="py-3 text-center text-2xl font-semibold text-main-text">
                 Iniciar sesión
               </Text>
-              <Text className="color-main-text/80 text-center mb-4">
+              <Text className="text-center text-base text-secondary-text mb-4">
                 Ingresá tus datos o iniciá sesión con Google
               </Text>
               <AllowedDomainsNotice />

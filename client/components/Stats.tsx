@@ -19,17 +19,17 @@ export default function Stats({
       <Stat
         label="Kg. de residuos evitados"
         value={kgWaste}
-        icon={<WasteIcon color={colors.PRIMARY} size={42} />}
+        icon={<WasteIcon color={colors.MAIN_TEXT} size={32} />}
       />
       <Stat
         label="Kg. de CO2 equivalente ahorrado"
         value={kgCo2}
-        icon={<CO2Icon color={colors.SECONDARY} size={42} />}
+        icon={<CO2Icon color={colors.MAIN_TEXT} size={32} />}
       />
       <Stat
         label="Litros de agua ahorrados"
         value={lH2o}
-        icon={<H20Icon color={colors.TERTIARY} size={42} />}
+        icon={<H20Icon color={colors.MAIN_TEXT} size={32} />}
       />
     </View>
   );

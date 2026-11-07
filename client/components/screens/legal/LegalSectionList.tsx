@@ -39,11 +39,13 @@ export default function LegalSectionList({
         contentContainerClassName={contentClassName}
         // In-body counterpart of the `<Head><title>` above: the raw HTML must carry the
         // "principal headings" too (same spec scenario), not just the `<title>` tag.
-        ListHeaderComponent={<TextTitle className="mb-4 text-3xl">{title}</TextTitle>}
+        ListHeaderComponent={<TextTitle className="mb-4">{title}</TextTitle>}
         renderItem={({ item }) => (
           <>
             {item.type === "subtitle" && (
-              <TextTitle className="mb-2 mt-3 text-left">{item.content}</TextTitle>
+              <TextTitle level="section" className="mb-2 mt-3">
+                {item.content}
+              </TextTitle>
             )}
             {item.type === "paragraph" && (
               <Text className="mb-2 text-main-text text-lg leading-6">{item.content}</Text>

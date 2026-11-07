@@ -1,7 +1,8 @@
 import { View, Text, Pressable } from "react-native";
 import React from "react";
 import CustomModal from "../bases/CustomModal";
-import { CameraIcon, CrossIcon, GalleryIcon } from "../Icons";
+import { CameraIcon, GalleryIcon } from "../Icons";
+import ModalHeader, { modalSurfaceClassName } from "../bases/ModalHeader";
 
 export default function ImageSourceSelectorModal({
   isModalOpen,
@@ -18,20 +19,16 @@ export default function ImageSourceSelectorModal({
 }) {
   return (
     <CustomModal isVisible={isModalOpen} handleClose={onClose}>
-      <View className="bg-white rounded px-4 py-8 w-full m-4 gap-8">
-        <Pressable className="absolute top-4 right-4" onPress={onClose}>
-          <CrossIcon />
-        </Pressable>
-        <Text className="text-xl font-semibold text-center text-main-text mx-8">
-          Elegí una opción
-        </Text>
-        <View className="flex-row justify-evenly gap-6">
+      <View className={modalSurfaceClassName()}>
+        <ModalHeader title="Elegí una opción" onClose={onClose} />
+        <View className="flex-row gap-3">
           <Pressable
             onPress={() => {
               pickImages("library");
               onClose();
             }}
-            className="items-center gap-2 max-w-32 bg-white border-stroke border px-3 py-2 rounded"
+            accessibilityRole="button"
+            className="flex-1 items-center gap-2 rounded-lg border border-stroke bg-white px-3 py-3 hover:bg-background active:opacity-80"
           >
             <GalleryIcon className="text-main-text" size={24} />
             <View className="flex-row flex-grow items-center">
@@ -50,7 +47,8 @@ export default function ImageSourceSelectorModal({
               pickImages("camera");
               onClose();
             }}
-            className="items-center gap-2 max-w-32 bg-white border-stroke border px-3 py-2 rounded"
+            accessibilityRole="button"
+            className="flex-1 items-center gap-2 rounded-lg border border-stroke bg-white px-3 py-3 hover:bg-background active:opacity-80"
           >
             <CameraIcon className="text-main-text" size={24} />
             <View className="flex-row flex-grow items-center">
