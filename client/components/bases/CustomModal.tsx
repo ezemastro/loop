@@ -3,7 +3,7 @@
 import { twMerge } from "tailwind-merge";
 
 import { useMemo } from "react";
-import { Modal, Platform, View, useWindowDimensions } from "react-native";
+import { Modal, View, useWindowDimensions } from "react-native";
 
 export default function CustomModal({
   children,
@@ -36,18 +36,14 @@ export default function CustomModal({
   return (
     <Modal
       visible={isVisible}
-      // onBackdropPress={handleClose}
-      // isVisible={isVisible}
       onRequestClose={handleClose}
-      backdropColor={Platform.OS !== "ios" ? "rgba(0, 0, 0, 0.3)" : undefined}
+      // Without `transparent`, react-native-web paints the modal container opaque white, hiding
+      // the page. The dim layer is the wrapper below, so it is identical on web, iOS and Android
+      // (`backdropColor` is not supported by react-native-web).
+      transparent
       statusBarTranslucent
     >
-      <View
-        className={twMerge(
-          `flex-1 items-center justify-center`,
-          Platform.OS === "web" ? "bg-black/30" : "",
-        )}
-      >
+      <View className="flex-1 items-center justify-center bg-black/40">
         <View
           className={twMerge(`items-center justify-center p-4 max-w-3xl w-full`, className)}
           style={{ maxHeight }}
