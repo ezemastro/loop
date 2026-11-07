@@ -27,6 +27,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { fieldWrapperProps } from "../bases/fieldProps";
 
 const STEPS = [
   {
@@ -237,6 +238,7 @@ export default function Landing() {
               <View className="gap-3">
                 <View>
                   <View
+                    {...fieldWrapperProps}
                     className="h-14 flex-row items-center rounded-lg border bg-white px-4"
                     style={{ borderColor: colors.STROKE }}
                   >
@@ -260,6 +262,7 @@ export default function Landing() {
 
                 <View>
                   <View
+                    {...fieldWrapperProps}
                     className="h-14 flex-row items-center rounded-lg border bg-white px-4"
                     style={{ borderColor: colors.STROKE }}
                   >

@@ -27,6 +27,7 @@ import Loader from "./Loader";
 import ImagesSelector from "./selectors/ImagesSelector";
 import { MainView, pageContentClassName } from "@/components/bases/MainView";
 import { useThemeColors } from "@/hooks/useThemeColors";
+import { fieldWrapperProps } from "./bases/fieldProps";
 
 interface Field {
   key: string;
@@ -317,7 +318,10 @@ export default function ModifyListing({
     isError: errors.price,
     component: () => (
       <>
-        <View className="flex-row gap-2 items-center border-b border-gray-300 bg-secondary-text/10 px-4 rounded-t">
+        <View
+          {...fieldWrapperProps}
+          className="flex-row gap-2 items-center border-b border-gray-300 bg-secondary-text/10 px-4 rounded-t"
+        >
           <CreditIcon size={32} />
           <TextInput
             value={form.price ? formatNumber(form.price) : ""}

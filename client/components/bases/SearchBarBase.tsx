@@ -3,6 +3,7 @@ import { SearchIcon } from "../Icons";
 import { useCallback, useRef } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { twMerge } from "tailwind-merge";
+import { fieldWrapperProps } from "./fieldProps";
 
 export default function SearchBarBase({
   value,
@@ -35,6 +36,7 @@ export default function SearchBarBase({
   );
   return (
     <View
+      {...fieldWrapperProps}
       className={twMerge(
         "flex-row border border-stroke bg-background rounded-full px-2",
         className,

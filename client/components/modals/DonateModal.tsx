@@ -14,6 +14,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ToastProvider";
 import { getUserFriendlyErrorMessage } from "@/services/errorMapping";
 import Error from "../Error";
+import { fieldWrapperProps } from "../bases/fieldProps";
 
 export default function DonateModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const queryClient = useQueryClient();
@@ -62,7 +63,10 @@ export default function DonateModal({ isOpen, onClose }: { isOpen: boolean; onCl
         </View>
         <View className="gap-2">
           <Text className="text-main-text text-lg">Cantidad:</Text>
-          <View className="flex-row items-center bg-white rounded border border-stroke px-4 gap-2">
+          <View
+            {...fieldWrapperProps}
+            className="flex-row items-center bg-white rounded border border-stroke px-4 gap-2"
+          >
             <CreditIcon size={32} />
             <TextInput
               keyboardType="numeric"

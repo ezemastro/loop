@@ -26,11 +26,12 @@
 }
 
 /**
- * Web-only focus style for text inputs. Native is unaffected: there is no browser focus ring
- * there, and this file only ships to the web build.
+ * Web-only focus styles. Native is unaffected: there is no browser focus ring there, and this
+ * file only ships to the web build.
  *
  * The raw browser ring is never removed outright -- that would strip the keyboard-accessibility
- * affordance. It is replaced with a brand-coloured one instead.
+ * affordance. It is replaced with one in the community's `accent` colour (the community colour
+ * darkened until it is readable, see `resolveThemeColors`).
  *
  * Note both rules resolve to the same ring for text inputs in practice: per the CSS
  * selectors spec, an element that accepts keyboard input always matches `:focus-visible` while
@@ -42,6 +43,51 @@ input:focus,
 textarea:focus,
 input:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid rgb(var(--color-primary));
+  outline: 2px solid rgb(var(--color-accent));
   outline-offset: 1px;
+}
+
+/**
+ * Pressables render with `role="button"` / `role="link"` and a tabindex, so keyboard users can
+ * reach them; show the same ring, but only for keyboard focus (`:focus-visible`), never after a
+ * mouse or touch press.
+ */
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+[role="link"]:focus-visible,
+[role="tab"]:focus-visible {
+  outline: 2px solid rgb(var(--color-accent));
+  outline-offset: 2px;
+}
+
+/**
+ * An input nested inside a rounded wrapper (search bar, amount, chat...) must not draw its own
+ * rectangle: it would cut through the wrapper's rounded border. The wrapper opts in with
+ * `dataSet={{ field: "true" }}` (react-native-web renders it as `data-field`; see
+ * `components/bases/fieldProps.ts`) and shows the ring around itself instead. The ring is still
+ * there for keyboard users -- it just sits on the visible shape. This rule is more specific than
+ * the input rules above, so it wins.
+ */
+[data-field] input:focus,
+[data-field] textarea:focus,
+[data-field] input:focus-visible,
+[data-field] textarea:focus-visible {
+  outline: none;
+}
+
+[data-field]:focus-within {
+  outline: 2px solid rgb(var(--color-accent));
+  outline-offset: 1px;
+}
+
+/**
+ * Web fallback for inputs that do not set `placeholderTextColor`: the browser default is close to
+ * typed text on the app's backgrounds. The components set the prop too (`useThemeColors()`), which
+ * react-native-web turns into an inline style; this rule only catches the rest.
+ */
+input::placeholder,
+textarea::placeholder {
+  color: rgb(var(--color-secondary-text));
+  opacity: 1;
 }
