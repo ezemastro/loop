@@ -38,7 +38,6 @@ export default function Chat() {
   const { mutate: sendMessage } = useSendMessage({ userId: userId });
   const { mutate: markMessagesAsRead } = useMessageRead({ userId: userId });
   const { showToast } = useToast();
-  const messagesContentClassName = pageContentClassName("narrow", "flex-grow gap-1 max-w-xl");
 
   const user = userData?.user;
   const messages = data?.pages.flatMap((page) => page.data?.messages ?? []) ?? [];
@@ -92,86 +91,105 @@ export default function Chat() {
     );
   };
 
+  const hasMessages = messages.length > 0;
+  const showCentered = !hasMessages;
+
   return (
     <AvoidingKeyboard>
       <MainView>
-        <View className="flex-row items-center gap-2 px-2 py-2">
-          <BackButton />
-          <Pressable
-            className="flex-1 flex-row items-center gap-3"
-            onPress={() =>
-              router.push({
-                pathname: "/(main)/user/[userId]",
-                params: { userId: userId! },
-              })
-            }
-          >
-            <Image
-              source={getProfileImageSource(user?.profileMedia?.url)}
-              className="rounded-full bg-secondary-text"
-              style={{ width: 40, height: 40 }}
-            />
-            <View className="flex-1">
-              <Text numberOfLines={1} className="text-base font-medium text-main-text">
-                {user?.firstName} {user?.lastName}
-              </Text>
-              {(user?.schools.length ?? 0) > 3 ? (
-                <View className="flex-row gap-1">
-                  {user?.schools.map((school) => (
-                    <SchoolLogo key={school.id} school={school} size={16} />
-                  ))}
-                </View>
-              ) : (
-                <Text numberOfLines={1} className="text-secondary-text text-xs">
-                  {user?.schools.map((school) => school.name).join(", ")}
+        {/* Header, pending panel, list and input share one centered column. */}
+        <View className={pageContentClassName("narrow", "flex-1")}>
+          <View className="h-14 flex-row items-center gap-2 border-b border-stroke bg-white px-2">
+            <BackButton />
+            <Pressable
+              className="flex-1 flex-row items-center gap-3"
+              onPress={() =>
+                router.push({
+                  pathname: "/(main)/user/[userId]",
+                  params: { userId: userId! },
+                })
+              }
+            >
+              <Image
+                source={getProfileImageSource(user?.profileMedia?.url)}
+                className="rounded-full bg-secondary-text"
+                style={{ width: 36, height: 36 }}
+              />
+              <View className="flex-1">
+                <Text numberOfLines={1} className="text-base font-semibold text-main-text">
+                  {user?.firstName} {user?.lastName}
                 </Text>
-              )}
-            </View>
-          </Pressable>
-        </View>
-        <DroppablePendingWithUser userId={userId!} />
-        <FlatList
-          data={messages}
-          className="flex-1 mt-3 bg-background"
-          contentContainerClassName={messagesContentClassName}
-          contentContainerStyle={
-            Platform.OS === "web" ? { transform: [{ scaleY: -1 }] } : undefined
-          }
-          renderItem={({ item, index }) => (
-            <>
-              {!messages[index - 1] ||
-              item.senderId !== messages[index - 1]?.senderId ||
-              minutesDifference(item.createdAt, messages[index - 1]?.createdAt) > 5 ? (
-                <ChatHourLabel date={item.createdAt} senderId={item.senderId} />
-              ) : null}
-              <MessageItem message={item} />
-              {!messages[index + 1] || !sameDay(item.createdAt, messages[index + 1]?.createdAt) ? (
-                <ChatDayLabel date={item.createdAt} />
-              ) : null}
-            </>
-          )}
-          ListHeaderComponent={
-            !messages.length ? (
-              isError ? (
+                {(user?.schools.length ?? 0) > 3 ? (
+                  <View className="flex-row gap-1">
+                    {user?.schools.map((school) => (
+                      <SchoolLogo key={school.id} school={school} size={16} />
+                    ))}
+                  </View>
+                ) : (
+                  <Text numberOfLines={1} className="text-xs text-secondary-text">
+                    {user?.schools.map((school) => school.name).join(", ")}
+                  </Text>
+                )}
+              </View>
+            </Pressable>
+          </View>
+          <DroppablePendingWithUser userId={userId!} />
+          {showCentered ? (
+            <View className="flex-1 items-center justify-center px-6">
+              {isError ? (
                 <Error>Algo salió mal</Error>
               ) : isLoading ? (
                 <Loader />
               ) : (
-                <Text className="text-secondary-text text-center p-4">
-                  Todavía no hay mensajes. Enviá el primero.
+                <Text className="text-center text-base text-secondary-text">
+                  Todavía no hay mensajes. Escribí el primero.
                 </Text>
-              )
-            ) : null
-          }
-          onEndReached={() => {
-            fetchNextPage();
-          }}
-          inverted
-          onEndReachedThreshold={0.1}
-          refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
-        />
-        <View className="bg-white p-2">
-          <ChatInput onSubmit={handleSendMessage} />
+              )}
+            </View>
+          ) : (
+            <FlatList
+              data={messages}
+              className="flex-1"
+              contentContainerClassName="flex-grow py-3"
+              contentContainerStyle={
+                Platform.OS === "web" ? { transform: [{ scaleY: -1 }] } : undefined
+              }
+              renderItem={({ item, index }) => {
+                // The list is inverted: index 0 is the newest, so `index - 1` is the next bubble
+                // down the screen and `index + 1` the one above it.
+                const below = messages[index - 1];
+                const above = messages[index + 1];
+                const endsGroup =
+                  !below ||
+                  item.senderId !== below.senderId ||
+                  minutesDifference(item.createdAt, below.createdAt) > 5;
+                const startsGroup =
+                  !!above &&
+                  (item.senderId !== above.senderId ||
+                    minutesDifference(above.createdAt, item.createdAt) > 5);
+                return (
+                  <>
+                    {endsGroup ? (
+                      <ChatHourLabel date={item.createdAt} senderId={item.senderId} />
+                    ) : null}
+                    <MessageItem message={item} startsGroup={startsGroup} />
+                    {!above || !sameDay(item.createdAt, above.createdAt) ? (
+                      <ChatDayLabel date={item.createdAt} />
+                    ) : null}
+                  </>
+                );
+              }}
+              onEndReached={() => {
+                fetchNextPage();
+              }}
+              inverted
+              onEndReachedThreshold={0.1}
+              refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
+            />
+          )}
+          <View className="border-t border-stroke bg-white px-4 py-2">
+            <ChatInput onSubmit={handleSendMessage} />
+          </View>
         </View>
       </MainView>
     </AvoidingKeyboard>

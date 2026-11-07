@@ -3,6 +3,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePathname, useRouter } from "expo-router";
 import { useBreakpoint } from "@/hooks/useBreakpoint";
 import { pageContentClassName } from "../bases/MainView";
+import { isConversationPath } from "./isConversationPath";
 import AppLogo from "./AppLogo";
 import CreditsBalance from "./CreditsBalance";
 import DesktopNavLinks from "./DesktopNavLinks";
@@ -29,6 +30,8 @@ export default function Header() {
   const breakpoint = useBreakpoint();
   const isDesktop = breakpoint === "lg" || breakpoint === "xl";
   const isSearchScreen = pathname === "/search";
+  // Inside a conversation the search row goes away on mobile so the messages get the screen.
+  const hideSearchRow = !isDesktop && isConversationPath(pathname);
 
   const logo = (
     <Pressable
@@ -89,7 +92,7 @@ export default function Header() {
             {logo}
             {actions}
           </View>
-          <View className="pb-2">{search}</View>
+          {hideSearchRow ? null : <View className="pb-2">{search}</View>}
         </View>
       )}
     </View>

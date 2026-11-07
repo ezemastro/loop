@@ -1,10 +1,11 @@
-import { Tabs } from "expo-router";
+import { Tabs, usePathname } from "expo-router";
 import { StatusBar } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSelf } from "@/hooks/useSelf";
 import { useHideOnKeyboard } from "@/hooks/useHideOnKeyboard";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { useBreakpoint } from "@/hooks/useBreakpoint";
+import { isConversationPath } from "@/components/header/isConversationPath";
 import { PRIMARY_TABS, type PrimaryTabKey } from "@/components/header/primaryTabs";
 
 const tabByKey = (key: PrimaryTabKey) => {
@@ -29,6 +30,8 @@ export default function TabsLayout() {
   // Tailwind-web display-restore idioms guarded in responsive-tokens.test.ts do not apply here.
   const breakpoint = useBreakpoint();
   const isDesktopNav = breakpoint === "lg" || breakpoint === "xl";
+  // Inside a conversation the bottom bar hides on mobile; the chat header has the way back.
+  const inConversation = isConversationPath(usePathname());
 
   return (
     <>
@@ -47,7 +50,7 @@ export default function TabsLayout() {
             paddingTop: 5,
             backgroundColor: "#fff",
             borderTopColor: colors.STROKE,
-            display: isDesktopNav ? "none" : visible ? "flex" : "none",
+            display: isDesktopNav || inConversation ? "none" : visible ? "flex" : "none",
           },
           tabBarHideOnKeyboard: false,
         }}
