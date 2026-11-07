@@ -1,4 +1,4 @@
-import { View, Text, FlatList } from "react-native";
+import { View, FlatList } from "react-native";
 import MyListingsList from "../MyListingsList";
 import { MainView, pageContentClassName } from "../bases/MainView";
 import TextTitle from "../bases/TextTitle";
@@ -9,7 +9,6 @@ import AvoidingKeyboard from "../AvoidingKeyboard";
 
 interface Section {
   key: string;
-  title?: string;
   show?: () => boolean;
   component: () => React.ReactElement;
 }
@@ -20,7 +19,7 @@ export default function MyListings() {
     {
       key: "pending-title",
       show: () => hasResults,
-      component: () => <TextTitle level="section">Publicaciones pendientes</TextTitle>,
+      component: () => <TextTitle level="section">Loops pendientes</TextTitle>,
     },
     {
       key: "pending-list",
@@ -46,9 +45,6 @@ export default function MyListings() {
           contentContainerClassName={contentContainerClassName}
           renderItem={({ item }) => (
             <View className={`mb-4 ${(!item.show || item.show()) === false && "hidden"}`}>
-              {item.title && (
-                <Text className="text-lg text-main-text text-center">{item.title}</Text>
-              )}
               {item.component()}
             </View>
           )}
