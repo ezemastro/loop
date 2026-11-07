@@ -156,6 +156,11 @@ Tasks (route for all: delegated, writer trigger, 2+ non-trivial files):
   "Perfil" are fully visible at hero and step sizes; geometry photo replaces the notebooks; share
   image recaptured.
 
+### Round 3 follow-up (user feedback, 2026-11-07)
+- Hero block is now neutral (`bg-background`) at every width instead of navy. The app inside the devices wears its community's theme, and the navy block fought with the demo's green header. A neutral block also survives other communities' themes and later app UI changes.
+- Found while comparing: the green is not only the demo. The public API returns `secondary: #4C9F38` for `red-itinere` in production, so the institutional palette from 68f2517 (navy, default in `config.ts`) does not reach Red Itínere's real users. Whether to change that theme is the user's decision.
+- Checks: tsc clean; jest `marketing-landing brand-palette main-view` 609 passed; eslint clean on the hero; export OK; visual readback at 1440 DPR 2 and 390. Share image recaptured.
+
 ## Acceptance criteria
 - Logged-out web visit to `/` shows the new landing; "Ingresar" goes to `/ingresar` (old Landing).
 - Native first screen is unchanged.
