@@ -1,4 +1,4 @@
-import { Text, TextInput, View, FlatList, ActivityIndicator } from "react-native";
+import { Text, View, FlatList, ActivityIndicator } from "react-native";
 import { Link } from "expo-router";
 import { MainView, pageContentClassName } from "../bases/MainView";
 import SchoolSelector from "../selectors/SchoolSelector";
@@ -7,17 +7,13 @@ import type { ReactNode } from "react";
 import Error from "../Error";
 import { useRegisterForm } from "@/hooks/useRegisterForm";
 import ButtonText from "../bases/ButtonText";
+import { Field, PasswordField, TextField } from "../bases/Field";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AvoidingKeyboard from "../AvoidingKeyboard";
 import { GoogleSignInButton } from "@/components/buttons/GoogleSignInButton";
 import AllowedDomainsNotice from "@/components/AllowedDomainsNotice";
 import { GOOGLE_OAUTH_READY, NODE_ENV } from "@/config";
 import { useToast } from "@/components/ToastProvider";
-import { useThemeColors } from "@/hooks/useThemeColors";
-
-const TextLabel = ({ children }: { children: string }) => (
-  <Text className="color-main-text text-xl">{children}</Text>
-);
 
 type Field = {
   key: string;
@@ -27,7 +23,6 @@ type Field = {
 };
 
 export default function Register({ invite }: { invite?: string }) {
-  const colors = useThemeColors();
   const insets = useSafeAreaInsets();
   const {
     formData,
@@ -61,9 +56,8 @@ export default function Register({ invite }: { invite?: string }) {
       label: "Nombre",
       error: errors.firstName,
       render: () => (
-        <TextInput
-          placeholderTextColor={colors.SECONDARY_TEXT}
-          className="border border-stroke rounded p-2 bg-white"
+        <TextField
+          invalid={!!errors.firstName}
           placeholder="Tu nombre"
           value={formData.firstName}
           onChangeText={(text) => setFormData({ ...formData, firstName: text })}
@@ -75,9 +69,8 @@ export default function Register({ invite }: { invite?: string }) {
       label: "Apellido",
       error: errors.lastName,
       render: () => (
-        <TextInput
-          placeholderTextColor={colors.SECONDARY_TEXT}
-          className="border border-stroke rounded p-2 bg-white"
+        <TextField
+          invalid={!!errors.lastName}
           placeholder="Tu apellido"
           value={formData.lastName}
           onChangeText={(text) => setFormData({ ...formData, lastName: text })}
@@ -89,9 +82,8 @@ export default function Register({ invite }: { invite?: string }) {
       label: "Correo electrónico",
       error: errors.email,
       render: () => (
-        <TextInput
-          placeholderTextColor={colors.SECONDARY_TEXT}
-          className="border border-stroke rounded p-2 bg-white"
+        <TextField
+          invalid={!!errors.email}
           placeholder="Tu correo electrónico"
           value={formData.email}
           onChangeText={(text) => setFormData({ ...formData, email: text })}
@@ -104,14 +96,11 @@ export default function Register({ invite }: { invite?: string }) {
       label: "Contraseña",
       error: errors.password,
       render: () => (
-        <TextInput
-          placeholderTextColor={colors.SECONDARY_TEXT}
-          className="border border-stroke rounded p-2 bg-white"
+        <PasswordField
+          invalid={!!errors.password}
           placeholder="Tu contraseña"
-          secureTextEntry
           value={formData.password}
           onChangeText={(text) => setFormData({ ...formData, password: text })}
-          autoCapitalize="none"
         />
       ),
     },
@@ -120,14 +109,11 @@ export default function Register({ invite }: { invite?: string }) {
       label: "Confirmar contraseña",
       error: errors.confirmPassword,
       render: () => (
-        <TextInput
-          placeholderTextColor={colors.SECONDARY_TEXT}
-          className="border border-stroke rounded p-2 bg-white"
+        <PasswordField
+          invalid={!!errors.confirmPassword}
           placeholder="Repetí tu contraseña"
-          secureTextEntry
           value={formData.confirmPassword}
           onChangeText={(text) => setFormData({ ...formData, confirmPassword: text })}
-          autoCapitalize="none"
         />
       ),
     },
@@ -199,13 +185,9 @@ export default function Register({ invite }: { invite?: string }) {
           }
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
-            <View className="gap-2">
-              <TextLabel>{item.label}</TextLabel>
-              <View>
-                {item.render()}
-                <Error textClassName="text-alert">{item.error}</Error>
-              </View>
-            </View>
+            <Field label={item.label} error={item.error} className="mb-3">
+              {item.render()}
+            </Field>
           )}
           ListFooterComponent={
             <>

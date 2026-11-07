@@ -13,13 +13,10 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastData[]>([]);
 
-  const showToast = useCallback(
-    (message: string, type: ToastType = "error", duration?: number) => {
-      const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      setToasts((prev) => [...prev, { id, message, type, duration }]);
-    },
-    [],
-  );
+  const showToast = useCallback((message: string, type: ToastType = "error", duration?: number) => {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    setToasts((prev) => [...prev, { id, message, type, duration }]);
+  }, []);
 
   const dismissToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));

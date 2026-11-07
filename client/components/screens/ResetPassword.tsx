@@ -1,15 +1,15 @@
 import { useState } from "react";
-import { Text, TextInput, View } from "react-native";
+import { Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { MainView, pageContentClassName } from "../bases/MainView";
 import CustomButton from "../bases/CustomButton";
 import ButtonText from "../bases/ButtonText";
+import { PasswordField } from "../bases/Field";
 import TextTitle from "../bases/TextTitle";
 import Error from "../Error";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useResetPassword } from "@/hooks/useResetPassword";
 import { validateResetPasswordForm } from "@/services/validations";
-import { useThemeColors } from "@/hooks/useThemeColors";
 
 /**
  * SEC-11: the screen the emailed reset link opens (`APP_BASE_URL/reset-password?token=...`, see
@@ -17,7 +17,6 @@ import { useThemeColors } from "@/hooks/useThemeColors";
  * as a plain error from the API — the token itself is opaque to this screen, it only forwards it.
  */
 export default function ResetPassword() {
-  const colors = useThemeColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { token } = useLocalSearchParams<{ token?: string }>();
@@ -66,23 +65,15 @@ export default function ResetPassword() {
           </>
         ) : (
           <>
-            <TextInput
-              placeholderTextColor={colors.SECONDARY_TEXT}
-              className="border border-stroke rounded p-2 bg-white"
+            <PasswordField
               placeholder="Contraseña nueva"
               value={newPassword}
               onChangeText={setNewPassword}
-              secureTextEntry
-              autoCapitalize="none"
             />
-            <TextInput
-              placeholderTextColor={colors.SECONDARY_TEXT}
-              className="border border-stroke rounded p-2 bg-white"
+            <PasswordField
               placeholder="Confirmá la contraseña nueva"
               value={confirmPassword}
               onChangeText={setConfirmPassword}
-              secureTextEntry
-              autoCapitalize="none"
             />
             {fieldError && <Error textClassName="text-alert">{fieldError}</Error>}
             {error && (

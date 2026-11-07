@@ -1,16 +1,16 @@
 import { useState } from "react";
-import { Text, TextInput, View } from "react-native";
+import { Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { MainView, pageContentClassName } from "../bases/MainView";
 import CustomButton from "../bases/CustomButton";
 import ButtonText from "../bases/ButtonText";
+import { TextField } from "../bases/Field";
 import TextTitle from "../bases/TextTitle";
 import Error from "../Error";
 import BackButton from "../BackButton";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useForgotPassword } from "@/hooks/useForgotPassword";
 import { isValidEmailFormat } from "@/services/validations";
-import { useThemeColors } from "@/hooks/useThemeColors";
 
 /**
  * SEC-11: self-service "olvidé mi contraseña", linked from `Login.tsx`. Always shows the same
@@ -18,7 +18,6 @@ import { useThemeColors } from "@/hooks/useThemeColors";
  * is indistinguishable") — the UI must not imply otherwise.
  */
 export default function ForgotPassword() {
-  const colors = useThemeColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -58,9 +57,8 @@ export default function ForgotPassword() {
               Ingresá el email de tu cuenta y te mandamos un enlace para elegir una contraseña
               nueva.
             </Text>
-            <TextInput
-              placeholderTextColor={colors.SECONDARY_TEXT}
-              className="border border-stroke rounded p-2 bg-white"
+            <TextField
+              invalid={validationError}
               placeholder="tu-email@colegio.edu.ar"
               value={email}
               onChangeText={setEmail}

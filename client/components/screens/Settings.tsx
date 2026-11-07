@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Platform, ScrollView, Text, TextInput, View } from "react-native";
+import { Platform, ScrollView, Text, View } from "react-native";
 import Constants from "expo-constants";
 import { useRouter, usePathname } from "expo-router";
 import { MainView, pageContentClassName } from "../bases/MainView";
@@ -9,6 +9,7 @@ import CloseModalButton from "../CloseModalButton";
 import TextTitle from "../bases/TextTitle";
 import CustomButton from "../bases/CustomButton";
 import ButtonText from "../bases/ButtonText";
+import { Field, TextField } from "../bases/Field";
 import Error from "../Error";
 import MailFallbackSheet from "../bases/MailFallbackSheet";
 import SettingsRow from "../settings/SettingsRow";
@@ -19,10 +20,8 @@ import { useMailComposer } from "@/hooks/useMailComposer";
 import { buildSupportMail, type SupportMailTemplate } from "@/services/supportMail";
 import { canConfirmAccountDeletion } from "@/services/accountDeletion";
 import { CONTACT_EMAIL } from "@/config";
-import { useThemeColors } from "@/hooks/useThemeColors";
 
 export default function Settings() {
-  const colors = useThemeColors();
   const user = useSessionStore((state) => state.user);
   const logout = useSessionStore((state) => state.logout);
   const pathname = usePathname();
@@ -106,18 +105,15 @@ export default function Settings() {
                 Esta acción es permanente e irreversible. Se eliminarán todos tus datos, incluyendo
                 publicaciones, mensajes, notificaciones y transacciones.
               </Text>
-              <View className="gap-2">
-                <Text className="text-main-text text-lg">Escribí tu email para confirmar</Text>
-                <TextInput
-                  placeholderTextColor={colors.SECONDARY_TEXT}
-                  className="bg-white rounded border border-stroke px-4 py-3 text-main-text"
+              <Field label="Escribí tu email para confirmar">
+                <TextField
                   placeholder={user.email}
                   value={deleteEmailConfirm}
                   onChangeText={setDeleteEmailConfirm}
                   autoCapitalize="none"
                   keyboardType="email-address"
                 />
-              </View>
+              </Field>
               {deleteError && (
                 <Error>
                   {(deleteError as { message?: string })?.message || "Error al eliminar la cuenta"}

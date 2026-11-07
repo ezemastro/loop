@@ -8,5 +8,7 @@ import { buildPrivacyPolicySections } from "@/content/legal/privacyPolicy";
 import LegalSectionList from "./LegalSectionList";
 
 export default function PrivacyPolicy() {
-  return <LegalSectionList title="Política de privacidad" sections={buildPrivacyPolicySections()} />;
+  return (
+    <LegalSectionList title="Política de privacidad" sections={buildPrivacyPolicySections()} />
+  );
 }

@@ -40,7 +40,7 @@ export default function SearchBarBase({
     <View
       {...fieldWrapperProps}
       className={twMerge(
-        "flex-row border border-stroke bg-background rounded-full px-2",
+        "min-h-[44px] flex-row items-center border border-stroke bg-white rounded-lg px-2",
         className,
       )}
     >

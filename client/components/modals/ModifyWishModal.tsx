@@ -1,4 +1,4 @@
-import { View, Text, TextInput, ScrollView } from "react-native";
+import { View, ScrollView } from "react-native";
 import CategorySelector from "../selectors/CategorySelector";
 import { useEffect, useState } from "react";
 import CustomModal from "../bases/CustomModal";
@@ -7,8 +7,8 @@ import CloseModalButton from "../CloseModalButton";
 import AvoidingKeyboard from "../AvoidingKeyboard";
 import CustomButton from "../bases/CustomButton";
 import ButtonText from "../bases/ButtonText";
+import { Field, TextField } from "../bases/Field";
 import { useCreateWish, useModifyWish } from "@/hooks/useWishes";
-import { useThemeColors } from "@/hooks/useThemeColors";
 
 export default function ModifyWishModal({
   wish,
@@ -19,7 +19,6 @@ export default function ModifyWishModal({
   isVisible: boolean;
   handleClose: () => void;
 }) {
-  const colors = useThemeColors();
   const [selectedCategory, setSelectedCategory] = useState(wish?.category || null);
   const [comment, setComment] = useState(wish?.comment || "");
   const { mutateAsync: modifyWish, isPending: isModifying } = useModifyWish();
@@ -65,26 +64,21 @@ export default function ModifyWishModal({
             <ScrollView className="p-4" contentContainerClassName="gap-4">
               <CloseModalButton onClose={handleClose} />
               <TextTitle>{wish ? "Modificar deseo" : "Agregar deseo"}</TextTitle>
-              <View className="gap-1">
-                <Text className="text-main-text text-lg">Categoría</Text>
+              <Field label="Categoría">
                 <CategorySelector
                   value={selectedCategory}
                   onChange={(cat) => setSelectedCategory(cat)}
                 />
-              </View>
-              <View className="gap-1">
-                <Text className="text-main-text text-lg">Comentario</Text>
-                <TextInput
-                  placeholderTextColor={colors.SECONDARY_TEXT}
-                  className="border border-gray-300 p-2 rounded text-main-text bg-white"
+              </Field>
+              <Field label="Comentario">
+                <TextField
                   value={comment}
                   onChangeText={setComment}
-                  placeholderClassName="text-secondary-text"
                   placeholder="Contanos qué estás buscando"
                   multiline
                   numberOfLines={4}
                 />
-              </View>
+              </Field>
               <CustomButton onPress={handleSubmit} disabled={isLoading || !selectedCategory}>
                 <ButtonText>{wish ? "Guardar cambios" : "Agregar deseo"}</ButtonText>
               </CustomButton>

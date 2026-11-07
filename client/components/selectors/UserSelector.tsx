@@ -1,14 +1,16 @@
 import { useState } from "react";
-import { View, Text, Pressable } from "react-native";
-import User from "../cards/User";
+import { View } from "react-native";
 import UserSelectorModal from "../modals/UserSelectorModal";
+import { ControlTrigger } from "../bases/Field";
 
 export default function UserSelector({
   onChange,
   value,
+  invalid,
 }: {
   onChange?: (user: PublicUser) => void;
   value: PublicUser | null;
+  invalid?: boolean;
 }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -24,15 +26,12 @@ export default function UserSelector({
   };
   return (
     <View>
-      <Pressable onPress={openModal} className="bg-white rounded border border-stroke">
-        {value ? (
-          <User user={value} />
-        ) : (
-          <View className="h-16 justify-center items-center">
-            <Text className="text-secondary-text text-lg">Elegí un usuario</Text>
-          </View>
-        )}
-      </Pressable>
+      <ControlTrigger
+        onPress={openModal}
+        invalid={invalid}
+        placeholder="Elegí un usuario"
+        value={value ? `${value.firstName} ${value.lastName}` : null}
+      />
       <UserSelectorModal isVisible={isModalVisible} onSelect={handleSelect} onClose={closeModal} />
     </View>
   );

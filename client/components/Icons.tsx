@@ -180,6 +180,14 @@ export const EyeIcon = ({
   <Feather size={22} color={color} className={className} {...props} name="eye" />
 );
 
+export const EyeOffIcon = ({
+  className,
+  color,
+  ...props
+}: Partial<IconProps<string>> & { color?: string }) => (
+  <Feather size={22} color={color} className={className} {...props} name="eye-off" />
+);
+
 export const LeafIcon = ({
   className,
   color,

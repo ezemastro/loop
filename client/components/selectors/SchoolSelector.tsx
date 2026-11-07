@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Text } from "react-native";
 import SchoolSelectorModal from "../modals/SchoolSelectorModal";
-import School from "../cards/School";
+import { ControlTrigger } from "../bases/Field";
 
 type SchoolSelectorCommonProps = {
   /**
@@ -51,34 +51,25 @@ export default function SchoolSelector({
 
   const hasValue = value !== null && (!Array.isArray(value) || value.length > 0);
 
+  const schools = Array.isArray(value) ? value : value ? [value] : [];
+
   return (
     <View>
-      <Pressable
+      <ControlTrigger
         onPress={openModal}
         disabled={isDisabled}
-        className={
-          "rounded border border-stroke gap-0.5 " +
-          (isDisabled ? "bg-stroke/40 opacity-60 " : "") +
-          (Array.isArray(value) ? (value?.length && value.length > 0 ? "" : "bg-white") : "")
-        }
+        placeholder={isDisabled ? (disabledText ?? "Elegí una escuela") : "Elegí una escuela"}
       >
-        {/* Si es null o array con 0 elementos */}
         {hasValue ? (
-          <>
-            {Array.isArray(value) ? (
-              value.map((school) => <School key={school.id} school={school} />)
-            ) : (
-              <School key={value.id} school={value} />
-            )}
-          </>
-        ) : (
-          <View className="h-16 justify-center items-center px-3">
-            <Text className="text-secondary-text text-center text-base">
-              {isDisabled ? (disabledText ?? "Elegí una escuela") : "Elegí una escuela"}
-            </Text>
+          <View className="gap-1">
+            {schools.map((school) => (
+              <Text key={school.id} className="text-left text-base text-main-text">
+                {school.name}
+              </Text>
+            ))}
           </View>
-        )}
-      </Pressable>
+        ) : undefined}
+      </ControlTrigger>
       <SchoolSelectorModal
         isVisible={isModalVisible}
         onSelect={handleSelect}
