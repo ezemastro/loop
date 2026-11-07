@@ -11,6 +11,7 @@ export default function LandingFinalCta() {
         <Reveal className="items-center rounded-3xl bg-secondary px-6 py-14 lg:py-16">
           <Text
             accessibilityRole="header"
+            aria-level={2}
             className="max-w-[44rem] text-center text-2xl font-bold text-white lg:text-[2rem] lg:leading-[2.5rem]"
           >
             Sumate a tu comunidad escolar en Loop

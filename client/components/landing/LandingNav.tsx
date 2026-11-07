@@ -10,7 +10,7 @@ type Props = {
 /** Top nav, 72px, one line, aligned to the landing container. Anchor links hide below `lg`. */
 export default function LandingNav({ onNavigate }: Props) {
   return (
-    <View className="w-full border-b border-stroke bg-white/95" style={{ height: 72 }}>
+    <View className="w-full border-b border-stroke bg-white" style={{ height: 72 }}>
       <View className={`${LANDING_CONTAINER} h-full flex-row items-center justify-between`}>
         <Image
           source={require("../../assets/full_logo.png")}

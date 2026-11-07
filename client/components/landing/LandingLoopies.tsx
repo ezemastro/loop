@@ -27,7 +27,7 @@ export default function LandingLoopies() {
         <Reveal className="w-full min-w-0 lg:max-w-[32rem]">
           <View className="flex-row items-center gap-3">
             <CreditIcon size={36} />
-            <Text accessibilityRole="header" className={SECTION_HEADING}>
+            <Text accessibilityRole="header" aria-level={2} className={SECTION_HEADING}>
               ¿Qué son los <Text className="text-credits">loopies</Text>?
             </Text>
           </View>

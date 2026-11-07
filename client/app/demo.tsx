@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useRouter } from "expo-router";
+import Head from "expo-router/head";
 import { useSessionStore } from "@/stores/session";
 import { useLogin } from "@/hooks/useLogin";
 import { DEMO_SHOWCASE_EMAIL } from "@/demo";
@@ -52,8 +53,14 @@ export default function DemoEntry() {
   }, [login, router]);
 
   return (
-    <View className="flex-1 items-center justify-center bg-white">
-      <ActivityIndicator />
-    </View>
+    <>
+      <Head>
+        {/* A sample-data session, not content: keep it out of search results. */}
+        <meta name="robots" content="noindex" />
+      </Head>
+      <View className="flex-1 items-center justify-center bg-white">
+        <ActivityIndicator />
+      </View>
+    </>
   );
 }

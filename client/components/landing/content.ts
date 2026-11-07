@@ -5,6 +5,15 @@
  * verbs, zero em/en dashes.
  */
 
+/** Canonical origin of the public landing. Sharing metadata needs absolute URLs. */
+export const SITE_URL = "https://loop.reditinere.com/";
+export const PAGE_TITLE = "Loop · Intercambio circular de útiles escolares | Red Itínere";
+export const PAGE_DESCRIPTION =
+  "Loop es la plataforma de intercambio circular de útiles escolares de la comunidad de Red Itínere. Publicá lo que ya no usás, ganá loopies y conseguí lo que tu familia necesita.";
+export const SHARE_IMAGE_URL = `${SITE_URL}share-image.png`;
+export const SHARE_IMAGE_ALT =
+  "Loop, intercambio de útiles escolares entre las familias de tu colegio";
+
 /** "Buzón de consultas" in the footer. Confirmed by fetching the source page's raw HTML. */
 export const CONSULTAS_FORM_URL =
   "https://docs.google.com/forms/d/e/1FAIpQLSfLxG-rNPnUqMtzzgqGjFbS27Ea2T9d10qlE6ADVcbTd-Yezw/viewform?usp=dialog";

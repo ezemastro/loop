@@ -19,6 +19,7 @@ export default function LandingCommunityRules() {
         <Reveal className="lg:w-[22rem] lg:shrink-0">
           <Text
             accessibilityRole="header"
+            aria-level={2}
             className="text-2xl font-bold text-white lg:text-[2rem] lg:leading-[2.5rem]"
           >
             Reglas de la comunidad

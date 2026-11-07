@@ -21,7 +21,7 @@ export default function LandingFaq() {
     <View className={`w-full ${SECTION_PADDING}`} nativeID="preguntas">
       <View className={LANDING_CONTAINER}>
         <Reveal>
-          <Text accessibilityRole="header" className={SECTION_HEADING}>
+          <Text accessibilityRole="header" aria-level={2} className={SECTION_HEADING}>
             Preguntas frecuentes
           </Text>
         </Reveal>

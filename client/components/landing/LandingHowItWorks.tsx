@@ -44,7 +44,7 @@ export default function LandingHowItWorks({ stepScreenshots }: Props) {
     <View className={`w-full ${SECTION_PADDING}`} nativeID="como-funciona">
       <View className={LANDING_CONTAINER}>
         <Reveal>
-          <Text accessibilityRole="header" className={SECTION_HEADING}>
+          <Text accessibilityRole="header" aria-level={2} className={SECTION_HEADING}>
             Cómo funciona
           </Text>
           <Text className={`mt-3 max-w-[34rem] text-base ${BODY_TEXT}`}>

@@ -89,3 +89,82 @@ describe("one label per intent", () => {
     }
   });
 });
+
+describe("heading outline", () => {
+  const HEADER_TAG_RE = /<Text\b[^>]*?accessibilityRole="header"[^>]*?>/gs;
+  const tsxFiles = [...landingFiles.filter((file) => file.endsWith(".tsx")), SCREEN_PATH];
+
+  const headings = tsxFiles.flatMap((file) =>
+    (read(file).match(HEADER_TAG_RE) ?? []).map((tag) => ({ file, tag })),
+  );
+
+  it("finds the section headings", () => {
+    expect(headings.length).toBeGreaterThanOrEqual(6);
+  });
+
+  it("has exactly one level-1 heading, the hero", () => {
+    const levelOne = headings.filter(({ tag }) => /aria-level=\{1\}/.test(tag));
+    expect(levelOne).toHaveLength(1);
+    expect(levelOne[0].file).toMatch(/LandingHero\.tsx$/);
+  });
+
+  it("gives every other heading an explicit level of 2 or 3", () => {
+    // react-native-web renders `accessibilityRole="header"` as an <h1> when no level is given.
+    for (const { file, tag } of headings) {
+      if (/aria-level=\{1\}/.test(tag)) continue;
+      expect({ file, ok: /aria-level=\{[23]\}/.test(tag) }).toEqual({ file, ok: true });
+    }
+  });
+});
+
+describe("sharing metadata", () => {
+  const screen = read(SCREEN_PATH);
+
+  it("declares canonical, Open Graph and Twitter tags in the page head", () => {
+    for (const needle of [
+      'rel="canonical"',
+      'property="og:title"',
+      'property="og:description"',
+      'property="og:type"',
+      'property="og:url"',
+      'property="og:image"',
+      'property="og:locale" content="es_AR"',
+      'name="twitter:card" content="summary_large_image"',
+    ]) {
+      expect(screen).toContain(needle);
+    }
+  });
+
+  it("ships robots.txt and sitemap.xml with the expected rules", () => {
+    const robots = read(path.join(CLIENT_ROOT, "public", "robots.txt"));
+    expect(robots).toMatch(/^Allow: \/$/m);
+    expect(robots).toMatch(/^Disallow: \/demo$/m);
+    expect(robots).toMatch(/^Sitemap: https:\/\/loop\.reditinere\.com\/sitemap\.xml$/m);
+    const sitemap = read(path.join(CLIENT_ROOT, "public", "sitemap.xml"));
+    for (const route of ["", "privacidad", "terminos"]) {
+      expect(sitemap).toContain(`<loc>https://loop.reditinere.com/${route}</loc>`);
+    }
+  });
+
+  it("keeps the sample-data demo out of search results", () => {
+    expect(read(path.join(CLIENT_ROOT, "app", "demo.tsx"))).toMatch(
+      /name="robots" content="noindex"/,
+    );
+  });
+
+  it("declares the document language in the root HTML", () => {
+    expect(read(path.join(CLIENT_ROOT, "app", "+html.tsx"))).toMatch(/<html lang="es-AR">/);
+  });
+
+  it("does not describe Loop as a marketplace in the manifest copy", () => {
+    for (const file of ["app.json", path.join("public", "manifest.json")]) {
+      expect(read(path.join(CLIENT_ROOT, file))).not.toMatch(/marketplace|comprá|vendé/i);
+    }
+  });
+});
+
+describe("navigation", () => {
+  it("uses an opaque header background", () => {
+    expect(read(path.join(LANDING_DIR, "LandingNav.tsx"))).not.toMatch(/bg-white\/\d+/);
+  });
+});

@@ -1,7 +1,7 @@
 {
   "name": "Loop",
   "short_name": "Loop",
-  "description": "Marketplace escolar - comprá y vendé entre alumnos",
+  "description": "Intercambio de útiles escolares entre las familias de tu colegio",
   "lang": "es-AR",
   "start_url": "/",
   "scope": "/",

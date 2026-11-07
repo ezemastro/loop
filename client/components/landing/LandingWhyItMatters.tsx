@@ -30,7 +30,7 @@ export default function LandingWhyItMatters() {
     <View className={`w-full ${SECTION_PADDING}`}>
       <View className={LANDING_CONTAINER}>
         <Reveal>
-          <Text accessibilityRole="header" className={SECTION_HEADING}>
+          <Text accessibilityRole="header" aria-level={2} className={SECTION_HEADING}>
             Por qué importa
           </Text>
         </Reveal>
