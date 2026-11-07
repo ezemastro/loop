@@ -3,6 +3,10 @@
 //
 //   node scripts/changelog/capture.mjs --base http://localhost:8801 --version 1.5.0 \
 //     --label antes --scenes home,chat --viewports escritorio,celular [--out dir]
+//     [--community-color "#0288D1" --suffix comunidad]
+//
+// --community-color previews another community's colour on the same demo data, the way
+// `ThemeProvider` would derive it. A caption must say it is an example, not a real community.
 //
 // Output: <out>/<scene>-<viewport>-<label>.webp  (default out: client/public/changelog/<version>)
 // Env: PLAYWRIGHT_FROM (dir whose node_modules has playwright, default <repo>/e2e/),
@@ -67,6 +71,24 @@ async function hideDemoBanner(page) {
   });
 }
 
+async function applyCommunityColor(page, color) {
+  const channels = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(" ");
+  const { darkenToContrast, AA_NORMAL_TEXT } = await import(
+    path.join(repoRoot, "client", "services", "color.ts")
+  );
+  const values = {
+    "--color-secondary": channels(color),
+    "--color-accent": channels(darkenToContrast(color, "#FFFFFF", AA_NORMAL_TEXT)),
+  };
+  await page.evaluate((vars) => {
+    const hosts = [...document.querySelectorAll("*")].filter((el) =>
+      el.style?.getPropertyValue("--color-secondary"),
+    );
+    for (const el of [document.documentElement, ...hosts])
+      for (const [key, value] of Object.entries(vars)) el.style.setProperty(key, value);
+  }, values);
+}
+
 async function settle(page) {
   await page.evaluate(() => document.fonts && document.fonts.ready).catch(() => {});
   await page
@@ -115,9 +137,10 @@ async function captureOne(browser, converter, scene, viewportName, opts) {
     await scene.run(page, ctx);
     await settle(page);
     if (scene.demo) await hideDemoBanner(page);
+    if (opts.communityColor) await applyCommunityColor(page, opts.communityColor);
     const png = await page.screenshot({ type: "png" });
     const webp = await toWebp(converter, png);
-    const file = path.join(opts.out, `${scene.name}-${viewportName}-${opts.label}.webp`);
+    const file = path.join(opts.out, `${scene.name}-${viewportName}-${opts.label}${opts.suffix}.webp`);
     fs.writeFileSync(file, webp);
     const kb = webp.length / 1024;
     const warn = webp.length > MAX_BYTES ? "  WARNING: over 300 KB" : "";
@@ -155,7 +178,13 @@ async function main() {
     args.out || path.join(repoRoot, "client", "public", "changelog", version),
   );
   fs.mkdirSync(out, { recursive: true });
-  const opts = { base: base.replace(/\/$/, ""), label, out };
+  const opts = {
+    base: base.replace(/\/$/, ""),
+    label,
+    out,
+    communityColor: args["community-color"],
+    suffix: args.suffix ? `-${args.suffix}` : "",
+  };
 
   const { chromium } = loadPlaywright();
   const browser = await chromium.launch({
