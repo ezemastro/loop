@@ -119,13 +119,20 @@ Evidence gathered before implementation:
   the demo figure is liters.
 
 Tasks (route for all: delegated, writer trigger, 2+ non-trivial files):
-- [ ] R1 App fixes: water label and unit, mission card overflow at 390, hero demo opens on real
-  listings, standalone `/demo` works outside an iframe.
-- [ ] R2 Semantics and sharing: `lang`, heading levels, OG tags, canonical, robots, sitemap, share
-  image, opaque header, outdated web description.
-- [ ] R3 Copy and CTAs: truthful steps and FAQ, new-visitor CTA hierarchy, demo CTA everywhere.
-- [ ] R4 Content: school logos, community section, "Por qué importa" rework, typography.
-- [ ] R5 Recapture screenshots and verify at 390 / 1024 / 1440.
+- [x] R1 App fixes: water label and unit, mission card overflow at 390, hero demo opens on real
+  listings, standalone `/demo` works outside an iframe. Commit `b3752b6`. Root cause of the card
+  overflow: RN-web Views default to `flex-shrink: 0`, so the text column kept its intrinsic width
+  and pushed the reward off screen (`min-w-0 flex-1`). Measured at 390: card spans 10 to 380.
+  Open: after a reload, `/home` returns to `/` in BOTH the new top-level `/demo` and the existing
+  "Explorar la demo" flow (see Progress).
+- [x] R2 Semantics and sharing: `lang`, heading levels, OG tags, canonical, robots, sitemap, share
+  image, opaque header, outdated web description. Commits `3c96be2` (all but the image) and
+  `03f2cc8` (share image).
+- [x] R3 Copy and CTAs: truthful steps and FAQ, new-visitor CTA hierarchy, demo CTA everywhere.
+  Commit `b1153af` (shared with R4).
+- [x] R4 Content: school logos, community section, "Por qué importa" rework, typography.
+  Commit `b1153af` (shared with R3). Admin panel screenshot skipped (optional).
+- [x] R5 Recapture screenshots and verify at 390 / 1024 / 1440. Commit `03f2cc8`.
 - Not implemented: logo recolor. No source file exists, and the same logo appears across the app and
   screenshots, so changing it only here would look inconsistent. Needs the brand owner's file.
 - Not implemented: legal text. `/privacidad` and `/terminos` still render the pending-review marker
@@ -146,6 +153,13 @@ Tasks (route for all: delegated, writer trigger, 2+ non-trivial files):
 - Strategy: ask-on-risk. Forecast > 400 authored lines (landing screen + copy). Branch `feat/marketing-landing`; PR/merge is the user's call.
 
 ## Progress
+- 2026-11-07: Round 3 done on `feat/landing-conversion` (`b3752b6`, `3c96be2`, `b1153af`, `03f2cc8`).
+  Finding for the user: reloading on `/home` sends the visitor back to `/` in the existing demo flow
+  as well as in the new top-level `/demo` (checked in headless Chromium against the export). The
+  persisted session keeps the token and `demoMode` but not `user`, and `useSelf` only mounts inside
+  the protected tree, so nothing restores `user` and the guard removes `/home`. Same code path as a
+  real login on web, so a real session may be affected too (not verified against production).
+  Fixing it touches auth boot, so it is left as a decision.
 - 2026-10-05: T9-T11 done (`1e1d7c1`, `17b2595`). Hero: 1200px container, "Una plataforma de"
   + Itínere logo instead of the pill, laptop (`desktop-home.webp`) + phone straddling a navy block
   that bleeds right. From `lg` up the phone mounts `/demo` in an iframe ~700ms after load, keeps
