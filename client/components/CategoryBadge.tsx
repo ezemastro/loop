@@ -2,29 +2,24 @@ import { useWishes } from "@/hooks/useWishes";
 import { Text } from "react-native";
 import { twMerge } from "tailwind-merge";
 
+/** Whether the user has a wish for this category (cards show a quiet "En tus deseados" chip). */
+export function useIsCategoryWished(categoryId: string | undefined): boolean {
+  const { data } = useWishes();
+  return (data?.userWishes ?? []).some((wish) => wish.categoryId === categoryId);
+}
+
+/** Category path in a neutral colour. Wishlist membership is shown by the card, not by tinting. */
 export default function CategoryBadge({
   category,
   className,
-  colorless,
   numberOfLines,
 }: {
   category: Category;
   className?: string;
-  colorless?: boolean;
   numberOfLines?: number;
 }) {
-  const { data } = useWishes();
-  const wishedCategories = data?.userWishes || [];
-  const isWished = wishedCategories.some((wish) => wish.categoryId === category.id);
   return (
-    <Text
-      numberOfLines={numberOfLines}
-      className={twMerge(
-        "text-secondary-text",
-        isWished && colorless !== true && "text-secondary",
-        className,
-      )}
-    >
+    <Text numberOfLines={numberOfLines} className={twMerge("text-secondary-text", className)}>
       {category.parents && category.parents?.map((parent) => parent.name).join(" / ") + " / "}
       {category.name}
     </Text>

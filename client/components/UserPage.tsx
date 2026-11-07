@@ -132,7 +132,6 @@ export default function UserPage({
                 <CategoryBadge
                   className="text-lg text-main-text/90"
                   category={wish.category}
-                  colorless
                 />
                 {wish.comment && <Text className="text-secondary-text">{wish.comment}</Text>}
               </View>

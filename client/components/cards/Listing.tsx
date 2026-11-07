@@ -6,7 +6,7 @@ import UserBadge from "../badges/UserBadge";
 import CreditsBadge from "../badges/CreditsBadge";
 import { useRouter } from "expo-router";
 import { getListingImageSource } from "@/services/getUrl";
-import CategoryBadge from "../CategoryBadge";
+import CategoryBadge, { useIsCategoryWished } from "../CategoryBadge";
 import SchoolLogo from "../SchoolLogo";
 
 /**
@@ -15,9 +15,24 @@ import SchoolLogo from "../SchoolLogo";
  */
 const CARD_IMAGE_ASPECT_RATIO = "aspect-[4/3]";
 
-/** Fixed thumbnail size for the `compact` variant, matching the pre-redesign row layout. */
-const COMPACT_IMAGE_WIDTH = 96;
-const COMPACT_IMAGE_HEIGHT = 112;
+/** Fixed thumbnail size for the `compact` variant. */
+const COMPACT_IMAGE_SIZE = 80;
+
+/** Quiet chip on cards whose category is in the user's wishlist (replaces tinting the category). */
+const WishedChip = () => (
+  <View className="self-start rounded-full bg-main-text/10 px-2 py-0.5">
+    <Text className="text-xs font-medium text-main-text">En tus deseados</Text>
+  </View>
+);
+
+const price = (listing: Listing) => (
+  <CreditsBadge
+    credits={listing.price}
+    iconSize={18}
+    containerClassName="self-start gap-1.5 px-0 py-0"
+    numberClassName="font-semibold"
+  />
+);
 
 const schoolAvatars = (schools: Listing["seller"]["schools"]) => (
   <View className="flex-1 flex-row gap-0.5 overflow-hidden">
@@ -25,7 +40,7 @@ const schoolAvatars = (schools: Listing["seller"]["schools"]) => (
       <SchoolLogo
         key={school.id}
         school={school}
-        size={24}
+        size={20}
         className="rounded-full border border-stroke"
         resizeMode="contain"
       />
@@ -46,6 +61,7 @@ export default function Listing({
   onPress?: () => void;
 }) {
   const router = useRouter();
+  const isWished = useIsCategoryWished(listing.category?.id);
   // `Media[]` is non-optional in `shared/types/app.d.ts`, but the 2026-09-03 incident proved a
   // `listing` can reach this card with `media` missing at runtime — optional-chain it anyway
   // (design.md D6).
@@ -61,35 +77,33 @@ export default function Listing({
   if (variant === "compact") {
     return (
       <Pressable
-        className="flex-row gap-2 rounded-xl border border-stroke bg-white p-2"
+        className="flex-row gap-3 rounded-xl border border-stroke bg-white p-3"
         onPress={onPress}
       >
         {hasImage ? (
           <Image
             source={getListingImageSource(listing.media[0].url)}
-            style={{ width: COMPACT_IMAGE_WIDTH, height: COMPACT_IMAGE_HEIGHT }}
+            style={{ width: COMPACT_IMAGE_SIZE, height: COMPACT_IMAGE_SIZE }}
             className="rounded-lg bg-background"
             resizeMode="cover"
           />
         ) : (
           <View
-            style={{ width: COMPACT_IMAGE_WIDTH, height: COMPACT_IMAGE_HEIGHT }}
+            style={{ width: COMPACT_IMAGE_SIZE, height: COMPACT_IMAGE_SIZE }}
             className="rounded-lg bg-background"
           />
         )}
-        <View className="flex-1 justify-center gap-1">
-          <Text numberOfLines={1} className="text-base font-medium text-main-text">
+        {/* `min-w-0 flex-1`: without it the column keeps its intrinsic width and clips the title. */}
+        <View className="min-w-0 flex-1 gap-1">
+          <Text numberOfLines={2} className="text-base font-medium text-main-text">
             {listing.title}
           </Text>
           <CategoryBadge category={listing.category} className="text-sm" numberOfLines={1} />
-          <View className="flex-row items-center gap-2">
+          <View className="flex-row flex-wrap items-center gap-2">
+            {price(listing)}
             <ProductStatusBadge status={listing.productStatus} />
-            {schoolAvatars(listing.seller.schools)}
+            {isWished ? <WishedChip /> : null}
           </View>
-          <UserBadge user={listing.seller} />
-        </View>
-        <View className="items-end justify-center gap-2">
-          <CreditsBadge credits={listing.price} />
           {customButton}
         </View>
       </Pressable>
@@ -122,19 +136,20 @@ export default function Listing({
       ) : (
         <View className={twMerge(CARD_IMAGE_ASPECT_RATIO, "w-full bg-background")} />
       )}
-      <View className="gap-2 p-3">
-        <View className="flex-row items-start justify-between gap-2">
-          <Text numberOfLines={2} className="flex-1 text-lg font-medium text-main-text">
-            {listing.title}
-          </Text>
-          <CreditsBadge credits={listing.price} />
+      <View className="flex-1 gap-2 p-3">
+        <Text numberOfLines={2} className="min-h-[48px] text-base font-medium text-main-text">
+          {listing.title}
+        </Text>
+        {price(listing)}
+        <View className="flex-row flex-wrap items-center gap-2">
+          <CategoryBadge category={listing.category} className="text-sm" numberOfLines={1} />
+          {isWished ? <WishedChip /> : null}
         </View>
-        <CategoryBadge category={listing.category} className="text-sm" numberOfLines={1} />
         <View className="flex-row items-center gap-2">
           <ProductStatusBadge status={listing.productStatus} />
           {schoolAvatars(listing.seller.schools)}
         </View>
-        <UserBadge user={listing.seller} />
+        <UserBadge user={listing.seller} containerClassName="mt-auto" />
         {customButton}
       </View>
     </Pressable>
