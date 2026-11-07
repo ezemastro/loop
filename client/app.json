@@ -47,7 +47,7 @@
     },
     "plugins": [
       "expo-notifications",
-      "expo-router",
+      ["expo-router", { "sitemap": false }],
       "expo-font",
       "expo-web-browser",
       [
