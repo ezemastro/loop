@@ -105,6 +105,14 @@ describe("one label per intent", () => {
   });
 });
 
+describe("demo button", () => {
+  it("loads /demo as a new document so its storage isolation sees the boot path", () => {
+    const button = read(path.join(LANDING_DIR, "LandingButton.tsx"));
+    expect(button).toMatch(/FULL_PAGE_LOAD = new Set<Props\["href"\]>\(\["\/demo"\]\)/);
+    expect(button).toMatch(/window\.location\.assign\(href\)/);
+  });
+});
+
 describe("how it works follows the real exchange order", () => {
   it("lists publish, search, coordinate, receive loopies", () => {
     expect(HOW_IT_WORKS_STEPS.map((step) => step.id)).toEqual([
@@ -243,12 +251,14 @@ describe("sharing metadata", () => {
   it("ships robots.txt and sitemap.xml with the expected rules", () => {
     const robots = read(path.join(CLIENT_ROOT, "public", "robots.txt"));
     expect(robots).toMatch(/^Allow: \/$/m);
-    expect(robots).toMatch(/^Disallow: \/demo$/m);
+    // A crawler blocked by robots never reads the demo's `noindex`, so /demo must stay crawlable.
+    expect(robots).not.toMatch(/^Disallow:/m);
     expect(robots).toMatch(/^Sitemap: https:\/\/loop\.reditinere\.com\/sitemap\.xml$/m);
     const sitemap = read(path.join(CLIENT_ROOT, "public", "sitemap.xml"));
-    for (const route of ["", "privacidad", "terminos"]) {
-      expect(sitemap).toContain(`<loc>https://loop.reditinere.com/${route}</loc>`);
-    }
+    // The legal pages still carry the pending-review marker, so only the landing is listed.
+    expect(sitemap.match(/<loc>[^<]+<\/loc>/g)).toEqual([
+      "<loc>https://loop.reditinere.com/</loc>",
+    ]);
   });
 
   it("ships a 1200x630 share image under 300 KB that the page points at", () => {

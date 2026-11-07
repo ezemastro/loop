@@ -138,6 +138,24 @@ Tasks (route for all: delegated, writer trigger, 2+ non-trivial files):
 - Not implemented: legal text. `/privacidad` and `/terminos` still render the pending-review marker
   until a person with legal judgment fills them. This blocks publishing.
 
+## Round 3 corrections (independent verification, 2026-11-07)
+- Demo isolation (`6dd6c04`): every load that boots on `/demo`, framed or not, uses in-memory storage
+  (`isDemoBootPath`), so a top-level demo can no longer leave `demoMode` behind, overwrite a real
+  `authToken` or keep demo colours. `isFramedDemo` is UI only (delayed banner, feed-only Home, no PWA
+  prompt). Accepted: reloading a top-level demo on `/home` returns to `/` with nothing stored. This
+  supersedes the reload "gap" in Progress for `/demo`. The button now does a real document load,
+  because a client-side transition from `/` would run the demo against the real `localStorage`.
+  Browser check: a pre-seeded `session-storage` and `theme-storage` stayed byte-identical after the
+  top-level demo, after "Salir" and after a direct `/demo` plus reload; a fresh context stored nothing.
+- Copy (`e0bc306`): community admins only issue invitations (domains are super-admin), no claim
+  that the team decides who enters, no catalog sentence, value range is enforced by the server, and
+  no description of how `Denunciar` reaches the team.
+- SEO (`3aa5aa2`): `robots.txt` no longer disallows `/demo` so the `noindex` can be read; the
+  sitemap lists only `/` until the legal pages are filled.
+- Visual (`0d39488`): phone frame radii reduced (screen 1.375rem, outer 1.875rem) so "Inicio" and
+  "Perfil" are fully visible at hero and step sizes; geometry photo replaces the notebooks; share
+  image recaptured.
+
 ## Acceptance criteria
 - Logged-out web visit to `/` shows the new landing; "Ingresar" goes to `/ingresar` (old Landing).
 - Native first screen is unchanged.
