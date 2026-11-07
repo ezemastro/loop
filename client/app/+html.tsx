@@ -11,19 +11,37 @@ import type { PropsWithChildren } from "react";
  * native).
  */
 /**
- * Landing-only typeface: Figtree variable (SIL OFL 1.1, license in `public/fonts`), latin subset,
- * which covers Spanish. Declaring the face costs nothing on other routes: a browser only downloads
- * a face once some element uses it, and only `components/landing` does (`font-landing`).
- * `font-display: swap` keeps text visible; the adjusted local fallback below is scaled to
- * Figtree's measured width (about 90% of Arial's) so the swap does not move the layout.
+ * Web typeface: Figtree variable (SIL OFL 1.1, license in `public/fonts`), latin subset, which
+ * covers Spanish. The landing asks for it by name (`font-landing`); the rest of the web app gets
+ * it through the `-apple-system` face below. `font-display: swap` keeps text visible.
+ *
+ * The adjusted local fallback ("Figtree Fallback", scaled to Figtree's measured width, about 90%
+ * of Arial's) is only part of the landing's own font stack, so only the landing swaps without
+ * moving its layout. The app stack has no such stage: it falls back to the browser's system font
+ * until Figtree arrives, and the text may reflow slightly once at first load.
  */
+const FONT_FILE = 'url(/fonts/figtree-latin-wght-normal.woff2) format("woff2")';
 const LANDING_FONT_CSS = `
 @font-face {
   font-family: "Figtree Variable";
   font-style: normal;
   font-weight: 300 900;
   font-display: swap;
-  src: url(/fonts/figtree-latin-wght-normal.woff2) format("woff2");
+  src: ${FONT_FILE};
+}
+/*
+ * react-native-web's default stack starts with the -apple-system system-font keyword, and
+ * every Text inherits it. Declaring an author face with that exact name makes browsers use this
+ * file instead of the keyword, so the whole app switches to Figtree without touching a single
+ * Text. Icon fonts (Feather, Ionicons) set their own family and are unaffected. Native keeps the
+ * system font: this file only exists in the web export.
+ */
+@font-face {
+  font-family: "-apple-system";
+  font-style: normal;
+  font-weight: 300 900;
+  font-display: swap;
+  src: ${FONT_FILE};
 }
 @font-face {
   font-family: "Figtree Fallback";
