@@ -1,7 +1,7 @@
 import { View, FlatList } from "react-native";
 import { MainView, pageContentClassName } from "../bases/MainView";
 import TextTitle from "../bases/TextTitle";
-import Stats from "../Stats";
+import { ImpactStrip } from "../Stats";
 import Missions from "../Missions";
 import { useRef, useState } from "react";
 import CustomRefresh from "../CustomRefresh";
@@ -25,18 +25,12 @@ export default function Home() {
     {
       key: "stats",
       component: () => (
-        <Stats
+        <ImpactStrip
           kgCo2={globalStats?.kgCo2 || 0}
           kgWaste={globalStats?.kgWaste || 0}
           lH2o={globalStats?.lH2o || 0}
         />
       ),
-    },
-    {
-      key: "mission",
-      title: "Misiones",
-      show: hasMissions,
-      component: () => <Missions hasMissions={hasMissions} setHasMissions={setHasMissions} />,
     },
     {
       key: "pending",
@@ -50,6 +44,12 @@ export default function Home() {
       component: () => (
         <Feed saveMoreFunction={(getMoreFunction) => (getMore.current = getMoreFunction)} />
       ),
+    },
+    {
+      key: "mission",
+      title: "Misiones",
+      show: hasMissions,
+      component: () => <Missions hasMissions={hasMissions} setHasMissions={setHasMissions} />,
     },
   ];
   // The framed live demo (landing hero) opens straight on real school items: no impact figures,
@@ -69,7 +69,7 @@ export default function Home() {
         }}
         onEndReachedThreshold={0.5}
         renderItem={({ item }) => (
-          <View className={`gap-4 mb-6 ${item.show === false && "hidden"}`}>
+          <View className={`gap-3 mb-6 ${item.show === false && "hidden"}`}>
             {item.title && <TextTitle level="section">{item.title}</TextTitle>}
             {item.component()}
           </View>
