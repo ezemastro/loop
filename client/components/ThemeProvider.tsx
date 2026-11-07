@@ -16,27 +16,36 @@ import { useActiveTheme } from "@/stores/theme";
 export default function ThemeProvider({ children }: { children: ReactNode }) {
   const colors = useActiveTheme();
 
-  const themeVars = useMemo(
-    () =>
-      vars({
-        "--color-primary": hexToChannels(colors.PRIMARY, DEFAULT_COLORS.PRIMARY),
-        "--color-secondary": hexToChannels(colors.SECONDARY, DEFAULT_COLORS.SECONDARY),
-        // Derived: SECONDARY darkened until white text on it reaches 4.5:1 (`resolveThemeColors`).
-        "--color-accent": hexToChannels(colors.ACCENT, DEFAULT_COLORS.SECONDARY),
-        "--color-tertiary": hexToChannels(colors.TERTIARY, DEFAULT_COLORS.TERTIARY),
-        "--color-main-text": hexToChannels(colors.MAIN_TEXT, DEFAULT_COLORS.MAIN_TEXT),
-        "--color-secondary-text": hexToChannels(
-          colors.SECONDARY_TEXT,
-          DEFAULT_COLORS.SECONDARY_TEXT,
-        ),
-        "--color-credits": hexToChannels(colors.CREDITS, DEFAULT_COLORS.CREDITS),
-        "--color-credits-light": hexToChannels(colors.CREDITS_LIGHT, DEFAULT_COLORS.CREDITS_LIGHT),
-        "--color-stroke": hexToChannels(colors.STROKE, DEFAULT_COLORS.STROKE),
-        "--color-background": hexToChannels(colors.BACKGROUND, DEFAULT_COLORS.BACKGROUND),
-        "--color-alert": hexToChannels(colors.ALERT, DEFAULT_COLORS.ALERT),
-      }) as ViewStyle,
+  const cssVars = useMemo(
+    () => ({
+      "--color-primary": hexToChannels(colors.PRIMARY, DEFAULT_COLORS.PRIMARY),
+      "--color-secondary": hexToChannels(colors.SECONDARY, DEFAULT_COLORS.SECONDARY),
+      // Derived: SECONDARY darkened until white text on it reaches 4.5:1 (`resolveThemeColors`).
+      "--color-accent": hexToChannels(colors.ACCENT, DEFAULT_COLORS.SECONDARY),
+      "--color-tertiary": hexToChannels(colors.TERTIARY, DEFAULT_COLORS.TERTIARY),
+      "--color-main-text": hexToChannels(colors.MAIN_TEXT, DEFAULT_COLORS.MAIN_TEXT),
+      "--color-secondary-text": hexToChannels(colors.SECONDARY_TEXT, DEFAULT_COLORS.SECONDARY_TEXT),
+      "--color-credits": hexToChannels(colors.CREDITS, DEFAULT_COLORS.CREDITS),
+      "--color-credits-light": hexToChannels(colors.CREDITS_LIGHT, DEFAULT_COLORS.CREDITS_LIGHT),
+      "--color-stroke": hexToChannels(colors.STROKE, DEFAULT_COLORS.STROKE),
+      "--color-background": hexToChannels(colors.BACKGROUND, DEFAULT_COLORS.BACKGROUND),
+      "--color-alert": hexToChannels(colors.ALERT, DEFAULT_COLORS.ALERT),
+    }),
     [colors],
   );
+  const themeVars = useMemo(() => vars(cssVars) as ViewStyle, [cssVars]);
+
+  // react-native-web renders `<Modal>` in a portal attached to `document.body`, outside the View
+  // below, so the variables defined on that View never reach modal content and it would fall back
+  // to the `:root` defaults of `global.css` (wrong community colours). Mirroring them on the root
+  // element fixes it on web. On native NativeWind v4 hands `vars()` down through React context,
+  // and a native Modal keeps its React parent, so the values should reach it (not verified on a
+  // device).
+  useEffect(() => {
+    if (Platform.OS !== "web" || typeof document === "undefined") return;
+    const root = document.documentElement;
+    for (const [name, value] of Object.entries(cssVars)) root.style.setProperty(name, value);
+  }, [cssVars]);
 
   // El `themeColor` de `app.json` se hornea en el manifest al exportar, así que la barra del
   // navegador queda con el color de la comunidad equivocada. Se parchea en runtime.
