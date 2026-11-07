@@ -56,13 +56,13 @@ const SelectListingButton = ({
       <View className="items-center justify-center gap-0.5">
         {type === "remove" ? (
           <>
-            <MinusCircleIcon className="text-primary" size={32} />
-            <Text className="text-primary font-medium">Eliminar</Text>
+            <MinusCircleIcon className="text-alert" size={32} />
+            <Text className="text-alert font-medium">Eliminar</Text>
           </>
         ) : (
           <>
-            <PlusCircleIcon className="text-tertiary" size={32} />
-            <Text className="text-tertiary font-medium">Agregar</Text>
+            <PlusCircleIcon className="text-accent" size={32} />
+            <Text className="text-accent font-medium">Agregar</Text>
           </>
         )}
       </View>

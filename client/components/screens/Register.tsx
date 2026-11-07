@@ -159,14 +159,14 @@ export default function Register({ invite }: { invite?: string }) {
                   <ActivityIndicator size="small" />
                 </View>
               ) : invitation.community ? (
-                <View className="bg-tertiary/10 border border-tertiary/30 rounded-lg p-3 mx-4 gap-1">
+                <View className="bg-accent/10 border border-accent/30 rounded-lg p-3 mx-4 gap-1">
                   <Text className="color-main-text text-center text-base font-semibold">
                     Invitación válida: podés registrarte con cualquier correo
                   </Text>
                   <Text className="text-secondary-text text-center text-sm">
                     Vas a entrar a la comunidad
                   </Text>
-                  <Text className="text-tertiary text-center text-lg font-bold">
+                  <Text className="text-accent text-center text-lg font-bold">
                     {invitation.community.name}
                   </Text>
                 </View>
@@ -201,11 +201,11 @@ export default function Register({ invite }: { invite?: string }) {
               </CustomButton>
               <Text className="text-center text-secondary-text text-sm mt-3">
                 Al registrarte aceptás nuestros{" "}
-                <Link href="/terminos" className="text-tertiary">
+                <Link href="/terminos" className="text-accent">
                   términos y condiciones
                 </Link>{" "}
                 y nuestra{" "}
-                <Link href="/privacidad" className="text-tertiary">
+                <Link href="/privacidad" className="text-accent">
                   política de privacidad
                 </Link>
                 .

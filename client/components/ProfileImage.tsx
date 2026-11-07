@@ -155,7 +155,7 @@ export default function ProfileImage({
           />
         ) : isCurrentUser ? (
           <View className="size-32 items-center justify-center rounded-full bg-stroke">
-            <CameraIcon className="text-primary-text" size={32} />
+            <CameraIcon className="text-secondary-text" size={32} />
           </View>
         ) : (
           <Image
@@ -166,7 +166,7 @@ export default function ProfileImage({
         )}
         {isCurrentUser && (
           <View className="absolute -top-2 -right-6 p-2">
-            <EditIcon className="text-tertiary" size={32} />
+            <EditIcon className="text-accent" size={32} />
           </View>
         )}
       </Pressable>

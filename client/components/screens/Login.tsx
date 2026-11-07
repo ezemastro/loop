@@ -143,7 +143,7 @@ export default function Login() {
               </CustomButton>
               <Link
                 href="/(auth)/forgot-password"
-                className="text-center text-tertiary text-base py-1"
+                className="text-center text-accent text-base py-1"
               >
                 ¿Olvidaste tu contraseña?
               </Link>

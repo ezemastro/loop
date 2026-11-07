@@ -60,7 +60,7 @@ export default function AllowedDomainsNotice({ email }: { email?: string }) {
     return (
       <View
         className="rounded-lg p-3 mx-4 gap-2 flex-row items-center border"
-        style={{ backgroundColor: `${colors.PRIMARY}1A`, borderColor: `${colors.PRIMARY}4D` }}
+        style={{ backgroundColor: `${colors.ACCENT}1A`, borderColor: `${colors.ACCENT}4D` }}
       >
         {community.media?.url ? (
           <Image
@@ -73,7 +73,7 @@ export default function AllowedDomainsNotice({ email }: { email?: string }) {
           <Text className="text-sm" style={{ color: colors.SECONDARY_TEXT }}>
             Detectamos
           </Text>
-          <Text className="text-lg font-bold" style={{ color: colors.PRIMARY }}>
+          <Text className="text-lg font-bold" style={{ color: colors.ACCENT }}>
             {community.name}
           </Text>
         </View>
@@ -82,7 +82,7 @@ export default function AllowedDomainsNotice({ email }: { email?: string }) {
   }
 
   return (
-    <View className="bg-primary/10 border border-primary/30 rounded-lg p-3 mx-4 gap-2">
+    <View className="bg-accent/10 border border-accent/30 rounded-lg p-3 mx-4 gap-2">
       <View className="flex-row items-center justify-center gap-2">
         <Text className="color-main-text text-center text-base font-semibold">
           {isNotFound
@@ -92,7 +92,7 @@ export default function AllowedDomainsNotice({ email }: { email?: string }) {
         {isFetching ? <ActivityIndicator size="small" /> : null}
       </View>
       <Pressable onPress={() => setIsModalVisible(true)}>
-        <Text className="text-primary text-center text-sm underline">
+        <Text className="text-accent text-center text-sm underline">
           No tengo mail institucional
         </Text>
       </Pressable>
@@ -105,7 +105,7 @@ export default function AllowedDomainsNotice({ email }: { email?: string }) {
           <Text className="text-main-text text-base">
             Si no tenés un mail institucional, escribinos a{" "}
             <Pressable onPress={handleContactPress}>
-              <Text className="text-primary underline">{CONTACT_EMAIL}</Text>
+              <Text className="text-accent underline">{CONTACT_EMAIL}</Text>
             </Pressable>{" "}
             y te enviaremos un enlace para que puedas registrarte con tu mail personal.
           </Text>

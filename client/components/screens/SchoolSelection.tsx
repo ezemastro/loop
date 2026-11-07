@@ -123,7 +123,7 @@ export default function SchoolSelection() {
             </Text>
             {community ? (
               <Text className="text-secondary-text text-center">
-                Colegios de <Text className="font-bold text-primary">{community.name}</Text>
+                Colegios de <Text className="font-bold text-accent">{community.name}</Text>
               </Text>
             ) : null}
             <SchoolSelector
