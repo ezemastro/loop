@@ -251,6 +251,16 @@ describe("sharing metadata", () => {
     }
   });
 
+  it("ships a 1200x630 share image under 300 KB that the page points at", () => {
+    const file = path.join(CLIENT_ROOT, "public", "share-image.png");
+    const bytes = fs.readFileSync(file);
+    expect(bytes.length).toBeLessThan(300 * 1024);
+    // PNG header: 8-byte signature, then IHDR with big-endian width and height at offsets 16 and 20.
+    expect(bytes.readUInt32BE(16)).toBe(1200);
+    expect(bytes.readUInt32BE(20)).toBe(630);
+    expect(read(path.join(LANDING_DIR, "content.ts"))).toMatch(/share-image\.png/);
+  });
+
   it("keeps the sample-data demo out of search results", () => {
     expect(read(path.join(CLIENT_ROOT, "app", "demo.tsx"))).toMatch(
       /name="robots" content="noindex"/,

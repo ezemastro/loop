@@ -70,8 +70,8 @@ export default function MarketingLanding() {
             publicar: require("../../assets/landing/phone-publish.webp"),
             buscar: require("../../assets/landing/phone-home.webp"),
             coordinar: require("../../assets/landing/phone-chat.webp"),
-            // The listing detail of an exchange already delivered: the seller's side of step 4.
-            recibir: require("../../assets/landing/phone-listing.webp"),
+            // A listing in the "received" state: the exchange closed and its impact recorded.
+            recibir: require("../../assets/landing/phone-received.webp"),
           }}
         />
         <LandingLoopies />

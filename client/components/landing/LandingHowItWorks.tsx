@@ -3,7 +3,7 @@ import { useThemeColors } from "@/hooks/useThemeColors";
 import type { ComponentType } from "react";
 import { useState } from "react";
 import type { ImageSourcePropType } from "react-native";
-import { Pressable, View } from "react-native";
+import { Pressable, useWindowDimensions, View } from "react-native";
 import Text from "./LandingText";
 import { HOW_IT_WORKS_STEPS } from "./content";
 import { PhoneShell, ScreenImage } from "./DeviceFrame";
@@ -20,6 +20,9 @@ type Props = {
   /** One real capture per step id (`content.ts`'s `HOW_IT_WORKS_STEPS`). */
   stepScreenshots: Record<string, ImageSourcePropType>;
 };
+
+/** Tailwind `lg` breakpoint, where the steps stop collapsing. */
+const LG_MIN_WIDTH = 1024;
 
 type IconProps = { color?: string; size?: number };
 
@@ -39,6 +42,10 @@ const STEP_ICONS: Record<string, ComponentType<IconProps>> = {
 export default function LandingHowItWorks({ stepScreenshots }: Props) {
   const colors = useThemeColors();
   const [activeId, setActiveId] = useState(HOW_IT_WORKS_STEPS[0].id);
+  // Below `lg` inactive steps collapse to their title, so selecting on hover would move the list
+  // under a mouse pointer and chase it. There, a step changes on press or focus only.
+  const { width } = useWindowDimensions();
+  const selectOnHover = width >= LG_MIN_WIDTH;
   const activeStep = HOW_IT_WORKS_STEPS.find((step) => step.id === activeId)!;
 
   return (
@@ -66,7 +73,7 @@ export default function LandingHowItWorks({ stepScreenshots }: Props) {
                     accessibilityState={{ selected: active }}
                     accessibilityLabel={step.title}
                     onPress={() => setActiveId(step.id)}
-                    onHoverIn={() => setActiveId(step.id)}
+                    onHoverIn={selectOnHover ? () => setActiveId(step.id) : undefined}
                     onFocus={() => setActiveId(step.id)}
                     className={`flex-row items-start gap-4 rounded-3xl border px-5 py-4 transition-colors duration-200 lg:px-6 lg:py-5 ${FOCUS_RING} ${
                       active
