@@ -32,12 +32,12 @@ export default function TabsLayout() {
 
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor={colors.SECONDARY} />
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <Tabs
         screenOptions={{
           headerShown: false,
           tabBarInactiveTintColor: colors.SECONDARY_TEXT,
-          tabBarActiveTintColor: colors.PRIMARY,
+          tabBarActiveTintColor: colors.ACCENT,
           tabBarLabelStyle: {
             fontSize: 11.5,
             fontWeight: "600",
@@ -45,6 +45,8 @@ export default function TabsLayout() {
           tabBarStyle: {
             height: 60 + insets.bottom,
             paddingTop: 5,
+            backgroundColor: "#fff",
+            borderTopColor: colors.STROKE,
             display: isDesktopNav ? "none" : visible ? "flex" : "none",
           },
           tabBarHideOnKeyboard: false,

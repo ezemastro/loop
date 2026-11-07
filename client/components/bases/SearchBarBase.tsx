@@ -48,7 +48,7 @@ export default function SearchBarBase({
         placeholderTextColor={colors.SECONDARY_TEXT}
         ref={inputRef}
         placeholder={placeholder || "Buscar..."}
-        className="flex-1 px-2 py-3"
+        className="flex-1 px-2 py-2 text-base text-main-text"
         onChangeText={handleChange}
         onSubmitEditing={() => onSubmit?.(value)}
         value={value}
@@ -62,7 +62,7 @@ export default function SearchBarBase({
           onSubmit?.(value);
         }}
       >
-        <SearchIcon className="color-main-text" />
+        <SearchIcon size={20} className="text-secondary-text" />
       </Pressable>
     </View>
   );

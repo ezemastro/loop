@@ -49,6 +49,9 @@ export default function ThemeProvider({ children }: { children: ReactNode }) {
 
   // El `themeColor` de `app.json` se hornea en el manifest al exportar, así que la barra del
   // navegador queda con el color de la comunidad equivocada. Se parchea en runtime.
+  // Ahora el header es blanco (la comunidad vive en una franja de 3px arriba de todo), así que la
+  // barra del navegador también va en blanco: con el color de la comunidad quedaría un bloque
+  // saturado pegado a un header blanco.
   // El ícono, el splash y el manifest de la app YA INSTALADA son artefactos de build y no pueden
   // variar por comunidad: eso requeriría un export por comunidad.
   useEffect(() => {
@@ -59,8 +62,8 @@ export default function ThemeProvider({ children }: { children: ReactNode }) {
       meta.setAttribute("name", "theme-color");
       document.head.appendChild(meta);
     }
-    meta.setAttribute("content", colors.SECONDARY);
-  }, [colors.SECONDARY]);
+    meta.setAttribute("content", "#ffffff");
+  }, []);
 
   return <View style={[{ flex: 1 }, themeVars]}>{children}</View>;
 }

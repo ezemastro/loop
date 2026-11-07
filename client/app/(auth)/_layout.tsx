@@ -13,7 +13,7 @@ export default function AuthLayout() {
       screenOptions={{
         tabBarHideOnKeyboard: false,
         tabBarInactiveTintColor: colors.SECONDARY_TEXT,
-        tabBarActiveTintColor: colors.PRIMARY,
+        tabBarActiveTintColor: colors.ACCENT,
         tabBarStyle: {
           display: visible ? "flex" : "none",
         },
