@@ -3,6 +3,8 @@ import { SearchIcon } from "../Icons";
 import { useCallback, useRef } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { twMerge } from "tailwind-merge";
+import { fieldWrapperProps } from "./fieldProps";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 export default function SearchBarBase({
   value,
@@ -21,6 +23,7 @@ export default function SearchBarBase({
   disabled?: boolean;
   className?: string;
 }) {
+  const colors = useThemeColors();
   const inputRef = useRef<TextInput>(null);
   // TODO - Arreglar esto, el ref es siempre null
   useFocusEffect(
@@ -35,15 +38,17 @@ export default function SearchBarBase({
   );
   return (
     <View
+      {...fieldWrapperProps}
       className={twMerge(
-        "flex-row border border-stroke bg-background rounded-full px-2",
+        "min-h-[44px] flex-row items-center border border-stroke bg-white rounded-lg px-2",
         className,
       )}
     >
       <TextInput
+        placeholderTextColor={colors.SECONDARY_TEXT}
         ref={inputRef}
         placeholder={placeholder || "Buscar..."}
-        className="flex-1 px-2 py-3"
+        className="flex-1 px-2 py-2 text-base text-main-text"
         onChangeText={handleChange}
         onSubmitEditing={() => onSubmit?.(value)}
         value={value}
@@ -57,7 +62,7 @@ export default function SearchBarBase({
           onSubmit?.(value);
         }}
       >
-        <SearchIcon className="color-main-text" />
+        <SearchIcon size={20} className="text-secondary-text" />
       </Pressable>
     </View>
   );

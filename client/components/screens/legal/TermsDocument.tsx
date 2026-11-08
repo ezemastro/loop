@@ -14,8 +14,9 @@ export default function TermsDocument() {
   const { c: slug } = useLocalSearchParams<{ c?: string }>();
   const { data: community, isError } = useCommunityBySlug(slug);
 
-  const communityName =
-    community && !isError ? community.name : NEUTRAL_COMMUNITY_LABEL;
+  const communityName = community && !isError ? community.name : NEUTRAL_COMMUNITY_LABEL;
 
-  return <LegalSectionList title="Términos y condiciones" sections={buildTermsSections(communityName)} />;
+  return (
+    <LegalSectionList title="Términos y condiciones" sections={buildTermsSections(communityName)} />
+  );
 }

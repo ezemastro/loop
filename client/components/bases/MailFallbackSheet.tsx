@@ -1,5 +1,6 @@
 import { Modal, ScrollView, Share, Text, View } from "react-native";
 import ButtonText from "./ButtonText";
+import ModalHeader from "./ModalHeader";
 import CustomButton from "./CustomButton";
 
 /**
@@ -22,12 +23,12 @@ export default function MailFallbackSheet({
   return (
     <Modal visible={!!text} transparent animationType="slide" onRequestClose={onClose}>
       <View className="flex-1 justify-end bg-black/40">
-        <View className="bg-white rounded-t-3xl p-4 gap-3 max-h-[70%]">
-          <Text className="text-main-text text-xl font-semibold">Copiar mensaje manualmente</Text>
+        <View className="bg-white rounded-t-xl p-5 gap-4 max-h-[70%]">
+          <ModalHeader title="Copiar mensaje manualmente" onClose={onClose} />
           <Text className="text-secondary-text">
             Mantené presionado el texto para seleccionarlo y copiarlo.
           </Text>
-          <ScrollView className="border border-stroke rounded-xl p-3 min-h-36 max-h-72">
+          <ScrollView className="border border-stroke rounded-lg p-3 min-h-36 max-h-72">
             <Text selectable className="text-main-text">
               {text}
             </Text>
@@ -39,10 +40,14 @@ export default function MailFallbackSheet({
                 await Share.share({ message: text });
               }}
             >
-              <ButtonText className="text-base">Compartir</ButtonText>
+              <ButtonText>Compartir</ButtonText>
             </CustomButton>
-            <CustomButton className="w-auto max-w-none flex-1 bg-main-text" onPress={onClose}>
-              <ButtonText className="text-base">Cerrar</ButtonText>
+            <CustomButton
+              variant="secondary"
+              className="w-auto max-w-none flex-1"
+              onPress={onClose}
+            >
+              <ButtonText>Cerrar</ButtonText>
             </CustomButton>
           </View>
         </View>

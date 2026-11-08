@@ -1,6 +1,8 @@
-import { Text, TextInput, View, FlatList } from "react-native";
+import { Text, View, FlatList } from "react-native";
 import { Link } from "expo-router";
-import { MainView, pageContentClassName } from "../bases/MainView";
+import { MainView } from "../bases/MainView";
+import TextTitle from "../bases/TextTitle";
+import { authContentClassName } from "./authLayout";
 import CustomButton from "../bases/CustomButton";
 import type { ReactNode } from "react";
 import Error from "../Error";
@@ -8,16 +10,15 @@ import { useLoginForm } from "@/hooks/useLoginForm";
 import { useResendVerification } from "@/hooks/useResendVerification";
 import Loader from "../Loader";
 import ButtonText from "../bases/ButtonText";
+import { Field, PasswordField, TextField } from "../bases/Field";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AvoidingKeyboard from "../AvoidingKeyboard";
-import { GoogleSignInButton } from "@/components/buttons/GoogleSignInButton";
+import {
+  GoogleSignInButton,
+  isGoogleSignInAvailable,
+} from "@/components/buttons/GoogleSignInButton";
 import AllowedDomainsNotice from "@/components/AllowedDomainsNotice";
-import { GOOGLE_OAUTH_READY, NODE_ENV } from "@/config";
 import { useToast } from "@/components/ToastProvider";
-
-const TextLabel = ({ children }: { children: string }) => (
-  <Text className="color-main-text text-xl">{children}</Text>
-);
 
 type Field = {
   key: string;
@@ -41,10 +42,8 @@ export default function Login() {
   } = useLoginForm();
   const { showToast } = useToast();
   const resendVerification = useResendVerification();
-  const contentContainerClassName = pageContentClassName(
-    "narrow",
-    "gap-2 p-4 pt-6 pb-16 flex-1 justify-center",
-  );
+  const contentContainerClassName = authContentClassName("pb-16 pt-6 md:pb-8 md:pt-8");
+  const hasGoogle = isGoogleSignInAvailable();
 
   const handleGoogleError = (error: string) => {
     showToast(error, "error");
@@ -66,13 +65,14 @@ export default function Login() {
   const fields: Field[] = [
     {
       key: "email",
-      label: "Correo electrónico:",
+      label: "Correo electrónico",
       error: errors.email,
-      errorMessage: "Introduce tu correo electrónico",
+      errorMessage: "Ingresá tu correo electrónico",
       render: () => (
-        <TextInput
-          className="border border-stroke rounded p-2 bg-white"
-          placeholder="Ingrese su correo electrónico"
+        <TextField
+          invalid={errors.email}
+          placeholder="Tu correo electrónico"
+          keyboardType="email-address"
           value={formData.email}
           onChangeText={(text) => setFormData({ ...formData, email: text })}
           autoCapitalize="none"
@@ -81,17 +81,15 @@ export default function Login() {
     },
     {
       key: "password",
-      label: "Contraseña:",
+      label: "Contraseña",
       error: errors.password,
-      errorMessage: "Introduce una contraseña",
+      errorMessage: "Ingresá tu contraseña",
       render: () => (
-        <TextInput
-          className="border border-stroke rounded p-2 bg-white"
-          placeholder="Ingrese su contraseña"
-          secureTextEntry
+        <PasswordField
+          invalid={errors.password}
+          placeholder="Tu contraseña"
           value={formData.password}
           onChangeText={(text) => setFormData({ ...formData, password: text })}
-          autoCapitalize="none"
         />
       ),
     },
@@ -109,24 +107,18 @@ export default function Login() {
           }}
           contentContainerClassName={contentContainerClassName}
           ListHeaderComponent={
-            <View className="py-6">
-              <Text className="text-3xl p-3 text-center font-bold color-main-text">
-                Iniciar sesión
-              </Text>
-              <Text className="color-main-text/80 text-center mb-4">
-                Introduce tus datos o inicia sesión con Google
+            <View className="gap-2 pb-2">
+              <TextTitle>Iniciar sesión</TextTitle>
+              <Text className="text-base text-secondary-text">
+                {hasGoogle ? "Ingresá tus datos o iniciá sesión con Google" : "Ingresá tus datos"}
               </Text>
               <AllowedDomainsNotice />
             </View>
           }
           renderItem={({ item }) => (
-            <View className="gap-1">
-              <TextLabel>{item.label}</TextLabel>
-              <View>
-                {item.render()}
-                <Error textClassName="text-alert">{item.error ? item.errorMessage : null}</Error>
-              </View>
-            </View>
+            <Field label={item.label} error={item.error ? item.errorMessage : null}>
+              {item.render()}
+            </Field>
           )}
           ListFooterComponent={
             <>
@@ -138,27 +130,32 @@ export default function Login() {
               {isUnverifiedEmail && (
                 <CustomButton
                   onPress={handleResend}
-                  className="mt-1"
-                  disabled={resendVerification.isPending}
+                  variant="secondary"
+                  className="mt-1 max-w-none"
+                  loading={resendVerification.isPending}
                 >
-                  <ButtonText>
-                    {resendVerification.isPending ? "Enviando…" : "Reenviar email de verificación"}
-                  </ButtonText>
+                  <ButtonText>{"Reenviar email de verificación"}</ButtonText>
                 </CustomButton>
               )}
               {isLoginLoading && <Loader />}
-              <CustomButton onPress={handleSubmit}>
+              <CustomButton onPress={handleSubmit} className="max-w-none">
                 <ButtonText>Iniciar sesión</ButtonText>
               </CustomButton>
-              <Link href="/(auth)/forgot-password" className="text-center text-tertiary text-base py-1">
+              <Link href="/(auth)/forgot-password" className="py-1 text-left text-base text-accent">
                 ¿Olvidaste tu contraseña?
               </Link>
-              <View className="w-full h-0.5 bg-secondary-text/30 my-6" />
-              {GOOGLE_OAUTH_READY || NODE_ENV !== "production" ? (
-                <View>
+              {hasGoogle ? (
+                <>
+                  <View className="my-2 h-px w-full bg-stroke" />
                   <GoogleSignInButton onError={handleGoogleError} />
-                </View>
+                </>
               ) : null}
+              <Text className="pt-2 text-left text-base text-secondary-text">
+                ¿No tenés cuenta?{" "}
+                <Link href="/(auth)/register" className="font-semibold text-accent">
+                  Registrate
+                </Link>
+              </Text>
             </>
           }
         />

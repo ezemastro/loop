@@ -3,6 +3,8 @@ import { MainView, pageContentClassName } from "../bases/MainView";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import BackButton from "../BackButton";
+import ButtonText from "../bases/ButtonText";
+import CustomButton from "../bases/CustomButton";
 import { HomeIcon } from "../Icons";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -63,14 +65,14 @@ export default function DebugPage() {
             <Text className="flex-1">
               Modo demo: {demoMode ? "ACTIVADO (no hay llamadas a la API)" : "desactivado"}
             </Text>
-            <Pressable
+            <CustomButton
+              size="sm"
+              variant={demoMode ? "danger" : "primary"}
+              className="w-auto max-w-none"
               onPress={toggleDemoMode}
-              className={
-                "rounded-lg px-3 py-1.5 active:opacity-70 " + (demoMode ? "bg-alert" : "bg-primary")
-              }
             >
-              <Text className="font-semibold text-white">{demoMode ? "Apagar" : "Encender"}</Text>
-            </Pressable>
+              <ButtonText>{demoMode ? "Apagar" : "Encender"}</ButtonText>
+            </CustomButton>
           </View>
           <Text>ENV API URL: {process.env.EXPO_PUBLIC_API_URL}</Text>
           <Text>CONFIG API URL: {API_URL}</Text>

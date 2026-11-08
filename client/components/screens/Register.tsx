@@ -1,22 +1,23 @@
-import { Text, TextInput, View, FlatList, ActivityIndicator } from "react-native";
+import { Text, View, FlatList, ActivityIndicator } from "react-native";
 import { Link } from "expo-router";
-import { MainView, pageContentClassName } from "../bases/MainView";
+import { MainView } from "../bases/MainView";
+import TextTitle from "../bases/TextTitle";
+import { authContentClassName } from "./authLayout";
 import SchoolSelector from "../selectors/SchoolSelector";
 import CustomButton from "../bases/CustomButton";
 import type { ReactNode } from "react";
 import Error from "../Error";
 import { useRegisterForm } from "@/hooks/useRegisterForm";
 import ButtonText from "../bases/ButtonText";
+import { Field, PasswordField, TextField } from "../bases/Field";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AvoidingKeyboard from "../AvoidingKeyboard";
-import { GoogleSignInButton } from "@/components/buttons/GoogleSignInButton";
+import {
+  GoogleSignInButton,
+  isGoogleSignInAvailable,
+} from "@/components/buttons/GoogleSignInButton";
 import AllowedDomainsNotice from "@/components/AllowedDomainsNotice";
-import { GOOGLE_OAUTH_READY, NODE_ENV } from "@/config";
 import { useToast } from "@/components/ToastProvider";
-
-const TextLabel = ({ children }: { children: string }) => (
-  <Text className="color-main-text text-xl">{children}</Text>
-);
 
 type Field = {
   key: string;
@@ -40,7 +41,8 @@ export default function Register({ invite }: { invite?: string }) {
     isCommunityNotFound,
   } = useRegisterForm(invite);
   const { showToast } = useToast();
-  const contentContainerClassName = pageContentClassName("narrow", "gap-1 px-4 pb-6");
+  const contentContainerClassName = authContentClassName("justify-start gap-1 pb-6 md:pb-8");
+  const hasGoogle = isGoogleSignInAvailable();
 
   const handleGoogleError = (error: string) => {
     showToast(error, "error");
@@ -56,12 +58,12 @@ export default function Register({ invite }: { invite?: string }) {
   const fields: Field[] = [
     {
       key: "firstName",
-      label: "Nombre:",
+      label: "Nombre",
       error: errors.firstName,
       render: () => (
-        <TextInput
-          className="border border-stroke rounded p-2 bg-white"
-          placeholder="Ingrese su nombre"
+        <TextField
+          invalid={!!errors.firstName}
+          placeholder="Tu nombre"
           value={formData.firstName}
           onChangeText={(text) => setFormData({ ...formData, firstName: text })}
         />
@@ -69,12 +71,12 @@ export default function Register({ invite }: { invite?: string }) {
     },
     {
       key: "lastName",
-      label: "Apellido:",
+      label: "Apellido",
       error: errors.lastName,
       render: () => (
-        <TextInput
-          className="border border-stroke rounded p-2 bg-white"
-          placeholder="Ingrese su apellido"
+        <TextField
+          invalid={!!errors.lastName}
+          placeholder="Tu apellido"
           value={formData.lastName}
           onChangeText={(text) => setFormData({ ...formData, lastName: text })}
         />
@@ -82,12 +84,12 @@ export default function Register({ invite }: { invite?: string }) {
     },
     {
       key: "email",
-      label: "Correo electrónico:",
+      label: "Correo electrónico",
       error: errors.email,
       render: () => (
-        <TextInput
-          className="border border-stroke rounded p-2 bg-white"
-          placeholder="Ingrese su correo electrónico"
+        <TextField
+          invalid={!!errors.email}
+          placeholder="Tu correo electrónico"
           value={formData.email}
           onChangeText={(text) => setFormData({ ...formData, email: text })}
           autoCapitalize="none"
@@ -96,37 +98,33 @@ export default function Register({ invite }: { invite?: string }) {
     },
     {
       key: "password",
-      label: "Contraseña:",
+      label: "Contraseña",
       error: errors.password,
       render: () => (
-        <TextInput
-          className="border border-stroke rounded p-2 bg-white"
-          placeholder="Ingrese su contraseña"
-          secureTextEntry
+        <PasswordField
+          invalid={!!errors.password}
+          placeholder="Tu contraseña"
           value={formData.password}
           onChangeText={(text) => setFormData({ ...formData, password: text })}
-          autoCapitalize="none"
         />
       ),
     },
     {
       key: "confirmPassword",
-      label: "Confirmar contraseña:",
+      label: "Confirmar contraseña",
       error: errors.confirmPassword,
       render: () => (
-        <TextInput
-          className="border border-stroke rounded p-2 bg-white"
-          placeholder="Repita su contraseña"
-          secureTextEntry
+        <PasswordField
+          invalid={!!errors.confirmPassword}
+          placeholder="Repetí tu contraseña"
           value={formData.confirmPassword}
           onChangeText={(text) => setFormData({ ...formData, confirmPassword: text })}
-          autoCapitalize="none"
         />
       ),
     },
     {
       key: "schools",
-      label: "Colegios:",
+      label: "Colegios",
       error: errors.schools,
       render: () => (
         <SchoolSelector
@@ -158,30 +156,25 @@ export default function Register({ invite }: { invite?: string }) {
           }}
           ListHeaderComponent={
             <View>
-              <Text className="text-3xl py-3 text-center font-bold color-main-text">
-                Registrarse
-              </Text>
+              <TextTitle className="pb-3">Registrarse</TextTitle>
               {invitation.isLoading ? (
-                <View className="mx-4 py-3">
+                <View className="py-3">
                   <ActivityIndicator size="small" />
                 </View>
               ) : invitation.community ? (
-                <View className="bg-tertiary/10 border border-tertiary/30 rounded-lg p-3 mx-4 gap-1">
-                  <Text className="color-main-text text-center text-base font-semibold">
+                <View className="gap-0.5 rounded-lg border border-stroke p-3">
+                  <Text className="text-left text-sm text-secondary-text">
                     Invitación válida: podés registrarte con cualquier correo
                   </Text>
-                  <Text className="text-secondary-text text-center text-sm">
-                    Vas a entrar a la comunidad
-                  </Text>
-                  <Text className="text-tertiary text-center text-lg font-bold">
-                    {invitation.community.name}
+                  <Text className="text-left text-base font-semibold text-main-text">
+                    Vas a entrar a {invitation.community.name}
                   </Text>
                 </View>
               ) : (
                 <>
                   {/* Con un token roto seguimos con el registro normal, o sea con restricción de dominio. */}
                   {invitation.isError && invitation.errorMessage ? (
-                    <Error textClassName="text-alert" className="mx-4 mb-2">
+                    <Error textClassName="text-alert" className="mb-2 items-start">
                       {invitation.errorMessage}
                     </Error>
                   ) : null}
@@ -192,13 +185,9 @@ export default function Register({ invite }: { invite?: string }) {
           }
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
-            <View className="gap-2">
-              <TextLabel>{item.label}</TextLabel>
-              <View>
-                {item.render()}
-                <Error textClassName="text-alert">{item.error}</Error>
-              </View>
-            </View>
+            <Field label={item.label} error={item.error} className="mb-3">
+              {item.render()}
+            </Field>
           )}
           ListFooterComponent={
             <>
@@ -207,23 +196,25 @@ export default function Register({ invite }: { invite?: string }) {
                   {displayError}
                 </Error>
               )}
-              <CustomButton onPress={handleSubmit} className={isRegisterError ? "mt-2" : "mt-6"}>
+              <CustomButton
+                onPress={handleSubmit}
+                className={isRegisterError ? "mt-2 max-w-none" : "mt-6 max-w-none"}
+              >
                 <ButtonText>Registrarse</ButtonText>
               </CustomButton>
-              <Text className="text-center text-secondary-text text-sm mt-3">
+              <Text className="mt-3 text-left text-sm text-secondary-text">
                 Al registrarte aceptás nuestros{" "}
-                <Link href="/terminos" className="text-tertiary">
+                <Link href="/terminos" className="text-accent">
                   términos y condiciones
                 </Link>{" "}
                 y nuestra{" "}
-                <Link href="/privacidad" className="text-tertiary">
+                <Link href="/privacidad" className="text-accent">
                   política de privacidad
                 </Link>
                 .
               </Text>
-              <View className="w-full h-0.5 bg-secondary-text/30 my-6" />
-              {GOOGLE_OAUTH_READY || NODE_ENV !== "production" ? (
-                <View>
+              {hasGoogle ? (
+                <View className="mt-6 gap-4 border-t border-stroke pt-6">
                   <GoogleSignInButton
                     onError={handleGoogleError}
                     // Solo se manda si la invitación resultó válida; si no, alta normal por dominio.
@@ -231,6 +222,12 @@ export default function Register({ invite }: { invite?: string }) {
                   />
                 </View>
               ) : null}
+              <Text className="pt-6 text-left text-base text-secondary-text">
+                ¿Ya tenés cuenta?{" "}
+                <Link href="/(auth)/login" className="font-semibold text-accent">
+                  Iniciá sesión
+                </Link>
+              </Text>
             </>
           }
         />

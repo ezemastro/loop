@@ -1,10 +1,13 @@
 import { useListings } from "@/hooks/useListings";
 import { useSearchStore } from "@/stores/search";
 import { useEffect, useState } from "react";
-import { View, Text, FlatList } from "react-native";
+import { View, FlatList } from "react-native";
 import type { CellRendererProps } from "react-native";
 import { useDebounce } from "use-debounce";
-import Loader from "../Loader";
+import EmptyState from "../bases/EmptyState";
+import { SearchIcon } from "../Icons";
+import ListingSkeleton from "../cards/ListingSkeleton";
+import { SKELETON_COUNT } from "@/config";
 import Listing from "../cards/Listing";
 import ListingSearchSortOptions from "../ListingSearchSortOptions";
 import ListingSearchFilters, { FiltersValue } from "../ListingSearchFilters";
@@ -36,7 +39,10 @@ export default function Search() {
     user: null,
     productStatus: null,
   });
-  const filterRowClassName = pageContentClassName("wide", "flex-row p-4 gap-4 flex-shrink-0");
+  const filterRowClassName = pageContentClassName(
+    "wide",
+    "flex-row items-center justify-end p-4 gap-2 flex-shrink-0",
+  );
   const gridContentClassName = pageContentClassName("wide", GRID_ROW_CLASS);
   const { data, isLoading } = useListings(query);
   const listings = data?.pages.flatMap((page) => page.data?.listings ?? []) || [];
@@ -74,18 +80,24 @@ export default function Search() {
       <FlatList
         className="flex-1 px-4"
         data={listings}
-        ListEmptyComponent={() => (
-          <>
-            <View className="h-40 justify-center items-center">
-              {!isLoading && (
-                <Text className="text-secondary-text text-center">
-                  No se encontraron resultados
-                </Text>
-              )}
-              {isLoading && <Loader />}
+        ListEmptyComponent={() =>
+          isLoading ? (
+            <View className={GRID_ROW_CLASS + " w-full"}>
+              {Array.from({ length: SKELETON_COUNT }, (_, index) => (
+                <View key={index} className={GRID_CELL_CLASS}>
+                  <ListingSkeleton />
+                </View>
+              ))}
             </View>
-          </>
-        )}
+          ) : (
+            <EmptyState
+              icon={<SearchIcon size={36} className="text-secondary-text" />}
+              title="No encontramos resultados"
+              description="Probá con otras palabras o sacá algún filtro."
+              className="w-full"
+            />
+          )
+        }
         contentContainerClassName={gridContentClassName}
         CellRendererComponent={GridCell}
         renderItem={({ item }) => <Listing listing={item} />}

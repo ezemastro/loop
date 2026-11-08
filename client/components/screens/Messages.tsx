@@ -12,6 +12,9 @@ import { useState } from "react";
 import ChatCard from "../cards/ChatCard";
 import User from "../cards/User";
 import { useAuth } from "@/hooks/useAuth";
+import EmptyState from "../bases/EmptyState";
+import { MessageIcon, SearchIcon } from "../Icons";
+import { listRowClassName, rowPosition } from "../bases/listRow";
 
 export default function Messages() {
   const router = useRouter();
@@ -19,7 +22,7 @@ export default function Messages() {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const headerClassName = pageContentClassName("narrow", "p-4 gap-3 flex-shrink-0");
-  const listContentClassName = pageContentClassName("narrow", "p-4 gap-2");
+  const listContentClassName = pageContentClassName("narrow", "p-4");
   const { data, isLoading, isError, fetchNextPage, hasNextPage } = useChats();
   const { data: usersData, hasNextPage: userHasNextPage } = useUsers({
     userId: currentUser?.id,
@@ -60,20 +63,31 @@ export default function Messages() {
       <FlatList
         className="flex-1"
         data={[
-          ...chatsToShow.map((chat) => ({
+          ...chatsToShow.map((chat, index) => ({
             key: chat.userId + "-chat",
-            component: () => <ChatCard chat={chat} />,
+            component: () => (
+              <ChatCard chat={chat} position={rowPosition(index, chatsToShow.length)} />
+            ),
           })),
           ...(usersToShow
             ? [
                 {
                   key: "usuarios-title",
-                  component: () => <Text className="text-main-text text-center">Usuarios</Text>,
+                  component: () => (
+                    <Text className="mb-2 mt-6 text-left text-sm font-semibold text-secondary-text">
+                      Usuarios
+                    </Text>
+                  ),
                 },
-                ...usersToShow.map((user) => ({
+                ...usersToShow.map((user, index) => ({
                   key: user.id + "-user",
                   component: () => (
                     <Pressable
+                      accessibilityRole="link"
+                      className={listRowClassName(
+                        rowPosition(index, usersToShow.length),
+                        "px-4 web:cursor-pointer hover:bg-background",
+                      )}
                       onPress={() =>
                         router.push({
                           pathname: "/messages/[userId]",
@@ -81,7 +95,7 @@ export default function Messages() {
                         })
                       }
                     >
-                      <User key={user.id} user={user} />
+                      <User key={user.id} user={user} row className="border-b-0" />
                     </Pressable>
                   ),
                 })),
@@ -97,15 +111,18 @@ export default function Messages() {
           isLoading ? (
             <Loader />
           ) : isError ? (
-            <Error>Ocurrió un error</Error>
+            <Error>Algo salió mal</Error>
           ) : !searchTerm ? (
-            <View>
-              <Text className="text-center text-secondary-text">
-                Todavía no has hablado con nadie, busca un usuario para comenzar
-              </Text>
-            </View>
+            <EmptyState
+              icon={<MessageIcon size={36} className="text-secondary-text" />}
+              title="Todavía no hablaste con nadie"
+              description="Buscá a alguien para empezar."
+            />
           ) : (
-            <Text className="text-center text-secondary-text">No se encontraron usuarios</Text>
+            <EmptyState
+              icon={<SearchIcon size={36} className="text-secondary-text" />}
+              title="No encontramos resultados"
+            />
           )
         }
       />

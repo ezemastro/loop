@@ -1,15 +1,14 @@
 const ERROR_CODE_MESSAGES: Record<string, string> = {
-  VALIDATION_ERROR: "Revisa los datos ingresados e inténtalo de nuevo.",
-  INVALID_INPUT: "Revisa los datos ingresados e inténtalo de nuevo.",
+  VALIDATION_ERROR: "Revisá los datos e intentá de nuevo.",
+  INVALID_INPUT: "Revisá los datos e intentá de nuevo.",
   CONFLICT: "El recurso ya existe.",
-  UNAUTHORIZED: "No tienes autorización para realizar esta acción.",
-  NOT_FOUND: "El recurso solicitado no fue encontrado.",
-  INTERNAL_ERROR: "Ocurrió un error interno. Inténtalo más tarde.",
+  UNAUTHORIZED: "No tenés autorización para hacer esto.",
+  NOT_FOUND: "No encontramos lo que buscabas.",
+  INTERNAL_ERROR: "Algo salió mal. Intentá más tarde.",
   USER_ALREADY_EXISTS: "El correo electrónico ya está registrado.",
   USER_NOT_FOUND: "No encontramos una cuenta con ese correo electrónico.",
   INVALID_CREDENTIALS: "Correo electrónico o contraseña incorrectos.",
-  INCORRECT_LOGIN_METHOD:
-    "Este usuario no puede iniciar sesión con este método. Prueba con Google.",
+  INCORRECT_LOGIN_METHOD: "Este usuario no puede iniciar sesión con este método. Probá con Google.",
   EMAIL_NOT_AUTHORIZED:
     "Tu correo no pertenece a ninguna comunidad de Loop. Usá tu correo institucional.",
   EMAIL_NOT_VERIFIED:
@@ -19,16 +18,16 @@ const ERROR_CODE_MESSAGES: Record<string, string> = {
   INVITATION_ALREADY_USED: "Este link de invitación ya fue utilizado.",
   SCHOOLS_NOT_IN_COMMUNITY: "Alguno de los colegios elegidos no pertenece a tu comunidad.",
   COMMUNITY_REQUIRED:
-    "Primero indicá tu correo institucional para saber a qué comunidad perteneces.",
-  GOOGLE_CREDENTIAL_INVALID: "No se pudo verificar tu cuenta de Google. Inténtalo de nuevo.",
+    "Primero indicá tu correo institucional para saber a qué comunidad pertenecés.",
+  GOOGLE_CREDENTIAL_INVALID: "No pudimos verificar tu cuenta de Google. Intentá de nuevo.",
   GOOGLE_EMAIL_NOT_VERIFIED:
-    "Tu correo de Google no está verificado. Verifícalo e inténtalo de nuevo.",
-  GOOGLE_ID_MISMATCH: "No se pudo vincular tu cuenta de Google. Contacta con soporte.",
-  SCHOOL_IDS_REQUIRED: "Debes seleccionar al menos una escuela para continuar.",
-  TOKEN_GENERATION_FAILED: "Error al iniciar sesión. Inténtalo de nuevo.",
-  DATABASE_ERROR: "Error de conexión. Inténtalo más tarde.",
+    "Tu correo de Google no está verificado. Verificalo e intentá de nuevo.",
+  GOOGLE_ID_MISMATCH: "No pudimos vincular tu cuenta de Google. Escribinos desde Ajustes.",
+  SCHOOL_IDS_REQUIRED: "Elegí al menos una escuela para continuar.",
+  TOKEN_GENERATION_FAILED: "No pudimos iniciar tu sesión. Intentá de nuevo.",
+  DATABASE_ERROR: "Error de conexión. Intentá más tarde.",
   FILE_TOO_LARGE: "El archivo es demasiado grande.",
-  UNEXPECTED_ERROR: "Ocurrió un error inesperado. Inténtalo más tarde.",
+  UNEXPECTED_ERROR: "Algo salió mal. Intentá más tarde.",
   DEMO_MODE_READ_ONLY: "Estás en modo demo: podés recorrer toda la app, pero no guardar cambios.",
 };
 
@@ -56,7 +55,7 @@ const ERROR_CODE_OVERRIDES: Record<string, true> = {
  * - Si no, se usa el mensaje genérico.
  */
 export const getUserFriendlyErrorMessage = (error: unknown): string => {
-  if (!error) return "Ocurrió un error inesperado.";
+  if (!error) return "Algo salió mal.";
 
   if (typeof error === "string") return error;
 
@@ -87,7 +86,7 @@ export const getUserFriendlyErrorMessage = (error: unknown): string => {
     if (typeof err.error === "string" && err.error) return err.error;
   }
 
-  return "Ocurrió un error inesperado.";
+  return "Algo salió mal.";
 };
 
 export const isNetworkError = (error: unknown): boolean => {

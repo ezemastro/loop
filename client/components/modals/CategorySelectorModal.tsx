@@ -6,8 +6,7 @@ import SearchBar from "../SearchBar";
 import { useEffect, useState } from "react";
 import Loader from "../Loader";
 import { BackIcon } from "../Icons";
-import TextTitle from "../bases/TextTitle";
-import CloseModalButton from "../CloseModalButton";
+import ModalHeader, { modalSurfaceClassName } from "../bases/ModalHeader";
 
 export default function CategorySelectorModal({
   isVisible,
@@ -39,12 +38,8 @@ export default function CategorySelectorModal({
   return (
     <CustomModal handleClose={onClose} isVisible={isVisible}>
       {(modalMaxHeight) => (
-        <View
-          className="overflow-hidden bg-background rounded p-4 py-8 w-full gap-5"
-          style={{ maxHeight: modalMaxHeight }}
-        >
-          <CloseModalButton onClose={onClose} />
-          <TextTitle>Seleccionar categoría</TextTitle>
+        <View className={modalSurfaceClassName()} style={{ maxHeight: modalMaxHeight }}>
+          <ModalHeader title="Elegí una categoría" onClose={onClose} />
           <SearchBar onChange={(text) => setSearchTerm(text)} />
           <FlatList
             className="flex-1 min-h-0"
@@ -52,10 +47,10 @@ export default function CategorySelectorModal({
               ? selectedCategories[selectedCategories.length - 1].children
               : categories
             )?.filter((category) => category.name.toLowerCase().includes(searchTerm.toLowerCase()))}
-            contentContainerClassName="gap-2"
             renderItem={({ item }) => (
               <Pressable
-                className="rounded border border-stroke bg-white"
+                accessibilityRole="button"
+                className="hover:bg-background active:opacity-80"
                 onPress={() => handleSelect(item)}
               >
                 <Category category={item} />
@@ -65,9 +60,7 @@ export default function CategorySelectorModal({
               <View className="h-40 justify-center items-center">
                 {isLoading && <Loader />}
                 {!isLoading && (
-                  <Text className="text-secondary-text text-center">
-                    No se encontraron categorías
-                  </Text>
+                  <Text className="text-secondary-text text-center">No encontramos resultados</Text>
                 )}
               </View>
             }
@@ -85,7 +78,7 @@ export default function CategorySelectorModal({
                     />
                   </Pressable>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    <Text className="text-xl text-main-text text-center">
+                    <Text className="text-base font-medium text-main-text">
                       {selectedCategories.map((category) => category.name).join("/")}
                     </Text>
                   </ScrollView>

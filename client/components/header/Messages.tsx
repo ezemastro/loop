@@ -7,8 +7,8 @@ export default function Messages() {
   const { data } = useUnreadMessages();
   const unreadCount = data?.unreadChatsCount || 0;
   return (
-    <View>
-      <MessageIcon size={28} color="white" className="text-white" />
+    <View className="h-11 w-11 items-center justify-center">
+      <MessageIcon size={24} className="text-main-text" />
       {unreadCount > 0 && <PendingCount count={unreadCount} />}
     </View>
   );

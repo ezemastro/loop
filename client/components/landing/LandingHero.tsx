@@ -1,7 +1,9 @@
 import { TapIcon } from "@/components/Icons";
+import { useThemeColors } from "@/hooks/useThemeColors";
 import { useState } from "react";
 import type { ImageSourcePropType } from "react-native";
-import { Image, Text, View } from "react-native";
+import { Image, View } from "react-native";
+import Text from "./LandingText";
 import { LaptopShell, PHONE_VIEWPORT, PhoneShell, ScreenImage } from "./DeviceFrame";
 import LandingButton from "./LandingButton";
 import { BODY_TEXT, LANDING_CONTAINER } from "./layout";
@@ -18,7 +20,9 @@ const PHONE_ALT = "Pantalla de inicio de Loop en el celular";
 /**
  * Brochure-style hero: copy on the left, and on the right a laptop with Loop's desktop home plus
  * a phone running the REAL app (the `/demo` route in an iframe, see `useLiveDemo`). The devices
- * sit across the edge of a navy color block that bleeds to the right edge of the viewport.
+ * sit across the edge of a neutral color block that bleeds to the right edge of the viewport. It
+ * stays neutral on purpose: the app inside the devices wears its community's theme, whatever
+ * that is, and a brand-colored block fights with it.
  *
  * Below `lg` the composition gives way to a single static phone capture: a live phone inside a
  * phone makes no sense, and it keeps the small-screen hero light.
@@ -27,7 +31,7 @@ export default function LandingHero({ phoneSource, desktopSource }: Props) {
   return (
     <View className="relative w-full overflow-hidden">
       {/* Color block: starts a little right of center so the laptop straddles its edge. */}
-      <View className="absolute bottom-10 right-0 top-10 left-[calc(50%+7.5rem)] rounded-l-3xl bg-secondary max-lg:hidden" />
+      <View className="absolute bottom-10 right-0 top-10 left-[calc(50%+7.5rem)] rounded-l-3xl bg-background max-lg:hidden" />
 
       <View
         className={`${LANDING_CONTAINER} relative flex-col gap-10 pb-12 pt-10 lg:flex-row lg:items-center lg:justify-between lg:gap-10 lg:py-20`}
@@ -48,8 +52,7 @@ export default function LandingHero({ phoneSource, desktopSource }: Props) {
             aria-level={1}
             className="mt-6 text-[2rem] font-bold leading-[2.5rem] text-main-text lg:text-[2.125rem] lg:leading-[2.6rem] xl:text-[2.5rem] xl:leading-[3rem]"
           >
-            Dale una <Text className="text-secondary">segunda vida</Text> a los{" "}
-            <Text className="text-primary">útiles</Text> de tu colegio
+            Dale una <Text className="text-secondary">segunda vida</Text> a los útiles de tu colegio
           </Text>
 
           <Text className={`mt-4 max-w-[30rem] text-base leading-relaxed lg:text-lg ${BODY_TEXT}`}>
@@ -58,18 +61,22 @@ export default function LandingHero({ phoneSource, desktopSource }: Props) {
           </Text>
 
           <View className="mt-8 flex-row flex-wrap items-center gap-3">
-            <LandingButton href="/ingresar" label="Ingresar" accessibilityLabel="Ingresar a Loop" />
             <LandingButton
               href="/register"
               label="Crear cuenta"
               accessibilityLabel="Crear una cuenta en Loop"
+            />
+            <LandingButton
+              href="/demo"
+              label="Probá la demo"
+              accessibilityLabel="Probar la demo de Loop sin crear cuenta"
               variant="secondary"
             />
           </View>
         </View>
 
-        {/* Small screens: one static phone on a navy panel. */}
-        <View className="w-full items-center rounded-3xl bg-secondary px-6 py-10 lg:hidden">
+        {/* Small screens: one static phone on the same neutral panel. */}
+        <View className="w-full items-center rounded-3xl bg-background px-6 py-10 lg:hidden">
           <PhoneShell screenClassName="w-[220px]">
             <ScreenImage source={phoneSource} alt={PHONE_ALT} />
           </PhoneShell>
@@ -85,6 +92,7 @@ export default function LandingHero({ phoneSource, desktopSource }: Props) {
 }
 
 function HeroDevices({ phoneSource, desktopSource }: Props) {
+  const colors = useThemeColors();
   const { mounted, state, touched, frameRef, onFrameLoad } = useLiveDemo();
   const [screenWidth, setScreenWidth] = useState(0);
   const live = state === "live";
@@ -140,8 +148,8 @@ function HeroDevices({ phoneSource, desktopSource }: Props) {
             live && !touched ? "opacity-100" : "opacity-0"
           }`}
         >
-          <TapIcon color="white" size={18} />
-          <Text className="text-sm font-semibold text-white">Probala acá</Text>
+          <TapIcon color={colors.MAIN_TEXT} size={18} />
+          <Text className="text-sm font-semibold text-main-text">Probala acá</Text>
         </View>
       </Reveal>
     </View>

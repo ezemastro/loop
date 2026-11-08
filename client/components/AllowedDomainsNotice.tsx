@@ -3,8 +3,7 @@ import { View, Text, Pressable, Image, ActivityIndicator } from "react-native";
 import { useDebounce } from "use-debounce";
 import * as Clipboard from "expo-clipboard";
 import CustomModal from "./bases/CustomModal";
-import CloseModalButton from "./CloseModalButton";
-import TextTitle from "./bases/TextTitle";
+import ModalHeader, { modalSurfaceClassName } from "./bases/ModalHeader";
 import CustomButton from "./bases/CustomButton";
 import ButtonText from "./bases/ButtonText";
 import { useResolveCommunity } from "@/hooks/useResolveCommunity";
@@ -59,22 +58,17 @@ export default function AllowedDomainsNotice({ email }: { email?: string }) {
     // correcto aunque el tema global todavía no se haya actualizado.
     const colors = resolveThemeColors(community);
     return (
-      <View
-        className="rounded-lg p-3 mx-4 gap-2 flex-row items-center border"
-        style={{ backgroundColor: `${colors.PRIMARY}1A`, borderColor: `${colors.PRIMARY}4D` }}
-      >
+      <View className="flex-row items-center gap-3 rounded-lg border border-stroke p-3">
         {community.media?.url ? (
           <Image
             source={{ uri: getUrl(community.media.url) }}
-            style={{ width: 44, height: 44 }}
+            style={{ width: 36, height: 36 }}
             resizeMode="contain"
           />
         ) : null}
         <View className="flex-1">
-          <Text className="text-sm" style={{ color: colors.SECONDARY_TEXT }}>
-            Detectamos
-          </Text>
-          <Text className="text-lg font-bold" style={{ color: colors.PRIMARY }}>
+          <Text className="text-xs text-secondary-text">Detectamos</Text>
+          <Text className="text-base font-semibold" style={{ color: colors.ACCENT }}>
             {community.name}
           </Text>
         </View>
@@ -83,28 +77,32 @@ export default function AllowedDomainsNotice({ email }: { email?: string }) {
   }
 
   return (
-    <View className="bg-primary/10 border border-primary/30 rounded-lg p-3 mx-4 gap-2">
-      <View className="flex-row items-center justify-center gap-2">
-        <Text className="color-main-text text-center text-base font-semibold">
+    <View className="gap-1">
+      <View className="flex-row items-center gap-2">
+        <Text className="flex-shrink text-sm text-secondary-text">
           {isNotFound
-            ? "No reconocemos ese dominio de correo."
-            : "Usá el correo institucional que te dio tu colegio."}
+            ? "No reconocemos ese dominio de correo. "
+            : "Usá el correo institucional que te dio tu colegio. "}
+          <Text
+            accessibilityRole="link"
+            onPress={() => setIsModalVisible(true)}
+            className="text-accent underline"
+          >
+            No tengo mail institucional
+          </Text>
         </Text>
         {isFetching ? <ActivityIndicator size="small" /> : null}
       </View>
-      <Pressable onPress={() => setIsModalVisible(true)}>
-        <Text className="text-primary text-center text-sm underline">
-          No tengo mail institucional
-        </Text>
-      </Pressable>
       <CustomModal isVisible={isModalVisible} handleClose={() => setIsModalVisible(false)}>
-        <View className="bg-background rounded p-6 w-full max-w-md gap-4">
-          <CloseModalButton onClose={() => setIsModalVisible(false)} />
-          <TextTitle>¿No tenés mail institucional?</TextTitle>
+        <View className={modalSurfaceClassName()}>
+          <ModalHeader
+            title="¿No tenés mail institucional?"
+            onClose={() => setIsModalVisible(false)}
+          />
           <Text className="text-main-text text-base">
             Si no tenés un mail institucional, escribinos a{" "}
             <Pressable onPress={handleContactPress}>
-              <Text className="text-primary underline">{CONTACT_EMAIL}</Text>
+              <Text className="text-accent underline">{CONTACT_EMAIL}</Text>
             </Pressable>{" "}
             y te enviaremos un enlace para que puedas registrarte con tu mail personal.
           </Text>

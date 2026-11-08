@@ -1,21 +1,26 @@
-import { CreditIcon, RepeatIcon, StarIcon } from "@/components/Icons";
+import { CheckIcon, CreditIcon, RepeatIcon, StarIcon } from "@/components/Icons";
 import { useThemeColors } from "@/hooks/useThemeColors";
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import Text from "./LandingText";
 import { BODY_TEXT, LANDING_CONTAINER, SECTION_HEADING, SECTION_PADDING } from "./layout";
 import Reveal from "./Reveal";
 
 const FACTS = [
   {
     icon: StarIcon,
-    text: "Los primeros loopies salen de las misiones iniciales, al sumarte a Loop.",
+    text: "Las misiones te dan tus primeros loopies, por ejemplo al publicar tus primeros artículos o completar tu perfil.",
   },
   {
     icon: RepeatIcon,
     text: "Un intercambio puede ser producto por producto, o producto por loopies.",
   },
+  {
+    icon: CheckIcon,
+    text: "Los loopies de un intercambio llegan a quien entrega cuando la otra familia confirma que recibió el artículo.",
+  },
 ];
 
-/** Two columns: what loopies are, and two facts about earning and spending them. */
+/** Two columns: what loopies are, and three facts about earning and spending them. */
 export default function LandingLoopies() {
   const colors = useThemeColors();
 
@@ -24,10 +29,10 @@ export default function LandingLoopies() {
       <View
         className={`${LANDING_CONTAINER} flex-col gap-10 lg:flex-row lg:items-center lg:justify-between lg:gap-16`}
       >
-        <Reveal className="w-full min-w-0 lg:max-w-[32rem]">
+        <Reveal className="w-full min-w-0 lg:w-auto lg:max-w-[32rem] lg:flex-1">
           <View className="flex-row items-center gap-3">
             <CreditIcon size={36} />
-            <Text accessibilityRole="header" className={SECTION_HEADING}>
+            <Text accessibilityRole="header" aria-level={2} className={SECTION_HEADING}>
               ¿Qué son los <Text className="text-credits">loopies</Text>?
             </Text>
           </View>
@@ -38,7 +43,7 @@ export default function LandingLoopies() {
           </Text>
         </Reveal>
 
-        <View className="w-full min-w-0 gap-4 lg:max-w-[30rem]">
+        <View className="w-full min-w-0 gap-4 lg:w-auto lg:max-w-[30rem] lg:flex-1">
           {FACTS.map(({ icon: Icon, text }, index) => (
             <Reveal key={text} step={index + 1}>
               <View className="flex-row items-center gap-4 rounded-3xl border border-stroke bg-white p-5 transition-colors duration-200 hover:border-credits/40">

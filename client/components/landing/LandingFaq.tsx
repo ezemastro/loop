@@ -1,7 +1,8 @@
 import { ArrowDownIcon } from "@/components/Icons";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
+import Text from "./LandingText";
 import { FAQ_ITEMS } from "./content";
 import {
   BODY_TEXT,
@@ -21,7 +22,7 @@ export default function LandingFaq() {
     <View className={`w-full ${SECTION_PADDING}`} nativeID="preguntas">
       <View className={LANDING_CONTAINER}>
         <Reveal>
-          <Text accessibilityRole="header" className={SECTION_HEADING}>
+          <Text accessibilityRole="header" aria-level={2} className={SECTION_HEADING}>
             Preguntas frecuentes
           </Text>
         </Reveal>

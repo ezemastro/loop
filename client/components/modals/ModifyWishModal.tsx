@@ -1,12 +1,12 @@
-import { View, Text, TextInput, ScrollView } from "react-native";
+import { View, ScrollView } from "react-native";
 import CategorySelector from "../selectors/CategorySelector";
 import { useEffect, useState } from "react";
 import CustomModal from "../bases/CustomModal";
-import TextTitle from "../bases/TextTitle";
-import CloseModalButton from "../CloseModalButton";
+import ModalHeader, { modalSurfaceClassName } from "../bases/ModalHeader";
 import AvoidingKeyboard from "../AvoidingKeyboard";
 import CustomButton from "../bases/CustomButton";
 import ButtonText from "../bases/ButtonText";
+import { Field, TextField } from "../bases/Field";
 import { useCreateWish, useModifyWish } from "@/hooks/useWishes";
 
 export default function ModifyWishModal({
@@ -56,32 +56,27 @@ export default function ModifyWishModal({
     <CustomModal handleClose={handleClose} isVisible={isVisible}>
       {(modalMaxHeight) => (
         <AvoidingKeyboard className="items-center justify-center flex-1 w-full">
-          <View
-            className="overflow-hidden bg-background rounded-lg w-full"
-            style={{ maxHeight: modalMaxHeight }}
-          >
-            <ScrollView className="p-4" contentContainerClassName="gap-4">
-              <CloseModalButton onClose={handleClose} />
-              <TextTitle>{wish ? "Modificar deseo" : "Agregar deseo"}</TextTitle>
-              <View className="gap-1">
-                <Text className="text-main-text text-lg">Categoría</Text>
+          <View className={modalSurfaceClassName("p-0")} style={{ maxHeight: modalMaxHeight }}>
+            <ScrollView className="p-5" contentContainerClassName="gap-4">
+              <ModalHeader
+                title={wish ? "Modificar deseo" : "Agregar deseo"}
+                onClose={handleClose}
+              />
+              <Field label="Categoría">
                 <CategorySelector
                   value={selectedCategory}
                   onChange={(cat) => setSelectedCategory(cat)}
                 />
-              </View>
-              <View className="gap-1">
-                <Text className="text-main-text text-lg">Comentario</Text>
-                <TextInput
-                  className="border border-gray-300 p-2 rounded text-main-text bg-white"
+              </Field>
+              <Field label="Comentario">
+                <TextField
                   value={comment}
                   onChangeText={setComment}
-                  placeholderClassName="text-secondary-text"
-                  placeholder="Sé más específico en lo que buscas..."
+                  placeholder="Contanos qué estás buscando"
                   multiline
                   numberOfLines={4}
                 />
-              </View>
+              </Field>
               <CustomButton onPress={handleSubmit} disabled={isLoading || !selectedCategory}>
                 <ButtonText>{wish ? "Guardar cambios" : "Agregar deseo"}</ButtonText>
               </CustomButton>

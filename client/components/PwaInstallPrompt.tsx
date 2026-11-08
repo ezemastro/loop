@@ -186,7 +186,7 @@ export default function PwaInstallPrompt() {
                         width: 28,
                         height: 28,
                         borderRadius: 14,
-                        backgroundColor: colors.PRIMARY,
+                        backgroundColor: colors.ACCENT,
                         alignItems: "center",
                         justifyContent: "center",
                       }}
@@ -210,7 +210,7 @@ export default function PwaInstallPrompt() {
                         width: 28,
                         height: 28,
                         borderRadius: 14,
-                        backgroundColor: colors.PRIMARY,
+                        backgroundColor: colors.ACCENT,
                         alignItems: "center",
                         justifyContent: "center",
                       }}
@@ -231,7 +231,7 @@ export default function PwaInstallPrompt() {
                 <Pressable
                   onPress={handleInstall}
                   style={{
-                    backgroundColor: colors.PRIMARY,
+                    backgroundColor: colors.ACCENT,
                     paddingVertical: 14,
                     paddingHorizontal: 32,
                     borderRadius: 12,

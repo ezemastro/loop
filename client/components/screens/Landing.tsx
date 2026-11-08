@@ -1,4 +1,5 @@
 import CustomButton from "@/components/bases/CustomButton";
+import ButtonText from "@/components/bases/ButtonText";
 import Error from "@/components/Error";
 import { GoogleSignInButton } from "@/components/buttons/GoogleSignInButton";
 import {
@@ -27,6 +28,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { fieldWrapperProps } from "../bases/fieldProps";
 
 const STEPS = [
   {
@@ -45,12 +47,6 @@ const STEPS = [
     icon: RepeatIcon,
   },
 ];
-
-const ActionLabel = ({ children, color = "#FFFFFF" }: { children: string; color?: string }) => (
-  <Text className="text-center text-sm font-bold" style={{ color }}>
-    {children}
-  </Text>
-);
 
 export default function Landing() {
   const router = useRouter();
@@ -80,12 +76,8 @@ export default function Landing() {
   ) : null;
 
   const registerButton = (
-    <CustomButton
-      onPress={() => router.push("/register")}
-      className="rounded-lg border bg-white py-4"
-      style={{ borderColor: colors.PRIMARY }}
-    >
-      <ActionLabel color={colors.PRIMARY}>Registrarse</ActionLabel>
+    <CustomButton onPress={() => router.push("/register")} variant="secondary" className="py-4">
+      <ButtonText>Registrarse</ButtonText>
     </CustomButton>
   );
 
@@ -93,9 +85,9 @@ export default function Landing() {
     <CustomButton
       onPress={isNarrow ? () => router.push("/login") : handleSubmit}
       disabled={!isNarrow && isLoginLoading}
-      className="rounded-lg bg-tertiary py-4"
+      className="py-4"
     >
-      <ActionLabel>Iniciar sesión</ActionLabel>
+      <ButtonText>Iniciar sesión</ButtonText>
     </CustomButton>
   );
 
@@ -237,6 +229,7 @@ export default function Landing() {
               <View className="gap-3">
                 <View>
                   <View
+                    {...fieldWrapperProps}
                     className="h-14 flex-row items-center rounded-lg border bg-white px-4"
                     style={{ borderColor: colors.STROKE }}
                   >
@@ -252,14 +245,13 @@ export default function Landing() {
                     />
                   </View>
                   {errors.email ? (
-                    <Error textClassName="text-xs text-alert">
-                      Introduce tu correo electrónico
-                    </Error>
+                    <Error textClassName="text-xs text-alert">Ingresá tu correo electrónico</Error>
                   ) : null}
                 </View>
 
                 <View>
                   <View
+                    {...fieldWrapperProps}
                     className="h-14 flex-row items-center rounded-lg border bg-white px-4"
                     style={{ borderColor: colors.STROKE }}
                   >
@@ -285,7 +277,7 @@ export default function Landing() {
                     </Pressable>
                   </View>
                   {errors.password ? (
-                    <Error textClassName="text-xs text-alert">Introduce una contraseña</Error>
+                    <Error textClassName="text-xs text-alert">Ingresá tu contraseña</Error>
                   ) : null}
                 </View>
 

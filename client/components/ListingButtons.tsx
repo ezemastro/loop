@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { ActivityIndicator, Platform, Text, View } from "react-native";
+import { Platform, Text, View } from "react-native";
 import { useAuth } from "@/hooks/useAuth";
 import CustomButton from "./bases/CustomButton";
 import ButtonText from "./bases/ButtonText";
 import CustomModal from "./bases/CustomModal";
-import TextTitle from "./bases/TextTitle";
+import ModalHeader, { modalSurfaceClassName } from "./bases/ModalHeader";
 import { useListingNewOffer } from "@/hooks/useListingNewOffer";
 import { useListingDeleteOffer } from "@/hooks/useListingDeleteOffer";
 import { useSelf } from "@/hooks/useSelf";
@@ -17,7 +17,7 @@ import { showAlert } from "@/services/showAlert";
 
 const CANCEL_TITLE = "¿Cancelar el loop?";
 const CANCEL_MESSAGE =
-  "Se deshace el intercambio y cada uno recupera los Loopies que tenía bloqueados. No se puede volver atrás.";
+  "Se deshace el intercambio y cada uno recupera los loopies que tenía bloqueados. No se puede volver atrás.";
 const CANCEL_KEEP = "No, seguir";
 const CANCEL_CONFIRM = "Sí, cancelar";
 
@@ -118,29 +118,32 @@ export default function ListingButtons({
 
   const cancelButton = canCancel ? (
     <>
-      <CustomButton className="bg-alert/20" disabled={isCancelling} onPress={handleCancelPress}>
-        {isCancelling ? (
-          <ActivityIndicator color="#fff" size="small" />
-        ) : (
-          <ButtonText>Cancelar</ButtonText>
-        )}
+      <CustomButton
+        variant="secondary"
+        className="w-auto max-w-none flex-grow"
+        loading={isCancelling}
+        onPress={handleCancelPress}
+      >
+        <ButtonText>Cancelar</ButtonText>
       </CustomButton>
       <CustomModal
         isVisible={isCancelConfirmOpen}
         handleClose={() => setIsCancelConfirmOpen(false)}
       >
-        <View className="gap-4 bg-background p-6 rounded-lg w-full max-w-md">
-          <TextTitle>{CANCEL_TITLE}</TextTitle>
-          <Text className="text-main-text text-lg">{CANCEL_MESSAGE}</Text>
+        <View className={modalSurfaceClassName()}>
+          <ModalHeader title={CANCEL_TITLE} onClose={() => setIsCancelConfirmOpen(false)} />
+          <Text className="text-base text-main-text">{CANCEL_MESSAGE}</Text>
           <View className="flex-row gap-4">
             <CustomButton
+              variant="secondary"
               className="w-auto max-w-none flex-grow"
               onPress={() => setIsCancelConfirmOpen(false)}
             >
               <ButtonText>{CANCEL_KEEP}</ButtonText>
             </CustomButton>
             <CustomButton
-              className="w-auto max-w-none flex-grow bg-alert"
+              variant="danger"
+              className="w-auto max-w-none flex-grow"
               onPress={() => void runCancel()}
             >
               <ButtonText>{CANCEL_CONFIRM}</ButtonText>
@@ -173,14 +176,15 @@ export default function ListingButtons({
               });
             }}
           >
-            <ButtonText>Elegir Loop</ButtonText>
+            <ButtonText>Elegir loop</ButtonText>
           </CustomButton>
         );
       }
       if (user?.id === listing.buyer?.id) {
         return (
           <CustomButton
-            className="w-auto max-w-none bg-alert flex-grow"
+            variant="secondary"
+            className="w-auto max-w-none flex-grow"
             onPress={() => handleDeleteOffer()}
           >
             <ButtonText>Cancelar</ButtonText>

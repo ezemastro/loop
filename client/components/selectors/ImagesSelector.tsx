@@ -169,10 +169,10 @@ export default function ImagesSelector({
           autoPlayInterval={3000}
           enabled={selectedImages.length > 0}
           renderItem={({ item, index }) => (
-            <View style={{ height: "100%", width: "100%", paddingHorizontal: 16 }}>
+            <View style={{ height: "100%", width: "100%" }}>
               {allowAddMore && index === selectedImages.length ? (
                 <Pressable
-                  className="h-full w-full items-center justify-center rounded bg-secondary-text/20"
+                  className="h-full w-full items-center justify-center rounded-xl border border-dashed border-stroke bg-white"
                   onPressIn={(event) => {
                     addPressStartRef.current = {
                       x: event.nativeEvent.pageX,
@@ -200,7 +200,7 @@ export default function ImagesSelector({
                   }}
                 >
                   <CameraIcon className="text-main-text" size={56} />
-                  <Text className="mt-2 text-main-text">Presiona para agregar imágenes</Text>
+                  <Text className="mt-2 text-main-text">Tocá para agregar imágenes</Text>
                   <Text className="mt-1 text-xs text-secondary-text">
                     Formatos: JPG, PNG, WEBP o AVIF
                   </Text>
@@ -211,12 +211,14 @@ export default function ImagesSelector({
                     source={{
                       uri: "uri" in item ? item.uri : "url" in item ? getUrl(item.url) : "",
                     }}
-                    className="rounded"
+                    className="rounded-xl"
                     style={{ width: "100%", height: "100%" }}
                     resizeMode="contain"
                   />
                   <Pressable
-                    className="absolute top-4 right-6"
+                    accessibilityRole="button"
+                    accessibilityLabel="Quitar imagen"
+                    className="absolute right-2 top-2 h-9 w-9 items-center justify-center rounded-full bg-white/90"
                     onPress={() => {
                       setSelectedImages((prev) => {
                         const nextImages = prev.filter((_, i) => i !== index);

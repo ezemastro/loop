@@ -1,7 +1,6 @@
 import CustomModal from "../bases/CustomModal";
-import { Text, TextInput, View } from "react-native";
-import TextTitle from "../bases/TextTitle";
-import CloseModalButton from "../CloseModalButton";
+import { View } from "react-native";
+import ModalHeader, { modalSurfaceClassName } from "../bases/ModalHeader";
 import UserSelector from "../selectors/UserSelector";
 import { useState } from "react";
 import CustomButton from "../bases/CustomButton";
@@ -13,7 +12,7 @@ import { useUserDonate } from "@/hooks/useDonate";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ToastProvider";
 import { getUserFriendlyErrorMessage } from "@/services/errorMapping";
-import Error from "../Error";
+import { Field, TextField } from "../bases/Field";
 
 export default function DonateModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const queryClient = useQueryClient();
@@ -52,34 +51,28 @@ export default function DonateModal({ isOpen, onClose }: { isOpen: boolean; onCl
   };
   return (
     <CustomModal handleClose={onClose} isVisible={isOpen}>
-      <View className="gap-4 bg-background p-6 rounded-lg w-full">
-        <CloseModalButton onClose={onClose} />
-        <TextTitle>Donar Loopies</TextTitle>
-        <View className="gap-2">
-          <Text className="text-main-text text-lg">Donar a:</Text>
+      <View className={modalSurfaceClassName()}>
+        <ModalHeader title="Donar loopies" onClose={onClose} />
+        <Field
+          label="Donar a"
+          error={selectedUser?.id === user?.id ? "No podés donarte a vos mismo" : null}
+        >
           <UserSelector value={selectedUser} onChange={setSelectedUser} />
-          {selectedUser?.id === user?.id && <Error>No puedes donar a ti mismo</Error>}
-        </View>
-        <View className="gap-2">
-          <Text className="text-main-text text-lg">Cantidad:</Text>
-          <View className="flex-row items-center bg-white rounded border border-stroke px-4 gap-2">
-            <CreditIcon size={32} />
-            <TextInput
-              keyboardType="numeric"
-              placeholder="0"
-              className="text-credits flex-grow"
-              value={amount !== null ? formatNumber(amount) : ""}
-              onChangeText={(text) => {
-                const number = Number(text.replace(/[.,]/g, ""));
-                if (Number.isNaN(number)) return;
-                setAmount(number);
-              }}
-            />
-          </View>
-          <Text className="text-sm text-secondary-text text-right">
-            Max. {formatNumber(user!.credits.balance)}
-          </Text>
-        </View>
+        </Field>
+        <Field label="Cantidad" helper={`Máximo ${formatNumber(user!.credits.balance)}`}>
+          <TextField
+            keyboardType="numeric"
+            placeholder="0"
+            leading={<CreditIcon size={22} />}
+            className="text-credits"
+            value={amount !== null ? formatNumber(amount) : ""}
+            onChangeText={(text) => {
+              const number = Number(text.replace(/[.,]/g, ""));
+              if (Number.isNaN(number)) return;
+              setAmount(number);
+            }}
+          />
+        </Field>
         <CustomButton
           disabled={
             !selectedUser ||

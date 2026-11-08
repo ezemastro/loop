@@ -4,12 +4,13 @@ import type { FiltersValue } from "../ListingSearchFilters";
 import { useEffect, useState } from "react";
 import SchoolSelector from "../selectors/SchoolSelector";
 import CategorySelector from "../selectors/CategorySelector";
-import TextTitle from "../bases/TextTitle";
+import ModalHeader, { modalSurfaceClassName } from "../bases/ModalHeader";
 import CustomButton from "../bases/CustomButton";
 import { CrossIcon } from "../Icons";
 import ProductStatusSelector from "../selectors/ProductStatusSelector";
 import UserSelector from "../selectors/UserSelector";
 import ButtonText from "../bases/ButtonText";
+import { Field } from "../bases/Field";
 
 export default function ListingSearchFiltersModal({
   onClose,
@@ -91,23 +92,21 @@ export default function ListingSearchFiltersModal({
   return (
     <CustomModal handleClose={onClose} isVisible={isVisible}>
       {(modalMaxHeight) => (
-        <View
-          className="overflow-hidden bg-background rounded-lg w-full p-6 gap-4"
-          style={{ maxHeight: modalMaxHeight }}
-        >
-          <TextTitle>Filtros</TextTitle>
+        <View className={modalSurfaceClassName()} style={{ maxHeight: modalMaxHeight }}>
+          <ModalHeader title="Filtros" onClose={onClose} />
           <FlatList
             className="flex-1 min-h-0"
             data={fields}
-            contentContainerClassName="gap-6"
+            contentContainerClassName="gap-4"
             renderItem={({ item }) => (
-              <View key={item.key} className="gap-2">
-                <Text className="text-main-text text-xl">{item.label}</Text>
-                <View className="flex-row">
+              <Field key={item.key} label={item.label}>
+                <View className="flex-row items-center">
                   <View className="flex-1">{item.selector()}</View>
                   {item.isSelected && (
                     <Pressable
-                      className="justify-center ml-4"
+                      accessibilityRole="button"
+                      accessibilityLabel={`Quitar filtro de ${item.label.toLowerCase()}`}
+                      className="ml-2 h-11 w-11 items-center justify-center rounded-full hover:bg-background"
                       onPress={() => {
                         setSelectedFilters((prev) => ({
                           ...prev,
@@ -115,11 +114,11 @@ export default function ListingSearchFiltersModal({
                         }));
                       }}
                     >
-                      <CrossIcon className="text-main-text" />
+                      <CrossIcon size={20} className="text-main-text" />
                     </Pressable>
                   )}
                 </View>
-              </View>
+              </Field>
             )}
           />
           <CustomButton onPress={() => onSelect(selectedFilters)}>

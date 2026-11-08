@@ -1,14 +1,23 @@
+import LandingCommunity from "@/components/landing/LandingCommunity";
 import LandingCommunityRules from "@/components/landing/LandingCommunityRules";
 import LandingFaq from "@/components/landing/LandingFaq";
 import LandingFinalCta from "@/components/landing/LandingFinalCta";
 import LandingFooter from "@/components/landing/LandingFooter";
-import LandingForWhom from "@/components/landing/LandingForWhom";
 import LandingHero from "@/components/landing/LandingHero";
 import LandingHowItWorks from "@/components/landing/LandingHowItWorks";
 import LandingLoopies from "@/components/landing/LandingLoopies";
 import LandingNav from "@/components/landing/LandingNav";
+import LandingSchools from "@/components/landing/LandingSchools";
 import LandingWhyItMatters from "@/components/landing/LandingWhyItMatters";
 import Head from "expo-router/head";
+import {
+  FONT_URL,
+  PAGE_DESCRIPTION,
+  PAGE_TITLE,
+  SHARE_IMAGE_ALT,
+  SHARE_IMAGE_URL,
+  SITE_URL,
+} from "@/components/landing/content";
 import { Platform, ScrollView } from "react-native";
 
 /**
@@ -26,11 +35,24 @@ export default function MarketingLanding() {
   return (
     <>
       <Head>
-        <title>Loop · Intercambio circular de útiles escolares | Red Itínere</title>
-        <meta
-          name="description"
-          content="Loop es la plataforma de intercambio circular de útiles escolares de la comunidad de Red Itínere. Publicá lo que ya no usás, ganá loopies y conseguí lo que tu familia necesita."
-        />
+        <title>{PAGE_TITLE}</title>
+        <meta name="description" content={PAGE_DESCRIPTION} />
+        <link rel="preload" href={FONT_URL} as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="canonical" href={SITE_URL} />
+        <meta property="og:type" content="website" />
+        <meta property="og:locale" content="es_AR" />
+        <meta property="og:site_name" content="Loop" />
+        <meta property="og:title" content={PAGE_TITLE} />
+        <meta property="og:description" content={PAGE_DESCRIPTION} />
+        <meta property="og:url" content={SITE_URL} />
+        <meta property="og:image" content={SHARE_IMAGE_URL} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content={SHARE_IMAGE_ALT} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={PAGE_TITLE} />
+        <meta name="twitter:description" content={PAGE_DESCRIPTION} />
+        <meta name="twitter:image" content={SHARE_IMAGE_URL} />
       </Head>
       <ScrollView
         className="flex-1 bg-white"
@@ -42,17 +64,18 @@ export default function MarketingLanding() {
           phoneSource={require("../../assets/landing/phone-home.webp")}
           desktopSource={require("../../assets/landing/desktop-home.webp")}
         />
-        <LandingForWhom />
+        <LandingSchools />
         <LandingHowItWorks
           stepScreenshots={{
             publicar: require("../../assets/landing/phone-publish.webp"),
-            // The listing detail shows the item's value in loopies.
-            recibir: require("../../assets/landing/phone-listing.webp"),
             buscar: require("../../assets/landing/phone-home.webp"),
             coordinar: require("../../assets/landing/phone-chat.webp"),
+            // A listing in the "received" state: the exchange closed and its impact recorded.
+            recibir: require("../../assets/landing/phone-received.webp"),
           }}
         />
         <LandingLoopies />
+        <LandingCommunity />
         <LandingWhyItMatters />
         <LandingCommunityRules />
         <LandingFaq />

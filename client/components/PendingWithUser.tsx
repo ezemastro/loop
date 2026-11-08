@@ -27,7 +27,7 @@ export default function PendingWithUser({
   const pendingSections = [
     {
       key: "to-receive",
-      title: "Debes recibir",
+      title: "Tenés que recibir",
       component: () => (
         <MyPendingList
           type="to-receive"
@@ -43,7 +43,7 @@ export default function PendingWithUser({
     },
     {
       key: "to-deliver",
-      title: "Debes entregar",
+      title: "Tenés que entregar",
       component: () => (
         <MyPendingList
           type="to-deliver"
@@ -59,7 +59,7 @@ export default function PendingWithUser({
     },
     {
       key: "to-accept",
-      title: "Debes aceptar",
+      title: "Tenés que aceptar",
       component: () => (
         <MyPendingList
           type="to-accept"
@@ -95,7 +95,7 @@ export default function PendingWithUser({
   ];
 
   return (
-    <View className={isVisible ? "h-60" : "h-0"}>
+    <View className={isVisible ? "h-60 border-b border-stroke bg-white" : "h-0"}>
       <FlatList
         data={pendingSections}
         className="mt-2"
@@ -106,7 +106,7 @@ export default function PendingWithUser({
               "px-4 " + (!pendingCount[item.key as keyof typeof pendingCount] ? "hidden" : "")
             }
           >
-            <Text className="text-secondary-text text-lg font-bold">{item.title}</Text>
+            <Text className="text-sm font-semibold text-secondary-text">{item.title}</Text>
             {item.component()}
           </View>
         )}

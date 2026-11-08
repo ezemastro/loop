@@ -1,4 +1,5 @@
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import Text from "./LandingText";
 import LandingButton from "./LandingButton";
 import { LANDING_CONTAINER } from "./layout";
 import Reveal from "./Reveal";
@@ -11,6 +12,7 @@ export default function LandingFinalCta() {
         <Reveal className="items-center rounded-3xl bg-secondary px-6 py-14 lg:py-16">
           <Text
             accessibilityRole="header"
+            aria-level={2}
             className="max-w-[44rem] text-center text-2xl font-bold text-white lg:text-[2rem] lg:leading-[2.5rem]"
           >
             Sumate a tu comunidad escolar en Loop
@@ -20,11 +22,15 @@ export default function LandingFinalCta() {
           </Text>
 
           <View className="mt-8 flex-row flex-wrap items-center justify-center gap-3">
-            <LandingButton href="/ingresar" label="Ingresar" accessibilityLabel="Ingresar a Loop" />
             <LandingButton
               href="/register"
               label="Crear cuenta"
               accessibilityLabel="Crear una cuenta en Loop"
+            />
+            <LandingButton
+              href="/demo"
+              label="Probá la demo"
+              accessibilityLabel="Probar la demo de Loop sin crear cuenta"
               variant="inverse"
             />
           </View>

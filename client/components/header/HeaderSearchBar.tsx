@@ -5,15 +5,18 @@ import { Pressable } from "react-native";
 export default function HeaderSearchBar({
   onNavigate,
   isSearchScreen,
+  className,
 }: {
   onNavigate: () => void;
   isSearchScreen: boolean;
+  className?: string;
 }) {
   const { query, setQuery } = useSearchStore();
   if (!isSearchScreen) {
     return (
-      <Pressable onPress={onNavigate}>
+      <Pressable accessibilityRole="search" onPress={onNavigate}>
         <SearchBarBase
+          className={className}
           value={query}
           handleChange={() => {}}
           placeholder="Buscar artículos escolares..."
@@ -25,6 +28,7 @@ export default function HeaderSearchBar({
 
   return (
     <SearchBarBase
+      className={className}
       value={query}
       handleChange={setQuery}
       onSubmit={() => {}}

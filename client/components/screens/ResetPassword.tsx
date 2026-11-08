@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Text, TextInput, View } from "react-native";
+import { Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { MainView, pageContentClassName } from "../bases/MainView";
+import { MainView } from "../bases/MainView";
+import { authContentClassName } from "./authLayout";
 import CustomButton from "../bases/CustomButton";
 import ButtonText from "../bases/ButtonText";
+import { PasswordField } from "../bases/Field";
 import TextTitle from "../bases/TextTitle";
 import Error from "../Error";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -23,7 +25,7 @@ export default function ResetPassword() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fieldError, setFieldError] = useState<string | null>(null);
   const { mutate, isPending, isSuccess, error } = useResetPassword();
-  const contentClassName = pageContentClassName("narrow", "gap-4 p-4 flex-1 justify-center");
+  const contentClassName = authContentClassName();
 
   const handleSubmit = () => {
     const result = validateResetPasswordForm({ newPassword, confirmPassword });
@@ -39,10 +41,10 @@ export default function ResetPassword() {
     return (
       <MainView>
         <View className={contentClassName} style={{ paddingTop: insets.top }}>
-          <TextTitle className="mb-2 text-3xl">Enlace inválido</TextTitle>
-          <Text className="text-main-text text-lg leading-6">
-            Este enlace de recuperación de contraseña no es válido. Pedí uno nuevo desde la
-            pantalla de inicio de sesión.
+          <TextTitle className="mb-2">Enlace inválido</TextTitle>
+          <Text className="text-base leading-6 text-main-text">
+            Este enlace de recuperación de contraseña no es válido. Pedí uno nuevo desde la pantalla
+            de inicio de sesión.
           </Text>
         </View>
       </MainView>
@@ -52,33 +54,27 @@ export default function ResetPassword() {
   return (
     <MainView>
       <View className={contentClassName} style={{ paddingTop: insets.top }}>
-        <TextTitle className="mb-2 text-3xl">Elegí tu nueva contraseña</TextTitle>
+        <TextTitle className="mb-2">Elegí tu nueva contraseña</TextTitle>
         {isSuccess ? (
           <>
-            <Text className="text-main-text text-lg leading-6">
+            <Text className="text-base leading-6 text-main-text">
               Tu contraseña se actualizó correctamente. Ya podés iniciar sesión con la nueva.
             </Text>
-            <CustomButton onPress={() => router.replace("/(auth)/login")}>
+            <CustomButton className="max-w-none" onPress={() => router.replace("/(auth)/login")}>
               <ButtonText>Ir a iniciar sesión</ButtonText>
             </CustomButton>
           </>
         ) : (
           <>
-            <TextInput
-              className="border border-stroke rounded p-2 bg-white"
+            <PasswordField
               placeholder="Contraseña nueva"
               value={newPassword}
               onChangeText={setNewPassword}
-              secureTextEntry
-              autoCapitalize="none"
             />
-            <TextInput
-              className="border border-stroke rounded p-2 bg-white"
+            <PasswordField
               placeholder="Confirmá la contraseña nueva"
               value={confirmPassword}
               onChangeText={setConfirmPassword}
-              secureTextEntry
-              autoCapitalize="none"
             />
             {fieldError && <Error textClassName="text-alert">{fieldError}</Error>}
             {error && (
@@ -87,8 +83,8 @@ export default function ResetPassword() {
                   "El enlace no es válido o ya expiró. Pedí uno nuevo."}
               </Error>
             )}
-            <CustomButton onPress={handleSubmit} disabled={isPending}>
-              <ButtonText>{isPending ? "Guardando…" : "Guardar contraseña"}</ButtonText>
+            <CustomButton className="max-w-none" onPress={handleSubmit} loading={isPending}>
+              <ButtonText>Guardar contraseña</ButtonText>
             </CustomButton>
           </>
         )}

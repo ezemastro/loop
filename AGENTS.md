@@ -160,6 +160,15 @@ Two Jest projects in `jest.config.js`:
   stack (disposable DB + migrations + API), then runs the suite against it
 - See `e2e/README.md` for full instructions
 
+## Changelog (mandatory)
+
+Any change a person using the app can notice MUST be recorded in the public changelog
+(`client/content/changelog/releases.ts`, route `/changelog`) following `docs/CHANGELOG.md`.
+Capture the "antes" screenshots from a build of the base commit BEFORE changing the code
+(`scripts/changelog/capture.mjs`). Never reuse a change ID, never delete published entries, and keep
+the page unlinked, `noindex` and out of the sitemap. `client/__tests__/changelog.test.ts` enforces
+the checkable rules.
+
 ## Gotchas
 
 - **No npm workspaces, deliberately** - root `package.json` has no `workspaces` field, and this is

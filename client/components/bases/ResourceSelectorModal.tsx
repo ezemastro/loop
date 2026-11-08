@@ -5,10 +5,9 @@ import SearchBar from "../SearchBar";
 import Error from "../Error";
 import Loader from "../Loader";
 import TextInfo from "../bases/TextInfo";
-import TextTitle from "./TextTitle";
+import ModalHeader, { modalSurfaceClassName } from "./ModalHeader";
 import CustomButton from "./CustomButton";
 import ButtonText from "./ButtonText";
-import CloseModalButton from "../CloseModalButton";
 import CustomRefresh from "../CustomRefresh";
 
 type ResourceSelectorModalSingleProps<T> = {
@@ -105,12 +104,8 @@ export default function ResourceSelectorModal<T>({
   return (
     <CustomModal isVisible={isVisible} handleClose={onClose}>
       {(modalMaxHeight) => (
-        <View
-          className="overflow-hidden bg-background rounded p-4 py-6 w-full gap-5"
-          style={{ maxHeight: modalMaxHeight }}
-        >
-          <CloseModalButton onClose={onClose} />
-          <TextTitle>{title}</TextTitle>
+        <View className={modalSurfaceClassName()} style={{ maxHeight: modalMaxHeight }}>
+          <ModalHeader title={title} onClose={onClose} />
           <SearchBar
             onChange={handleChangeSearch}
             onDebounce={handleDebouncedSearch}
@@ -121,7 +116,6 @@ export default function ResourceSelectorModal<T>({
               data={filteredItems}
               className="w-full flex-1 min-h-0"
               refreshControl={<CustomRefresh />}
-              contentContainerClassName="gap-3"
               onEndReached={() => fetchNextPage()}
               onEndReachedThreshold={0.5}
               renderItem={({ item }) => (
@@ -136,7 +130,7 @@ export default function ResourceSelectorModal<T>({
                   {isError && <Error>Error al cargar {title.toLowerCase()}</Error>}
                   {isLoading && <Loader />}
                   {filteredItems.length === 0 && !isLoading && !isError && (
-                    <TextInfo>No se encontraron resultados</TextInfo>
+                    <TextInfo>No encontramos resultados</TextInfo>
                   )}
                 </View>
               )}
@@ -144,7 +138,6 @@ export default function ResourceSelectorModal<T>({
           </View>
           {multiple && (
             <CustomButton
-              className="bg-tertiary rounded p-3"
               onPress={() => onSelect(selectedItems as any)}
               disabled={selectedItems.length === 0}
             >

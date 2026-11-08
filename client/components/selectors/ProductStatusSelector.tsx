@@ -1,4 +1,4 @@
-import { PRODUCT_STATUSES, STATUS_TRANSLATIONS } from "@/config";
+import { ELEVATION, PRODUCT_STATUSES, STATUS_TRANSLATIONS } from "@/config";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Picker } from "@react-native-picker/picker";
 import { cssInterop } from "nativewind";
@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Platform, Pressable, Text, View } from "react-native";
 import { twMerge } from "tailwind-merge";
 import { ArrowDownIcon, ArrowUpIcon } from "../Icons";
+import { ControlTrigger, controlClassName } from "../bases/Field";
 
 cssInterop(Picker, {
   className: "style",
@@ -16,11 +17,13 @@ export default function ProductStatusSelector({
   onChange,
   className,
   emptyLabel,
+  invalid,
 }: {
   value: ProductStatus | null;
   onChange: (value: ProductStatus | null) => void;
   className?: string;
   emptyLabel?: string;
+  invalid?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const colors = useThemeColors();
@@ -45,40 +48,44 @@ export default function ProductStatusSelector({
   if (Platform.OS === "web") {
     return (
       <View className="relative">
-        <Pressable
+        <ControlTrigger
           onPress={() => setIsOpen((prev) => !prev)}
-          className={twMerge(
-            "min-h-14 flex-row items-center justify-between border border-stroke rounded px-4 bg-white",
-            className,
-          )}
-        >
-          <Text className={twMerge("text-lg", value ? "text-main-text" : "text-secondary-text")}>
-            {selectedOption?.label || emptyLabel || "Cualquier estado"}
-          </Text>
-          {isOpen ? (
-            <ArrowUpIcon className="text-secondary-text" />
-          ) : (
-            <ArrowDownIcon className="text-secondary-text" />
-          )}
-        </Pressable>
+          invalid={invalid}
+          className={className}
+          placeholder={emptyLabel || "Cualquier estado"}
+          value={value ? selectedOption?.label : null}
+          trailing={
+            isOpen ? (
+              <ArrowUpIcon size={20} className="text-secondary-text" />
+            ) : (
+              <ArrowDownIcon size={20} className="text-secondary-text" />
+            )
+          }
+        />
 
         {isOpen && (
-          <View className="absolute left-0 right-0 bottom-full mb-1 rounded border border-stroke bg-white z-50 overflow-hidden">
+          <View
+            className={twMerge(
+              "absolute left-0 right-0 bottom-full z-50 mb-1 overflow-hidden rounded-lg border border-stroke bg-white",
+              ELEVATION.overlay.class,
+            )}
+          >
             {options.map((option) => (
               <Pressable
                 key={option.value || "any"}
+                accessibilityRole="button"
                 onPress={() => {
                   onChange(option.value);
                   setIsOpen(false);
                 }}
                 className={twMerge(
-                  "px-4 py-3 border-b border-stroke/60",
-                  value === option.value ? "bg-secondary/10" : "bg-white",
+                  "min-h-[44px] justify-center border-b border-stroke px-3 last:border-b-0 hover:bg-background",
+                  value === option.value ? "bg-accent/10" : "bg-white",
                 )}
               >
                 <Text
                   className={twMerge(
-                    "text-base",
+                    "text-left text-base",
                     option.value === null ? "text-secondary-text" : "text-main-text",
                   )}
                 >
@@ -93,11 +100,11 @@ export default function ProductStatusSelector({
   }
 
   return (
-    <View className={twMerge("bg-white", className)}>
+    <View className={twMerge(controlClassName({ invalid }), "px-0", className)}>
       <Picker
         selectedValue={value}
         onValueChange={onChange}
-        className="px-4"
+        className="flex-1 px-3"
         itemStyle={{ color: colors.MAIN_TEXT }}
         selectionColor={colors.SECONDARY_TEXT}
         mode="dropdown"

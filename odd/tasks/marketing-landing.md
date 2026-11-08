@@ -63,9 +63,9 @@ own visual language, with real app screenshots.
 
 ## Round 2 (user feedback, 2026-10-04)
 Accepted changes:
-- [ ] T5 Fix the web hydration error #418 (pre-existing on `main`) that breaks bottom-tab switching. Needed by T7. Route: delegated.
-- [ ] T6 Demo data: replace generic placeholder photos (bridge for "Botella de agua térmica") with real product photos from an open-license bank (Unsplash/Pexels), bundled locally. Route: delegated (worktree).
-- [ ] T7 Embeddable live demo: a URL that boots the app straight into demo mode for an iframe inside the hero phone; demo banner hidden until the first interaction; must not leak demo session into the parent page storage. Route: delegated.
+- [x] T5 Fix the web hydration error #418 (pre-existing on `main`) that breaks bottom-tab switching. Needed by T7. Route: delegated.
+- [x] T6 Demo data: replace generic placeholder photos (bridge for "Botella de agua térmica") with real product photos from an open-license bank (Unsplash/Pexels), bundled locally. Route: delegated (worktree).
+- [x] T7 Embeddable live demo: a URL that boots the app straight into demo mode for an iframe inside the hero phone; demo banner hidden until the first interaction; must not leak demo session into the parent page storage. Route: delegated.
 - [x] T8 Recapture screenshots with real demo photos, no demo banner, feed from the top (phone-home, phone-listing, phone-chat, phone-publish, desktop-home). Route: delegated (worktree).
   Done in worktree `/home/opencode/projects/loop-wt/shots2`, branch `feat/landing-shots` (off
   `feat/marketing-landing`, not yet merged). Commits `a0c6f1d` (fix, see below) and `6afa376` (the
@@ -100,6 +100,69 @@ Accepted changes:
 - [x] T10 "Cómo funciona" redesign: compact aligned steps with one sticky/switching device instead of scattered items. Route: delegated (opus, with T9). Commit `1e1d7c1` (shared with T9: both depend on the new `DeviceFrame`).
 - [x] T11 Subtle motion and hover states across the page; self-critique with screenshots at 390 / 1440 / 1920. Route: delegated (opus, with T9). Commit `17b2595`.
 
+## Round 3 (user request, 2026-11-07)
+Branch `feat/landing-conversion`. Not pushed. Production still serves the pre-landing screen, deploy
+is the user's call.
+
+Audience, as decided by the user: families joining Red Itínere first, and school networks evaluating
+Loop second. Those conversations happen in private, so the page must never mention selling, pricing,
+plans or licensing. It should simply show how the product works and what each community controls.
+
+Evidence gathered before implementation:
+- Public API `https://api.loop.reditinere.com/schools?communityId=...`: 9 campuses, 5 brands, already
+  shown in the app. Usage figures require an authenticated token, and the user says usage is still
+  low, so the page shows no usage or impact numbers.
+- reditinere.com: network of Argentina and Uruguay.
+- `models/listings.ts` `receiveListing`: the seller gets loopies when the buyer confirms receipt, not
+  on publish. The "Recibí loopies" step was misleading.
+- `Stats.tsx` labeled `lH2o` (liters) as cubic meters. 768/2.4 = 208/0.65 = 13120/41 = 320 confirms
+  the demo figure is liters.
+
+Tasks (route for all: delegated, writer trigger, 2+ non-trivial files):
+- [x] R1 App fixes: water label and unit, mission card overflow at 390, hero demo opens on real
+  listings, standalone `/demo` works outside an iframe. Commit `b3752b6`. Root cause of the card
+  overflow: RN-web Views default to `flex-shrink: 0`, so the text column kept its intrinsic width
+  and pushed the reward off screen (`min-w-0 flex-1`). Measured at 390: card spans 10 to 380.
+  Open: after a reload, `/home` returns to `/` in BOTH the new top-level `/demo` and the existing
+  "Explorar la demo" flow (see Progress).
+- [x] R2 Semantics and sharing: `lang`, heading levels, OG tags, canonical, robots, sitemap, share
+  image, opaque header, outdated web description. Commits `3c96be2` (all but the image) and
+  `03f2cc8` (share image).
+- [x] R3 Copy and CTAs: truthful steps and FAQ, new-visitor CTA hierarchy, demo CTA everywhere.
+  Commit `b1153af` (shared with R4).
+- [x] R4 Content: school logos, community section, "Por qué importa" rework, typography.
+  Commit `b1153af` (shared with R3). Admin panel screenshot skipped (optional).
+- [x] R5 Recapture screenshots and verify at 390 / 1024 / 1440. Commit `03f2cc8`.
+- Not implemented: logo recolor. No source file exists, and the same logo appears across the app and
+  screenshots, so changing it only here would look inconsistent. Needs the brand owner's file.
+- Not implemented: legal text. `/privacidad` and `/terminos` still render the pending-review marker
+  until a person with legal judgment fills them. This blocks publishing.
+
+## Round 3 corrections (independent verification, 2026-11-07)
+- Demo isolation (`6dd6c04`): every load that boots on `/demo`, framed or not, uses in-memory storage
+  (`isDemoBootPath`), so a top-level demo can no longer leave `demoMode` behind, overwrite a real
+  `authToken` or keep demo colours. `isFramedDemo` is UI only (delayed banner, feed-only Home, no PWA
+  prompt). Accepted: reloading a top-level demo on `/home` returns to `/` with nothing stored. This
+  supersedes the reload "gap" in Progress for `/demo`. The button now does a real document load,
+  because a client-side transition from `/` would run the demo against the real `localStorage`.
+  Browser check: a pre-seeded `session-storage` and `theme-storage` stayed byte-identical after the
+  top-level demo, after "Salir" and after a direct `/demo` plus reload; a fresh context stored nothing.
+- Copy (`e0bc306`): community admins only issue invitations (domains are super-admin), no claim
+  that the team decides who enters, no catalog sentence, value range is enforced by the server, and
+  no description of how `Denunciar` reaches the team.
+- SEO (`3aa5aa2`): `robots.txt` no longer disallows `/demo` so the `noindex` can be read; the
+  sitemap lists only `/` until the legal pages are filled.
+- Visual (`0d39488`): phone frame radii reduced (screen 1.375rem, outer 1.875rem) so "Inicio" and
+  "Perfil" are fully visible at hero and step sizes; geometry photo replaces the notebooks; share
+  image recaptured.
+
+### Round 3 follow-up (user feedback, 2026-11-07)
+- Hero block is now neutral (`bg-background`) at every width instead of navy. The app inside the devices wears its community's theme, and the navy block fought with the demo's green header. A neutral block also survives other communities' themes and later app UI changes.
+- Found while comparing: the green is not only the demo. The public API returns `secondary: #4C9F38` for `red-itinere` in production, so the institutional palette from 68f2517 (navy, default in `config.ts`) does not reach Red Itínere's real users. Whether to change that theme is the user's decision.
+- Checks: tsc clean; jest `marketing-landing brand-palette main-view` 609 passed; eslint clean on the hero; export OK; visual readback at 1440 DPR 2 and 390. Share image recaptured.
+
+- 2026-11-08: static captures and `share-image.png` recaptured for the `feat/ui-polish` look (`1dc9a02`, `cb2eaa3`); rebuild with `node scripts/landing/capture.mjs`.
+
 ## Acceptance criteria
 - Logged-out web visit to `/` shows the new landing; "Ingresar" goes to `/ingresar` (old Landing).
 - Native first screen is unchanged.
@@ -115,6 +178,13 @@ Accepted changes:
 - Strategy: ask-on-risk. Forecast > 400 authored lines (landing screen + copy). Branch `feat/marketing-landing`; PR/merge is the user's call.
 
 ## Progress
+- 2026-11-07: Round 3 done on `feat/landing-conversion` (`b3752b6`, `3c96be2`, `b1153af`, `03f2cc8`).
+  Finding for the user: reloading on `/home` sends the visitor back to `/` in the existing demo flow
+  as well as in the new top-level `/demo` (checked in headless Chromium against the export). The
+  persisted session keeps the token and `demoMode` but not `user`, and `useSelf` only mounts inside
+  the protected tree, so nothing restores `user` and the guard removes `/home`. Same code path as a
+  real login on web, so a real session may be affected too (not verified against production).
+  Fixing it touches auth boot, so it is left as a decision.
 - 2026-10-05: T9-T11 done (`1e1d7c1`, `17b2595`). Hero: 1200px container, "Una plataforma de"
   + Itínere logo instead of the pill, laptop (`desktop-home.webp`) + phone straddling a navy block
   that bleeds right. From `lg` up the phone mounts `/demo` in an iframe ~700ms after load, keeps

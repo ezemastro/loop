@@ -47,7 +47,7 @@ export default function SchoolSelectorModal({
       isVisible={isVisible}
       onClose={onClose}
       onSelect={(schools: School | School[]) => onSelect(schools as any)}
-      title="Seleccione las escuelas"
+      title="Elegí las escuelas"
       useResource={useSchoolsOfCommunity}
       renderItem={(school, options) => <School school={school} isSelected={options?.isSelected} />}
       getItems={(data) => data?.pages.flatMap((page: any) => page.schools) || []}

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useRouter } from "expo-router";
+import Head from "expo-router/head";
 import { useSessionStore } from "@/stores/session";
 import { useLogin } from "@/hooks/useLogin";
 import { DEMO_SHOWCASE_EMAIL } from "@/demo";
@@ -16,11 +17,12 @@ import { DEMO_SHOWCASE_EMAIL } from "@/demo";
  * - No clicks required: on mount this calls the same entry the "Explorar la demo sin crear
  *   cuenta" link uses (`enterDemoMode()` + login with `DEMO_SHOWCASE_EMAIL`,
  *   `hooks/useLoginForm.ts`) and lands on the home feed (`/(main)/(tabs)/home`).
- * - Isolation: this route runs with in-memory storage, not `localStorage`
- *   (`services/embedMode.ts`, `services/webStorage.ts`) — entering the demo here never persists a
- *   session or theme the parent page could pick up, and reloading `/` afterwards is unaffected.
- * - Embed-only UI changes, all keyed off `services/embedMode.ts`'s `isEmbedRoute` (this route is
- *   the only thing that flag is ever true for): the "Modo demo" banner
+ * - Storage: every load of `/demo`, framed or not, runs with in-memory storage, not
+ *   `localStorage` (`services/embedMode.ts`'s `isDemoBootPath`, `services/webStorage.ts`). Entering
+ *   the demo never persists a session or theme, never overwrites a real stored session, and
+ *   reloading a top-level demo returns to `/`.
+ * - Framed-only UI changes, keyed off `isFramedDemo` (true only for a framed `/demo`; a top-level
+ *   demo shows the banner immediately and the full Home): the "Modo demo" banner
  *   (`components/DemoModeBanner.tsx`) stays hidden until the first interaction inside the iframe
  *   (pointerdown/keydown/scroll/touchstart) instead of showing immediately, and the PWA install
  *   prompt never mounts (`app/_layout.tsx`).
@@ -48,8 +50,14 @@ export default function DemoEntry() {
   }, [login, router]);
 
   return (
-    <View className="flex-1 items-center justify-center bg-white">
-      <ActivityIndicator />
-    </View>
+    <>
+      <Head>
+        {/* A sample-data session, not content: keep it out of search results. */}
+        <meta name="robots" content="noindex" />
+      </Head>
+      <View className="flex-1 items-center justify-center bg-white">
+        <ActivityIndicator />
+      </View>
+    </>
   );
 }

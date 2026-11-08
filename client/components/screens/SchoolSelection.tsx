@@ -38,10 +38,7 @@ export default function SchoolSelection() {
       try {
         const stored = await getStoredGoogleCredential();
         if (!stored.credential) {
-          showToast(
-            "No se encontró información de autenticación. Por favor, inicia sesión nuevamente.",
-            "error",
-          );
+          showToast("No encontramos tu sesión. Iniciá sesión de nuevo.", "error");
           router.replace("/(auth)/login");
           return;
         }
@@ -63,16 +60,13 @@ export default function SchoolSelection() {
 
   const handleCompleteSignIn = async () => {
     if (!credential) {
-      showToast(
-        "No se encontró información de autenticación. Por favor, inicia sesión nuevamente.",
-        "error",
-      );
+      showToast("No encontramos tu sesión. Iniciá sesión de nuevo.", "error");
       router.replace("/(auth)/login");
       return;
     }
 
     if (selectedSchools.length === 0) {
-      showToast("Por favor selecciona al menos una escuela para continuar.", "warning");
+      showToast("Elegí al menos una escuela para continuar.", "warning");
       return;
     }
 
@@ -125,11 +119,11 @@ export default function SchoolSelection() {
               <BackButton />
             </View>
             <Text className="color-main-text text-lg text-center">
-              Para terminar de crear su cuenta seleccione la o las escuelas a las que pertenece
+              Para terminar de crear tu cuenta, elegí la o las escuelas a las que pertenecés
             </Text>
             {community ? (
               <Text className="text-secondary-text text-center">
-                Colegios de <Text className="font-bold text-primary">{community.name}</Text>
+                Colegios de <Text className="font-bold text-accent">{community.name}</Text>
               </Text>
             ) : null}
             <SchoolSelector
@@ -138,12 +132,12 @@ export default function SchoolSelection() {
               communityId={community?.id}
               onChange={setSelectedSchools}
             />
-            <CustomButton onPress={handleCompleteSignIn} disabled={isButtonDisabled}>
-              {googleLoginMutation.isPending ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <ButtonText>Seleccionar</ButtonText>
-              )}
+            <CustomButton
+              onPress={handleCompleteSignIn}
+              disabled={isButtonDisabled}
+              loading={googleLoginMutation.isPending}
+            >
+              <ButtonText>Seleccionar</ButtonText>
             </CustomButton>
           </View>
         </View>

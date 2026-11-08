@@ -36,11 +36,15 @@ const LoopTrade = ({
 }) => {
   return (
     <View
-      className={`w-full rounded-full items-center justify-between flex-row px-6 py-1 ${positive ? "bg-credits-light/10" : "bg-alert/15"} ${className}`}
+      className={`w-full flex-row items-center justify-between rounded-xl border border-stroke bg-white px-4 py-2 ${className ?? ""}`}
     >
-      <CreditIcon size={48} />
-      <Text className="text-credits text-3xl">{formatNumber(credits)}</Text>
-      <Text className="self-end text-credits">Max. {formatNumber(maxCredits)}</Text>
+      <View className="flex-row items-center gap-2">
+        <CreditIcon size={32} />
+        <Text className={`text-2xl font-semibold ${positive ? "text-credits" : "text-alert"}`}>
+          {formatNumber(credits)}
+        </Text>
+      </View>
+      <Text className="text-xs text-secondary-text">Máx. {formatNumber(maxCredits)}</Text>
     </View>
   );
 };
@@ -52,20 +56,22 @@ const SelectListingButton = ({
   onPress?: () => void;
 }) => {
   return (
-    <Pressable onPress={onPress}>
-      <View className="items-center justify-center gap-0.5">
-        {type === "remove" ? (
-          <>
-            <MinusCircleIcon className="text-primary" size={32} />
-            <Text className="text-primary font-medium">Eliminar</Text>
-          </>
-        ) : (
-          <>
-            <PlusCircleIcon className="text-tertiary" size={32} />
-            <Text className="text-tertiary font-medium">Agregar</Text>
-          </>
-        )}
-      </View>
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      className="min-h-[44px] flex-row items-center gap-1.5 self-start web:cursor-pointer"
+    >
+      {type === "remove" ? (
+        <>
+          <MinusCircleIcon className="text-alert" size={24} />
+          <Text className="text-sm font-medium text-alert">Quitar</Text>
+        </>
+      ) : (
+        <>
+          <PlusCircleIcon className="text-accent" size={24} />
+          <Text className="text-sm font-medium text-accent">Agregar</Text>
+        </>
+      )}
     </Pressable>
   );
 };
@@ -142,8 +148,8 @@ export default function Offer() {
   };
   const isLoading =
     isLoadingListing || isLoadingBuyerListings || isLoadingAcceptOffer || isLoadingRejectOffer;
-  const sectionsContentClassName = pageContentClassName("narrow", "p-4");
-  const actionsRowClassName = pageContentClassName("narrow", "px-4 mb-4");
+  const sectionsContentClassName = pageContentClassName("narrow", "p-4 pb-8");
+  const actionsRowClassName = pageContentClassName("narrow", "px-4 py-3");
   const sections: Section[] = [
     {
       key: "header",
@@ -157,10 +163,10 @@ export default function Offer() {
       key: "mainListing",
       component: () => (
         <View className="gap-2">
-          <Text className="text-main-text font-semibold text-lg">
-            Elige que quieres recibir a cambio de:
+          <Text className="text-lg font-semibold text-main-text">
+            Elegí qué querés recibir a cambio de
           </Text>
-          {listing && <Listing listing={listing} />}
+          {listing && <Listing listing={listing} variant="compact" />}
         </View>
       ),
     },
@@ -169,7 +175,7 @@ export default function Offer() {
       show: isNegative,
       component: () => (
         <View className="gap-2">
-          <Text className="text-main-text font-semibold text-3xl">Darás</Text>
+          <Text className="text-lg font-semibold text-main-text">Darás</Text>
           <LoopTrade
             credits={totalCredits * -1}
             positive={false}
@@ -182,7 +188,7 @@ export default function Offer() {
       key: "receive",
       component: () => (
         <View className="gap-2">
-          <Text className="text-main-text font-semibold text-3xl">Recibirás</Text>
+          <Text className="text-lg font-semibold text-main-text">Recibirás</Text>
           <LoopTrade
             credits={Math.abs(totalCredits)}
             positive={true}
@@ -193,6 +199,7 @@ export default function Offer() {
             <Listing
               key={listing.id}
               listing={listing}
+              variant="compact"
               onPress={() => handleRemoveListing(listing.id)}
               customButton={
                 <SelectListingButton
@@ -210,17 +217,15 @@ export default function Offer() {
       show: selectableListings.length > 0,
       component: () => (
         <View className="mt-4 gap-4">
-          <Text className="text-main-text text-2xl">
-            <Text className="text-main-text font-semibold">Publicaciones de</Text>{" "}
-            <Text className="">
-              {listing?.buyer?.firstName} {listing?.buyer?.lastName}
-            </Text>
+          <Text className="text-lg font-semibold text-main-text">
+            Publicaciones de {listing?.buyer?.firstName} {listing?.buyer?.lastName}
           </Text>
           <View className="gap-2">
             {selectableListings.map((listing) => (
               <Listing
                 key={listing.id}
                 listing={listing}
+                variant="compact"
                 onPress={() => handleAddListing(listing)}
                 customButton={
                   <SelectListingButton type="add" onPress={() => handleAddListing(listing)} />
@@ -244,14 +249,18 @@ export default function Offer() {
           <View className={item.show === false ? "hidden" : "mb-6"}>{item.component()}</View>
         )}
       />
-      <View>
+      <View className="border-t border-stroke bg-white">
         <View className={actionsRowClassName}>
           {isLoading && <Loader />}
-          <View className="flex-row gap-4">
-            <CustomButton className="w-auto max-w-none flex-grow" onPress={handleSubmit}>
+          <View className="flex-row gap-3">
+            <CustomButton className="w-auto max-w-none flex-1" onPress={handleSubmit}>
               <ButtonText>Confirmar</ButtonText>
             </CustomButton>
-            <CustomButton className="w-auto max-w-none bg-alert flex-1" onPress={handleReject}>
+            <CustomButton
+              variant="secondary"
+              className="w-auto max-w-none flex-1"
+              onPress={handleReject}
+            >
               <ButtonText>Cancelar</ButtonText>
             </CustomButton>
           </View>

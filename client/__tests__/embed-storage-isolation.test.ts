@@ -5,10 +5,10 @@
  * parent landing page (same origin) could pick up on a later, non-embedded visit to `/`.
  *
  * `jest.mock` factories may only reference out-of-scope `mock*` variables (hoisting), so
- * `isEmbedRoute` is set through a mutable mock module rather than re-importing per test.
+ * `isDemoBootPath` is set through a mutable mock module rather than re-importing per test.
  */
 
-const mockEmbedMode = { isEmbedRoute: false };
+const mockEmbedMode = { isDemoBootPath: false };
 jest.mock("@/services/embedMode", () => mockEmbedMode);
 
 const mockAsyncStorage = {
@@ -19,7 +19,7 @@ const mockAsyncStorage = {
 jest.mock("@react-native-async-storage/async-storage", () => mockAsyncStorage);
 
 /** `jest.resetModules()` clears the require cache but keeps the `jest.mock` registrations above
- * active, so a fresh `require` after it picks up the current `mockEmbedMode.isEmbedRoute`. Typed
+ * active, so a fresh `require` after it picks up the current `mockEmbedMode.isDemoBootPath`. Typed
  * via `typeof import(...)` rather than a real `import()`, which this project's CJS jest transform
  * doesn't support without `--experimental-vm-modules`. */
 const requireWebStorage = (): typeof import("@/services/webStorage") =>
@@ -28,18 +28,18 @@ const requireWebStorage = (): typeof import("@/services/webStorage") =>
 describe("webStorage", () => {
   beforeEach(() => {
     jest.resetModules();
-    mockEmbedMode.isEmbedRoute = false;
+    mockEmbedMode.isDemoBootPath = false;
     Object.values(mockAsyncStorage).forEach((fn) => fn.mockReset());
   });
 
   it("passes through to the real AsyncStorage outside the embed route", () => {
-    mockEmbedMode.isEmbedRoute = false;
+    mockEmbedMode.isDemoBootPath = false;
     const { webStorage } = requireWebStorage();
     expect(webStorage).toBe(mockAsyncStorage);
   });
 
   it("uses an isolated in-memory store on the embed route, never touching AsyncStorage", async () => {
-    mockEmbedMode.isEmbedRoute = true;
+    mockEmbedMode.isDemoBootPath = true;
     const { webStorage } = requireWebStorage();
     expect(webStorage).not.toBe(mockAsyncStorage);
 
@@ -52,12 +52,12 @@ describe("webStorage", () => {
   });
 
   it("an embed-route write is invisible to a fresh, non-embed import (no shared module state leak)", async () => {
-    mockEmbedMode.isEmbedRoute = true;
+    mockEmbedMode.isDemoBootPath = true;
     const embedStorage = requireWebStorage().webStorage;
     await embedStorage.setItem("session-storage", "leaked?");
 
     jest.resetModules();
-    mockEmbedMode.isEmbedRoute = false;
+    mockEmbedMode.isDemoBootPath = false;
     const freshStorage = requireWebStorage().webStorage;
     expect(freshStorage).toBe(mockAsyncStorage);
     expect(mockAsyncStorage.setItem).not.toHaveBeenCalledWith("session-storage", "leaked?");

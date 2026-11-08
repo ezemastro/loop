@@ -3,56 +3,62 @@ import React from "react";
 import { useRouter } from "expo-router";
 import { getProfileImageSource } from "@/services/getUrl";
 import SchoolLogo from "../SchoolLogo";
+import { listRowClassName, type RowPosition } from "../bases/listRow";
 
-export default function ChatCard({ chat }: { chat: UserMessage }) {
+export default function ChatCard({
+  chat,
+  position = "only",
+}: {
+  chat: UserMessage;
+  position?: RowPosition;
+}) {
   const router = useRouter();
-
-  const lastMessageShortText = (text: string) => {
-    const singleLineText = text.replace(/[\r\n]+/g, " ");
-    return singleLineText.length > 30 ? singleLineText.slice(0, 30) + "..." : singleLineText;
-  };
+  const isUnread = chat.pendingMessages > 0;
   return (
     <Pressable
+      accessibilityRole="link"
       onPress={() => {
         router.push({
           pathname: "/messages/[userId]",
           params: { userId: chat.userId },
         });
       }}
-      className="flex-row p-3 gap-4 bg-white rounded-xl shadow items-center"
+      className={listRowClassName(
+        position,
+        "min-h-[68px] flex-row items-center gap-3 px-4 py-3 web:cursor-pointer hover:bg-background",
+      )}
     >
       <Image
         source={getProfileImageSource(chat.user.profileMedia?.url)}
-        className="bg-background rounded-full"
-        style={{ width: 64, height: 64 }}
+        className="rounded-full bg-background"
+        style={{ width: 44, height: 44 }}
       />
-      <View>
+      <View className="min-w-0 flex-1">
         <View className="flex-row items-center gap-2">
           <Text
-            className={"text-main-text text-lg" + (chat.pendingMessages > 0 ? " font-bold" : "")}
+            numberOfLines={1}
+            className={"shrink text-base text-main-text" + (isUnread ? " font-semibold" : "")}
           >
             {chat.user.firstName} {chat.user.lastName}
           </Text>
-          <View className="flex-row items-center">
+          <View className="flex-row items-center gap-1">
             {chat.user.schools.map((s) => (
-              <SchoolLogo
-                key={s.id}
-                school={s}
-                size={24}
-                className="rounded-full bg-background mx-0.5"
-              />
+              <SchoolLogo key={s.id} school={s} size={16} className="rounded-full bg-background" />
             ))}
           </View>
         </View>
-        <Text className="text-secondary-text">{lastMessageShortText(chat.lastMessage.text)}</Text>
+        <Text
+          numberOfLines={1}
+          className={"text-sm " + (isUnread ? "text-main-text" : "text-secondary-text")}
+        >
+          {chat.lastMessage.text.replace(/[\r\n]+/g, " ")}
+        </Text>
       </View>
-      <View className="flex-1 items-end px-3">
-        {chat.pendingMessages > 0 && (
-          <View className="bg-primary size-9 rounded-full items-center justify-center">
-            <Text className="text-white font-bold text-center text-lg">{chat.pendingMessages}</Text>
-          </View>
-        )}
-      </View>
+      {isUnread && (
+        <View className="h-[20px] min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5">
+          <Text className="text-center text-xs font-bold text-white">{chat.pendingMessages}</Text>
+        </View>
+      )}
     </Pressable>
   );
 }

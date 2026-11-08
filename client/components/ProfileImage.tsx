@@ -138,6 +138,8 @@ export default function ProfileImage({
     <>
       <Pressable
         className="relative"
+        accessibilityRole={isCurrentUser ? "button" : undefined}
+        accessibilityLabel={isCurrentUser ? "Cambiar foto de perfil" : undefined}
         onPress={() => {
           if (!isCurrentUser) return;
           if (isWeb) {
@@ -151,22 +153,22 @@ export default function ProfileImage({
           <Image
             source={{ uri: getUrl(user.profileMedia!.url) }}
             className="rounded-full"
-            style={{ width: 128, height: 128 }}
+            style={{ width: 80, height: 80 }}
           />
         ) : isCurrentUser ? (
-          <View className="size-32 items-center justify-center rounded-full bg-stroke">
-            <CameraIcon className="text-primary-text" size={32} />
+          <View className="size-20 items-center justify-center rounded-full bg-stroke">
+            <CameraIcon className="text-secondary-text" size={28} />
           </View>
         ) : (
           <Image
             source={getProfileImageSource(null)}
             className="rounded-full"
-            style={{ width: 128, height: 128 }}
+            style={{ width: 80, height: 80 }}
           />
         )}
         {isCurrentUser && (
-          <View className="absolute -top-2 -right-6 p-2">
-            <EditIcon className="text-tertiary" size={32} />
+          <View className="absolute -bottom-1 -right-1 h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-accent">
+            <EditIcon className="text-white" size={14} />
           </View>
         )}
       </Pressable>

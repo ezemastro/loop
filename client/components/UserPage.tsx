@@ -8,6 +8,7 @@ import BackButton from "./BackButton";
 import ProfileImage from "./ProfileImage";
 import { CreditIcon, EmailIcon, SettingsIcon } from "./Icons";
 import { formatNumber } from "@/utils/formatNumber";
+import TextTitle from "./bases/TextTitle";
 import CustomButton from "./bases/CustomButton";
 import ButtonText from "./bases/ButtonText";
 import CustomRefresh from "./CustomRefresh";
@@ -24,12 +25,6 @@ interface Section {
   component: () => React.ReactNode;
   show?: boolean;
   hide?: boolean;
-  /**
-   * Alignment applied to both the title and the body as one block, so a section never shows a
-   * left-hanging label over centred content. Defaults to "left" (the existing look for every
-   * section except "credits", whose body is already centred).
-   */
-  align?: "left" | "center";
 }
 export default function UserPage({
   user,
@@ -59,49 +54,47 @@ export default function UserPage({
   const sections: Section[] = [
     {
       key: "header",
+      show: canGoBack,
       component: () => (
-        <View className="flex-row items-center justify-between">
-          <View>{canGoBack && <BackButton />}</View>
-          {!isCurrentUser && (
-            <ReportButton user={user} className="px-3 py-2 rounded-full" label="Denunciar" />
-          )}
-          {isCurrentUser && (
-            <Pressable className="p-1" hitSlop={10} onPress={() => router.push("/(main)/settings")}>
-              <SettingsIcon className="text-main-text" size={26} />
-            </Pressable>
-          )}
+        <View className="flex-row">
+          <BackButton />
         </View>
       ),
     },
     {
       key: "profile",
       component: () => (
-        <View className="items-center gap-4">
-          <ProfileImage user={user} isCurrentUser={isCurrentUser} />
-          <View className="items-center gap-1">
-            <Text className="text-2xl text-main-text">
-              {user.firstName} {user.lastName}
-            </Text>
-            <View>
+        <View className="gap-3 rounded-xl border border-stroke bg-white p-4">
+          <View className="flex-row items-center gap-4">
+            <ProfileImage user={user} isCurrentUser={isCurrentUser} />
+            <View className="min-w-0 flex-1 gap-0.5">
+              <Text className="text-xl font-semibold text-main-text">
+                {user.firstName} {user.lastName}
+              </Text>
               {user.schools.map((s) => (
-                <Text key={s.id} className="text-main-text/80 text-lg">
+                <Text key={s.id} className="text-sm text-secondary-text">
                   {s.name}
                 </Text>
               ))}
             </View>
+            {isCurrentUser && (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Configuración"
+                className="h-11 w-11 items-center justify-center rounded-full web:cursor-pointer hover:bg-background"
+                onPress={() => router.push("/(main)/settings")}
+              >
+                <SettingsIcon className="text-main-text" size={24} />
+              </Pressable>
+            )}
           </View>
-        </View>
-      ),
-    },
-    {
-      key: "contact",
-      show: !!(user as PrivateUser).email,
-      title: "Contacto:",
-      component: () => (
-        <View className="px-2 flex-row items-center gap-2">
-          <EmailIcon className="text-main-text" size={26} />
-          <Text className="text-main-text text-lg">{(user as PrivateUser).email}</Text>
-          {/* TODO - Poder modificar mail propio */}
+          {!!(user as PrivateUser).email && (
+            <View className="flex-row items-center gap-2">
+              <EmailIcon className="text-secondary-text" size={16} />
+              <Text className="text-sm text-secondary-text">{(user as PrivateUser).email}</Text>
+              {/* TODO - Poder modificar mail propio */}
+            </View>
+          )}
         </View>
       ),
     },
@@ -110,7 +103,7 @@ export default function UserPage({
       show: !isCurrentUser,
       component: () => (
         <CustomButton
-          className="bg-secondary self-center"
+          className="max-w-none"
           onPress={() =>
             router.push({
               pathname: "/(main)/(tabs)/messages/[userId]",
@@ -127,15 +120,11 @@ export default function UserPage({
       show: !isCurrentUser && wishes.length > 0,
       component: () => (
         <View className="gap-2">
-          <Text className="text-main-text text-2xl">Lista de deseos:</Text>
+          <Text className="text-main-text text-lg font-semibold">Lista de deseos</Text>
           <View className="px-2 gap-2">
             {wishes.map((wish) => (
               <View key={wish.id}>
-                <CategoryBadge
-                  className="text-lg text-main-text/90"
-                  category={wish.category}
-                  colorless
-                />
+                <CategoryBadge className="text-lg text-main-text/90" category={wish.category} />
                 {wish.comment && <Text className="text-secondary-text">{wish.comment}</Text>}
               </View>
             ))}
@@ -147,17 +136,20 @@ export default function UserPage({
     {
       key: "credits",
       show: isCurrentUser,
-      title: "Loopies:",
-      align: "center",
+      title: "Loopies",
       component: () => (
-        <View className="gap-4">
-          <View className="px-2 flex-row items-center justify-center gap-4">
-            <CreditIcon className="text-main-text" size={44} />
-            <Text className="text-credits text-3xl">
+        <View className="flex-row items-center justify-between gap-4 rounded-xl border border-stroke bg-white p-4">
+          <View className="flex-row items-center gap-3">
+            <CreditIcon size={32} />
+            <Text className="text-2xl font-semibold text-credits">
               {formatNumber((user as PrivateUser).credits.balance)}
             </Text>
           </View>
-          <CustomButton className="self-center w-1/2 max-w-xs" onPress={() => setIsModalOpen(true)}>
+          <CustomButton
+            variant="secondary"
+            className="w-auto max-w-none"
+            onPress={() => setIsModalOpen(true)}
+          >
             <ButtonText>Donar</ButtonText>
           </CustomButton>
         </View>
@@ -169,11 +161,11 @@ export default function UserPage({
       hide: Object.keys(pendingCount).every(
         (k) => pendingCount[k as keyof typeof pendingCount] === 0,
       ),
-      title: "Publicaciones pendientes:",
+      title: "Loops pendientes",
       component: () => (
         <View className="gap-4">
           <View className={"gap-2 " + (!pendingCount["waiting-acceptance"] ? "hidden" : "")}>
-            <Text className="text-secondary-text">Esperando ser aceptadas:</Text>
+            <Text className="text-sm font-semibold text-secondary-text">Esperando aceptación</Text>
             <MyPendingList
               type="waiting-acceptance"
               filterUserId={user.id}
@@ -187,7 +179,7 @@ export default function UserPage({
             />
           </View>
           <View className={"gap-2 " + (!pendingCount["to-receive"] ? "hidden" : "")}>
-            <Text className="text-secondary-text">Debes recibir:</Text>
+            <Text className="text-sm font-semibold text-secondary-text">Tenés que recibir</Text>
             <MyPendingList
               type="to-receive"
               filterUserId={user.id}
@@ -212,7 +204,7 @@ export default function UserPage({
             />
           </View>
           <View className={"gap-2 " + (!pendingCount["to-deliver"] ? "hidden" : "")}>
-            <Text className="text-secondary-text">Debes entregar:</Text>
+            <Text className="text-sm font-semibold text-secondary-text">Tenés que entregar</Text>
             <MyPendingList
               type="to-deliver"
               filterUserId={user.id}
@@ -231,13 +223,22 @@ export default function UserPage({
     {
       key: "stats",
       show: isCurrentUser,
-      title: "Tus estadísticas:",
+      title: "Tu impacto",
       component: () => (
         <Stats
           kgCo2={user.stats.kgCo2 || 0}
           kgWaste={user.stats.kgWaste || 0}
           lH2o={user.stats.lH2o || 0}
         />
+      ),
+    },
+    {
+      key: "report",
+      show: !isCurrentUser,
+      component: () => (
+        <View className="flex-row">
+          <ReportButton user={user} label="Denunciar" />
+        </View>
       ),
     },
   ];
@@ -253,19 +254,7 @@ export default function UserPage({
           contentContainerClassName={sectionsContentClassName}
           renderItem={({ item }) => (
             <View className={twMerge("gap-2", item.hide && "hidden")}>
-              {item.title && (
-                // `self-center` (not `items-center` on this row) so a centred title never
-                // shrink-wraps the body below it — the body keeps its own full-width stretch
-                // and controls its own internal centring (see the "credits" section).
-                <Text
-                  className={twMerge(
-                    "text-2xl text-main-text",
-                    item.align === "center" && "self-center text-center",
-                  )}
-                >
-                  {item.title}
-                </Text>
-              )}
+              {item.title && <TextTitle level="section">{item.title}</TextTitle>}
               {item.component()}
             </View>
           )}

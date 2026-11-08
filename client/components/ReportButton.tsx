@@ -1,5 +1,6 @@
 import { REPORT_EMAIL } from "@/config";
 import { type PressableProps } from "react-native";
+import { twMerge } from "tailwind-merge";
 import ButtonText from "./bases/ButtonText";
 import CustomButton from "./bases/CustomButton";
 import MailFallbackSheet from "./bases/MailFallbackSheet";
@@ -112,7 +113,9 @@ export default function ReportButton({
     <>
       <CustomButton
         {...props}
-        className={"bg-alert " + props.className}
+        variant="dangerGhost"
+        size="sm"
+        className={twMerge("w-auto max-w-none self-auto", props.className)}
         onPress={handleReportListing}
         disabled={isDisabled || props.disabled}
       >

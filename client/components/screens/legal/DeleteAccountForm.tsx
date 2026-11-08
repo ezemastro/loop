@@ -11,11 +11,12 @@
  * was assigned, so the simpler, still-honest option is to not collect it at all.
  */
 import { useState } from "react";
-import { Text, TextInput, View } from "react-native";
+import { Text, View } from "react-native";
 import Head from "expo-router/head";
 import { MainView, pageContentClassName } from "../../bases/MainView";
 import CustomButton from "../../bases/CustomButton";
 import ButtonText from "../../bases/ButtonText";
+import { Field, TextField } from "../../bases/Field";
 import TextTitle from "../../bases/TextTitle";
 import Error from "../../Error";
 import { useRequestAccountDeletion } from "@/hooks/useRequestAccountDeletion";
@@ -42,7 +43,7 @@ export default function DeleteAccountForm() {
         <title>Eliminar cuenta - Loop</title>
       </Head>
       <View className={contentClassName}>
-        <TextTitle className="mb-2 text-3xl">Eliminar cuenta</TextTitle>
+        <TextTitle className="mb-2">Eliminar cuenta</TextTitle>
         <Text className="text-main-text text-lg leading-6">
           Enviá esta solicitud con el email de tu cuenta y un administrador la va a procesar.
         </Text>
@@ -53,24 +54,25 @@ export default function DeleteAccountForm() {
           </Text>
         ) : (
           <>
-            <View className="gap-1">
-              <Text className="color-main-text text-xl">Email de la cuenta:</Text>
-              <TextInput
-                className="border border-stroke rounded p-2 bg-white"
+            <Field
+              label="Email de la cuenta"
+              error={validationError ? "Ingresá un email válido" : null}
+            >
+              <TextField
+                invalid={validationError}
                 placeholder="tu-email@colegio.edu.ar"
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
                 keyboardType="email-address"
               />
-              {validationError && <Error textClassName="text-alert">Ingresá un email válido</Error>}
-            </View>
+            </Field>
             {error && (
               <Error textClassName="text-alert">
                 No pudimos procesar el pedido. Probá de nuevo en un momento.
               </Error>
             )}
-            <CustomButton onPress={handleSubmit} disabled={isPending}>
+            <CustomButton variant="danger" onPress={handleSubmit} loading={isPending}>
               <ButtonText>{isPending ? "Enviando…" : "Enviar solicitud"}</ButtonText>
             </CustomButton>
           </>

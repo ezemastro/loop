@@ -1,25 +1,27 @@
 import { Platform } from "react-native";
 
 /**
- * True on web when this page loaded directly on the embeddable live-demo route (`/demo`, see
- * `app/demo.tsx`). That route is meant to run inside an `<iframe>` on the marketing landing's hero
- * (`marketing-landing` T7) — same origin, so it shares `localStorage`/`sessionStorage` with the
- * parent page. Everything gated by this flag exists to keep that embed from leaking into, or
- * being confused with, the surrounding page:
+ * Two separate questions about the live-demo route (`/demo`, see `app/demo.tsx`), read once and
+ * synchronously at module evaluation (this module loads before `expo-router`, and `/demo` is
+ * always entered through a fresh page load, so there is no later path change to miss).
  *
- * - `services/secureStorage.ts` / `stores/theme.ts` swap their persisted storage for an in-memory
- *   stand-in (`embed-demo-storage-isolation`), so entering the demo here never persists a session
- *   or theme the parent page (or a later visit to `/`) could pick up.
- * - `components/DemoModeBanner.tsx` hides the "Modo demo" banner until the first interaction.
- * - `app/_layout.tsx` skips mounting `PwaInstallPrompt` (nothing should offer to install the app
- *   from inside a demo preview).
+ * 1. `isDemoBootPath`: did this page load on `/demo`, framed or not? It decides STORAGE. The demo
+ *    must never touch the origin's real `localStorage`: a stale `demoMode` would make a later real
+ *    login hit the mock adapter, the demo token would overwrite a real persisted `authToken`, and
+ *    the theme store would keep demo colours. `services/webStorage.ts` therefore swaps in an
+ *    in-memory stand-in whenever this is true (`embed-demo-storage-isolation`). Consequence: a
+ *    reload of a top-level demo does not keep the session, and leaves `localStorage` untouched.
  *
- * Read once, synchronously, from `window.location.pathname` at module-evaluation time — this
- * module loads before `expo-router` does, and the embed is always entered through a fresh page
- * load (the iframe's own `src` navigation), never a client-side nav from elsewhere in the app, so
- * there is no later path change for this to miss.
+ * 2. `isFramedDemo`: is that demo inside an `<iframe>` (the landing hero)? It decides UI only:
+ *    - framed: the "Modo demo" banner waits for the first interaction, Home shows only the feed
+ *      (real school items first), and `app/_layout.tsx` skips the PWA install prompt;
+ *    - top level (the landing's "Probá la demo" button): banner immediately, the normal full demo
+ *      Home, same as the "Explorar la demo sin crear cuenta" flow.
  */
-export const isEmbedRoute =
-  Platform.OS === "web" &&
-  typeof window !== "undefined" &&
-  window.location.pathname === "/demo";
+export const isDemoBootPath =
+  Platform.OS === "web" && typeof window !== "undefined" && window.location.pathname === "/demo";
+
+/** True when this page is a child frame. Comparing the two references never throws, even cross-origin. */
+const isFramed = () => typeof window !== "undefined" && window.self !== window.top;
+
+export const isFramedDemo = isDemoBootPath && isFramed();

@@ -1,4 +1,5 @@
-import { Image, Pressable, Text, View } from "react-native";
+import { Image, Pressable, View } from "react-native";
+import Text from "./LandingText";
 import { NAV_LINKS } from "./content";
 import LandingButton from "./LandingButton";
 import { FOCUS_RING, LANDING_CONTAINER } from "./layout";
@@ -10,7 +11,7 @@ type Props = {
 /** Top nav, 72px, one line, aligned to the landing container. Anchor links hide below `lg`. */
 export default function LandingNav({ onNavigate }: Props) {
   return (
-    <View className="w-full border-b border-stroke bg-white/95" style={{ height: 72 }}>
+    <View className="w-full border-b border-stroke bg-white" style={{ height: 72 }}>
       <View className={`${LANDING_CONTAINER} h-full flex-row items-center justify-between`}>
         <Image
           source={require("../../assets/full_logo.png")}

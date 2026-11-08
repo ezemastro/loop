@@ -33,7 +33,7 @@ export default function AllMyPendingList({
     },
     {
       key: "pending-to-deliver",
-      title: "Debes entregar",
+      title: "Tenés que entregar",
       show: () => !!haveResults["pending-to-deliver"],
       component: () => (
         <MyPendingList
@@ -47,7 +47,7 @@ export default function AllMyPendingList({
     },
     {
       key: "pending-to-receive",
-      title: "Debes recibir",
+      title: "Tenés que recibir",
       show: () => !!haveResults["pending-to-receive"],
       component: () => (
         <MyPendingList
@@ -61,7 +61,7 @@ export default function AllMyPendingList({
     },
     {
       key: "pending-waiting-acceptance",
-      title: "Esperando ser aceptado",
+      title: "Esperando aceptación",
       show: () => !!haveResults["pending-waiting-acceptance"],
       component: () => (
         <MyPendingList
@@ -90,7 +90,9 @@ export default function AllMyPendingList({
           key={section.key}
         >
           {section.title && (
-            <Text className="text-lg text-secondary-text text-center">{section.title}</Text>
+            <Text className="mb-1 text-left text-sm font-semibold text-secondary-text">
+              {section.title}
+            </Text>
           )}
           {section.component()}
         </View>

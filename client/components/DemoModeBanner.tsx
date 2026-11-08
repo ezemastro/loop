@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useSessionStore } from "@/stores/session";
-import { isEmbedRoute } from "@/services/embedMode";
+import { isFramedDemo } from "@/services/embedMode";
+import { SIZE_CONTAINER, VARIANT_CONTAINER } from "./bases/buttonStyles";
 
 /**
  * Aviso permanente de que la sesión es simulada.
@@ -22,10 +23,10 @@ import { isEmbedRoute } from "@/services/embedMode";
 export default function DemoModeBanner() {
   const demoMode = useSessionStore((state) => state.demoMode);
   const logout = useSessionStore((state) => state.logout);
-  const [hasInteracted, setHasInteracted] = useState(!isEmbedRoute);
+  const [hasInteracted, setHasInteracted] = useState(!isFramedDemo);
 
   useEffect(() => {
-    if (!isEmbedRoute || hasInteracted) return;
+    if (!isFramedDemo || hasInteracted) return;
 
     const markInteracted = () => setHasInteracted(true);
     const events = ["pointerdown", "keydown", "scroll", "touchstart"] as const;
@@ -36,17 +37,20 @@ export default function DemoModeBanner() {
   if (!demoMode || !hasInteracted) return null;
 
   return (
-    <View className="flex-row items-center justify-between gap-3 bg-secondary px-4 py-2">
-      <Text className="flex-1 text-sm font-medium text-white">
+    <View className="flex-row items-center justify-between gap-3 border-b border-stroke bg-background px-4 py-1.5">
+      <Text className="flex-1 text-[13px] text-main-text">
         Modo demo: datos de ejemplo. Nada de lo que hagas se guarda.
       </Text>
+      {/* Same classes as `<CustomButton variant="secondary" size="sm">`, built from a raw
+          Pressable because CustomButton reads the theme store (AsyncStorage), which this banner's
+          tests deliberately keep out. */}
       <Pressable
         onPress={logout}
         accessibilityRole="button"
         accessibilityLabel="Salir del modo demo"
-        className="rounded border border-white/70 px-3 py-1"
+        className={`${SIZE_CONTAINER.sm} items-center justify-center rounded-lg ${VARIANT_CONTAINER.secondary}`}
       >
-        <Text className="text-sm font-semibold text-white">Salir</Text>
+        <Text className="text-sm font-semibold text-main-text">Salir</Text>
       </Pressable>
     </View>
   );

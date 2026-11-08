@@ -25,6 +25,16 @@ describe("pageContentClassName", () => {
       expect(className).toContain("max-w-3xl");
     });
 
+    it("editorial contains max-w-[960px]", () => {
+      const className = pageContentClassName("editorial");
+      expect(className).toContain("max-w-[960px]");
+    });
+
+    it("form contains max-w-[420px]", () => {
+      const className = pageContentClassName("form");
+      expect(className).toContain("max-w-[420px]");
+    });
+
     it("full emits no max-w- token", () => {
       const className = pageContentClassName("full");
       expect(className).not.toMatch(/\bmax-w-/);

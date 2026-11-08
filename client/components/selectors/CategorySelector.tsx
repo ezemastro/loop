@@ -1,19 +1,16 @@
 import { useState } from "react";
-import { View, Text, Pressable } from "react-native";
-import Category from "../cards/Category";
+import { View } from "react-native";
 import CategorySelectorModal from "../modals/CategorySelectorModal";
-import { twMerge } from "tailwind-merge";
+import { ControlTrigger } from "../bases/Field";
 
 export default function CategorySelector({
   onChange,
   value,
-  className,
-  placeholderClassName,
+  invalid,
 }: {
   onChange?: (category: Category) => void;
   value: Category | null;
-  className?: string;
-  placeholderClassName?: string;
+  invalid?: boolean;
 }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -28,22 +25,18 @@ export default function CategorySelector({
     closeModal();
   };
 
+  const label = value
+    ? [...(value.parents?.map((parent) => parent.name) ?? []), value.name].join(" / ")
+    : null;
+
   return (
     <View>
-      <Pressable
+      <ControlTrigger
         onPress={openModal}
-        className={twMerge("bg-white rounded border border-stroke", className)}
-      >
-        {value ? (
-          <Category category={value} extended />
-        ) : (
-          <View className="h-16 justify-center items-center">
-            <Text className={twMerge("text-secondary-text text-lg", placeholderClassName)}>
-              Seleccionar categoría
-            </Text>
-          </View>
-        )}
-      </Pressable>
+        invalid={invalid}
+        placeholder="Elegí una categoría"
+        value={label}
+      />
       <CategorySelectorModal
         isVisible={isModalVisible}
         onSelect={handleSelect}
