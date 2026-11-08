@@ -5,15 +5,6 @@ el rastro). Trabajo real y no trivial debería vivir como issue, no acá — est
 recordatorios chicos. Las ideas de producto y los pendientes más grandes están en
 `docs/ideas-futuras.md`.
 
-- [ ] Eliminar usuario TEST (dato de prueba en la base, no relacionado con el seed de demo).
-      Al 2026-11-08 hay 2 usuarios con "test" en el correo en producción, sin publicaciones.
-      Borrarlos con su historial y sin tocar a los demás usuarios.
-- [ ] Reiniciar el impacto ambiental en producción. Los totales de la comunidad (kg de residuos,
-      kg de CO2 y litros de agua) muestran 9,9 cada uno, y vienen del loop de prueba hecho antes
-      de que se usara la app. Al 2026-11-08 no hay ninguna publicación en estado `received`, o sea
-      ningún loop real, así que lo correcto es volver a 0 `global_stats` y también
-      `stat_kg_waste`, `stat_kg_co2` y `stat_l_h2o` de `users` y `schools` (hay 2 usuarios y 2
-      colegios con valores). Hacerlo con una migración o un script revisado, con backup previo.
 - [ ] Agregar funcionalidad para que los admins modifiquen colegios (media y nombre): ruta, tipos,
       `adminApi`, y la pantalla de Schools
 - [ ] Agregar botones de Google en `/login` y `/register` del adminClient
