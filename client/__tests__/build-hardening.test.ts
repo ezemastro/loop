@@ -106,3 +106,18 @@ describe("public/sw.js excludes the API and non-GET requests from its cache", ()
     expect(methodGuardIndex).toBeLessThan(respondWithIndex);
   });
 });
+
+describe("public/sw.js serves pages from the network first", () => {
+  const content = read("public/sw.js");
+
+  it("handles navigations before the cache-first branch", () => {
+    const navigateIndex = content.indexOf('mode === "navigate"');
+    const cacheFirstIndex = content.indexOf("return cachedResponse || fetchPromise");
+    expect(navigateIndex).toBeGreaterThan(-1);
+    expect(navigateIndex).toBeLessThan(cacheFirstIndex);
+  });
+
+  it("never forces a reload from activate (it crashed Chromium in testing)", () => {
+    expect(content).not.toContain("client.navigate");
+  });
+});
