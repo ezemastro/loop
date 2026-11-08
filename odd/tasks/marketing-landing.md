@@ -161,6 +161,8 @@ Tasks (route for all: delegated, writer trigger, 2+ non-trivial files):
 - Found while comparing: the green is not only the demo. The public API returns `secondary: #4C9F38` for `red-itinere` in production, so the institutional palette from 68f2517 (navy, default in `config.ts`) does not reach Red Itínere's real users. Whether to change that theme is the user's decision.
 - Checks: tsc clean; jest `marketing-landing brand-palette main-view` 609 passed; eslint clean on the hero; export OK; visual readback at 1440 DPR 2 and 390. Share image recaptured.
 
+- 2026-11-08: static captures and `share-image.png` recaptured for the `feat/ui-polish` look (`1dc9a02`, `cb2eaa3`); rebuild with `node scripts/landing/capture.mjs`.
+
 ## Acceptance criteria
 - Logged-out web visit to `/` shows the new landing; "Ingresar" goes to `/ingresar` (old Landing).
 - Native first screen is unchanged.

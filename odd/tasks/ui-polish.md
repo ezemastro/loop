@@ -58,6 +58,7 @@ Mode: off. Source: `openspec/config.yaml` (`strict_tdd: false`). Runner: `npm te
 - [x] T4 Header and colour roles. Route: delegated. Commits `ffe217b`, `f99a4e8`.
 - [x] T5 Chat. Route: delegated. Commit `b445681`; parent fix `780a143`.
 - [x] T6 Screens. Route: delegated. Commits `c99e39b`, `58fdc05`, `7a9d37a`, `f8dc84d`, `cdc09c4`, `f03c109`, `9cb6ab3`, `c82c62b`, `e23e74c`, `602fa84`, `2908f14`.
+- [x] T8 Recapture the landing screenshots and share image with the new UI. Route: delegated. Commits `1dc9a02` (script `scripts/landing/capture.mjs`), `cb2eaa3` (captures). Run `node scripts/landing/capture.mjs` (needs `PLAYWRIGHT_FROM`); chat timestamps follow the clock, so reruns are not byte-identical.
 - [x] T7 Release 1.5.0 in the changelog. Route: inline. Commit `4c51574`, hydration fix `4670b73`.
 
 ## Verification evidence
@@ -72,7 +73,6 @@ Mode: off. Source: `openspec/config.yaml` (`strict_tdd: false`). Runner: `npm te
 ## Not verified / pending
 - Native iOS and Android were not run. Community colours inside native modals are reasoned, not seen.
 - Sending a message or confirming an offer was not exercised: demo mode is read-only.
-- Landing screenshots in `client/assets/landing/` still show the old look; recapture them.
 - Two-pane desktop chat stays out of this round.
 - `/ingresar` hydration error, pre-existing.
 
