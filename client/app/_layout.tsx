@@ -1,7 +1,7 @@
-import { Stack, usePathname } from "expo-router";
+import { Stack, usePathname, useRouter } from "expo-router";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/api/queryClient";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Platform } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -15,6 +15,9 @@ import { ToastProvider } from "@/components/ToastProvider";
 import PwaInstallPrompt from "@/components/PwaInstallPrompt";
 import ThemeProvider from "@/components/ThemeProvider";
 import { isFramedDemo } from "@/services/embedMode";
+import { useSessionRestore } from "@/hooks/useSessionRestore";
+import SessionRestoreScreen from "@/components/SessionRestoreScreen";
+import { shouldLandOnHome } from "@/services/sessionRestore";
 
 // Last net for a render-phase throw not contained by a tab-level boundary; navigation itself may
 // be dead here, so its escape reloads the app instead of navigating (client-render-error-containment).
@@ -44,10 +47,98 @@ const preloadIconFonts = () => {
   void Ionicons.loadFont();
 };
 
-export default function RootLayout() {
-  preloadIconFonts();
+/**
+ * Lives below the providers because the restore hook needs the `QueryClient`. Holds the navigator
+ * back while a stored token is exchanged for a user: the guard reads `isLoggedIn = !!user`, and
+ * rendering it first would bounce the reloaded URL to `/`.
+ */
+function RootNavigator() {
   const { isLoggedIn } = useAuth();
   const hasAcceptedTerms = useSessionStore((state) => state.hasAcceptedTerms);
+  const logout = useSessionStore((state) => state.logout);
+  const restore = useSessionRestore();
+  const router = useRouter();
+  const pathname = usePathname();
+  const ready = restore.status === "ready";
+  const isInside = isLoggedIn && hasAcceptedTerms;
+
+  // The last path seen before the navigator mounts: the URL the app was opened or reloaded on.
+  const entryPath = useRef<string | null>(null);
+  if (!ready) entryPath.current = pathname || null;
+  const wasInside = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    if (!ready) return;
+    const land = shouldLandOnHome({
+      wasInside: wasInside.current,
+      isInside,
+      entryPath: entryPath.current,
+    });
+    wasInside.current = isInside;
+    if (land) router.replace("/home");
+  }, [ready, isInside, router]);
+
+  return (
+    <>
+      {restore.status !== "ready" ? (
+        <SessionRestoreScreen
+          failed={restore.status === "failed"}
+          onRetry={restore.retry}
+          onLogout={logout}
+        />
+      ) : (
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Protected guard={!isLoggedIn}>
+            <Stack.Screen name="(auth)"></Stack.Screen>
+          </Stack.Protected>
+          <Stack.Protected guard={isLoggedIn}>
+            <Stack.Protected guard={hasAcceptedTerms}>
+              <Stack.Screen name="(main)"></Stack.Screen>
+            </Stack.Protected>
+            <Stack.Protected guard={!hasAcceptedTerms}>
+              <Stack.Screen
+                name="terms"
+                options={{
+                  statusBarStyle: "dark",
+                }}
+              />
+            </Stack.Protected>
+          </Stack.Protected>
+          {/* Dumps the whole user object as JSON — `__DEV__` is a literal Metro replaces at
+                    build time, so this branch is statically dead in every production build. */}
+          <Stack.Protected guard={__DEV__}>
+            <Stack.Screen name="debug" />
+          </Stack.Protected>
+          {/*
+                  Public legal routes (ADM-01 / PROD-05, `legal-public-routes`). MUST NOT sit
+                  inside ANY `Stack.Protected` — not even a `guard={true}` one: a failing guard
+                  removes the screen from the navigator entirely
+                  (`expo-router/build/useScreens.js`), which would bounce an anonymous store
+                  reviewer to the login screen after hydration. These three are siblings of the
+                  root `<Stack>` itself, unlike `debug` above (which is intentionally gated).
+                */}
+          <Stack.Screen name="privacidad" options={{ statusBarStyle: "dark" }} />
+          <Stack.Screen name="terminos" options={{ statusBarStyle: "dark" }} />
+          <Stack.Screen name="borrar-cuenta" options={{ statusBarStyle: "dark" }} />
+          {/*
+                  Embeddable live-demo entry point (marketing-landing T7, see app/demo.tsx). Same
+                  reason as the legal routes above: it must boot demo mode and reach the home feed
+                  for a logged-out visitor, so it cannot sit inside a Stack.Protected guard.
+                */}
+          <Stack.Screen name="demo" options={{ headerShown: false }} />
+          {/*
+                  Public unlisted changelog (`/changelog`, see docs/CHANGELOG.md). Same rule as the
+                  legal routes: a sibling of the root Stack, never inside a Stack.Protected.
+                */}
+          <Stack.Screen name="changelog" options={{ statusBarStyle: "dark" }} />
+        </Stack>
+      )}
+    </>
+  );
+}
+
+export default function RootLayout() {
+  preloadIconFonts();
   const pathname = usePathname();
 
   useEffect(() => {
@@ -106,51 +197,7 @@ export default function RootLayout() {
           {/* Por fuera del Stack para que todas las pantallas hereden las variables de color. */}
           <ThemeProvider>
             <ToastProvider>
-              <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Protected guard={!isLoggedIn}>
-                  <Stack.Screen name="(auth)"></Stack.Screen>
-                </Stack.Protected>
-                <Stack.Protected guard={isLoggedIn}>
-                  <Stack.Protected guard={hasAcceptedTerms}>
-                    <Stack.Screen name="(main)"></Stack.Screen>
-                  </Stack.Protected>
-                  <Stack.Protected guard={!hasAcceptedTerms}>
-                    <Stack.Screen
-                      name="terms"
-                      options={{
-                        statusBarStyle: "dark",
-                      }}
-                    />
-                  </Stack.Protected>
-                </Stack.Protected>
-                {/* Dumps the whole user object as JSON — `__DEV__` is a literal Metro replaces at
-                    build time, so this branch is statically dead in every production build. */}
-                <Stack.Protected guard={__DEV__}>
-                  <Stack.Screen name="debug" />
-                </Stack.Protected>
-                {/*
-                  Public legal routes (ADM-01 / PROD-05, `legal-public-routes`). MUST NOT sit
-                  inside ANY `Stack.Protected` — not even a `guard={true}` one: a failing guard
-                  removes the screen from the navigator entirely
-                  (`expo-router/build/useScreens.js`), which would bounce an anonymous store
-                  reviewer to the login screen after hydration. These three are siblings of the
-                  root `<Stack>` itself, unlike `debug` above (which is intentionally gated).
-                */}
-                <Stack.Screen name="privacidad" options={{ statusBarStyle: "dark" }} />
-                <Stack.Screen name="terminos" options={{ statusBarStyle: "dark" }} />
-                <Stack.Screen name="borrar-cuenta" options={{ statusBarStyle: "dark" }} />
-                {/*
-                  Embeddable live-demo entry point (marketing-landing T7, see app/demo.tsx). Same
-                  reason as the legal routes above: it must boot demo mode and reach the home feed
-                  for a logged-out visitor, so it cannot sit inside a Stack.Protected guard.
-                */}
-                <Stack.Screen name="demo" options={{ headerShown: false }} />
-                {/*
-                  Public unlisted changelog (`/changelog`, see docs/CHANGELOG.md). Same rule as the
-                  legal routes: a sibling of the root Stack, never inside a Stack.Protected.
-                */}
-                <Stack.Screen name="changelog" options={{ statusBarStyle: "dark" }} />
-              </Stack>
+              <RootNavigator />
               {/* Nothing should offer to install the PWA from inside the embeddable live-demo
                   route (marketing-landing T7) — see services/embedMode.ts — nor from the changelog page. */}
               {!isFramedDemo && pathname !== "/changelog" && <PwaInstallPrompt />}
