@@ -290,6 +290,16 @@ export const RELEASES: Release[] = [
         comparisons: [compare(v150, "search-empty", "celular", "Búsqueda sin resultados")],
         commits: ["c99e39b"],
       },
+      {
+        id: "C-0021",
+        kind: "arreglo",
+        area: "General",
+        title: "Recargar la página ya no cierra la sesión",
+        why: "Al recargar la página dentro de la app se volvía a la pantalla de inicio, como si se hubiera cerrado la sesión. Ahora se recupera la sesión y se sigue en la misma pantalla. Al entrar, la app abre siempre el inicio.",
+        comparisons: [],
+        commits: ["b1a5389", "e29c9be", "f24d6c8"],
+        noVisual: true,
+      },
     ],
   },
 ];
