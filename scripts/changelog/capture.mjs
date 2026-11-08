@@ -13,12 +13,9 @@
 //      CHROMIUM_PATH (default /usr/bin/chromium).
 import fs from "node:fs";
 import path from "node:path";
-import { createRequire } from "node:module";
-import { fileURLToPath } from "node:url";
 import { SCENES } from "./scenes.mjs";
+import { hideDemoBanner, loadPlaywright, repoRoot, settle } from "./lib.mjs";
 
-const here = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(here, "../..");
 const MAX_BYTES = 300 * 1024;
 
 const VIEWPORTS = {
@@ -42,35 +39,6 @@ function parseArgs(argv) {
   return args;
 }
 
-function loadPlaywright() {
-  const from = process.env.PLAYWRIGHT_FROM || path.join(repoRoot, "e2e") + path.sep;
-  const req = createRequire(from.endsWith(path.sep) ? from : from + path.sep);
-  for (const name of ["playwright", "@playwright/test"]) {
-    try {
-      return req(name);
-    } catch {
-      // try the next package name
-    }
-  }
-  throw new Error(
-    `Playwright not found from ${from}. Set PLAYWRIGHT_FROM to a dir with node_modules/playwright.`,
-  );
-}
-
-/** Removes the demo banner so captures do not show demo chrome. */
-async function hideDemoBanner(page) {
-  await page.evaluate(() => {
-    const matches = [...document.querySelectorAll("*")].filter((el) =>
-      (el.textContent || "").trim().startsWith("Modo demo"),
-    );
-    // Deepest match = the text node's element; its parent is the banner row.
-    const deepest = matches.filter(
-      (el) => !matches.some((other) => other !== el && el.contains(other)),
-    );
-    for (const el of deepest) (el.parentElement || el).style.display = "none";
-  });
-}
-
 async function applyCommunityColor(page, color) {
   const channels = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(" ");
   const { darkenToContrast, AA_NORMAL_TEXT } = await import(
@@ -87,16 +55,6 @@ async function applyCommunityColor(page, color) {
     for (const el of [document.documentElement, ...hosts])
       for (const [key, value] of Object.entries(vars)) el.style.setProperty(key, value);
   }, values);
-}
-
-async function settle(page) {
-  await page.evaluate(() => document.fonts && document.fonts.ready).catch(() => {});
-  await page
-    .waitForFunction(() => [...document.images].every((img) => img.complete), null, {
-      timeout: 8000,
-    })
-    .catch(() => {});
-  await page.waitForTimeout(500);
 }
 
 /** PNG -> WebP through a canvas, so no image dependency is needed. */
@@ -140,7 +98,10 @@ async function captureOne(browser, converter, scene, viewportName, opts) {
     if (opts.communityColor) await applyCommunityColor(page, opts.communityColor);
     const png = await page.screenshot({ type: "png" });
     const webp = await toWebp(converter, png);
-    const file = path.join(opts.out, `${scene.name}-${viewportName}-${opts.label}${opts.suffix}.webp`);
+    const file = path.join(
+      opts.out,
+      `${scene.name}-${viewportName}-${opts.label}${opts.suffix}.webp`,
+    );
     fs.writeFileSync(file, webp);
     const kb = webp.length / 1024;
     const warn = webp.length > MAX_BYTES ? "  WARNING: over 300 KB" : "";
