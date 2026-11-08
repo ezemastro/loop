@@ -81,9 +81,41 @@ const compare = (
 };
 
 const v150 = "1.5.0";
+const v151 = "1.5.1";
 
 /** Newest first. */
 export const RELEASES: Release[] = [
+  {
+    version: v151,
+    date: "2026-11-08",
+    title: "La página de inicio siempre disponible",
+    summary:
+      "Loop ahora se ve igual en la dirección principal aunque ya hayas ingresado, y la app se actualiza sola la próxima vez que la abrís.",
+    changes: [
+      {
+        id: "C-0022",
+        kind: "mejora",
+        area: "Página de inicio",
+        title: "La dirección principal siempre muestra la presentación de Loop",
+        why: 'Antes, si ya habías ingresado, abrir la dirección principal te llevaba directo a la app y no se podía compartir como enlace fijo. Ahora siempre muestra la presentación, y desde ahí "Ingresar" te lleva al inicio de la app sin pedirte la clave otra vez. Si todavía no ingresaste, todo sigue igual.',
+        comparisons: [],
+        commits: ["9d9810e", "4bf6b02"],
+        // The landing looks the same for everyone; only where the buttons lead changes, and that
+        // has no before and after worth capturing.
+        noVisual: true,
+      },
+      {
+        id: "C-0023",
+        kind: "arreglo",
+        area: "General",
+        title: "La app se actualiza en la próxima visita",
+        why: "Después de una nueva versión, a veces se seguía viendo la anterior hasta recargar varias veces. Ahora las pantallas se piden primero a internet, así que la novedad aparece la próxima vez que abrís Loop.",
+        comparisons: [],
+        commits: ["f0458d6"],
+        noVisual: true,
+      },
+    ],
+  },
   {
     version: v150,
     date: "2026-11-07",
