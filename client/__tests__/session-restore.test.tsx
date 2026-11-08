@@ -170,7 +170,16 @@ describe("useSessionRestore", () => {
     expect(useSessionStore.getState().authToken).toBe("tok");
 
     mockGet.mockResolvedValue({ data: { data: { user: USER } } });
-    await act(async () => seen.retry());
+    await act(async () => {
+      await seen.retry();
+    });
+    // The user lands in the store from an effect after the refetch settles; on a loaded machine
+    // that can take a few more ticks than the refetch promise itself.
+    for (let i = 0; i < 50 && seen.status !== "ready"; i++) {
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      });
+    }
     expect(seen.status).toBe("ready");
     expect(useSessionStore.getState().user).toEqual(USER);
   });

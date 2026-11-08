@@ -16,7 +16,7 @@ import { deriveRestoreStatus, type RestoreStatus } from "@/services/sessionResto
  * A 401 never reaches this hook as an error state: the axios interceptor logs out first, which
  * clears the token and turns this into `ready`.
  */
-export const useSessionRestore = (): { status: RestoreStatus; retry: () => void } => {
+export const useSessionRestore = (): { status: RestoreStatus; retry: () => Promise<unknown> } => {
   const pathname = usePathname();
   const hydrated = useSessionHydrated();
   const hasToken = useSessionStore((state) => !!state.authToken);
@@ -41,5 +41,6 @@ export const useSessionRestore = (): { status: RestoreStatus; retry: () => void 
     },
   });
 
-  return { status, retry: () => void query.refetch() };
+  // Returns the refetch so callers (and tests) can wait for the retry to settle.
+  return { status, retry: () => query.refetch() };
 };
