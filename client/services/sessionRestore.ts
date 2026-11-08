@@ -77,3 +77,34 @@ export const deriveRestoreStatus = (input: RestoreInput): RestoreStatus => {
   if (query.isError && !query.isFetching) return "failed";
   return "restoring";
 };
+
+/** Paths a signed-out visitor can be on: the landing, the access screens and the auth flows. */
+const OUTSIDE_APP_PATHS = new Set([
+  "/",
+  "/ingresar",
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/schoolSelection",
+]);
+
+/**
+ * Whether entering the app should land on `/home`. The route guard's own fallback picks whichever
+ * `(main)` screen it finds first (it was `/settings`), so the app navigates explicitly when:
+ * - the user just got in while the navigator was mounted (login, demo, accepting the terms), or
+ * - the app started already signed in from a signed-out path (a reload on `/`, or a native cold
+ *   start, whose initial path is `/`).
+ * A reload on an in-app path such as `/messages` keeps that path.
+ */
+export const shouldLandOnHome = (input: {
+  wasInside: boolean | null;
+  isInside: boolean;
+  entryPath: string | null;
+}): boolean => {
+  if (!input.isInside) return false;
+  if (input.wasInside === false) return true;
+  return (
+    input.wasInside === null && (input.entryPath === null || OUTSIDE_APP_PATHS.has(input.entryPath))
+  );
+};

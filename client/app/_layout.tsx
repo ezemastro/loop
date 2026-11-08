@@ -1,7 +1,7 @@
-import { Stack } from "expo-router";
+import { Stack, usePathname, useRouter } from "expo-router";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/api/queryClient";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Platform } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -17,6 +17,7 @@ import ThemeProvider from "@/components/ThemeProvider";
 import { isEmbedRoute } from "@/services/embedMode";
 import { useSessionRestore } from "@/hooks/useSessionRestore";
 import SessionRestoreScreen from "@/components/SessionRestoreScreen";
+import { shouldLandOnHome } from "@/services/sessionRestore";
 
 // Last net for a render-phase throw not contained by a tab-level boundary; navigation itself may
 // be dead here, so its escape reloads the app instead of navigating (client-render-error-containment).
@@ -56,6 +57,26 @@ function RootNavigator() {
   const hasAcceptedTerms = useSessionStore((state) => state.hasAcceptedTerms);
   const logout = useSessionStore((state) => state.logout);
   const restore = useSessionRestore();
+  const router = useRouter();
+  const pathname = usePathname();
+  const ready = restore.status === "ready";
+  const isInside = isLoggedIn && hasAcceptedTerms;
+
+  // The last path seen before the navigator mounts: the URL the app was opened or reloaded on.
+  const entryPath = useRef<string | null>(null);
+  if (!ready) entryPath.current = pathname || null;
+  const wasInside = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    if (!ready) return;
+    const land = shouldLandOnHome({
+      wasInside: wasInside.current,
+      isInside,
+      entryPath: entryPath.current,
+    });
+    wasInside.current = isInside;
+    if (land) router.replace("/home");
+  }, [ready, isInside, router]);
 
   return (
     <>
