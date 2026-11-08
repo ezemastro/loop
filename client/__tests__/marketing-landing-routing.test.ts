@@ -57,6 +57,19 @@ describe("/ is a single public root route", () => {
   });
 });
 
+describe("landing decision in the root layout", () => {
+  const source = fs.readFileSync(ROOT_LAYOUT_PATH, "utf8");
+
+  it("reads the entry URL once, since the route guard moves the path once the session resolves", () => {
+    expect(source).toMatch(/if \(entryPath\.current === undefined\) entryPath\.current = /);
+  });
+
+  it("decides where to land only once the session is settled, not when the route first renders", () => {
+    expect(source).toMatch(/if \(!settled\) return;/);
+    expect(source).toMatch(/isWeb: Platform\.OS === "web"/);
+  });
+});
+
 describe("/ entry point platform split", () => {
   const source = fs.readFileSync(INDEX_PATH, "utf8");
 

@@ -64,9 +64,10 @@ function RootNavigator() {
   const settled = restore.settled;
   const isInside = isLoggedIn && hasAcceptedTerms;
 
-  // The last path seen before the navigator mounts: the URL the app was opened or reloaded on.
-  const entryPath = useRef<string | null>(null);
-  if (!settled) entryPath.current = pathname || null;
+  // The URL the app was opened or reloaded on: read once, because the route guard moves the path
+  // around (to its own fallback) as soon as the session resolves.
+  const entryPath = useRef<string | null | undefined>(undefined);
+  if (entryPath.current === undefined) entryPath.current = pathname || null;
   const wasInside = useRef<boolean | null>(null);
 
   useEffect(() => {
@@ -74,7 +75,7 @@ function RootNavigator() {
     const land = shouldLandOnHome({
       wasInside: wasInside.current,
       isInside,
-      entryPath: entryPath.current,
+      entryPath: entryPath.current ?? null,
       isWeb: Platform.OS === "web",
     });
     wasInside.current = isInside;
