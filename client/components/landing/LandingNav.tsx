@@ -43,6 +43,7 @@ export default function LandingNav({ onNavigate }: Props) {
             label="Ingresar"
             accessibilityLabel="Ingresar a Loop"
             size="sm"
+            whenSignedIn={{}}
           />
         </View>
       </View>

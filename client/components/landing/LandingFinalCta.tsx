@@ -26,6 +26,7 @@ export default function LandingFinalCta() {
               href="/register"
               label="Crear cuenta"
               accessibilityLabel="Crear una cuenta en Loop"
+              whenSignedIn={{ label: "Ir a la app", accessibilityLabel: "Ir a la app de Loop" }}
             />
             <LandingButton
               href="/demo"

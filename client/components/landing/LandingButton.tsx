@@ -1,6 +1,7 @@
 import { Link, type Href } from "expo-router";
 import { Pressable } from "react-native";
 import Text from "./LandingText";
+import { useLandingAccess } from "./useLandingAccess";
 
 type Variant = "primary" | "secondary" | "inverse";
 
@@ -10,10 +11,15 @@ type Props = {
   accessibilityLabel: string;
   variant?: Variant;
   size?: "md" | "sm";
+  /**
+   * What the button becomes for a signed-in visitor: it keeps its place but leads into the app.
+   * Buttons without it (the demo) are the same for everyone. `label` defaults to the signed-out one.
+   */
+  whenSignedIn?: { label?: string; accessibilityLabel?: string };
 };
 
 /** Routes that must load as a new document, not through the client router. */
-const FULL_PAGE_LOAD = new Set<Props["href"]>(["/demo"]);
+const FULL_PAGE_LOAD = new Set<string>(["/demo"]);
 
 // Full literal class strings (not composed fragments) so Tailwind's content scan sees every one.
 const CONTAINER: Record<Variant, string> = {
@@ -31,16 +37,25 @@ const LABEL: Record<Variant, string> = {
 /**
  * The landing's only button shape: a real anchor (`Link asChild`) styled as a pill, with a small
  * lift on hover, a press-down on click and a visible keyboard focus ring. One label per intent
- * across the page: "Ingresar" always goes to `/ingresar` (only in the nav), "Crear cuenta" to
- * `/register` and "Probá la demo" to `/demo`, which opens as a full page.
+ * across the page: "Ingresar" goes to `/ingresar` (only in the nav), "Crear cuenta" to `/register`
+ * and "Probá la demo" to `/demo`, which opens as a full page. For a signed-in visitor "Ingresar"
+ * and "Crear cuenta" go into the app instead (`whenSignedIn`).
  */
 export default function LandingButton({
-  href,
-  label,
-  accessibilityLabel,
+  href: signedOutHref,
+  label: signedOutLabel,
+  accessibilityLabel: signedOutAccessibilityLabel,
   variant = "primary",
   size = "md",
+  whenSignedIn,
 }: Props) {
+  const { signedIn, enterHref } = useLandingAccess();
+  const toApp = signedIn && whenSignedIn !== undefined;
+  const href: string = toApp ? enterHref : signedOutHref;
+  const label = (toApp && whenSignedIn.label) || signedOutLabel;
+  const accessibilityLabel =
+    (toApp && whenSignedIn.accessibilityLabel) || signedOutAccessibilityLabel;
+
   const padding = size === "sm" ? "px-5 py-2.5" : "px-7 py-4";
 
   // `/demo` is a real route (`app/demo.tsx`); the cast keeps this compiling while the gitignored

@@ -63,17 +63,16 @@ const UNGATED_PATHS = new Set([
 ]);
 
 export const isPrerenderedPath = (pathname: string) => PRERENDERED_PATHS.has(pathname);
-export const isUngatedPath = (pathname: string) => UNGATED_PATHS.has(pathname);
+/**
+ * `/` is public on web only: it is the marketing landing, always reachable, signed in or not.
+ * On native `/` is the entry point of the app and still waits for the restore.
+ */
+export const isUngatedPath = (pathname: string, isWeb = false) =>
+  UNGATED_PATHS.has(pathname) || (isWeb && pathname === "/");
 
-export const deriveRestoreStatus = (input: RestoreInput): RestoreStatus => {
-  const { mounted, hydrated, pathname, isWeb, hasToken, hasUser, query } = input;
-
-  if (isUngatedPath(pathname)) return "ready";
-
-  if (!mounted) {
-    // Server render and first client render must match. Native has no prerender.
-    return isWeb && isPrerenderedPath(pathname) ? "ready" : "restoring";
-  }
+/** The restore outcome once the client has mounted, ignoring any route that skips the wait. */
+const resolveSession = (input: RestoreInput): RestoreStatus => {
+  const { hydrated, hasToken, hasUser, query } = input;
   // Storage not read yet, so there is no way to know whether a token exists.
   if (!hydrated) return "restoring";
 
@@ -83,6 +82,26 @@ export const deriveRestoreStatus = (input: RestoreInput): RestoreStatus => {
   if (query.isError && !query.isFetching) return "failed";
   return "restoring";
 };
+
+export const deriveRestoreStatus = (input: RestoreInput): RestoreStatus => {
+  const { mounted, pathname, isWeb } = input;
+
+  if (isUngatedPath(pathname, isWeb)) return "ready";
+
+  if (!mounted) {
+    // Server render and first client render must match. Native has no prerender.
+    return isWeb && isPrerenderedPath(pathname) ? "ready" : "restoring";
+  }
+  return resolveSession(input);
+};
+
+/**
+ * Whether the stored session has been resolved for real (storage read, token exchanged or
+ * dropped), whichever route is showing. `deriveRestoreStatus` says "ready" at once on the public
+ * routes so they paint without a spinner, which is too early to decide where a person belongs.
+ */
+export const isSessionSettled = (input: RestoreInput): boolean =>
+  input.mounted && resolveSession(input) === "ready";
 
 /** Paths a signed-out visitor can be on: the landing, the access screens and the auth flows. */
 const OUTSIDE_APP_PATHS = new Set([
@@ -99,18 +118,34 @@ const OUTSIDE_APP_PATHS = new Set([
  * Whether entering the app should land on `/home`. The route guard's own fallback picks whichever
  * `(main)` screen it finds first (it was `/settings`), so the app navigates explicitly when:
  * - the user just got in while the navigator was mounted (login, demo, accepting the terms), or
- * - the app started already signed in from a signed-out path (a reload on `/`, or a native cold
- *   start, whose initial path is `/`).
- * A reload on an in-app path such as `/messages` keeps that path.
+ * - the app started already signed in from a signed-out path (a reload on `/ingresar`, or a native
+ *   cold start, whose initial path is `/`).
+ * A reload on an in-app path such as `/messages` keeps that path, and so does a reload on the web
+ *   landing at `/`, which is always public.
  */
 export const shouldLandOnHome = (input: {
   wasInside: boolean | null;
   isInside: boolean;
   entryPath: string | null;
+  /** Web keeps a signed-in visitor on the landing at `/`; native has no landing there. */
+  isWeb?: boolean;
 }): boolean => {
   if (!input.isInside) return false;
   if (input.wasInside === false) return true;
-  return (
-    input.wasInside === null && (input.entryPath === null || OUTSIDE_APP_PATHS.has(input.entryPath))
-  );
+  if (input.wasInside !== null) return false;
+  if (input.isWeb && input.entryPath === "/") return false;
+  return input.entryPath === null || OUTSIDE_APP_PATHS.has(input.entryPath);
+};
+
+/**
+ * Where the landing's "Ingresar" leads: the sign-in screen for a signed-out visitor, straight into
+ * the app for a signed-in one, and the terms screen when they have not accepted them yet (`/home`
+ * does not exist for them, the route guard removes it).
+ */
+export const landingEnterHref = (input: {
+  isLoggedIn: boolean;
+  hasAcceptedTerms: boolean;
+}): "/ingresar" | "/home" | "/terms" => {
+  if (!input.isLoggedIn) return "/ingresar";
+  return input.hasAcceptedTerms ? "/home" : "/terms";
 };

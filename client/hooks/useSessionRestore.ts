@@ -3,7 +3,12 @@ import { Platform } from "react-native";
 import { usePathname } from "expo-router";
 import { useSelf } from "@/hooks/useSelf";
 import { useSessionHydrated, useSessionStore } from "@/stores/session";
-import { deriveRestoreStatus, type RestoreStatus } from "@/services/sessionRestore";
+import {
+  deriveRestoreStatus,
+  isSessionSettled,
+  type RestoreInput,
+  type RestoreStatus,
+} from "@/services/sessionRestore";
 
 /**
  * Restores a stored session at the root, outside the route guard.
@@ -16,7 +21,12 @@ import { deriveRestoreStatus, type RestoreStatus } from "@/services/sessionResto
  * A 401 never reaches this hook as an error state: the axios interceptor logs out first, which
  * clears the token and turns this into `ready`.
  */
-export const useSessionRestore = (): { status: RestoreStatus; retry: () => Promise<unknown> } => {
+export const useSessionRestore = (): {
+  status: RestoreStatus;
+  /** The session is resolved for real, even on a public route that rendered before it was. */
+  settled: boolean;
+  retry: () => Promise<unknown>;
+} => {
   const pathname = usePathname();
   const hydrated = useSessionHydrated();
   const hasToken = useSessionStore((state) => !!state.authToken);
@@ -27,7 +37,7 @@ export const useSessionRestore = (): { status: RestoreStatus; retry: () => Promi
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const status = deriveRestoreStatus({
+  const input: RestoreInput = {
     mounted,
     hydrated,
     pathname,
@@ -39,8 +49,12 @@ export const useSessionRestore = (): { status: RestoreStatus; retry: () => Promi
       isFetching: query.isFetching,
       isPaused: query.fetchStatus === "paused" && query.isPending,
     },
-  });
+  };
 
   // Returns the refetch so callers (and tests) can wait for the retry to settle.
-  return { status, retry: () => query.refetch() };
+  return {
+    status: deriveRestoreStatus(input),
+    settled: isSessionSettled(input),
+    retry: () => query.refetch(),
+  };
 };

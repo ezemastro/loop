@@ -59,24 +59,27 @@ function RootNavigator() {
   const restore = useSessionRestore();
   const router = useRouter();
   const pathname = usePathname();
-  const ready = restore.status === "ready";
+  // `settled` (not `status`): the public routes render before the session is resolved, but the
+  // decision about where a signed-in person belongs must wait for it.
+  const settled = restore.settled;
   const isInside = isLoggedIn && hasAcceptedTerms;
 
   // The last path seen before the navigator mounts: the URL the app was opened or reloaded on.
   const entryPath = useRef<string | null>(null);
-  if (!ready) entryPath.current = pathname || null;
+  if (!settled) entryPath.current = pathname || null;
   const wasInside = useRef<boolean | null>(null);
 
   useEffect(() => {
-    if (!ready) return;
+    if (!settled) return;
     const land = shouldLandOnHome({
       wasInside: wasInside.current,
       isInside,
       entryPath: entryPath.current,
+      isWeb: Platform.OS === "web",
     });
     wasInside.current = isInside;
     if (land) router.replace("/home");
-  }, [ready, isInside, router]);
+  }, [settled, isInside, router]);
 
   return (
     <>
@@ -131,6 +134,13 @@ function RootNavigator() {
                   legal routes: a sibling of the root Stack, never inside a Stack.Protected.
                 */}
           <Stack.Screen name="changelog" options={{ statusBarStyle: "dark" }} />
+          {/*
+                  `/`: the marketing landing on web (always public, signed in or not, so it works as a
+                  fixed link) and the entry screen on native (see app/index.tsx). A sibling of the root
+                  Stack, never inside a Stack.Protected. Declared last so that a guard-removed route
+                  still falls back to `(main)` or `terms`, not to this one.
+                */}
+          <Stack.Screen name="index" />
         </Stack>
       )}
     </>

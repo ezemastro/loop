@@ -7,13 +7,15 @@ import path from "path";
  * react-query/axios, `ToastProvider`, `SafeAreaProvider`, etc., the same reason `legal-routes.test.ts`
  * parses `_layout.tsx` instead of rendering it.
  *
- * `(auth)/index.tsx` branches on `Platform.OS === "web"` instead of a `.web.tsx` platform
+ * `app/index.tsx` branches on `Platform.OS === "web"` instead of a `.web.tsx` platform
  * extension: this project's single `jest-expo` Jest config resolves one platform for all test
  * files, so a `HomeEntry`/`HomeEntry.web` pair would never let a test exercise the web branch.
  */
 
-const APP_DIR = path.join(__dirname, "..", "app", "(auth)");
-const INDEX_PATH = path.join(APP_DIR, "index.tsx");
+const ROOT_APP_DIR = path.join(__dirname, "..", "app");
+const APP_DIR = path.join(ROOT_APP_DIR, "(auth)");
+const INDEX_PATH = path.join(ROOT_APP_DIR, "index.tsx");
+const ROOT_LAYOUT_PATH = path.join(ROOT_APP_DIR, "_layout.tsx");
 const INGRESAR_PATH = path.join(APP_DIR, "ingresar.tsx");
 const LAYOUT_PATH = path.join(APP_DIR, "_layout.tsx");
 
@@ -37,6 +39,24 @@ describe("/ingresar route", () => {
   });
 });
 
+describe("/ is a single public root route", () => {
+  it("lives at app/index.tsx and not in the (auth) group, so the export has one `/`", () => {
+    expect(fs.existsSync(INDEX_PATH)).toBe(true);
+    expect(fs.existsSync(path.join(APP_DIR, "index.tsx"))).toBe(false);
+    expect(fs.readFileSync(LAYOUT_PATH, "utf8")).not.toMatch(/name="index"/);
+  });
+
+  it("is declared in the root Stack outside every Stack.Protected, after (main) and terms", () => {
+    const source = fs.readFileSync(ROOT_LAYOUT_PATH, "utf8");
+    const indexAt = source.search(/<Stack\.Screen name="index"/);
+    expect(indexAt).toBeGreaterThan(-1);
+    const lastClose = source.lastIndexOf("</Stack.Protected>");
+    expect(indexAt).toBeGreaterThan(lastClose);
+    expect(indexAt).toBeGreaterThan(source.indexOf('name="(main)"'));
+    expect(indexAt).toBeGreaterThan(source.indexOf('name="terms"'));
+  });
+});
+
 describe("/ entry point platform split", () => {
   const source = fs.readFileSync(INDEX_PATH, "utf8");
 
@@ -47,9 +67,17 @@ describe("/ entry point platform split", () => {
     );
   });
 
-  it("renders MarketingLanding on web and Landing otherwise", () => {
-    expect(source).toMatch(/Platform\.OS === ["']web["']/);
+  it("renders MarketingLanding on web for everyone, with no redirect before it", () => {
+    const web = source.indexOf('Platform.OS === "web"');
+    expect(web).toBeGreaterThan(-1);
     expect(source).toMatch(/<MarketingLanding\s*\/>/);
+    expect(source.indexOf("<Redirect")).toBeGreaterThan(web);
+  });
+
+  it("on native sends a signed-in person into the app and shows Landing otherwise", () => {
     expect(source).toMatch(/<Landing\s*\/>/);
+    expect(source).toMatch(
+      /isLoggedIn\) return <Redirect href=\{hasAcceptedTerms \? "\/home" : "\/terms"\}/,
+    );
   });
 });

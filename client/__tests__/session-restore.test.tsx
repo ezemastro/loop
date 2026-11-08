@@ -3,7 +3,11 @@ import { Text } from "react-native";
 import type { ReactTestRenderer } from "react-test-renderer";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderWithAct } from "./helpers/renderWithAct";
-import { deriveRestoreStatus, type RestoreInput } from "@/services/sessionRestore";
+import {
+  deriveRestoreStatus,
+  isSessionSettled,
+  type RestoreInput,
+} from "@/services/sessionRestore";
 import { useSessionStore } from "@/stores/session";
 import { useSessionRestore } from "@/hooks/useSessionRestore";
 
@@ -76,11 +80,34 @@ describe("deriveRestoreStatus", () => {
     expect(status({ mounted: false, pathname: "/", isWeb: false })).toBe("restoring");
   });
 
+  it("never makes the web landing at / wait for the restore, but native still does", () => {
+    expect(status({ pathname: "/" })).toBe("ready");
+    expect(status({ pathname: "/", mounted: false })).toBe("ready");
+    expect(status({ pathname: "/", isWeb: false })).toBe("restoring");
+    expect(status({ pathname: "/", isWeb: false, hasUser: true })).toBe("ready");
+  });
+
   it("never gates the public legal routes or the embeddable demo", () => {
     for (const pathname of ["/privacidad", "/terminos", "/borrar-cuenta", "/demo"]) {
       expect(status({ pathname })).toBe("ready");
       expect(status({ pathname, mounted: false })).toBe("ready");
     }
+  });
+});
+
+describe("isSessionSettled", () => {
+  const settled = (patch: Partial<RestoreInput>) => isSessionSettled({ ...base, ...patch });
+
+  it("waits for the real session even where the route itself does not (the web landing)", () => {
+    expect(settled({ pathname: "/" })).toBe(false);
+    expect(settled({ pathname: "/", hasUser: true })).toBe(true);
+    expect(settled({ pathname: "/", hasToken: false })).toBe(true);
+  });
+
+  it("is not settled before mounting or before storage is read, or when the restore failed", () => {
+    expect(settled({ mounted: false, hasToken: false })).toBe(false);
+    expect(settled({ hydrated: false, hasToken: false })).toBe(false);
+    expect(settled({ query: { isError: true, isFetching: false, isPaused: false } })).toBe(false);
   });
 });
 

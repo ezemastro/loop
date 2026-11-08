@@ -105,10 +105,27 @@ describe("one label per intent", () => {
   });
 });
 
+describe("signed-in landing", () => {
+  const nav = read(path.join(LANDING_DIR, "LandingNav.tsx"));
+
+  it("turns Ingresar and Crear cuenta into entries to the app, keeping the Ingresar label", () => {
+    expect(nav).toMatch(/whenSignedIn=\{\{\}\}/);
+    for (const name of ["LandingHero.tsx", "LandingFinalCta.tsx"]) {
+      expect(read(path.join(LANDING_DIR, name))).toMatch(/whenSignedIn=\{\{ label: "Ir a la app"/);
+    }
+  });
+
+  it("only shows the signed-in variant after mounting, so the pre-rendered markup still hydrates", () => {
+    const hook = read(path.join(LANDING_DIR, "useLandingAccess.ts"));
+    expect(hook).toMatch(/useEffect\(\(\) => setMounted\(true\), \[\]\)/);
+    expect(hook).toMatch(/signedIn = mounted && isLoggedIn/);
+  });
+});
+
 describe("demo button", () => {
   it("loads /demo as a new document so its storage isolation sees the boot path", () => {
     const button = read(path.join(LANDING_DIR, "LandingButton.tsx"));
-    expect(button).toMatch(/FULL_PAGE_LOAD = new Set<Props\["href"\]>\(\["\/demo"\]\)/);
+    expect(button).toMatch(/FULL_PAGE_LOAD = new Set<string>\(\["\/demo"\]\)/);
     expect(button).toMatch(/window\.location\.assign\(href\)/);
   });
 });
