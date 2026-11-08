@@ -17,6 +17,9 @@ recordatorios chicos. Las ideas de producto y los pendientes más grandes están
       <a href="https://www.flaticon.com/free-icons/infinity" title="infinity icons">Infinity icons created by Freepik - Flaticon</a>
 - [ ] Revisar que solo los dominios autorizados puedan loguearse (northfield, faro...)
 - [ ] Revisar Google OAuth en producción y en web (hoy no funciona en web)
+- [ ] Ingresar con Google usando una cuenta que no es institucional: mostrar un mensaje claro
+      (que hace falta el correo del colegio, y cómo pedir una invitación). Hoy el error no lo
+      explica. Ver `client/services/errorMapping.ts`
 - [ ] Agregar botón de "olvidé mi contraseña"
 - [ ] Ajustar padding del ícono en el header
 - [ ] Agregar versión web del carrusel de imágenes de un producto en la página de producto
