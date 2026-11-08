@@ -2,7 +2,8 @@
 
 Ítems abiertos, en español. Los cumplidos se sacaron de esta lista (ver git history si hace falta
 el rastro). Trabajo real y no trivial debería vivir como issue, no acá — esta lista es para
-recordatorios chicos.
+recordatorios chicos. Las ideas de producto y los pendientes más grandes están en
+`docs/ideas-futuras.md`.
 
 - [ ] Eliminar usuario TEST (dato de prueba en la base, no relacionado con el seed de demo)
 - [ ] Agregar funcionalidad para que los admins modifiquen colegios (media y nombre): ruta, tipos,
