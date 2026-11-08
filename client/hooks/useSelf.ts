@@ -22,10 +22,12 @@ export const useSelf = () => {
    * logged out. Waiting one turn for the store costs nothing and removes the race entirely.
    */
   const hydrated = useSessionHydrated();
+  // Without a token `/me` can only answer 401, so there is nothing to ask.
+  const hasToken = useSessionStore((state) => !!state.authToken);
   const query = useQuery({
     queryKey: ["self"],
     queryFn: () => fetchSelf(),
-    enabled: hydrated,
+    enabled: hydrated && hasToken,
   });
   const setUser = useSessionStore((state) => state.setUser);
   // Actualizar el usuario en el store cuando se obtiene la data
